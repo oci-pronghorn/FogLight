@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+    
+   <template name="Time" id="10" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt64 name="Value" id="11"/>
+   </template>  
+    
+   <template name="UV" id="20" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt32 name="Connector" id="21">
+     	<copy/>
+     </uInt32>
+     <uInt32 name="Value" id="22"/>
+   </template>
+
+   <template name="Light" id="30" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt32 name="Connector" id="31">
+     	<copy/>
+     </uInt32>
+     <uInt32 name="Value" id="32"/>
+   </template>
+
+   <template name="Moisture" id="40" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt32 name="Connector" id="41">
+     	<copy/>
+     </uInt32>
+     <uInt32 name="Value" id="42"/>
+   </template>
+
+   <template name="Button" id="50" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt32 name="Connector" id="51">
+     	<copy/>
+     </uInt32>
+     <uInt32 name="Value" id="52"/>
+   </template>
+
+   <template name="Motion" id="60" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt32 name="Connector" id="61">
+     	<copy/>
+     </uInt32> 
+     <uInt32 name="Value" id="62"/>
+   </template>
+
+   <template name="Rotary" id="70" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt32 name="Connector" id="71">
+     	<copy/>
+     </uInt32>
+     <uInt32 name="Value" id="72"/>>
+     <int32  name="Delta" id="73"/>
+     <uInt32 name="Speed" id="74"/>     
+   </template>
+
+   <template name="TempratureAndHumidity" id="80" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+      <uInt32 name="Connector" id="81">
+     	<copy/>
+      </uInt32>
+      <uInt32 name="Temprature" id="82"/>
+      <int32  name="Humidity" id="83"/>  
+   </template>
+   
+   <!-- Same message defined in request -->
+   <template name="I2C" id="100" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt32 name="Addess" id="101">
+     	<copy/>
+     </uInt32> 
+     <byteVector name="Payload" id="102"/>
+   </template>
+    
+</templates>

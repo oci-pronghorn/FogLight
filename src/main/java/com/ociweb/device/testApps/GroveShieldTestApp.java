@@ -8,6 +8,8 @@ import com.ociweb.device.GroveResponseSchema;
 import com.ociweb.device.GroveShieldV2EdisonResponseStage;
 import com.ociweb.device.GroveShieldV2EdisonStageConfiguration;
 import com.ociweb.device.GroveTwig;
+import com.ociweb.device.impl.EdisonGPIO;
+
 import static com.ociweb.device.GroveTwig.*;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -17,18 +19,35 @@ import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
 
 public class GroveShieldTestApp {
 
-    public static GroveShieldTestApp instance;
 
     //TODO: refactor as Request/Response NOT input output
-    private static final PipeConfig<GroveResponseSchema> responseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 10, 10);
-    private static final PipeConfig<GroveRequestSchema> requestConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 10, 10);
+    private static final PipeConfig<GroveResponseSchema> responseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 30, 10);
+    private static final PipeConfig<GroveRequestSchema> requestConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 30, 10);
+    
+    //TODO: Need an easy way to build this up, perhaps a fluent API.        
+    private static final GroveShieldV2EdisonStageConfiguration config = new GroveShieldV2EdisonStageConfiguration(
+            false, //publish time 
+            false,  //turn on I2C
+            new Connect[] {new Connect(RotaryEncoder,2),new Connect(RotaryEncoder,3)}, //rotary encoder 
+            new Connect[] {new Connect(Button,0) ,new Connect(MotionSensor,8)}, //7 should be avoided it can disrupt WiFi, button and motion 
+            new Connect[] {}, //for requests like do the buzzer on 4
+            new Connect[]{},  //for PWM requests //(only 3, 5, 6, 9, 10, 11)
+            new Connect[] {new Connect(MoistureSensor,1), 
+                           new Connect(LightSensor,2), 
+                           new Connect(UVSensor,3)
+                          }); //for analog sensors A0, A1, A2, A3
+    
     
     
     public static void main(String[] args) {
-        instance = new GroveShieldTestApp();
         
         GraphManager gm = new GraphManager();
-        instance.buildGraph(gm);
+                    
+        Connect[] usedLines = GroveShieldV2EdisonStageConfiguration.buildUsedLines(config); 
+        
+        EdisonGPIO.ensureAllLinuxDevices(usedLines); 
+                        
+        buildGraph(gm, config);
         
         ThreadPerStageScheduler scheduler = new ThreadPerStageScheduler(gm);
         scheduler.startup();
@@ -40,40 +59,21 @@ public class GroveShieldTestApp {
         }
         
         scheduler.shutdown();
-        
+
+        EdisonGPIO.removeAllLinuxDevices(usedLines);
+
+        scheduler.awaitTermination(5, TimeUnit.SECONDS);
+                        
     }
 
-    private void buildGraph(GraphManager gm) {
+    protected static void buildGraph(GraphManager gm, final GroveShieldV2EdisonStageConfiguration config) {
         
-        //TODO: Need an easy way to build this up, perhaps a fluent API.        
-        final GroveShieldV2EdisonStageConfiguration config = new GroveShieldV2EdisonStageConfiguration(
-                false, //publish time 
-                false,  //turn on I2C
-                new Connect[] {new Connect(RotaryEncoder,2),new Connect(RotaryEncoder,3)}, //rotary encoder 
-                new Connect[] {new Connect(Button,0),new Connect(MotionSensor,8)}, //7 should be avoided it can disrupt WiFi, button and motion 
-                new Connect[] {}, //for requests like do the buzzer on 4
-                new Connect[]{},  //for PWM requests //(only 3, 5, 6, 9, 10, 11)
-                new Connect[] {new Connect(MoistureSensor,1), new Connect(LightSensor,2), new Connect(UVSensor,3)}); //for analog sensors A0, A1, A2, A3
+        Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(GroveShieldTestApp.responseConfig);
         
+        GroveShieldV2EdisonResponseStage groveStage = new GroveShieldV2EdisonResponseStage(gm, responsePipe, config);       
         
-       Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(responseConfig);
-       
-       GroveShieldV2EdisonResponseStage groveStage = new GroveShieldV2EdisonResponseStage(gm, responsePipe, config);       
-       ConsoleJSONDumpStage<GroveResponseSchema>  dump = new ConsoleJSONDumpStage<>(gm, responsePipe);
-       
-       ThreadPerStageScheduler scheduler = new ThreadPerStageScheduler(gm);              
-       scheduler.startup();
-
-       //Everything is now running
-       
-       try{ 
-           Thread.sleep(60000*60*24); //quit after one day.           
-       } catch (InterruptedException e) {
-       }
-       scheduler.shutdown();
-       
-       scheduler.awaitTermination(5, TimeUnit.SECONDS);
-       
+        ConsoleJSONDumpStage<GroveResponseSchema>  dump = new ConsoleJSONDumpStage<>(gm, responsePipe);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 100*1000*1000, dump);
         
     }
     

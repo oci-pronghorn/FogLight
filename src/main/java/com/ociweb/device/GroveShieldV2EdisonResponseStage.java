@@ -2,9 +2,9 @@ package com.ociweb.device;
 
 import java.util.Arrays;
 
-import com.ociweb.device.impl.EdisonConstants;
 import com.ociweb.device.impl.EdisonGPIO;
 import com.ociweb.device.impl.EdisonPinManager;
+import com.ociweb.device.impl.Util;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -15,7 +15,6 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
     private static final short activeSize = (short)(1<<activeBits);
     private static final short activeIdxMask = (short)activeSize-1;
     private short activeIdx;
-    private int runningRotaryTotal;
     
     //script defines which port must be read or write on each cycle
     //when the rotary encoder is used it is checked on every cycle
@@ -23,18 +22,27 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
     //  4   read type  (bit or integer or rotary or ...
     // 12   read/write pin
     // other id?
-    private final int[]       scriptJob = new int[activeSize];
-    private final GroveTwig[] scriptTwig = new GroveTwig[activeSize];
-    private final int[]       scriptLastPublished = new int[activeSize];
-    private final int[]       rotaryRolling = new int[activeSize];
-    private final int[]       rotationState = new int[activeSize];
-    private final int[]       rotationStateChangeSum = new int[activeSize];
+    private int[]       scriptConn;
+    private int[]       scriptTask;    
+    private GroveTwig[] scriptTwig;
+    private int[]       scriptLastPublished;
+    private int[]       rotaryRolling;
+    private int[]       rotationState;
+    private long[]       rotationLastCycle;
+    
+    //for devices that must poll frequently
+    private int[]       frequentScriptConn;
+    private GroveTwig[] frequentScriptTwig;
+    private int[]       frequentScriptLastPublished;
+    private int         frequentScriptLength = 0;
 
+    private long        cycles = 0;
     
     private static final short DO_NOTHING     = 0;
     private static final short DO_BIT_READ    = 1;
     private static final short DO_INT_READ    = 2;
-    private static final short DO_ROTARY_READ = 3;
+    private static final short DO_GC          = 3;
+    
     
     
     private static final short BITS_DO_PORT    = 12;
@@ -69,41 +77,48 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
 
     }
     
-    private final Pipe<GroveResponseSchema> responsePipe;
-        
-    private Connect[] usedLines; 
-    
+    private final Pipe<GroveResponseSchema> responsePipe;    
     private final GroveShieldV2EdisonStageConfiguration config;
     
     public GroveShieldV2EdisonResponseStage(GraphManager graphManager, Pipe<GroveResponseSchema> resposnePipe, GroveShieldV2EdisonStageConfiguration config) {
         super(graphManager, NONE, resposnePipe);
-        Arrays.fill(rotaryRolling, 0xFFFFFFFF);
+        
         this.responsePipe = resposnePipe;
         this.config = config;
-        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 200000000, this);
-        GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
-        
+        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
+        GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);        
     }
 
 
-    //reverse the low 4 bits and drop the high 4 bits
-    //this allows for an even distribution of values filling each spot once
-    public byte reverseBits(byte bits) {
-        //could use Integer.reverse but we only have 4 bits...
-        return (byte) ( (0x08&(bits<<3))|
-                        (0x04&(bits<<1))|
-                        (0x02&(bits>>1))|
-                        (0x01&(bits>>3))  );
-        
-    }
-    //TODO: change from port to connection
-    
     @Override
     public void startup() {
-
-        usedLines = GroveShieldV2EdisonStageConfiguration.buildUsedLines(config);
+                              
+        scriptConn = new int[activeSize];
+        scriptTask = new int[activeSize];
+        scriptTwig = new GroveTwig[activeSize];    
+        scriptLastPublished = new int[activeSize];
+        rotaryRolling = new int[activeSize];
+        Arrays.fill(rotaryRolling, 0xFFFFFFFF);
+        rotationState = new int[activeSize];
+        rotationLastCycle = new long[activeSize];
         
-        ensureAllLinuxDevices(usedLines);       
+        //for devices that must poll frequently
+        frequentScriptConn = new int[activeSize];
+        frequentScriptTwig = new GroveTwig[activeSize];
+        frequentScriptLastPublished = new int[activeSize];
+        
+        //before we setup the pins they must start in a known state
+        //this is required for the ATD converters (eg any analog port usage)
+        
+        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(10);
+        EdisonGPIO.gpioOutputEnablePins.setValueHigh(10);
+        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(11);
+        EdisonGPIO.gpioOutputEnablePins.setValueHigh(11);
+        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(12);
+        EdisonGPIO.gpioOutputEnablePins.setValueHigh(12);
+        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(13);
+        EdisonGPIO.gpioOutputEnablePins.setValueHigh(13);        
+        
         
         byte sliceCount = 0;
         
@@ -116,43 +131,49 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
             
             i = config.analogInputs.length;
             while (--i>=0) {
-                configAnalogInput(config.analogInputs[i].connection);  //readInt
+                EdisonGPIO.configAnalogInput(config.analogInputs[i].connection);  //readInt
                             
-                int idx = reverseBits(sliceCount++);
-                scriptJob[idx] = ((MASK_DO_PORT&config.analogInputs[i].connection)<<SHIFT_DO_PORT) |
-                                                    ((MASK_DO_JOB&DO_INT_READ)<<SHIFT_DO_JOB );
+                int idx = Util.reverseBits(sliceCount++);
+                scriptConn[idx]=config.analogInputs[i].connection;
+                scriptTask[idx]=DO_INT_READ;
                 scriptTwig[idx] = config.analogInputs[i].twig;
-                
+                System.out.println("configured "+config.analogInputs[i].twig+" on connection "+config.analogInputs[i].connection);
   
             }
             
             i = config.digitalInputs.length;
             while (--i>=0) {
-                configDigitalInput(config.digitalInputs[i].connection); //readBit
+                EdisonGPIO.configDigitalInput(config.digitalInputs[i].connection); //readBit
+                GroveTwig twig = config.digitalInputs[i].twig;
                 
-                int idx = reverseBits(sliceCount++);
-                scriptJob[idx] = ((MASK_DO_PORT&config.digitalInputs[i].connection)<<SHIFT_DO_PORT) |
-                                                    ((MASK_DO_JOB&DO_BIT_READ)<<SHIFT_DO_JOB );
-                scriptTwig[idx] = config.digitalInputs[i].twig;
-                
+                if (twig == GroveTwig.Button) {                    
+                    frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection;
+                    frequentScriptTwig[frequentScriptLength] = twig;                           
+                    frequentScriptLength++; 
+                } else {                               
+                    int idx = Util.reverseBits(sliceCount++);
+                    scriptConn[idx]=config.digitalInputs[i].connection;
+                    scriptTask[idx]=DO_BIT_READ;
+                    scriptTwig[idx] = twig;                    
+                }
+                System.out.println("configured "+twig+" on connection "+config.digitalInputs[i].connection);
+                                
             }
             
             i = config.encoderInputs.length;
             while (--i>=0) {
-                configDigitalInput(config.encoderInputs[i].connection); //rotary 
+                EdisonGPIO.configDigitalInput(config.encoderInputs[i].connection); //rotary 
                 if (0!=(i&0x1)) {
                     if ((config.encoderInputs[i].connection!=(1+config.encoderInputs[i-1].connection)) ) {
                         throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");                    
                     }      
-                                    
-                    int idx = reverseBits(sliceCount++);
-                    scriptJob[idx] = ((MASK_DO_PORT&config.encoderInputs[i].connection)<<SHIFT_DO_PORT) |
-                                                        ((MASK_DO_JOB&DO_ROTARY_READ)<<SHIFT_DO_JOB );
-                    scriptTwig[idx] = config.encoderInputs[i].twig;
+                    frequentScriptConn[frequentScriptLength] = config.encoderInputs[i].connection-1;
+                    frequentScriptTwig[frequentScriptLength] = config.encoderInputs[i].twig;
+                    frequentScriptLength++; 
+                    System.out.println("configured "+config.encoderInputs[i].twig+" on connection "+config.encoderInputs[i].connection);
                     
                 }
-            }            
-                      
+            }                      
             
             EdisonGPIO.shieldControl.setDirectionHigh(0);
         }
@@ -161,173 +182,149 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
             throw new UnsupportedOperationException("The grove base board does not support this many connections.");
         }
         
-    }
-
-    private void ensureAllLinuxDevices(Connect[] usedLines) {
-        
-        EdisonGPIO.shieldControl.ensureDevice(0); //tri statebyte
-        EdisonGPIO.shieldControl.ensureDevice(1); //shield reset
-
-        int j = usedLines.length;
-        while (--j>=0) {                
-            int i = usedLines[j].connection;
-            EdisonGPIO.gpioLinuxPins.ensureDevice(i);
-            EdisonGPIO.gpioOutputEnablePins.ensureDevice(i);
-            EdisonGPIO.gpioPullupEnablePins.ensureDevice(i);   
-            EdisonGPIO.gpioPinMux.ensureDevice(i);
-            EdisonGPIO.gpioPinMuxExt.ensureDevice(i);
-            EdisonGPIO.gpioPinModes.ensureDevice(i);
-            
+        //not a great feature, takes up too much CPU.
+        if (false && sliceCount<10) {
+            int idx = Util.reverseBits(sliceCount++);
+            scriptTask[idx]=DO_GC;
         }
-    }
-    
-    private void configDigitalInput(int dPort) {       
-        EdisonGPIO.gpioOutputEnablePins.setDirectionLow(dPort);
-
-        //no need to map since ports happen to match the digital pins
-        EdisonGPIO.gpioPullupEnablePins.setDirectionHigh(dPort);
-        EdisonGPIO.gpioLinuxPins.setDirectionIn(dPort);      
-    }
-    
-    
-    public void configAnalogInput(int aPort) {
-        if (aPort<0 || aPort>5) {
-            throw new UnsupportedOperationException("only available on 0, 1, 2, or 3 and only 4 or 5 if I2C is not in use.");
-        }
-        EdisonGPIO.gpioPinMux.setDirectionHigh(EdisonConstants.ANALOG_CONNECTOR_TO_PIN[aPort]);        
-        EdisonGPIO.gpioOutputEnablePins.setDirectionLow(EdisonConstants.ANALOG_CONNECTOR_TO_PIN[aPort]);
-        EdisonGPIO.gpioPullupEnablePins.setDirectionIn(EdisonConstants.ANALOG_CONNECTOR_TO_PIN[aPort]);  //in       
-    }
         
-    
-    
+    }
+
     @Override
     public void run() {
-                
+        cycles++; 
+        
+        //These are the sensors we must check on every single pass
+        int j = frequentScriptLength;
+        while (--j>=0) {
+                        
+            int connector = frequentScriptConn[j];
+            switch (frequentScriptTwig[j]) {
+                case Button:
+                readButton(j, connector);                    
+                break;
+                case RotaryEncoder:
+                readRotaryEncoder(j, connector);                    
+                break;
+                default:
+                     throw new UnsupportedOperationException(frequentScriptTwig[j].toString());
+            }                        
+        } 
+         
+        //These are the sensors we can check less frequently and do a few on each pass
         final short doit =  (short)(++activeIdx&activeIdxMask);
+        
+        switch(scriptTask[doit]) {
+            case DO_NOTHING:
+                break;
+            case DO_BIT_READ:
+                bitRead(doit);
+                break;
+            case DO_INT_READ:
+                intRead(doit);   
+                break;
+            case DO_GC:
+                System.gc();
+                break;
+            default:
+                throw new UnsupportedOperationException(Integer.toString(scriptTask[doit]));
+        }
+        
+    }
+
+
+    private void readRotaryEncoder(int j, int connector) {
         byte rotaryPoll=3;
         int maxCycles = 80; //what if stuck in middle must detect.
         do {
-             //TODO: how do we know we have these two on the same clock?
-             int r1  = EdisonPinManager.readBit(2, EdisonGPIO.gpioLinuxPins); //10
-             int r2  = EdisonPinManager.readBit(3, EdisonGPIO.gpioLinuxPins); //10
-             
-             rotaryPoll = (byte)((r1<<1)|r2);
-             
-             if (doesNotMatchLastPollValue(rotaryPoll, rotaryRolling[doit])) {
-                 rotaryRolling[doit] = (rotaryRolling[doit]<<2) | rotaryPoll; 
-                                  
-                 byte value = rotaryMap[0xFF & rotaryRolling[doit]];
-                 rotationState[doit] = rotationState[doit]+value; 
-                 
-                 rotationStateChangeSum[doit] += (value|(value>>7));                 
-                 
-                 
-                 
-//debug                 
-//                 if (rotaryPoll==3 && 0==rotaryMap[0xFF&rotaryRolling]) {
-//                     
-//                     System.out.println("  "+Integer.toBinaryString(0xFF&rotaryRolling));                     
-//                     
-//                 }
-                 
-             }
-        } while ((rotaryPoll!=0x3 ) && --maxCycles>=0); //TODO: keep going until we get 111111 ??
-         
-        if (0==maxCycles) {
-             System.err.println("check rotary encoder, may be stuck between states.");
-        }
-         
-         
-        
-        int temp = scriptJob[doit];
-        
-        short connector = (short)((temp>>SHIFT_DO_PORT)&MASK_DO_PORT);
-        short job = (short)((temp>>SHIFT_DO_JOB)&MASK_DO_JOB);
-        
-        int   msgId = 0;//TODO: missing all the types!
-        
-        
-        switch(job) {
-            case DO_NOTHING:
-                        //System.gc(); //an idea
-                break;
-            case DO_BIT_READ:
-                {
-                      //read and xmit
-                      int fieldValue = (EdisonPinManager.readBit(connector, EdisonGPIO.gpioLinuxPins)<<31) | connector;
-                      if (scriptLastPublished[doit]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {
-                          
-                          scriptTwig[doit].writeBit(responsePipe, connector, fieldValue);
-                          scriptLastPublished[doit]=fieldValue;
-                                  
-                      } else {
-                          //tossing fieldValue but this could be saved to send on next call.
-                      }
-                }
-                break;
-            case DO_INT_READ:
-                        //read and xmit
-                         int intValue = EdisonPinManager.readInt(connector, EdisonGPIO.gpioLinuxPins);
-                         if (scriptLastPublished[doit]!=intValue && Pipe.hasRoomForWrite(responsePipe)) {
-                             
-                             scriptTwig[doit].writeInt(responsePipe, connector, intValue);
-                             scriptLastPublished[doit]=intValue;
-                             
-                         } else {
-                             //tossing fieldValue but this could be saved to send on next call.
-                         }
+            //TODO: how do we know we have these two on the same clock?
+            int r1  = EdisonPinManager.readBit(connector, EdisonGPIO.gpioLinuxPins); //10
+            int r2  = EdisonPinManager.readBit(connector+1, EdisonGPIO.gpioLinuxPins); //10
+            
+            rotaryPoll = (byte)((r1<<1)|r2);
+            
+            if (doesNotMatchLastPollValue(rotaryPoll, rotaryRolling[j])) {
+                rotaryRolling[j] = (rotaryRolling[j]<<2) | rotaryPoll; 
                 
-                break;
-            case DO_ROTARY_READ:    
-                        if (scriptLastPublished[doit]!=rotationState[doit] && Pipe.hasRoomForWrite(responsePipe)) {
-                                    
-                            scriptTwig[doit].writeRotation(responsePipe, connector, rotationState[doit], rotationState[doit]-scriptLastPublished[doit], rotationStateChangeSum[doit]);
-                                       
-                            scriptLastPublished[doit] = rotationState[doit];
-                        }
-                        rotationStateChangeSum[doit] = 0;//reset for next sum
-                        //no need to save else since we will return the current state accumulated
-                break;
-
-            default:
-                throw new UnsupportedOperationException(Integer.toString(job));
+                byte value = rotaryMap[0xFF & rotaryRolling[j]];
+                rotationState[j] = rotationState[j]+value;
+                
+                //debug                 
+                //                 if (rotaryPoll==3 && 0==rotaryMap[0xFF&rotaryRolling]) {
+                //                     
+                //                     System.out.println("  "+Integer.toBinaryString(0xFF&rotaryRolling));                     
+                //                     
+                //                 }
+                
+            }
+        } while ((rotaryPoll!=0x3 ) && --maxCycles>=0); //TODO: keep going until we get 111111 ??
+        
+                           
+        if (0==maxCycles) {
+            System.err.println("check rotary encoder, may be stuck between states.");
         }
-        
+            
+        if (frequentScriptLastPublished[j]!=rotationState[j] && Pipe.hasRoomForWrite(responsePipe)) {
+            int speed = (int)Math.min( (cycles - rotationLastCycle[j]), Integer.MAX_VALUE);
+            frequentScriptTwig[j].writeRotation(responsePipe, connector, rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
+                       
+            frequentScriptLastPublished[j] = rotationState[j];
+            rotationLastCycle[j] = cycles;
+        }
+    }
 
-        
-        
-        
-        
+
+    private void readButton(int j, int connector) {
+        //read and xmit
+        int fieldValue = EdisonPinManager.readBit(connector, EdisonGPIO.gpioLinuxPins);
+        if (frequentScriptLastPublished[j]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                        
+            frequentScriptTwig[j].writeBit(responsePipe, connector, fieldValue);
+            frequentScriptLastPublished[j]=fieldValue;
+        } else {
+            //tossing fieldValue but this could be saved to send on next call.
+        }
+    }
+
+
+    private void intRead(final short doit) {
+        {
+             int connector = scriptConn[doit];
+             int intValue = EdisonPinManager.readInt(connector, EdisonGPIO.gpioLinuxPins);
+             if (isWithinNoise(doit, intValue) && Pipe.hasRoomForWrite(responsePipe)) {
+                 
+                 scriptTwig[doit].writeInt(responsePipe, connector, intValue);
+                 scriptLastPublished[doit]=intValue;
+                 
+             } else {
+                 //tossing fieldValue but this could be saved to send on next call.
+             }
+        }
+    }
+
+   //if change is smaller than 1/64 then do not show.
+    private boolean isWithinNoise(final short doit, int intValue) {
+        int lastValue = scriptLastPublished[doit];
+        return Math.abs(lastValue-intValue) >= (Math.min(lastValue,intValue)>>6);
+    }
+
+
+    private void bitRead(final short doit) {
+        {
+              int connector = scriptConn[doit];
+              int fieldValue = EdisonPinManager.readBit(connector, EdisonGPIO.gpioLinuxPins);
+              if (isWithinNoise(doit, fieldValue) &&Pipe.hasRoomForWrite(responsePipe)) {
+                  
+                  scriptTwig[doit].writeBit(responsePipe, connector, fieldValue);
+                  scriptLastPublished[doit]=fieldValue;
+                          
+              } else {
+                  //tossing fieldValue but this could be saved to send on next call.
+              }
+        }
     }
 
     private static final boolean doesNotMatchLastPollValue(byte rotaryPoll, int rotaryRolling) {
         return rotaryPoll != (0x3 & rotaryRolling);
-    }
-    
-    
-    @Override
-    public void shutdown() {
-        removeAllLinuxDevices(usedLines);   
-    }
-
-    private void removeAllLinuxDevices(Connect[] usedLines) {
-        EdisonGPIO.shieldControl.removeDevice(0); //tri state
-        EdisonGPIO.shieldControl.removeDevice(1); //shield reset
-
-        //NOTE: this is overkill to create every single device we may possibly need
-        //      TODO: use some flats to reduce this set to only the ones we are using
-        
-        int j = usedLines.length;
-        while (--j>=0) {                
-            int i = usedLines[j].connection;       
-            EdisonGPIO.gpioLinuxPins.removeDevice(i);
-            EdisonGPIO.gpioOutputEnablePins.removeDevice(i);
-            EdisonGPIO.gpioPullupEnablePins.removeDevice(i); 
-            EdisonGPIO.gpioPinMux.removeDevice(i);
-            EdisonGPIO.gpioPinMuxExt.removeDevice(i);
-            EdisonGPIO.gpioPinModes.removeDevice(i);
-        }
     }
     
 }

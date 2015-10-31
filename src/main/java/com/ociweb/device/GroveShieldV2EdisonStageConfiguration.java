@@ -36,7 +36,7 @@ public class GroveShieldV2EdisonStageConfiguration {
         }     
     }
 
-    static Connect[] buildUsedLines(GroveShieldV2EdisonStageConfiguration config) {
+    public static Connect[] buildUsedLines(GroveShieldV2EdisonStageConfiguration config) {
         
         Connect[] result = new Connect[config.digitalInputs.length+
                                  config.encoderInputs.length+
@@ -55,8 +55,7 @@ public class GroveShieldV2EdisonStageConfiguration {
         findDup(result,pos,config.encoderInputs, false);
         System.arraycopy(config.encoderInputs, 0, result, pos, config.encoderInputs.length);
         pos+=config.encoderInputs.length;
-        
-        
+                
         findDup(result,pos,config.digitalOutputs, false);
         System.arraycopy(config.digitalOutputs, 0, result, pos, config.digitalOutputs.length);
         pos+=config.digitalOutputs.length;

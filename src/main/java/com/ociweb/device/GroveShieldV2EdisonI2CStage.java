@@ -13,12 +13,29 @@ public class GroveShieldV2EdisonI2CStage extends PronghornStage {
 
     public GroveShieldV2EdisonI2CStage(GraphManager gm, Pipe<GroveRequestSchema> pipe) {
         super(gm, NONE, pipe);
+        
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
+        GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
+        
     };
+    
+    
+    @Override
+    public void startup() {
+        
+        
+    }
     
     
     @Override
     public void run() {
         // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void shutdown() {
+        
         
     }
 

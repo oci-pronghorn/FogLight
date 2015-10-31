@@ -44,8 +44,8 @@
      <uInt32 name="Connector" id="71">
      	<copy/>
      </uInt32>
-     <uInt32 name="Value" id="72"/>>
-     <int32  name="Delta" id="73"/>
+     <int32 name="Value" id="72"/>>
+     <int32 name="Delta" id="73"/>
      <uInt32 name="Speed" id="74"/>     
    </template>
 

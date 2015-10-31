@@ -7,9 +7,18 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveShieldV2EdisonRequestStage extends PronghornStage {
 
-    public GroveShieldV2EdisonRequestStage(GraphManager gm, Pipe<GroveRequestSchema> requestPipe, Pipe<GroveResponseSchema> responsePipe) {
-        super(gm, requestPipe, responsePipe);
-    };
+    public GroveShieldV2EdisonRequestStage(GraphManager gm, Pipe<GroveRequestSchema> requestPipe) {
+        super(gm, requestPipe, NONE);
+    }
+    
+        
+    
+    @Override
+    public void startup() {
+
+        
+        
+    }
     
     
     @Override
@@ -18,6 +27,12 @@ public class GroveShieldV2EdisonRequestStage extends PronghornStage {
         
     }
 
+    @Override
+    public void shutdown() {
+        
+        
+    }
+    
     
 //  i = config.pwmOutputs.length;
 //  while (--i>=0) {

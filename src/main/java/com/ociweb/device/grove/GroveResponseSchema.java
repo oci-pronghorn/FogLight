@@ -1,4 +1,4 @@
-package com.ociweb.device;
+package com.ociweb.device.grove;
 
 import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.MessageSchema;

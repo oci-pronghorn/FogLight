@@ -12,6 +12,26 @@ public class Util {
                         (0x01&(bits>>3))  );
         
     }
+
+    public static byte[] rotaryMap = new byte[255];
     
+    static {
+        
+        Util.rotaryMap[0b01001011] = -1;
+        
+        Util.rotaryMap[0b11001011] = -1;
+        Util.rotaryMap[0b11011011] = -1;
+        Util.rotaryMap[0b11010011] = -1;
+        Util.rotaryMap[0b10111011] = -1;//fast spin check
+        
+        Util.rotaryMap[0b10000111] = 1;
+        
+        Util.rotaryMap[0b11000111] = 1;
+        Util.rotaryMap[0b11100111] = 1;
+        Util.rotaryMap[0b11100011] = 1;
+        Util.rotaryMap[0b01110111] = 1;//fast spin check
+        Util.rotaryMap[0b01000111] = 1;//fast spin check
+
+    }
     
 }

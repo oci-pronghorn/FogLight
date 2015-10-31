@@ -1,20 +1,23 @@
-package com.ociweb.device;
+package com.ociweb.device.grove;
 
 import java.util.Arrays;
 
-import com.ociweb.device.impl.EdisonGPIO;
-import com.ociweb.device.impl.EdisonPinManager;
+import com.ociweb.device.config.GroveConnectionConfiguration;
 import com.ociweb.device.impl.Util;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class GroveShieldV2EdisonResponseStage extends PronghornStage {
+public class GroveShieldV2ResponseStage extends PronghornStage {
         
     private static final short activeBits = 4; //we have a max of 16 physical ports to use on the groveShield
     private static final short activeSize = (short)(1<<activeBits);
     private static final short activeIdxMask = (short)activeSize-1;
     private short activeIdx;
+    
+    private final int maTotal;
+    private final int maLastKeep;
+
     
     //script defines which port must be read or write on each cycle
     //when the rotary encoder is used it is checked on every cycle
@@ -23,12 +26,17 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
     // 12   read/write pin
     // other id?
     private int[]       scriptConn;
-    private int[]       scriptTask;    
+    private int[]       scriptTask; 
     private GroveTwig[] scriptTwig;
-    private int[]       scriptLastPublished;
+        
+    
+    private int[][]    movingAverageHistory;
+    private int[]      lastPublished;
+    
+    
     private int[]       rotaryRolling;
     private int[]       rotationState;
-    private long[]       rotationLastCycle;
+    private long[]      rotationLastCycle;
     
     //for devices that must poll frequently
     private int[]       frequentScriptConn;
@@ -40,51 +48,20 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
     
     private static final short DO_NOTHING     = 0;
     private static final short DO_BIT_READ    = 1;
-    private static final short DO_INT_READ    = 2;
-    private static final short DO_GC          = 3;
+    private static final short DO_INT_READ    = 2;    
     
-    
-    
-    private static final short BITS_DO_PORT    = 12;
-    private static final short SIZE_DO_PORT    = 1<<BITS_DO_PORT;
-    private static final short MASK_DO_PORT    = SIZE_DO_PORT-1;
-    private static final short SHIFT_DO_PORT   = 0x0; //LOWEST
-    
-    private static final short BITS_DO_JOB    = 4;
-    private static final short SIZE_DO_JOB    = 1<<BITS_DO_JOB;
-    private static final short MASK_DO_JOB    = SIZE_DO_JOB-1;
-    private static final short SHIFT_DO_JOB   = BITS_DO_PORT;//ABOVE THE PIN
-        
-    
-    
-    private static byte[] rotaryMap = new byte[255];
-    static {
-        
-        rotaryMap[0b01001011] = -1;
-        
-        rotaryMap[0b11001011] = -1;
-        rotaryMap[0b11011011] = -1;
-        rotaryMap[0b11010011] = -1;
-        rotaryMap[0b10111011] = -1;//fast spin check
-        
-        rotaryMap[0b10000111] = 1;
-        
-        rotaryMap[0b11000111] = 1;
-        rotaryMap[0b11100111] = 1;
-        rotaryMap[0b11100011] = 1;
-        rotaryMap[0b01110111] = 1;//fast spin check
-        rotaryMap[0b01000111] = 1;//fast spin check
 
-    }
     
     private final Pipe<GroveResponseSchema> responsePipe;    
-    private final GroveShieldV2EdisonStageConfiguration config;
+    final GroveConnectionConfiguration config;
     
-    public GroveShieldV2EdisonResponseStage(GraphManager graphManager, Pipe<GroveResponseSchema> resposnePipe, GroveShieldV2EdisonStageConfiguration config) {
+    public GroveShieldV2ResponseStage(GraphManager graphManager, Pipe<GroveResponseSchema> resposnePipe, GroveConnectionConfiguration config) {
         super(graphManager, NONE, resposnePipe);
         
         this.responsePipe = resposnePipe;
         this.config = config;
+        this.maTotal = config.analogMovingAverage();
+        this.maLastKeep = maTotal-1;
         GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
         GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);        
     }
@@ -95,8 +72,16 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
                               
         scriptConn = new int[activeSize];
         scriptTask = new int[activeSize];
-        scriptTwig = new GroveTwig[activeSize];    
-        scriptLastPublished = new int[activeSize];
+        scriptTwig = new GroveTwig[activeSize];  
+        
+        movingAverageHistory = new int[maLastKeep][];
+        
+        int j = maLastKeep;
+        while (--j>=0) {
+            movingAverageHistory[j] = new int[activeSize];            
+        }
+        lastPublished = new int[activeSize];
+        
         rotaryRolling = new int[activeSize];
         Arrays.fill(rotaryRolling, 0xFFFFFFFF);
         rotationState = new int[activeSize];
@@ -110,89 +95,83 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
         //before we setup the pins they must start in a known state
         //this is required for the ATD converters (eg any analog port usage)
         
-        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(10);
-        EdisonGPIO.gpioOutputEnablePins.setValueHigh(10);
-        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(11);
-        EdisonGPIO.gpioOutputEnablePins.setValueHigh(11);
-        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(12);
-        EdisonGPIO.gpioOutputEnablePins.setValueHigh(12);
-        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(13);
-        EdisonGPIO.gpioOutputEnablePins.setValueHigh(13);        
+        config.setToKnownStateFromColdStart();        
         
         
         byte sliceCount = 0;
         
         //configure each sensor
-        
-        synchronized(EdisonGPIO.shieldControl) {
-            EdisonGPIO.shieldControl.setDirectionLow(0);
-                        
-            int i;
-            
-            i = config.analogInputs.length;
-            while (--i>=0) {
-                EdisonGPIO.configAnalogInput(config.analogInputs[i].connection);  //readInt
-                            
-                int idx = Util.reverseBits(sliceCount++);
-                scriptConn[idx]=config.analogInputs[i].connection;
-                scriptTask[idx]=DO_INT_READ;
-                scriptTwig[idx] = config.analogInputs[i].twig;
-                System.out.println("configured "+config.analogInputs[i].twig+" on connection "+config.analogInputs[i].connection);
-  
-            }
-            
-            i = config.digitalInputs.length;
-            while (--i>=0) {
-                EdisonGPIO.configDigitalInput(config.digitalInputs[i].connection); //readBit
-                GroveTwig twig = config.digitalInputs[i].twig;
-                
-                if (twig == GroveTwig.Button) {                    
-                    frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection;
-                    frequentScriptTwig[frequentScriptLength] = twig;                           
-                    frequentScriptLength++; 
-                } else {                               
-                    int idx = Util.reverseBits(sliceCount++);
-                    scriptConn[idx]=config.digitalInputs[i].connection;
-                    scriptTask[idx]=DO_BIT_READ;
-                    scriptTwig[idx] = twig;                    
-                }
-                System.out.println("configured "+twig+" on connection "+config.digitalInputs[i].connection);
-                                
-            }
-            
-            i = config.encoderInputs.length;
-            while (--i>=0) {
-                EdisonGPIO.configDigitalInput(config.encoderInputs[i].connection); //rotary 
-                if (0!=(i&0x1)) {
-                    if ((config.encoderInputs[i].connection!=(1+config.encoderInputs[i-1].connection)) ) {
-                        throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");                    
-                    }      
-                    frequentScriptConn[frequentScriptLength] = config.encoderInputs[i].connection-1;
-                    frequentScriptTwig[frequentScriptLength] = config.encoderInputs[i].twig;
-                    frequentScriptLength++; 
-                    System.out.println("configured "+config.encoderInputs[i].twig+" on connection "+config.encoderInputs[i].connection);
+
+        config.beginPinConfiguration();
                     
-                }
-            }                      
-            
-            EdisonGPIO.shieldControl.setDirectionHigh(0);
+        int i;
+        
+        i = config.analogInputs.length;
+        while (--i>=0) {
+            config.configurePinsForAnalogInput(config.analogInputs[i].connection);
+                        
+            int idx = Util.reverseBits(sliceCount++);
+            scriptConn[idx]=config.analogInputs[i].connection;
+            scriptTask[idx]=DO_INT_READ;
+            scriptTwig[idx] = config.analogInputs[i].twig;
+            System.out.println("configured "+config.analogInputs[i].twig+" on connection "+config.analogInputs[i].connection);
+  
         }
+            
+        i = config.digitalInputs.length;
+        while (--i>=0) {
+            config.configurePinsForDigitalInput(config.digitalInputs[i].connection);
+            GroveTwig twig = config.digitalInputs[i].twig;
+            
+            if (twig == GroveTwig.Button) {                    
+                frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection;
+                frequentScriptTwig[frequentScriptLength] = twig;                           
+                frequentScriptLength++; 
+            } else {                               
+                int idx = Util.reverseBits(sliceCount++);
+                scriptConn[idx]=config.digitalInputs[i].connection;
+                scriptTask[idx]=DO_BIT_READ;
+                scriptTwig[idx] = twig;                    
+            }
+            System.out.println("configured "+twig+" on connection "+config.digitalInputs[i].connection);
+                            
+        }
+        
+        i = config.encoderInputs.length;
+        while (--i>=0) {
+            config.configurePinsForDigitalInput(config.digitalInputs[i].connection);
+            if (0!=(i&0x1)) {
+                if ((config.encoderInputs[i].connection!=(1+config.encoderInputs[i-1].connection)) ) {
+                    throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");                    
+                }      
+                frequentScriptConn[frequentScriptLength] = config.encoderInputs[i].connection-1;
+                frequentScriptTwig[frequentScriptLength] = config.encoderInputs[i].twig;
+                frequentScriptLength++; 
+                System.out.println("configured "+config.encoderInputs[i].twig+" on connection "+(config.encoderInputs[i].connection-1)+"/"+(config.encoderInputs[i].connection));
+                
+            }
+        }                      
+        
+        config.endPinConfiguration();
 
         if (sliceCount>=16) {
             throw new UnsupportedOperationException("The grove base board does not support this many connections.");
         }
-        
-        //not a great feature, takes up too much CPU.
-        if (false && sliceCount<10) {
-            int idx = Util.reverseBits(sliceCount++);
-            scriptTask[idx]=DO_GC;
-        }
-        
     }
+
 
     @Override
     public void run() {
         cycles++; 
+        
+        if (config.publishTime) {
+            int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_TIME_10);
+            Pipe.addLongValue(System.currentTimeMillis(), responsePipe);
+            Pipe.publishWrites(responsePipe);
+            Pipe.confirmLowLevelWrite(responsePipe, size);
+        }
+        
+        
         
         //These are the sensors we must check on every single pass
         int j = frequentScriptLength;
@@ -223,9 +202,6 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
             case DO_INT_READ:
                 intRead(doit);   
                 break;
-            case DO_GC:
-                System.gc();
-                break;
             default:
                 throw new UnsupportedOperationException(Integer.toString(scriptTask[doit]));
         }
@@ -238,15 +214,15 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
         int maxCycles = 80; //what if stuck in middle must detect.
         do {
             //TODO: how do we know we have these two on the same clock?
-            int r1  = EdisonPinManager.readBit(connector, EdisonGPIO.gpioLinuxPins); //10
-            int r2  = EdisonPinManager.readBit(connector+1, EdisonGPIO.gpioLinuxPins); //10
+            int r1  = config.readBit(connector); 
+            int r2  = config.readBit(connector+1); 
             
             rotaryPoll = (byte)((r1<<1)|r2);
             
             if (doesNotMatchLastPollValue(rotaryPoll, rotaryRolling[j])) {
                 rotaryRolling[j] = (rotaryRolling[j]<<2) | rotaryPoll; 
                 
-                byte value = rotaryMap[0xFF & rotaryRolling[j]];
+                byte value = Util.rotaryMap[0xFF & rotaryRolling[j]];
                 rotationState[j] = rotationState[j]+value;
                 
                 //debug                 
@@ -276,7 +252,7 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
 
     private void readButton(int j, int connector) {
         //read and xmit
-        int fieldValue = EdisonPinManager.readBit(connector, EdisonGPIO.gpioLinuxPins);
+        int fieldValue = config.readBit(connector);
         if (frequentScriptLastPublished[j]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                        
             frequentScriptTwig[j].writeBit(responsePipe, connector, fieldValue);
             frequentScriptLastPublished[j]=fieldValue;
@@ -289,11 +265,30 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
     private void intRead(final short doit) {
         {
              int connector = scriptConn[doit];
-             int intValue = EdisonPinManager.readInt(connector, EdisonGPIO.gpioLinuxPins);
-             if (isWithinNoise(doit, intValue) && Pipe.hasRoomForWrite(responsePipe)) {
+             int intValue = config.readInt(connector);
+             
+             int i = maLastKeep;
+             long sum = 0;
+             StringBuilder b = new StringBuilder();
+             while (--i>=0) {
+                 b.append(" ").append(movingAverageHistory[i][doit]);
+                 sum += (long)movingAverageHistory[i][doit];
+             }
+             b.append(" ").append(intValue);
+             sum += (long)intValue;
+             int avg = (int)Math.rint(sum/(float)maTotal);
+             
+             if (lastPublished[doit]!=avg && Pipe.hasRoomForWrite(responsePipe)) {
+                 
+                 System.out.println(scriptTwig[doit]+" "+avg+" "+maTotal+" "+b);
                  
                  scriptTwig[doit].writeInt(responsePipe, connector, intValue);
-                 scriptLastPublished[doit]=intValue;
+                 int j = maLastKeep;
+                 while (--j>0) {//must stop before zero because we do copy from previous lower index.
+                     movingAverageHistory[j][doit]=movingAverageHistory[j-1][doit];                     
+                 }
+                 movingAverageHistory[0][doit]=intValue;
+                 lastPublished[doit] = avg;
                  
              } else {
                  //tossing fieldValue but this could be saved to send on next call.
@@ -301,22 +296,14 @@ public class GroveShieldV2EdisonResponseStage extends PronghornStage {
         }
     }
 
-   //if change is smaller than 1/64 then do not show.
-    private boolean isWithinNoise(final short doit, int intValue) {
-        int lastValue = scriptLastPublished[doit];
-        return Math.abs(lastValue-intValue) >= (Math.min(lastValue,intValue)>>6);
-    }
-
 
     private void bitRead(final short doit) {
         {
               int connector = scriptConn[doit];
-              int fieldValue = EdisonPinManager.readBit(connector, EdisonGPIO.gpioLinuxPins);
-              if (isWithinNoise(doit, fieldValue) &&Pipe.hasRoomForWrite(responsePipe)) {
-                  
-                  scriptTwig[doit].writeBit(responsePipe, connector, fieldValue);
-                  scriptLastPublished[doit]=fieldValue;
-                          
+              int fieldValue = config.readBit(connector);
+              if (lastPublished[doit]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                  
+                  scriptTwig[doit].writeBit(responsePipe, connector, fieldValue);                  
+                  lastPublished[doit]=fieldValue;                          
               } else {
                   //tossing fieldValue but this could be saved to send on next call.
               }

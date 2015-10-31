@@ -1,11 +1,11 @@
-package com.ociweb.device;
+package com.ociweb.device.grove;
 
-public class Connect {
+public class GroveConnect {
 
     public final GroveTwig twig;
     public final byte connection;
     
-    public Connect(GroveTwig twig, int connection) {
+    public GroveConnect(GroveTwig twig, int connection) {
         this.twig = twig;
         assert(connection<255 && connection>=0);
         this.connection = (byte)connection;

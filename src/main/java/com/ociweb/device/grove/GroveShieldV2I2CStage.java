@@ -1,17 +1,16 @@
-package com.ociweb.device;
+package com.ociweb.device.grove;
 
 import java.nio.ByteBuffer;
 
-import com.ociweb.device.impl.EdisonGPIO;
 import com.ociweb.device.impl.EdisonPinManager;
 import com.ociweb.device.impl.Grove_LCD_RGB;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class GroveShieldV2EdisonI2CStage extends PronghornStage {
+public class GroveShieldV2I2CStage extends PronghornStage {
 
-    public GroveShieldV2EdisonI2CStage(GraphManager gm, Pipe<GroveRequestSchema> pipe) {
+    public GroveShieldV2I2CStage(GraphManager gm, Pipe<GroveRequestSchema> pipe) {
         super(gm, NONE, pipe);
         
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
@@ -540,97 +539,6 @@ public class GroveShieldV2EdisonI2CStage extends PronghornStage {
 //          
 //        }
 //    }
-
-    
-    //is only supported at 18/19,  Note this disables use of A4 and A5
-    private void configI2C() {
-
-        EdisonGPIO.gpioPinMux.setDirectionLow(18);
-        EdisonGPIO.gpioPinMux.setDirectionLow(19);
-        
-        EdisonGPIO.gpioLinuxPins.setDirectionIn(18); //in
-        EdisonGPIO.gpioLinuxPins.setDirectionIn(19);  //in
-        EdisonGPIO.gpioOutputEnablePins.setDirectionLow(18); //low
-        EdisonGPIO.gpioOutputEnablePins.setDirectionLow(19); //low
-        EdisonGPIO.gpioPullupEnablePins.setDirectionIn(18); 
-        EdisonGPIO.gpioPullupEnablePins.setDirectionIn(19);
-        
-        EdisonGPIO.gpioPinModes.setDebugCurrentPinmuxMode1(19);
-        EdisonGPIO.gpioPinModes.setDebugCurrentPinmuxMode1(18);
-        
-        
-        //NOTE: for Arduino breakout board and Edison only i2c-6  is supported 
-        
-      //  Path i2cDevice = Paths.get("/sys/class/i2c-dev/i2c-6");
-        
-        System.out.println("I2C enabled");
-               
-    }
-    
-    public static void configI2CDataIn() {
-        EdisonGPIO.shieldControl.setDirectionLow(0); 
-
-        //need to read the ack from the data line sent by the slave
-        EdisonGPIO.gpioLinuxPins.setDirectionIn(18); //in
-        EdisonGPIO.gpioOutputEnablePins.setDirectionLow(18); //low
-        
-        EdisonGPIO.shieldControl.setDirectionHigh(0);
-    }
-    
-    public static void configI2CDataOut() {
-        EdisonGPIO.shieldControl.setDirectionLow(0); 
-
-        //need to read the ack from the data line sent by the slave
-        EdisonGPIO.gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write
-        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
-                
-        EdisonGPIO.shieldControl.setDirectionHigh(0);
-    }
-    
-    /**
-     * Warning every time this is called both clock and data lines will be set to zero
-     */
-    public static void configI2COut() {
-        synchronized(EdisonGPIO.shieldControl) {
-            EdisonGPIO.shieldControl.setDirectionLow(0);  //18 data  19 clock
-            
-            EdisonGPIO.gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write
-            EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
-            
-            EdisonGPIO.gpioLinuxPins.setDirectionOut(19); //Must be set to allow for read/write
-            EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick
-            
-            EdisonGPIO.shieldControl.setDirectionHigh(0);
-        }   
-    }
-    
-    
-    //is only supported at 13, Note this disables D10 - D13 
-    //Grove does not have any sensors using this at the moment
-    private void configSPI() {
-        EdisonGPIO.gpioPinMuxExt.setDirectionHigh(10);
-        EdisonGPIO.gpioPinMuxExt.setDirectionHigh(11);
-        
-        EdisonGPIO.gpioPinMux.setDirectionHigh(10);
-        EdisonGPIO.gpioPinMux.setDirectionHigh(11);
-        EdisonGPIO.gpioPinMux.setDirectionHigh(12);
-        EdisonGPIO.gpioPinMux.setDirectionHigh(13);
-        
-        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(10);
-        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(11);
-        EdisonGPIO.gpioOutputEnablePins.setDirectionLow(12);
-        EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(13);
-        
-        EdisonGPIO.gpioPullupEnablePins.setDirectionIn(10);
-        EdisonGPIO.gpioPullupEnablePins.setDirectionIn(11);
-        EdisonGPIO.gpioPullupEnablePins.setDirectionIn(12);
-        EdisonGPIO.gpioPullupEnablePins.setDirectionIn(13);
-        
-        EdisonGPIO.gpioPinModes.setDebugCurrentPinmuxMode1(10);
-        EdisonGPIO.gpioPinModes.setDebugCurrentPinmuxMode1(11);
-        EdisonGPIO.gpioPinModes.setDebugCurrentPinmuxMode1(12);
-        EdisonGPIO.gpioPinModes.setDebugCurrentPinmuxMode1(13);        
-        
-    }  
+  
     
 }

@@ -1,7 +1,7 @@
 package com.ociweb.device.impl;
 
-import com.ociweb.device.Connect;
-import com.ociweb.device.GroveTwig;
+import com.ociweb.device.grove.GroveConnect;
+import com.ociweb.device.grove.GroveTwig;
 
 public class EdisonConstants {
 
@@ -153,6 +153,6 @@ public class EdisonConstants {
             212,  //IO18 D18 A4
             213,  //IO19 D19 A5
     };
-    public static final Connect[] i2cPins = new Connect[] {new Connect(GroveTwig.I2C ,18),new Connect(GroveTwig.I2C ,19)};
+    public static final GroveConnect[] i2cPins = new GroveConnect[] {new GroveConnect(GroveTwig.I2C ,18),new GroveConnect(GroveTwig.I2C ,19)};
 
 }

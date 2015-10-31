@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.ociweb.device.grove.GroveRequestSchema;
+import com.ociweb.device.grove.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class SchemaValidation {

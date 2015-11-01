@@ -1,40 +1,44 @@
 package com.ociweb.device.grove;
 
+import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 
 public enum GroveTwig {
 
-    UVSensor(GroveResponseSchema.MSG_UV_20){
+    UVSensor(){
         @Override
-        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue) {
+        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue, int average) {
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_UV_20);
             Pipe.addIntValue(connector, responsePipe);
             Pipe.addIntValue(intValue, responsePipe);
+            Pipe.addIntValue(average, responsePipe);
             Pipe.publishWrites(responsePipe);
             Pipe.confirmLowLevelWrite(responsePipe, size);
         }        
     },
-    LightSensor(GroveResponseSchema.MSG_LIGHT_30){
+    LightSensor(){
         @Override
-        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue) {
+        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue, int average) {
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_LIGHT_30);
             Pipe.addIntValue(connector, responsePipe);
             Pipe.addIntValue(intValue, responsePipe);
+            Pipe.addIntValue(average, responsePipe);
             Pipe.publishWrites(responsePipe);
             Pipe.confirmLowLevelWrite(responsePipe, size);
         }        
     },
-    MoistureSensor(GroveResponseSchema.MSG_MOISTURE_40){
+    MoistureSensor(){
         @Override
-        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue) {
+        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue, int average) {
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_MOISTURE_40);
             Pipe.addIntValue(connector, responsePipe);
             Pipe.addIntValue(intValue, responsePipe);
+            Pipe.addIntValue(average, responsePipe);
             Pipe.publishWrites(responsePipe);
             Pipe.confirmLowLevelWrite(responsePipe, size);
         }        
     },
-    Button(GroveResponseSchema.MSG_BUTTON_50) {
+    Button() {
         @Override
         public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, int bitValue) {
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_BUTTON_50);
@@ -45,7 +49,7 @@ public enum GroveTwig {
         }
         
     },
-    MotionSensor(GroveResponseSchema.MSG_MOTION_60){
+    MotionSensor(){
         @Override
         public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, int bitValue) {
             int size = Pipe.addMsgIdx(responsePipe,GroveResponseSchema.MSG_MOTION_60);
@@ -55,10 +59,9 @@ public enum GroveTwig {
             Pipe.confirmLowLevelWrite(responsePipe, size);
         }        
     },
-    RotaryEncoder(GroveResponseSchema.MSG_ROTARY_70) {
+    RotaryEncoder() {
         @Override
-        public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, int value, int delta, int speed) {
-            
+        public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, int value, int delta, int speed) {            
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ROTARY_70);
             Pipe.addIntValue(connector, responsePipe);
             Pipe.addIntValue(value, responsePipe);
@@ -70,26 +73,19 @@ public enum GroveTwig {
         }
         
     },
-    Temp(GroveResponseSchema.MSG_TEMPRATUREANDHUMIDITY_80),
-    I2C(GroveResponseSchema.MSG_UV_20);
+    Buzzer(),
+    Relay(),
+    Survo(),
+    I2C();
     
-    private final int messageId;
     
-    private GroveTwig(int messageId) {
-        this.messageId=messageId;
-    }
-    
-        
-    public int messageId() {
-        return messageId;
-    }
 
     public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, int bitValue) {
        System.err.println(this);
        throw new UnsupportedOperationException();
     }
 
-    public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue) {
+    public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue, int average) {
         System.err.println(this);
         throw new UnsupportedOperationException();
     }

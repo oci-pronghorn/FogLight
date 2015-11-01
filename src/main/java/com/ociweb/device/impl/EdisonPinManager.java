@@ -28,6 +28,7 @@ public class EdisonPinManager {
     public final short[]    gpioPinInt;
     public final String[] gpioPinString;
     public FileSystemProvider provider;
+
     
     public static final Path[] PATH_A = new Path[] {
              Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage0_raw"),
@@ -35,7 +36,6 @@ public class EdisonPinManager {
              Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage2_raw"),
              Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage3_raw")
     };
-
     
     
     private static final Path PATH_GPIO_EXPORT   = Paths.get("/sys/class/gpio/export");
@@ -52,6 +52,10 @@ public class EdisonPinManager {
     public static final byte[] MODE_2         = "mode2".getBytes();
     public static final byte[] PULLUP         = "pullup".getBytes();
     
+    public static final ByteBuffer I2C_LOW  = ByteBuffer.wrap(VALUE_LOW);
+    public static final ByteBuffer I2C_HIGH = ByteBuffer.wrap(VALUE_HIGH);
+    public static final int I2C_CLOCK = 19;
+    public static final int I2C_DATA = 18;
         
     private static final ByteBuffer readBitBuffer = ByteBuffer.allocate(1);
     private static final Set<OpenOption> readOptions = new HashSet<OpenOption>();

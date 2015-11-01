@@ -6,10 +6,10 @@ import java.util.concurrent.TimeUnit;
 
 import com.ociweb.device.config.GroveShieldV2EdisonConfiguration;
 import com.ociweb.device.grove.GroveConnect;
-import com.ociweb.device.grove.GroveRequestSchema;
-import com.ociweb.device.grove.GroveResponseSchema;
 import com.ociweb.device.grove.GroveShieldV2ResponseStage;
 import com.ociweb.device.grove.GroveTwig;
+import com.ociweb.device.grove.schema.GroveRequestSchema;
+import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.impl.EdisonGPIO;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;

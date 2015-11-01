@@ -8,9 +8,7 @@ import com.ociweb.device.impl.EdisonPinManager;
 
 public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfiguration {
 
-//TODO: //ma per field with max, 
-    //TODO: publish with or with out ma.
-    
+
     
     public GroveShieldV2EdisonConfiguration(boolean publishTime, boolean configI2C, GroveConnect[] encoderInputs,
             GroveConnect[] digitalInputs, GroveConnect[] digitalOutputs, GroveConnect[] pwmOutputs, GroveConnect[] analogInputs) {
@@ -53,6 +51,30 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
 
     public int readInt(int connector) {
         return EdisonPinManager.readInt(connector, EdisonGPIO.gpioLinuxPins);
+    }
+    
+    public void i2cSetClockLow() {
+        EdisonPinManager.writeValue(EdisonPinManager.I2C_CLOCK, EdisonPinManager.I2C_LOW, EdisonGPIO.gpioLinuxPins);
+    }
+
+    public void i2cSetClockHigh() {
+        EdisonPinManager.writeValue(EdisonPinManager.I2C_CLOCK, EdisonPinManager.I2C_HIGH, EdisonGPIO.gpioLinuxPins);
+    }
+
+    public void i2cSetDataLow() {
+        EdisonPinManager.writeValue(EdisonPinManager.I2C_DATA, EdisonPinManager.I2C_LOW, EdisonGPIO.gpioLinuxPins);
+    }
+
+    public void i2cSetDataHigh() {
+        EdisonPinManager.writeValue(EdisonPinManager.I2C_DATA, EdisonPinManager.I2C_HIGH, EdisonGPIO.gpioLinuxPins);
+    }
+
+    public int i2cReadData() {
+        return readBit(EdisonPinManager.I2C_DATA);
+    }
+
+    public int i2cReadClock() {
+        return readBit(EdisonPinManager.I2C_CLOCK);
     }
     
     static void findDup(GroveConnect[] base, int baseLimit, GroveConnect[] items, boolean mapAnalogs) {

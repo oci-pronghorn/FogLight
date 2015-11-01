@@ -4,8 +4,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.ociweb.device.grove.GroveRequestSchema;
-import com.ociweb.device.grove.GroveResponseSchema;
+import com.ociweb.device.grove.schema.GroveI2CSchema;
+import com.ociweb.device.grove.schema.GroveRequestSchema;
+import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class SchemaValidation {
@@ -30,5 +31,16 @@ public class SchemaValidation {
     public void groveRequestFieldsTest() {        
         assertTrue(FROMValidation.testForMatchingLocators(GroveRequestSchema.instance));
     }
+    
+    @Test
+    public void groveI2CFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/GroveI2C.xml", "FROM", GroveI2CSchema.FROM));
+    };
+    
+    @Test
+    public void groveI2CFieldsTest() {        
+        assertTrue(FROMValidation.testForMatchingLocators(GroveI2CSchema.instance));
+    }
+    
     
 }

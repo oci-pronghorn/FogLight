@@ -10,6 +10,7 @@
      	<copy/>
      </uInt32>
      <uInt32 name="Value" id="22"/>
+     <uInt32 name="Average" id="23"/>
    </template>
 
    <template name="Light" id="30" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
@@ -17,6 +18,7 @@
      	<copy/>
      </uInt32>
      <uInt32 name="Value" id="32"/>
+     <uInt32 name="Average" id="33"/>
    </template>
 
    <template name="Moisture" id="40" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
@@ -24,6 +26,7 @@
      	<copy/>
      </uInt32>
      <uInt32 name="Value" id="42"/>
+     <uInt32 name="Average" id="43"/>
    </template>
 
    <template name="Button" id="50" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
@@ -47,22 +50,6 @@
      <int32 name="Value" id="72"/>>
      <int32 name="Delta" id="73"/>
      <uInt32 name="Speed" id="74"/>     
-   </template>
-
-   <template name="TempratureAndHumidity" id="80" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
-      <uInt32 name="Connector" id="81">
-     	<copy/>
-      </uInt32>
-      <uInt32 name="Temprature" id="82"/>
-      <int32  name="Humidity" id="83"/>  
-   </template>
-   
-   <!-- Same message defined in request -->
-   <template name="I2C" id="100" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
-     <uInt32 name="Addess" id="101">
-     	<copy/>
-     </uInt32> 
-     <byteVector name="Payload" id="102"/>
    </template>
     
 </templates>

@@ -1,41 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
 
-  <template name="Buzzer" id="110" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+  <template name="Buzzer" id="110" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1"> <!-- digital out -->
      <uInt32 name="Connector" id="111">
      	<copy/>
      </uInt32>
      <uInt32 name="Duration" id="112"/>
   </template>  
     
-  <template name="Relay" id="120" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+  <template name="Relay" id="120" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1"> <!-- digital out -->
      <uInt32 name="Connector" id="121">
      	<copy/>
      </uInt32>
      <uInt32 name="Duration" id="122"/>
   </template>  
-  
-  <template name="LCD" id="30" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
-     <uInt32 name="Connector" id="131">
-     	<copy/>
-     </uInt32>
-     <string name="Text" id="132" presence="optional"/>
-     <uInt32 name="Color" id="133" presence="optional"/>
-  </template>  
-  
-  <template name="Servo" id="140" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+   
+  <template name="Servo" id="140" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1"> <!-- digital out -->
      <uInt32 name="Connector" id="141">
      	<copy/>
      </uInt32>
      <uInt32 name="Position" id="142"/>
   </template>  
-    
-  <!-- Same message defined in response -->
-  <template name="I2C" id="100" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
-     <uInt32 name="Addess" id="101">
-     	<copy/>
-     </uInt32> 
-     <byteVector name="Payload" id="102"/>
-  </template>  
-    
+
 </templates>

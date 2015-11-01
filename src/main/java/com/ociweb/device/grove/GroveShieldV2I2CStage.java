@@ -1,19 +1,43 @@
 package com.ociweb.device.grove;
 
-import java.nio.ByteBuffer;
-
-import com.ociweb.device.impl.EdisonPinManager;
-import com.ociweb.device.impl.Grove_LCD_RGB;
+import com.ociweb.device.config.GroveConnectionConfiguration;
+import com.ociweb.device.grove.schema.GroveI2CSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveShieldV2I2CStage extends PronghornStage {
 
-    public GroveShieldV2I2CStage(GraphManager gm, Pipe<GroveRequestSchema> pipe) {
-        super(gm, NONE, pipe);
+    private int taskAtHand;
+    private int stepAtHand;
+    
+    private int byteToSend;
+    private int byteToSendPos;
+    
+    private byte[] bytesToSend; //set before send
+    private int bytesPos;       //set before send
+    
+    
+    private int bitFromBus;
+    
+    private static final int TASK_NONE = 0;
+    private static final int TASK_MASTER_START = 1;
+    private static final int TASK_MASTER_STOP  = 2;
+    
+    public final GroveConnectionConfiguration config;
+    
+    private final Pipe<GroveI2CSchema> request;
+    private final Pipe<GroveI2CSchema> response;
+  
+    public GroveShieldV2I2CStage(GraphManager gm, Pipe<GroveI2CSchema> request, Pipe<GroveI2CSchema> response, GroveConnectionConfiguration config) {
+        super(gm, request, response);
         
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
+        this.request = request;
+        this.response = response;
+        this.config = config;
+        
+        //Fixed at a slow 100K per second for broad compatibility
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
         
     };
@@ -21,35 +45,14 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     
     @Override
     public void startup() {
+        //bus read/write priority should be the lowest an need not conflict with other tasks.
+        //if shared with another thread wanting to be high leave it alone
+        if (Thread.currentThread().getPriority()!=Thread.MAX_PRIORITY) {
+            Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+        }
         
         
-    }
-    
-    
-    @Override
-    public void run() {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void shutdown() {
-        
-        
-    }
-
-    
-    //Not needed here this should be moved to the publish stage not sensor stage
-//  i = config.digitalOutputs.length;
-//  while (--i>=0) {
-//      configDigitalOutput(config.digitalOutputs[i]); //take from pipe and write, get type and field from pipe
-//      
-//      script[reverseBits(sliceCount++)] = ((MASK_DO_PORT&config.digitalOutputs[i])<<SHIFT_DO_PORT) |
-//                                          ((MASK_DO_JOB&DO_DATA_WRITE)<<SHIFT_DO_JOB );
-//  }
-  
-  //Not needed here this should be moved to the dedicated i2c stage
-//  if (config.configI2C) {
+    //  if (config.configI2C) {
 //      configI2C();                        //I2C process 2x
 //      int port = 0;
 //      script[reverseBits(sliceCount++)] = ((MASK_DO_PORT&port)<<SHIFT_DO_PORT) |
@@ -57,169 +60,205 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 //      script[reverseBits(sliceCount++)] = ((MASK_DO_PORT&port)<<SHIFT_DO_PORT) |
 //                                          ((MASK_DO_JOB&DO_I2C_WRITE)<<SHIFT_DO_JOB ); //TODO: THIS MAY BE WRONG AND NOT NEEDED.
 //  }
+        
+        
+    }
     
     
+    @Override
+    public void run() {
+        
+        
+        
+        
+        switch (taskAtHand) {
+            case TASK_MASTER_START:
+                masterStart();
+                break;
+            case TASK_MASTER_STOP:
+                masterStop();
+                break;
+        }        
+        
+        
+        
+    }
+
+        
+    
+    private void masterStart() {
+
+        switch (stepAtHand) {
+            case 0:            
+                // GroveShieldV2EdisonStage.configI2CIn();                
+                
+                config.i2cSetClockHigh();
+               
+                while (0== config.i2cReadClock()) {
+                    //client may hold down clock must wait until it goes back up.
+                    //This is a spinning block dependent upon the other end of i2c
+                }             
+                
+                if (0==config.i2cReadData()) {
+                    System.out.println("failure, unable to be master, data line should be high");
+                    taskAtHand = TASK_NONE;
+                    return;
+                }
+                
+                config.i2cSetDataLow(); //lower data while clock is high
+                stepAtHand = 1;
+                break;//pause
+            case 1:
+                if (0==config.i2cReadClock()) {
+                   throw new RuntimeException("expected clock to be high");
+                }
+                config.i2cSetClockLow();
+                stepAtHand = 2;
+                break;//pause  
+            case 2:
+                if (1==config.i2cReadData()) {
+                    System.out.println("failure, unable to be master SDA");
+                    taskAtHand = TASK_NONE;
+                    return;
+                }
+                if (1==config.i2cReadClock()) {
+                    System.out.println("failure, unable to be master SCL");
+                    taskAtHand = TASK_NONE;
+                    return;
+                }
+                stepAtHand = 0;
+                taskAtHand = 0;
+                break;//done
+            default:
+                throw new UnsupportedOperationException();
+        }
+
+    }
+
+
+    private void masterStop() {
+        switch (stepAtHand) {
+            case 0:
+            config.i2cSetClockHigh();
+                while (0==config.i2cReadClock()) {
+                      //This is a spinning block dependent upon the other end of i2c
+                }
+                stepAtHand = 1;
+                break;//pause
+            case 1:
+                config.i2cSetDataHigh();
+                stepAtHand = 0;
+                taskAtHand = 0;
+                break;
+            default:
+                throw new UnsupportedOperationException();
+        }        
+    }
+
+    
+    
+    private void writeByte() {
+        switch (stepAtHand) {
+            case 0:
+                  //byteToSendPos starts with 8
+                  if (0==(1 & (byteToSend >> (--byteToSendPos)))) {
+                      config.i2cSetDataLow();
+                  } else {
+                      config.i2cSetDataHigh();
+                  }        
+            config.i2cSetClockHigh();
+                  while (0==config.i2cReadClock()) { //TODO: these spin checks should return and re-enter as needed.
+                      //This is a spinning block dependent upon the other end of i2c
+                  }      
+                  stepAtHand = 1;
+                  break;//pause
+            case 1:
+                  if (0!=(1 & (byteToSend >> byteToSendPos)) && config.i2cReadData()==0 ) {
+                      throw new RuntimeException("Unable to confirm data set high");           
+                  }
+            config.i2cSetClockLow();
+                                  
+                  if (0 == byteToSendPos) {                      
+                      stepAtHand = 2; //now read the ack for this byte
+                  } else { //we will start on the next bit.
+                      stepAtHand = 0;
+                  }
+                  break;//pause
+            case 2:
+            config.i2cSetDataHigh();
+            config.i2cSetClockHigh();
+                while (0==config.i2cReadClock()) {
+                      //This is a spinning block dependent upon the other end of i2c
+                }
+            //      GroveShieldV2EdisonSensorStage.configI2CDataIn();//needed so we can read the ack.
+                stepAtHand = 3;
+                break;//pause
+            case 3:
+            config.i2cSetClockLow();        
+              
+                int ack = config.i2cReadData();
+            //    GroveShieldV2EdisonSensorStage.configI2CDataOut();
+                stepAtHand = 4;
+                break;//pause
+            case 4:
+                
+            config.i2cSetDataHigh();                
+                stepAtHand = 0;
+                
+                int bytesRemaining = bytesToSend.length - bytesPos;
+                if (0 ==  bytesRemaining) {
+                    taskAtHand = 0; //we are all done
+                } else {
+                    //decrement the bytes
+                    byteToSend = bytesToSend[++bytesPos];
+                    byteToSendPos = 8;
+                    //now back to zero to send the next byte 
+                }
+                break;//pause
+            default:
+                throw new UnsupportedOperationException();        
+        }
+    }
+    
+    
+    
+    private void readBit() {
+        switch (stepAtHand) {
+            case 0:
+                  //wait for clock to be high
+                  while (0==config.i2cReadClock() ) {
+                    //This is a spinning block dependent upon the other end of i2c
+                  }//writeValue
+                  //clock is now high
+                  bitFromBus = config.i2cReadData();                    
+                  stepAtHand = 1;
+                  break;//pause
+            case 1:
+                  config.i2cSetClockLow();
+                
+                  stepAtHand = 0;
+                  
+                  taskAtHand = 0;
+                  
+                  break;//pause
+            default:
+                throw new UnsupportedOperationException();        
+        }
+        
+    }
     
 
-//  private void configUART(int dPort) {
-//      if (dPort<0 || 3==dPort || dPort>4) {
-//          //only 0, 1, 2 and 4
-//          throw new UnsupportedOperationException("UART only available on 0, 1, 2 or 4");
-//      }
-//        
-//      //TODO: UART, there are very few Grove sensors using this. To be implemented later  
-//      throw new UnsupportedOperationException();
-//      
-//  }   
+    @Override
+    public void shutdown() {
+        
+        
+    }
+
+      
     
-  
     
-//    private static void pause() {
-//      //Human time for monitoring
-////        try {
-////            Thread.sleep(500);
-////        } catch (InterruptedException e) {
-////            // TODO Auto-generated catch block
-////            e.printStackTrace();
-////        }
-//        
-//      try {
-//          Thread.sleep(0,10000); //100K  1,000,000,000/100,000 = 10,000;
-//      } catch (InterruptedException e) {
-//         Thread.currentThread().interrupt();
-//      }
-//      
-//        //park nanos is NOT working. (DO NOT USE until tested again later)
-//    //   LockSupport.parkNanos(10000000);//no faster than  100hz
-//    //   LockSupport.parkNanos(1000000);//no faster than  1K
-//    //   LockSupport.parkNanos(100000);//no faster than  10K        
-//    //   LockSupport.parkNanos( 10000);//no faster than 100K
-//    //   LockSupport.parkNanos(  2500);//no faster than 400K
-//        
-//    }
-//    
-//    private static final int I2C_DATA = 18;
-//    private static final int I2C_CLOCK = 19;
-//    private static final ByteBuffer I2C_HIGH = ByteBuffer.wrap(VALUE_HIGH);
-//    private static final ByteBuffer I2C_LOW  = ByteBuffer.wrap(VALUE_LOW);
-//    //TODO: extract this logic as its own stage just for I2C IO.
-//
-//    public static boolean start_I2C(EdisonPinManager d) {
-//      //  GroveShieldV2EdisonStage.configI2CIn();
-//        writeValue(I2C_CLOCK, I2C_HIGH, d);
-//        while (0==readBit(I2C_CLOCK,d)) {
-//            //client may hold down clock must wait until it goes back up.
-//            //This is a spinning block dependent upon the other end of i2c
-//        }             
-//        if (0==readBit(I2C_DATA,d)) {
-//            System.out.println("failure, unable to be master, data line should be high");
-//            return false;
-//        }
-//
-//        writeValue(I2C_DATA, I2C_LOW, d); //lower data while clock is high
-//        pause();
-//
-//        if (0==readBit(I2C_CLOCK,d)) {
-//            throw new RuntimeException("expected clock to be high");
-//        }
-//        writeValue(I2C_CLOCK, I2C_LOW, d);
-//        pause();
-//        
-//        if (1==readBit(I2C_DATA,d)) {
-//            System.out.println("failure, unable to be master SDA");
-//            return false;
-//        }
-//        if (1==readBit(I2C_CLOCK,d)) {
-//            System.out.println("failure, unable to be master SCL");
-//            return false;
-//        }
-//        
-//        //System.out.println("I am the master");
-//        return true;
-//    }
-//    
-//    public static void stop_I2C(EdisonPinManager d) {
-//        writeValue(I2C_CLOCK, I2C_HIGH, d);
-//        while (0==readBit(I2C_CLOCK,d)) {
-//            //This is a spinning block dependent upon the other end of i2c
-//        }
-//        pause();
-//        writeValue(I2C_DATA, I2C_HIGH, d);
-//        pause();
-//    }
-//    
-//    private static void writeI2CBit(int bit, EdisonPinManager d) {
-//
-//        if (0==bit) {
-//            writeValue(I2C_DATA, I2C_LOW, d);
-//        } else {
-//            writeValue(I2C_DATA, I2C_HIGH, d);
-//        }        
-//        writeValue(I2C_CLOCK, I2C_HIGH, d);
-//        while (0==readBit(I2C_CLOCK,d)) {
-//            //This is a spinning block dependent upon the other end of i2c
-//        }        
-//        pause(); //provide time to read this bit
-//
-//        if (0!=bit && readBit(I2C_DATA, d)==0 ) {
-//            throw new RuntimeException("Unable to confirm data set high");           
-//        }
-//
-//        writeValue(I2C_CLOCK, I2C_LOW, d);
-//        pause();
-//                
-//    }
-//    
-//    private static int readI2CBit(EdisonPinManager d) {
-//        
-//        
-//        //wait for clock to be high
-//        long limit = System.currentTimeMillis()+300;
-//        while (0==readBit(I2C_CLOCK,d) ) {
-//            if (System.currentTimeMillis()>limit) {
-//                System.err.println("timeout from device");
-//                return 1;//nothing
-//            }
-//            
-//          //This is a spinning block dependent upon the other end of i2c
-//        }
-//        //clock is now high
-//        int result = readBit(I2C_DATA,d);
-//        pause();
-//        //done with read so lower clock
-//        writeValue(I2C_CLOCK, I2C_LOW, d);
-//        pause();
-//        return result;
-//    }
-//    
-//    private static int sendI2CByte(EdisonPinManager d,  int value) {
-//        int i = 8;
-//        while (--i>=0) {    
-//          //  System.out.println("write bit "+i);
-//            writeI2CBit(1 & (value>>i), d);            
-//        }
-//
-//       //new test clock is low
-//        writeValue(I2C_DATA, I2C_HIGH, d); //slave must set to zero on trailing edge for failure        
-//        writeValue(I2C_CLOCK, I2C_HIGH, d);
-//        while (0==readBit(I2C_CLOCK,d)) {
-//            //This is a spinning block dependent upon the other end of i2c
-//        }
-//        GroveShieldV2EdisonSensorStage.configI2CDataIn();//needed so we can read the ack.
-//        pause();
-//        
-//        writeValue(I2C_CLOCK, I2C_LOW, d);        
-//      
-//        int result = readBit(I2C_DATA,d);
-//        GroveShieldV2EdisonSensorStage.configI2CDataOut();
-//
-//        pause();
-//        writeValue(I2C_DATA, I2C_HIGH, d);
-//        
-//        pause();
-//        
-//        return result;
-//    }
+    
+    
 //    
 //    public static boolean readMsg(EdisonPinManager d, int addr) {
 //        //request data.
@@ -263,7 +302,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 //        if (!start_I2C(d) ) {
 //            //unable to master the bus 
 //            System.out.println("unable to master the bus");
-//            
+//                public static final int MSG_TIME_10 = 0x0;
 //        } else {
 //        
 //            sendAddr(d, addr, 0 /*1 is read*/);
@@ -291,29 +330,18 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 //        }
 //    }
 //    
-//    
+    
+    
+    
+    
+//    ///////////////
+      //not needed 
 //    private static void delay() {
 //        try {
 //            Thread.sleep(1000);//500);//  //1500);
-//        } catch (InterruptedException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//    }
-//    
-//    private static void delay(int microSecond) {
-//        try {
-//            int ns =  microSecond*1000;
-//            
-//            
-//            Thread.sleep((ns/1000000), (ns%1000000) );//500);//  //1500);
-//        } catch (InterruptedException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//    }
-//    
-//    
+
+//    //////////////////////////
+    ///orginal test script
 //    
 //    public static void writeI2C(byte[] data, EdisonPinManager d) {
 //        //this is always on 18/19
@@ -470,6 +498,12 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 //        System.err.println("finished I2C");
 //    }
 //
+
+    
+    
+    
+    ///////////////////////
+    //should be a message an not hardcoded
 //    public static void setBacklightColor(EdisonPinManager d, byte r, byte g, byte b) {
 //
 //
@@ -483,6 +517,8 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 //
 //    }
 //
+    ////////////////////////////
+    ///not sure we need this?
 //    private static void testCodeForLevelMonitoring(EdisonPinManager d) {
 //        //start with both high then both low.
 //        int j = 2;

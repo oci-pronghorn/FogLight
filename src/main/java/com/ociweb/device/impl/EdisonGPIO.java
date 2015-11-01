@@ -183,5 +183,15 @@ public class EdisonGPIO {
         System.out.println("I2C enabled");
                
     }
+    public static void configUART(int dPort) {
+          if (dPort<0 || 3==dPort || dPort>4) {
+              //only 0, 1, 2 and 4
+              throw new UnsupportedOperationException("UART only available on 0, 1, 2 or 4");
+          }
+            
+          //TODO: UART, there are very few Grove sensors using this. To be implemented later  
+          throw new UnsupportedOperationException();
+          
+      }
 
 }

@@ -3,6 +3,7 @@ package com.ociweb.device.grove;
 import java.util.Arrays;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
+import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.impl.Util;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -15,9 +16,6 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     private static final short activeIdxMask = (short)activeSize-1;
     private short activeIdx;
     
-    private final int maTotal;
-    private final int maLastKeep;
-
     
     //script defines which port must be read or write on each cycle
     //when the rotary encoder is used it is checked on every cycle
@@ -60,8 +58,6 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
         
         this.responsePipe = resposnePipe;
         this.config = config;
-        this.maTotal = config.analogMovingAverage();
-        this.maLastKeep = maTotal-1;
         GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
         GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);        
     }
@@ -69,14 +65,15 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
 
     @Override
     public void startup() {
-                              
+        //polling thread must be of the highest priority
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+        
         scriptConn = new int[activeSize];
         scriptTask = new int[activeSize];
         scriptTwig = new GroveTwig[activeSize];  
         
-        movingAverageHistory = new int[maLastKeep][];
-        
-        int j = maLastKeep;
+        int j = config.maxAnalogMovingAverage()-1;
+        movingAverageHistory = new int[j][]; 
         while (--j>=0) {
             movingAverageHistory[j] = new int[activeSize];            
         }
@@ -265,30 +262,35 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     private void intRead(final short doit) {
         {
              int connector = scriptConn[doit];
+             int maTotal = config.maxAnalogMovingAverage();  //TODO: update so each connection can have its own ma
+             boolean useAverageAsTrigger = true;            //TODO: update so some connections send every value
              int intValue = config.readInt(connector);
              
-             int i = maLastKeep;
+             int i = maTotal-1;
              long sum = 0;
-             StringBuilder b = new StringBuilder();
+             //StringBuilder b = new StringBuilder();
              while (--i>=0) {
-                 b.append(" ").append(movingAverageHistory[i][doit]);
+                 //b.append(" ").append(movingAverageHistory[i][doit]);
                  sum += (long)movingAverageHistory[i][doit];
              }
-             b.append(" ").append(intValue);
+             //b.append(" ").append(intValue);
              sum += (long)intValue;
              int avg = (int)Math.rint(sum/(float)maTotal);
              
-             if (lastPublished[doit]!=avg && Pipe.hasRoomForWrite(responsePipe)) {
+             
+             int sendTrigger = useAverageAsTrigger ? avg : intValue;
+             
+             if (lastPublished[doit]!=sendTrigger && Pipe.hasRoomForWrite(responsePipe)) {
                  
-                 System.out.println(scriptTwig[doit]+" "+avg+" "+maTotal+" "+b);
+ //                System.out.println(scriptTwig[doit]+" "+avg+" "+maTotal+" "+b);
                  
-                 scriptTwig[doit].writeInt(responsePipe, connector, intValue);
-                 int j = maLastKeep;
+                 scriptTwig[doit].writeInt(responsePipe, connector, intValue, avg);
+                 int j = maTotal-1;
                  while (--j>0) {//must stop before zero because we do copy from previous lower index.
                      movingAverageHistory[j][doit]=movingAverageHistory[j-1][doit];                     
                  }
                  movingAverageHistory[0][doit]=intValue;
-                 lastPublished[doit] = avg;
+                 lastPublished[doit] = sendTrigger;
                  
              } else {
                  //tossing fieldValue but this could be saved to send on next call.

@@ -4,10 +4,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.ociweb.device.grove.GroveConnect;
+import com.ociweb.device.impl.EdisonGPIO;
+import com.ociweb.device.impl.EdisonPinManager;
 
 public abstract class GroveConnectionConfiguration {
     
     private static final int PIN_SETUP_TIMEOUT = 3; //in seconds
+    public static final int MAX_MOVING_AVERAGE_SUPPORTED = 21;
     
     public final boolean configI2C;       //Humidity, LCD need I2C address so..
     public final GroveConnect[] encoderInputs; //Rotary Encoder
@@ -17,8 +20,10 @@ public abstract class GroveConnectionConfiguration {
     public final GroveConnect[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     public final boolean publishTime;
     
+    //TODO: ma per field with max defined here., 
+    //TODO: publish with or with out ma??
+    
     //only publish when the moving average changes
-    public final int analogMovingAverage = 21;
     
     private ReentrantLock lock = new ReentrantLock();
     
@@ -58,10 +63,16 @@ public abstract class GroveConnectionConfiguration {
     public abstract void configurePinsForDigitalInput(byte connection); //Platform specific
     public abstract void configurePinsForAnalogInput(byte connection); //Platform specific
 
-    public int analogMovingAverage() {
-        return analogMovingAverage;
+    public int maxAnalogMovingAverage() {
+        return MAX_MOVING_AVERAGE_SUPPORTED;
     }
 
+    public abstract void i2cSetClockLow();
+    public abstract void i2cSetClockHigh();
+    public abstract void i2cSetDataLow();
+    public abstract void i2cSetDataHigh();
+    public abstract int i2cReadData();
+    public abstract int i2cReadClock();
 
     
 }

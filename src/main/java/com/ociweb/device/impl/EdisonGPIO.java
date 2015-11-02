@@ -128,19 +128,19 @@ public class EdisonGPIO {
     /**
      * Warning every time this is called both clock and data lines will be set to zero
      */
-    public static void configI2COut() {
-        synchronized(shieldControl) {
-            shieldControl.setDirectionLow(0);  //18 data  19 clock
-            
-            gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write
-            gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
-            
-            gpioLinuxPins.setDirectionOut(19); //Must be set to allow for read/write
-            gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick
-            
-            shieldControl.setDirectionHigh(0);
-        }   
-    }
+//    public static void configI2COut() {
+//        synchronized(shieldControl) {
+//            shieldControl.setDirectionLow(0);  //18 data  19 clock
+//            
+//            gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write
+//            gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
+//            
+//            gpioLinuxPins.setDirectionOut(19); //Must be set to allow for read/write
+//            gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick
+//            
+//            shieldControl.setDirectionHigh(0);
+//        }   
+//    }
     public static void configI2CDataOut() {
         shieldControl.setDirectionLow(0); 
     

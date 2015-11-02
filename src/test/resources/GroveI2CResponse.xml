@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+
+
+   <template name="TempratureAndHumidity" id="80" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+      <uInt32 name="Connector" id="81">
+     	<copy/>
+      </uInt32>
+      <uInt32 name="Temprature" id="82"/>
+      <int32  name="Humidity" id="83"/>  
+   </template>
+       
+</templates>

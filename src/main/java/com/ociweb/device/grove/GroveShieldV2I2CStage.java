@@ -14,21 +14,30 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private int byteToSend;
     private int byteToSendPos;
     
-    private byte[] bytesToSend; //set before send
-    private int bytesPos;       //set before send
-    
+    //holds the same array as used by the Blob from the ring.
+    private byte[] bytesToSendBacking; //set before send
+    private int    bytesToSendRemaining;
+    private int    bytesToSendPosition;
+    private int    bytesToSendMask;
+    private int    bytesToSendReleaseSize;
+        
     
     private int bitFromBus;
     
     private static final int TASK_NONE = 0;
     private static final int TASK_MASTER_START = 1;
     private static final int TASK_MASTER_STOP  = 2;
+    private static final int TASK_WRITE_BYTES  = 3;
     
     public final GroveConnectionConfiguration config;
     
     private final Pipe<GroveI2CSchema> request;
     private final Pipe<GroveI2CSchema> response;
   
+    
+    //I2C is a little complex to ensure correctness.  As a result this stage is not aware of any 
+    //specific grove modules which may be attached. It only does the sending and receiving of bytes
+    
     public GroveShieldV2I2CStage(GraphManager gm, Pipe<GroveI2CSchema> request, Pipe<GroveI2CSchema> response, GroveConnectionConfiguration config) {
         super(gm, request, response);
         
@@ -40,7 +49,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
         
-    };
+    }
     
     
     @Override
@@ -51,46 +60,67 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         }
         
-        
-    //  if (config.configI2C) {
-//      configI2C();                        //I2C process 2x
-//      int port = 0;
-//      script[reverseBits(sliceCount++)] = ((MASK_DO_PORT&port)<<SHIFT_DO_PORT) |
-//                                          ((MASK_DO_JOB&DO_I2C_READ)<<SHIFT_DO_JOB );
-//      script[reverseBits(sliceCount++)] = ((MASK_DO_PORT&port)<<SHIFT_DO_PORT) |
-//                                          ((MASK_DO_JOB&DO_I2C_WRITE)<<SHIFT_DO_JOB ); //TODO: THIS MAY BE WRONG AND NOT NEEDED.
-//  }
-        
-        
+        if (config.configI2C) {
+           config.configurePinsForI2C();
+        } else {
+            System.out.println("warning, i2s stage used but not turned on");
+        }
+                
     }
     
     
     @Override
     public void run() {
-        
-        
-        
+      
+        if (TASK_NONE == taskAtHand) {
+            readRequest();//may populate task at hand
+        }
         
         switch (taskAtHand) {
             case TASK_MASTER_START:
                 masterStart();
                 break;
+            case TASK_WRITE_BYTES:
+                writeBytes();
+                break;
             case TASK_MASTER_STOP:
                 masterStop();
                 break;
         }        
+        //Must return after this point to ensure the clock speed is respected.
+    }
+
+        
+    
+    private void readRequest() {
+        // TODO Auto-generated method stub
+        if (Pipe.hasContentToRead(request)) {
+            
+            int msgId = Pipe.takeMsgIdx(request);
+            int meta = Pipe.takeRingByteMetaData(request);
+            int len = Pipe.takeRingByteLen(request);
+                        
+            bytesToSendBacking = Pipe.byteBackingArray(meta, request);
+            bytesToSendMask = Pipe.blobMask(request);
+            bytesToSendPosition = Pipe.bytePosition(meta, request, len);
+            bytesToSendRemaining = len;
+            bytesToSendReleaseSize =  GroveI2CSchema.FROM.fragDataSize[msgId];
+                        
+            taskAtHand = TASK_MASTER_START;
+            stepAtHand = 0;
+
+        }
         
         
         
     }
 
-        
-    
+
     private void masterStart() {
 
         switch (stepAtHand) {
             case 0:            
-                // GroveShieldV2EdisonStage.configI2CIn();                
+                config.i2cDataIn();               
                 
                 config.i2cSetClockHigh();
                
@@ -127,7 +157,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                     return;
                 }
                 stepAtHand = 0;
-                taskAtHand = 0;
+                taskAtHand = TASK_WRITE_BYTES;
                 break;//done
             default:
                 throw new UnsupportedOperationException();
@@ -157,7 +187,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 
     
     
-    private void writeByte() {
+    private void writeBytes() {
         switch (stepAtHand) {
             case 0:
                   //byteToSendPos starts with 8
@@ -166,7 +196,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                   } else {
                       config.i2cSetDataHigh();
                   }        
-            config.i2cSetClockHigh();
+                  config.i2cSetClockHigh();
                   while (0==config.i2cReadClock()) { //TODO: these spin checks should return and re-enter as needed.
                       //This is a spinning block dependent upon the other end of i2c
                   }      
@@ -176,7 +206,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                   if (0!=(1 & (byteToSend >> byteToSendPos)) && config.i2cReadData()==0 ) {
                       throw new RuntimeException("Unable to confirm data set high");           
                   }
-            config.i2cSetClockLow();
+                  config.i2cSetClockLow();
                                   
                   if (0 == byteToSendPos) {                      
                       stepAtHand = 2; //now read the ack for this byte
@@ -185,32 +215,36 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                   }
                   break;//pause
             case 2:
-            config.i2cSetDataHigh();
-            config.i2cSetClockHigh();
+                config.i2cSetDataHigh();
+                config.i2cSetClockHigh();
                 while (0==config.i2cReadClock()) {
                       //This is a spinning block dependent upon the other end of i2c
                 }
-            //      GroveShieldV2EdisonSensorStage.configI2CDataIn();//needed so we can read the ack.
+                config.i2cDataIn();   //needed so we can read the ack.
                 stepAtHand = 3;
                 break;//pause
             case 3:
-            config.i2cSetClockLow();        
+                config.i2cSetClockLow();        
               
                 int ack = config.i2cReadData();
-            //    GroveShieldV2EdisonSensorStage.configI2CDataOut();
+                config.i2cDataOut();
                 stepAtHand = 4;
                 break;//pause
             case 4:
                 
-            config.i2cSetDataHigh();                
+                config.i2cSetDataHigh();                
                 stepAtHand = 0;
                 
-                int bytesRemaining = bytesToSend.length - bytesPos;
-                if (0 ==  bytesRemaining) {
-                    taskAtHand = 0; //we are all done
-                } else {
-                    //decrement the bytes
-                    byteToSend = bytesToSend[++bytesPos];
+                if (0 ==  --bytesToSendRemaining) {
+                    taskAtHand = TASK_MASTER_STOP; //we are all done
+                    
+                    //release the resources for more data
+                    Pipe.confirmLowLevelRead(request,bytesToSendReleaseSize);
+                    Pipe.releaseReads(request);
+                    
+                    
+                } else {                    
+                    byteToSend = bytesToSendBacking[++bytesToSendPosition&bytesToSendMask];
                     byteToSendPos = 8;
                     //now back to zero to send the next byte 
                 }
@@ -225,7 +259,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private void readBit() {
         switch (stepAtHand) {
             case 0:
-                  //wait for clock to be high
+                  //wait for clock to be highwriteBytes
                   while (0==config.i2cReadClock() ) {
                     //This is a spinning block dependent upon the other end of i2c
                   }//writeValue

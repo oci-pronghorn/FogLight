@@ -4,17 +4,28 @@ import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.impl.EdisonConstants;
 import com.ociweb.device.impl.EdisonGPIO;
 import com.ociweb.device.impl.EdisonPinManager;
+import com.ociweb.device.testApps.GroveShieldTestApp;
 
 
 public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfiguration {
 
-
+    private GroveConnect[] usedLines;
     
     public GroveShieldV2EdisonConfiguration(boolean publishTime, boolean configI2C, GroveConnect[] encoderInputs,
             GroveConnect[] digitalInputs, GroveConnect[] digitalOutputs, GroveConnect[] pwmOutputs, GroveConnect[] analogInputs) {
         super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
     }
 
+    public void coldSetup() {
+        usedLines = buildUsedLines();         
+        EdisonGPIO.ensureAllLinuxDevices(usedLines);
+    }
+    
+    public void cleanup() {
+        EdisonGPIO.removeAllLinuxDevices(usedLines);
+    }
+
+    
     public void setToKnownStateFromColdStart() {
         EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(10);
         EdisonGPIO.gpioOutputEnablePins.setValueHigh(10);
@@ -33,6 +44,18 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
     public void configurePinsForAnalogInput(byte connection) {
         EdisonGPIO.configAnalogInput(connection);  //readInt
     }
+    
+    public void configurePinsForI2C() {
+        EdisonGPIO.configI2C();
+    }
+    
+    public void i2cDataIn() {
+        EdisonGPIO.configI2CDataIn();
+    }
+    
+    public void i2cDataOut() {
+        EdisonGPIO.configI2CDataOut();
+    }
 
 
     public void beginPinConfiguration() {
@@ -46,11 +69,11 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
     }
 
     public int readBit(int connector) {
-        return EdisonPinManager.readBit(connector, EdisonGPIO.gpioLinuxPins);
+        return EdisonPinManager.readBit(connector);
     }
 
     public int readInt(int connector) {
-        return EdisonPinManager.readInt(connector, EdisonGPIO.gpioLinuxPins);
+        return EdisonPinManager.readInt(connector);
     }
     
     public void i2cSetClockLow() {

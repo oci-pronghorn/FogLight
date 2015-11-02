@@ -6,11 +6,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.impl.EdisonGPIO;
 import com.ociweb.device.impl.EdisonPinManager;
+import com.ociweb.device.testApps.GroveShieldTestApp;
 
 public abstract class GroveConnectionConfiguration {
     
     private static final int PIN_SETUP_TIMEOUT = 3; //in seconds
-    public static final int MAX_MOVING_AVERAGE_SUPPORTED = 21;
+    public static final int MAX_MOVING_AVERAGE_SUPPORTED = 101;
     
     public final boolean configI2C;       //Humidity, LCD need I2C address so..
     public final GroveConnect[] encoderInputs; //Rotary Encoder
@@ -62,7 +63,8 @@ public abstract class GroveConnectionConfiguration {
 
     public abstract void configurePinsForDigitalInput(byte connection); //Platform specific
     public abstract void configurePinsForAnalogInput(byte connection); //Platform specific
-
+    public abstract void configurePinsForI2C();
+    
     public int maxAnalogMovingAverage() {
         return MAX_MOVING_AVERAGE_SUPPORTED;
     }
@@ -73,6 +75,14 @@ public abstract class GroveConnectionConfiguration {
     public abstract void i2cSetDataHigh();
     public abstract int i2cReadData();
     public abstract int i2cReadClock();
+    public abstract void i2cDataIn();
+    public abstract void i2cDataOut();
+    
+    public abstract void coldSetup();
+    public abstract void cleanup();
+
+
+
 
     
 }

@@ -280,9 +280,9 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
              
              int sendTrigger = useAverageAsTrigger ? avg : intValue;
              
-             if (lastPublished[doit]!=sendTrigger && Pipe.hasRoomForWrite(responsePipe)) {
+             if (lastPublished[doit] != sendTrigger && Pipe.hasRoomForWrite(responsePipe)) {
                  
- //                System.out.println(scriptTwig[doit]+" "+avg+" "+maTotal+" "+b);
+                // System.out.println(lastPublished[doit]+" != "+sendTrigger+" == "+avg);
                  
                  scriptTwig[doit].writeInt(responsePipe, connector, intValue, avg);
                  int j = maTotal-1;

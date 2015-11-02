@@ -57,15 +57,28 @@ public class EdisonPinManager {
     public static final int I2C_CLOCK = 19;
     public static final int I2C_DATA = 18;
         
-    private static final ByteBuffer readBitBuffer = ByteBuffer.allocate(1);
     private static final Set<OpenOption> readOptions = new HashSet<OpenOption>();
     private static final Set<OpenOption> i2cOptions = new HashSet<OpenOption>();
+
+    private static ByteBuffer[] readIntBuffer;
+    private static ByteBuffer[] readBitBuffer;
+    
     static {
         i2cOptions.add(StandardOpenOption.READ);
         i2cOptions.add(StandardOpenOption.WRITE);
+
+        int a = PATH_A.length;
+        readIntBuffer = new ByteBuffer[a];
+        while (--a>=0) {
+            readIntBuffer[a] = ByteBuffer.allocate(16);            
+        }
+        
+        int b = EdisonConstants.GPIO_PINS.length;
+        readBitBuffer = new ByteBuffer[b];
+        while (--b>=0) {
+            readBitBuffer[b] = ByteBuffer.allocate(1);
+        }
     }
-    private static final ByteBuffer readIntBuffer = ByteBuffer.allocate(16);
-    private static final ByteBuffer writeIntBuffer = ByteBuffer.allocate(16);
     
     public EdisonPinManager(short[] pins) {
         
@@ -76,6 +89,7 @@ public class EdisonPinManager {
         gpioPinString = new String[pins.length];
         gpioDebugCurrentPinMux = new Path[pins.length];//NOTE only needed for mode array
         
+        
         FileSystem fileSystem = FileSystems.getDefault();
         this.provider = fileSystem.provider();
         
@@ -84,6 +98,7 @@ public class EdisonPinManager {
         sb.append("/sys/class/gpio/gpio");
         int baseLen = sb.length();
         while (--i>=0) {
+            
             if (pins[i]>=0) {
                 gpioPinString[i] = Integer.toString(pins[i]);
                 
@@ -242,24 +257,17 @@ public class EdisonPinManager {
 
     
     
-    public static int readInt(int idx, EdisonPinManager d) {
-        synchronized(readIntBuffer) {
+    public static int readInt(int idx) {
+
             try {
-                int result = -1;
-        
-                int i = 0;
-                do {            
-                    SeekableByteChannel bc =d.provider.newByteChannel(PATH_A[idx], readOptions);
-                    readIntBuffer.clear();
-                    while (bc.read(readIntBuffer)>=0);
-                    bc.close();
-                    readIntBuffer.flip();              
-                    i = readIntBuffer.remaining();//if length is 0 read this again.
-                } while (i==0 || (readIntBuffer.get(0)<'0'));
+                ByteBuffer buffer = readIntBuffer[idx];
                 
-                result = 0;    
+                loadValueIntoBuffer(idx, buffer);
+                
+                int i = buffer.remaining();
+                int result = 0;    
                 byte c;
-                while (--i>=0 && ((c=readIntBuffer.get())>='0')) {
+                while (--i>=0 && ((c=buffer.get())>='0')) {
                     result= (result*10)+(c-'0');
                 }
         
@@ -267,23 +275,34 @@ public class EdisonPinManager {
            } catch (IOException e) {
                throw new RuntimeException(e);
            }
-        }
     }
 
-    public static int readBit(int idx, EdisonPinManager d) {
-        synchronized(readBitBuffer) {
+    private static void loadValueIntoBuffer(int idx, ByteBuffer buffer) throws IOException {
+        Path path = PATH_A[idx];
+        do {            
+            SeekableByteChannel bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(path, readOptions);
+            buffer.clear();
+            while (bc.read(buffer)>=0){}
+            bc.close();
+            buffer.flip();              
+            //if length is 0 read this again.
+        } while (buffer.limit()==0 || (buffer.get(0)<'0'));
+    }
+
+    public static int readBit(int idx) {
+
             try {        
-                
-                SeekableByteChannel bc =d.provider.newByteChannel(d.gpioValue[idx], readOptions);
-                readBitBuffer.clear();
-                while (bc.read(readBitBuffer)==0); //only need 1
+                ByteBuffer buffer = readBitBuffer[idx];
+                SeekableByteChannel bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(EdisonGPIO.gpioLinuxPins.gpioValue[idx], readOptions);
+                buffer.clear();
+                while (bc.read(buffer)==0){}//only need 1
                 bc.close();
-                readBitBuffer.flip();
-                return readBitBuffer.get()&0x1;
+                buffer.flip();
+                return buffer.get()&0x1;
             } catch (IOException e) {
                throw new RuntimeException(e);
             }
-        }
+
     }
 
 }

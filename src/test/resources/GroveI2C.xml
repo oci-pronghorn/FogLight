@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
-   
-   <!-- Same message defined in request -->
-   <template name="I2C" id="100" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
-     <byteVector name="Payload" id="101"/>
-   </template>
-    
-</templates>

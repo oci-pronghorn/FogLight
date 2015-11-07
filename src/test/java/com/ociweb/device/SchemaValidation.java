@@ -35,16 +35,6 @@ public class SchemaValidation {
     }
     
     @Test
-    public void groveI2CFROMTest() {
-        assertTrue(FROMValidation.testForMatchingFROMs("/GroveI2C.xml", "FROM", GroveI2CSchema.FROM));
-    };
-    
-    @Test
-    public void groveI2CFieldsTest() {        
-        assertTrue(FROMValidation.testForMatchingLocators(GroveI2CSchema.instance));
-    }
-    
-    @Test
     public void groveI2CRequestFROMTest() {
         assertTrue(FROMValidation.testForMatchingFROMs("/GroveI2CRequest.xml", "FROM", GroveI2CRequestSchema.FROM));
     };

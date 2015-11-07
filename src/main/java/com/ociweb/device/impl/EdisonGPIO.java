@@ -125,22 +125,10 @@ public class EdisonGPIO {
         gpioPinModes.setDebugCurrentPinmuxMode1(13);        
         
     }
-    /**
-     * Warning every time this is called both clock and data lines will be set to zero
-     */
-//    public static void configI2COut() {
-//        synchronized(shieldControl) {
-//            shieldControl.setDirectionLow(0);  //18 data  19 clock
-//            
-//            gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write
-//            gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
-//            
-//            gpioLinuxPins.setDirectionOut(19); //Must be set to allow for read/write
-//            gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick
-//            
-//            shieldControl.setDirectionHigh(0);
-//        }   
-//    }
+
+    
+    
+
     public static void configI2CDataOut() {
         shieldControl.setDirectionLow(0); 
     
@@ -175,14 +163,30 @@ public class EdisonGPIO {
         gpioPinModes.setDebugCurrentPinmuxMode1(19);
         gpioPinModes.setDebugCurrentPinmuxMode1(18);
         
-        
+        configI2COut();//enable us to be master of the bus not just an observer
         //NOTE: for Arduino breakout board and Edison only i2c-6  is supported 
         
       //  Path i2cDevice = Paths.get("/sys/class/i2c-dev/i2c-6");
         
-        System.out.println("I2C enabled");
+        System.out.println("I2C enabled for out");
                
     }
+    
+    /**
+     * Warning every time this is called both clock and data lines will be set to zero
+     */
+    private static void configI2COut() {
+        //    shieldControl.setDirectionLow(0);  //18 data  19 clock
+            
+            gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write
+            gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
+            
+            gpioLinuxPins.setDirectionOut(19); //Must be set to allow for read/write
+            gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick
+            
+  
+    }
+    
     public static void configUART(int dPort) {
           if (dPort<0 || 3==dPort || dPort>4) {
               //only 0, 1, 2 and 4

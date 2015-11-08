@@ -1,22 +1,22 @@
 package com.ociweb.device.config;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.ociweb.device.grove.GroveConnect;
 
 public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration {
 
+    ThreadLocalRandom r = ThreadLocalRandom.current();
     public GroveShieldV2MockConfiguration(boolean publishTime, boolean configI2C, GroveConnect[] encoderInputs,
             GroveConnect[] digitalInputs, GroveConnect[] digitalOutputs, GroveConnect[] pwmOutputs,
             GroveConnect[] analogInputs) {
         super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
     }
-    
-    Random r = new Random(101);
 
     @Override
     public int readBit(int connector) {
-       return 1&r.nextInt();
+       return r.nextInt(100) > 80 ? 1 : 0;
     }
 
     @Override

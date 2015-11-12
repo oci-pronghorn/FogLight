@@ -47,7 +47,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
         this.config = config;
         
         //Fixed at a slow 100K per second for broad compatibility
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000, this);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 100*1000, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
         
     }
@@ -61,8 +61,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
         
         //Fixed at a slow 100K per second for broad compatibility
         
-        //slowed down for testing.
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 100*1000, this);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 1000*1000, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
         
     }
@@ -83,37 +82,54 @@ public class GroveShieldV2I2CStage extends PronghornStage {
         } else {
             System.out.println("warning, i2s stage used but not turned on");
         }
-                
+        //starting in the known state where both are high
+        config.i2cSetClockHigh();
+        config.i2cSetDataHigh();
+        
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+      if (0==config.i2cReadClock() ) {
+          throw new RuntimeException("expected clock to be high for start");
+      }        
+      if (0==config.i2cReadData() ) {
+          throw new RuntimeException("expected data to be high for start");
+      }
+        
     }
     
+    long lastRun = 0;
     
     @Override
     public void run() {
       
+        long now = System.currentTimeMillis();
+        long dif = now-lastRun;
+     //   System.out.println("dif "+dif);
+        lastRun = now;
+        
         if (TASK_NONE == taskAtHand) {
+        //    System.out.println("read request");
             readRequest();//may populate task at hand
         }
         
         switch (taskAtHand) {
             case TASK_MASTER_START:
-                System.out.println("start");
+                //System.out.println("task master start "+stepAtHand);
                 masterStart();
                 break;
             case TASK_WRITE_BYTES:
-                System.out.println("data");
+               // System.out.println("task write bytes data "+stepAtHand);
                 writeBytes();
                 break;
             case TASK_MASTER_STOP:
-                System.out.println("stop");
+               // System.out.println("task master stop "+stepAtHand);
                 masterStop();
-                
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-                
+
                 break;
         }        
         //Must return after this point to ensure the clock speed is respected.
@@ -145,7 +161,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             
             byteToSend = bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
             byteToSendPos = 8;
-
+            //System.out.println("sending byte "+Integer.toHexString(byteToSend));
         }
         
         
@@ -158,17 +174,18 @@ public class GroveShieldV2I2CStage extends PronghornStage {
         switch (stepAtHand) {
             case 0:            
                 config.i2cSetClockHigh();
-               
-                while (0== config.i2cReadClock()) {
+               // config.i2cClockIn();
+                while (0 == config.i2cReadClock()) {
                     //client may hold down clock must wait until it goes back up.
                     //This is a spinning block dependent upon the other end of i2c
                 }             
+                //config.i2cClockOut();
                 
-//                if (0==config.i2cReadData()) {
-//                    System.out.println("failure, unable to be master, data line should be high");
-//                    taskAtHand = TASK_NONE;
-//                    return;
-//                }
+                if (0==config.i2cReadData()) {
+                    System.out.println("failure, unable to be master, data line should be high");
+                    taskAtHand = TASK_NONE;
+                    return;
+                }
                 
                 config.i2cSetDataLow(); //lower data while clock is high
                 stepAtHand = 1;
@@ -181,16 +198,16 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 stepAtHand = 2;
                 break;//pause  
             case 2:
-//                if (1==config.i2cReadData()) {
-//                    System.out.println("failure, unable to be master SDA");
-//                    taskAtHand = TASK_NONE;
-//                    return;
-//                }
-//                if (1==config.i2cReadClock()) {
-//                    System.out.println("failure, unable to be master SCL");
-//                    taskAtHand = TASK_NONE;
-//                    return;
-//                }
+                if (1==config.i2cReadData()) {
+                    System.out.println("failure, unable to be master SDA");
+                    taskAtHand = TASK_NONE;
+                    return;
+                }
+                if (1==config.i2cReadClock()) {
+                    System.out.println("failure, unable to be master SCL");
+                    taskAtHand = TASK_NONE;
+                    return;
+                }
                 stepAtHand = 0;
                 taskAtHand = TASK_WRITE_BYTES;
                 break;//done
@@ -214,6 +231,14 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 config.i2cSetDataHigh();
                 stepAtHand = 0;
                 taskAtHand = 0;
+//                
+//            try {
+//                Thread.sleep(1500);
+//            } catch (InterruptedException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+                
                 break;
             default:
                 throw new UnsupportedOperationException();
@@ -227,8 +252,10 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 0:
                   //byteToSendPos starts with 8
                   if (0==(1 & (byteToSend >> (--byteToSendPos)))) {
+                      //System.out.println("0 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
                       config.i2cSetDataLow();
                   } else {
+                      //System.out.println("1 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
                       config.i2cSetDataHigh();
                   }        
                   config.i2cSetClockHigh();
@@ -261,16 +288,24 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 3:
                 config.i2cSetClockLow();        
               
+//            try {
+//                Thread.sleep(10);
+//            } catch (InterruptedException e1) {
+//                // TODO Auto-generated catch block
+//                e1.printStackTrace();
+//            }
+                
                 int ack = config.i2cReadData();
+                System.out.println("ack value "+ack);
                 config.i2cDataOut();
                 stepAtHand = 4;
                 break;//pause
             case 4:
-                
+                                
                 config.i2cSetDataHigh();                
                 stepAtHand = 0;
                 
-                if (0 ==  --bytesToSendRemaining) {
+                if (--bytesToSendRemaining<=0) {
                     taskAtHand = TASK_MASTER_STOP; //we are all done
                     
                     //release the resources for more data
@@ -278,9 +313,19 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                     Pipe.releaseReads(request);
                     
                     
-                } else {                    
+                } else {       
+                    
+//                    try {
+//                        Thread.sleep(1500);
+//                    } catch (InterruptedException e) {
+//                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+//                    }
+                        
+                    
                     byteToSend = bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
                     byteToSendPos = 8;
+                    //System.out.println("sending byte "+Integer.toHexString(byteToSend));
                     //now back to zero to send the next byte 
                 }
                 break;//pause

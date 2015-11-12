@@ -126,7 +126,24 @@ public class EdisonGPIO {
         
     }
 
+    public static void configI2CClockOut() {
+        shieldControl.setDirectionLow(0); 
     
+        //need to read the ack from the data line sent by the slave
+        gpioLinuxPins.setDirectionOut(19); //Must be set to allow for read/write
+        gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick
+                
+        shieldControl.setDirectionHigh(0);
+    }
+    public static void configI2CClockIn() {
+        shieldControl.setDirectionLow(0); 
+    
+        //need to read the ack from the data line sent by the slave
+        gpioLinuxPins.setDirectionIn(19); //in
+        gpioOutputEnablePins.setDirectionLow(19); //low
+        
+        shieldControl.setDirectionHigh(0);
+    }
     
 
     public static void configI2CDataOut() {

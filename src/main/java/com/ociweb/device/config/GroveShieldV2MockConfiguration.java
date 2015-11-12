@@ -91,6 +91,18 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
     }
 
     @Override
+    public void i2cClockIn() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void i2cClockOut() {
+        // TODO Auto-generated method stub
+
+    }
+    
+    @Override
     public void coldSetup() {
         // TODO Auto-generated method stub
 

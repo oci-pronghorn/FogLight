@@ -56,6 +56,14 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
     public void i2cDataOut() {
         EdisonGPIO.configI2CDataOut();
     }
+    
+    public void i2cClockIn() {
+        EdisonGPIO.configI2CClockIn();
+    }
+    
+    public void i2cClockOut() {
+        EdisonGPIO.configI2CClockOut();
+    }
 
 
     public void beginPinConfiguration() {

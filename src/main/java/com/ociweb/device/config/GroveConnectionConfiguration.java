@@ -75,8 +75,12 @@ public abstract class GroveConnectionConfiguration {
     public abstract void i2cSetDataHigh();
     public abstract int i2cReadData();
     public abstract int i2cReadClock();
+    
     public abstract void i2cDataIn();
     public abstract void i2cDataOut();
+    public abstract void i2cClockIn();
+    public abstract void i2cClockOut();
+    
     
     public abstract void coldSetup();
     public abstract void cleanup();

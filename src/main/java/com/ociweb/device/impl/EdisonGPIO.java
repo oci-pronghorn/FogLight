@@ -133,15 +133,23 @@ public class EdisonGPIO {
         gpioLinuxPins.setDirectionOut(19); //Must be set to allow for read/write
         gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick
                 
+//        gpioPullupEnablePins.setDirectionIn(19); 
+//        gpioPinMux.setDirectionLow(19); 
+//        gpioPinModes.setDebugCurrentPinmuxMode1(19);
+        
         shieldControl.setDirectionHigh(0);
     }
     public static void configI2CClockIn() {
         shieldControl.setDirectionLow(0); 
     
         //need to read the ack from the data line sent by the slave
-        gpioLinuxPins.setDirectionIn(19); //in
-        gpioOutputEnablePins.setDirectionLow(19); //low
-        
+       gpioLinuxPins.setDirectionIn(19); //in
+       gpioOutputEnablePins.setDirectionLow(19);
+       
+//       gpioPullupEnablePins.setDirectionIn(19); 
+//       gpioPinMux.setDirectionLow(19); 
+//       gpioPinModes.setDebugCurrentPinmuxMode1(19);
+       
         shieldControl.setDirectionHigh(0);
     }
     
@@ -150,37 +158,59 @@ public class EdisonGPIO {
         shieldControl.setDirectionLow(0); 
     
         //need to read the ack from the data line sent by the slave
-        gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write
+        gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write        
         gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
-                
+       
+   //    gpioPullupEnablePins.setDirectionIn(18); 
+   //    gpioPinMux.setDirectionLow(18); 
+    //   gpioPinModes.setDebugCurrentPinmuxMode1(18);
+       
         shieldControl.setDirectionHigh(0);
     }
     public static void configI2CDataIn() {
         shieldControl.setDirectionLow(0); 
     
         //need to read the ack from the data line sent by the slave
-        gpioLinuxPins.setDirectionIn(18); //in
+        gpioLinuxPins.setDirectionIn(18); //in        
         gpioOutputEnablePins.setDirectionLow(18); //low
+
+
+  //      gpioPullupEnablePins.setDirectionIn(18); 
+   //     gpioPinMux.setDirectionLow(18);
+    //    gpioPinModes.setDebugCurrentPinmuxMode1(18);
         
         shieldControl.setDirectionHigh(0);
     }
+    
+    
+    
+    
     //is only supported at 18/19,  Note this disables use of A4 and A5
     public static void configI2C() {
     
         gpioPinMux.setDirectionLow(18);
         gpioPinMux.setDirectionLow(19);
         
-        gpioLinuxPins.setDirectionIn(18); //in
-        gpioLinuxPins.setDirectionIn(19);  //in
-        gpioOutputEnablePins.setDirectionLow(18); //low
-        gpioOutputEnablePins.setDirectionLow(19); //low
+  //      gpioLinuxPins.setDirectionIn(18); //in
+  //      gpioLinuxPins.setDirectionIn(19);  //in
+        
+   //     gpioOutputEnablePins.setDirectionLow(18); //low
+    //    gpioOutputEnablePins.setDirectionLow(19); //low
+        
         gpioPullupEnablePins.setDirectionIn(18); 
         gpioPullupEnablePins.setDirectionIn(19);
+//        gpioPullupEnablePins.setDirectionOut(18); 
+  //      gpioPullupEnablePins.setDirectionOut(19);
+        
         
         gpioPinModes.setDebugCurrentPinmuxMode1(19);
         gpioPinModes.setDebugCurrentPinmuxMode1(18);
         
-        configI2COut();//enable us to be master of the bus not just an observer
+        gpioLinuxPins.setDirectionOut(19); //Must be set to allow for read/write
+        gpioLinuxPins.setDirectionOut(18); //Must be set to allow for read/write
+        
+        gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick//enable us to be master of the bus not just an observer
+        gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
         //NOTE: for Arduino breakout board and Edison only i2c-6  is supported 
         
       //  Path i2cDevice = Paths.get("/sys/class/i2c-dev/i2c-6");

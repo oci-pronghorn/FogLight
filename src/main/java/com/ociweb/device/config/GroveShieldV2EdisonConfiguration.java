@@ -4,7 +4,6 @@ import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.impl.EdisonConstants;
 import com.ociweb.device.impl.EdisonGPIO;
 import com.ociweb.device.impl.EdisonPinManager;
-import com.ociweb.device.testApps.GroveShieldTestApp;
 
 
 public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfiguration {
@@ -65,6 +64,15 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
         EdisonGPIO.configI2CClockOut();
     }
 
+    public boolean i2cReadAck() {
+        boolean ack;
+        int voltage = readInt(EdisonConstants.DATA_RAW_VOLTAGE);
+        ack = voltage<EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
+        if (!ack) {    
+            System.err.println("ack value "+ack+" "+Integer.toBinaryString(voltage));
+        }
+        return ack;
+    }
 
     public void beginPinConfiguration() {
         super.beginPinConfiguration();        
@@ -76,7 +84,7 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
         super.endPinConfiguration();
     }
 
-    public int readBit(int connector) {
+    public int readBit(int connector) {        
         return EdisonPinManager.readBit(connector);
     }
 

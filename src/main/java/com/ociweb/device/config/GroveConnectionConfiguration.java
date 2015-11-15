@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.ociweb.device.grove.GroveConnect;
+import com.ociweb.device.grove.GroveShieldV2I2CStage;
 import com.ociweb.device.impl.EdisonGPIO;
 import com.ociweb.device.impl.EdisonPinManager;
 import com.ociweb.device.testApps.GroveShieldTestApp;
@@ -80,10 +81,16 @@ public abstract class GroveConnectionConfiguration {
     public abstract void i2cDataOut();
     public abstract void i2cClockIn();
     public abstract void i2cClockOut();
-    
+    public abstract boolean i2cReadAck();
     
     public abstract void coldSetup();
     public abstract void cleanup();
+
+    public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
+        //TODO: should add simulation here as a general debug tool
+    }
+
+
 
 
 

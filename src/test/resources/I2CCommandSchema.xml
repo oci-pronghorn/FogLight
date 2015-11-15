@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+
+   <template name="Command" id="1" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <byteVector name="ByteArray" id="2"/>
+   </template>
+   
+   <template name="SetDelay" id="10" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+     <uInt32 name="BeforeByteOffset" id="12"/>
+     <uInt32 name="DelayInNanoSeconds" id="13"/>     
+   </template>
+  
+</templates>

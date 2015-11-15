@@ -154,5 +154,8 @@ public class EdisonConstants {
             213,  //IO19 D19 A5
     };
     public static final GroveConnect[] i2cPins = new GroveConnect[] {new GroveConnect(GroveTwig.I2C ,18),new GroveConnect(GroveTwig.I2C ,19)};
+    public final static int DATA_RAW_VOLTAGE = 4;
+    public final static int CLOCK_RAW_VOLTAGE = 5;
+    public final static int HIGH_LINE_VOLTAGE_MARK = 1<<8; //This is a number needing 9 or more full bits.
 
 }

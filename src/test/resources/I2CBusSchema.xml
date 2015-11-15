@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+
+
+   <template name="Point" id="100" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+      <uInt32 name="Clock"   id="101"/>
+      <uInt32 name="Data" id="102"/>
+      <uInt64 name="Time"  id="103"/>
+   </template>
+   
+   <template name="State" id="200" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+      <uInt32 name="Task"   id="201"/>
+      <uInt32 name="Step" id="202"/>
+      <uInt32 name="Byte" id="202"/>
+      <uInt64 name="Time"  id="103"/>
+   </template>   
+   
+</templates>

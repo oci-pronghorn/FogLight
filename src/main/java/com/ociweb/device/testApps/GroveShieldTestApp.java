@@ -14,9 +14,11 @@ import com.ociweb.device.config.GroveShieldV2MockConfiguration;
 import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.grove.GroveShieldV2I2CStage;
 import com.ociweb.device.grove.GroveShieldV2ResponseStage;
-import com.ociweb.device.grove.schema.GroveI2CSchema;
+import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.device.grove.schema.GroveRequestSchema;
 import com.ociweb.device.grove.schema.GroveResponseSchema;
+import com.ociweb.device.grove.schema.I2CBusSchema;
+import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.device.impl.Grove_LCD_RGB;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -31,7 +33,7 @@ public class GroveShieldTestApp {
     private static final PipeConfig<GroveResponseSchema> responseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 30, 0);
     private static final PipeConfig<GroveRequestSchema> requestConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 30, 0);
     
-    private static final PipeConfig<GroveI2CSchema> requestI2CConfig = new PipeConfig<GroveI2CSchema>(GroveI2CSchema.instance, 32, 128);
+    private static final PipeConfig<I2CCommandSchema> requestI2CConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 128);
         
     //TODO: Need an easy way to build this up, perhaps a fluent API.        
     public static final GroveConnectionConfiguration config = new GroveShieldV2EdisonConfiguration(
@@ -48,26 +50,43 @@ public class GroveShieldTestApp {
     
     
 //    //Fake configuration to mock behavior of hardware.
-//    public static final GroveConnectionConfiguration config = new GroveShieldV2MockConfiguration(
+//    public static final GroveShieldV2MockConfiguration config = new GroveShieldV2MockConfiguration(
 //            false, //publish time 
 //            true,  //turn on I2C
-//            new GroveConnect[] {new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)}, //rotary encoder 
-//            new GroveConnect[] {new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)}, //7 should be avoided it can disrupt WiFi, button and motion 
+//            new GroveConnect[] {},//{new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)}, //rotary encoder 
+//            new GroveConnect[] {},//{new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)}, //7 should be avoided it can disrupt WiFi, button and motion 
 //            new GroveConnect[] {}, //for requests like do the buzzer on 4
 //            new GroveConnect[]{},  //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
-//            new GroveConnect[] {new GroveConnect(MoistureSensor,1), //1 here is A1
-//                           new GroveConnect(LightSensor,2) 
+//            new GroveConnect[] {
+//                    //new GroveConnect(MoistureSensor,1), //1 here is A1
+//                      //     new GroveConnect(LightSensor,2) 
 //                        //   new GroveConnect(UVSensor,3)
 //                          }); //for analog sensors A0, A1, A2, A3
+//    
+//    private static final PipeConfig<I2CBusSchema> busconfig = new PipeConfig<I2CBusSchema>(I2CBusSchema.instance, 1000);    
+//    public static Pipe<I2CBusSchema> i2cBusPipe = new Pipe<I2CBusSchema>(busconfig);
+//    static {
+//        
+//        config.addOptionalI2CBusSimulationPipe(i2cBusPipe);
+//        
+//    }
     
     
     public static void main(String[] args) {
         
         GraphManager gm = new GraphManager();
-                    
-        config.coldSetup(); 
-                        
+                 
+        try {
+            config.coldSetup(); 
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("this is not on an Edison");
+            return;
+        }
+        
         buildGraph(gm, config);
+        
+    //    new I2CSimulatedLineMonitorStage(gm, i2cBusPipe);
         
         
         //TODO: need to finish ColorMinusScheduler found in same package in Pronghorn as this scheduler
@@ -77,6 +96,8 @@ public class GroveShieldTestApp {
         scheduler.startup();
                 
         try {
+           // Thread.sleep(1000);
+            
             Thread.sleep(60000*60*24); //shuts off server if you leave it running for a full day.
         } catch (InterruptedException e) {
            throw new RuntimeException(e);
@@ -109,32 +130,62 @@ public class GroveShieldTestApp {
         
             System.out.println("startup i2c ... ");
             
-            Pipe<GroveI2CSchema> i2cToBusPipe = new Pipe<GroveI2CSchema>(requestI2CConfig);
+            Pipe<I2CCommandSchema> i2cToBusPipe = new Pipe<I2CCommandSchema>(requestI2CConfig);
+            
+            int line = Grove_LCD_RGB.LCD_2LINE;//LCD_5x10DOTS;
             
             //turn on Backlight
             byte[] rawData = new byte[]{
-                   // (byte) (0b00000110), (byte)0xA5, (byte)0x5A, //reset cmmand
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
+             //       (byte) (0b00000110), //(byte)0xA5, (byte)0x5A, //reset cmmand
+//                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
+//                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
+//                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
+//                    
+//                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
+//                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
+//                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
                     
                     (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
                     (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
+               //     (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 0x06, (byte)0xFF, 
+                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0xAA, 
                     
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
-                    
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_RED,    (byte)0xFF,
+               //     (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte)0b10100010, (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,
                     (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_GREEN,  (byte)0xFF,
-                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0xFF
+                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0x00,
+                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_RED,    (byte)0x00,
+                 
+                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0x90,
+                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_GREEN,  (byte)0xFF,
+                    (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_RED,    (byte)0xF1,
+                    0
+                    
+             //       (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)(Grove_LCD_RGB.LCD_FUNCTIONSET | line),
+                    
+                    
+////                sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_DISPLAYCONTROL | 
+////                (Grove_LCD_RGB.LCD_DISPLAYON /*| Grove_LCD_RGB.LCD_CURSOROFF | Grove_LCD_RGB.LCD_BLINKOFF)) */ )));     
+//        delay();
+//        sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_DISPLAYCONTROL |    (Grove_LCD_RGB.LCD_DISPLAYOFF | Grove_LCD_RGB.LCD_CURSOROFF )));     
+//        delay();
+//        sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)Grove_LCD_RGB.LCD_CLEARDISPLAY);
+                    
+//                 
+//                  sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_FUNCTIONSET | line));
+                    
+                    
+                    
+             //       (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0),      
+                    //Grove_LCD_RGB.REG_MODE1, 0,
+                    
+              //      (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
+              //      (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
                     
                    // (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 7,  (byte)0XFF, 
                    // (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_GREEN,    (byte)0XFF, 
                    // (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0XFF   
                                         };
-            int[] chunkSizes = new int[]{3,3,3,3,3,3,3,3,3,3,3,3,3};
+            int[] chunkSizes = new int[]{3,3,3, 3,3,3, 3,3,3,   1};
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
     
           //  ConsoleJSONDumpStage<GroveI2CSchema> dumpJSON = new ConsoleJSONDumpStage<>(gm, i2cToBusPipe);

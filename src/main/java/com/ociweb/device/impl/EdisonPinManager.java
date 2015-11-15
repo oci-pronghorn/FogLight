@@ -34,7 +34,10 @@ public class EdisonPinManager {
              Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage0_raw"),
              Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage1_raw"),
              Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage2_raw"),
-             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage3_raw")
+             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage3_raw"), 
+             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage4_raw"), //TODO: what if we read these data lines for I2C?
+             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage5_raw")  //TODO: what if we read these data lines for I2C?
+             
     };
     
     
@@ -66,6 +69,10 @@ public class EdisonPinManager {
     static {
         i2cOptions.add(StandardOpenOption.READ);
         i2cOptions.add(StandardOpenOption.WRITE);
+        
+        readOptions.add(StandardOpenOption.READ);
+        readOptions.add(StandardOpenOption.SYNC);
+        
 
         int a = PATH_A.length;
         readIntBuffer = new ByteBuffer[a];
@@ -278,9 +285,8 @@ public class EdisonPinManager {
     }
 
     private static void loadValueIntoBuffer(int idx, ByteBuffer buffer) throws IOException {
-        Path path = PATH_A[idx];
         do {            
-            SeekableByteChannel bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(path, readOptions);
+            SeekableByteChannel bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(PATH_A[idx], readOptions);
             buffer.clear();
             while (bc.read(buffer)>=0){}
             bc.close();
@@ -290,7 +296,9 @@ public class EdisonPinManager {
     }
 
     public static int readBit(int idx) {
-
+            EdisonGPIO.gpioLinuxPins. removeDevice(idx);
+            EdisonGPIO.gpioLinuxPins. ensureDevice(idx);
+            
             try {        
                 ByteBuffer buffer = readBitBuffer[idx];
                 SeekableByteChannel bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(EdisonGPIO.gpioLinuxPins.gpioValue[idx], readOptions);
@@ -302,6 +310,7 @@ public class EdisonPinManager {
             } catch (IOException e) {
                throw new RuntimeException(e);
             }
+            
 
     }
 

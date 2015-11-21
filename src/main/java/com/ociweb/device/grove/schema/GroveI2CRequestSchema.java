@@ -11,7 +11,9 @@ public class GroveI2CRequestSchema extends MessageSchema{
             new String[]{"LCDRGBBackLight","Red","Greed","Blue",null,"LCDRGBText","text",null},
             new long[]{200, 201, 202, 203, 0, 210, 211, 0},
             new String[]{"global",null,null,null,null,"global",null,null},
-            "GroveI2CRequest.xml");
+            "GroveI2CRequest.xml",
+            new long[]{2, 2, 0},
+            new int[]{2, 2, 0});
     
     public static final int MSG_LCDRGBBACKLIGHT_200 = 0x0;
     public static final int MSG_LCDRGBBACKLIGHT_200_FIELD_RED_201 = 0x1;

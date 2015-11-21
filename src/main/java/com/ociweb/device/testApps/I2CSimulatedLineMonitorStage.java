@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.ociweb.device.grove.schema.I2CBusSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.pipe.util.Appendables;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -27,7 +28,7 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
         
         try {
             out.append("required nanos per change ");
-            fixedDecimalDigits(out, SAFE_NANO_DIF, 100000).append('\n');
+            Appendables.appendFixedDecimalDigits(out, SAFE_NANO_DIF, 100000).append('\n');
             
             out.append("sc.mil.mcr.nan Clk Dat  \n");
         } catch (IOException e) {
@@ -67,9 +68,9 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
             appendTime(PipeReader.readLong(input, I2CBusSchema.MSG_STATE_200_FIELD_TIME_103), out);
             out.append("              ").append('S').append(':');
             
-            fixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_STATE_200_FIELD_TASK_201), 10).append(':');
-            fixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_STATE_200_FIELD_STEP_202), 10).append(' ').append('B').append(':');
-            fixedHexDigits(out, 0xFF & PipeReader.readInt(input,  I2CBusSchema.MSG_STATE_200_FIELD_BYTE_202), 8).append('\n');
+            Appendables.appendFixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_STATE_200_FIELD_TASK_201), 10).append(':');
+            Appendables.appendFixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_STATE_200_FIELD_STEP_202), 10).append(' ').append('B').append(':');
+            Appendables.appendFixedHexDigits(out, 0xFF & PipeReader.readInt(input,  I2CBusSchema.MSG_STATE_200_FIELD_BYTE_202), 8).append('\n');
             
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -82,8 +83,8 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
         try {
             
             appendTime(time, out).append(' ');
-            fixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_POINT_100_FIELD_CLOCK_101), 1).append(' ').append(' ').append(' ');
-            fixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_POINT_100_FIELD_DATA_102), 1);
+            Appendables.appendFixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_POINT_100_FIELD_CLOCK_101), 1).append(' ').append(' ').append(' ');
+            Appendables.appendFixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_POINT_100_FIELD_DATA_102), 1);
             
             if (0 != lastTime) {
                 int dif = (int)(time-lastTime);
@@ -116,52 +117,15 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
         long min = totalSec/60;
         long sec = totalSec%60;
         
-        fixedDecimalDigits(target, (int)sec,      10).append('.');
-        fixedDecimalDigits(target, (int)milis,   100).append('.');
-        fixedDecimalDigits(target, (int)micros,  100).append('.');
-        fixedDecimalDigits(target, (int)nanos,   100).append(' ');
+        Appendables.appendFixedDecimalDigits(target, (int)sec,      10).append('.');
+        Appendables.appendFixedDecimalDigits(target, (int)milis,   100).append('.');
+        Appendables.appendFixedDecimalDigits(target, (int)micros,  100).append('.');
+        Appendables.appendFixedDecimalDigits(target, (int)nanos,   100).append(' ');
       
         return target;
     }
 
-    
-    //TODO: move into pipes utilities
-    private Appendable fixedDecimalDigits(Appendable target, int value, int tens) throws IOException {
 
-        if (value<0) {
-            target.append('-');
-            value = -value;
-        }
-        
-        int nextValue = value;
-        while (tens>1) {
-            target.append((char)('0'+(nextValue/tens)));
-            nextValue = nextValue%tens;
-            tens /= 10;
-        }
-        target.append((char)('0'+nextValue));
-        
-        return target;
-    }
-    
-    private final static char[] hBase = new char[] {'0','1','2','3','4','5','6','7','8','9',
-                                                  'A','B','C','D','E','F'};
-
-   //TODO: move into pipes utilities
-    private Appendable fixedHexDigits(Appendable target, int value, int bits) throws IOException {
-
-        target.append("0x");
-        int nextValue = value;
-        while (bits>4) {            
-            bits -= 4;
-            target.append(hBase[nextValue>>bits]);            
-            nextValue =  ((1<<bits)-1) & nextValue;
-        }
-        bits -= 4;
-        target.append(hBase[nextValue>>bits]);
-        
-        return target;
-    }
     
     
 }

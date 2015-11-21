@@ -11,7 +11,9 @@ public class I2CBusSchema extends MessageSchema {
             new String[]{"Point","Clock","Data","Time",null,"State","Task","Step","Byte","Time",null},
             new long[]{100, 101, 102, 103, 0, 200, 201, 202, 202, 103, 0},
             new String[]{"global",null,null,null,null,"global",null,null,null,null,null},
-            "I2CBusSchema.xml");
+            "I2CBusSchema.xml",
+            new long[]{2, 2, 0},
+            new int[]{2, 2, 0});
     
     public static final I2CBusSchema instance = new I2CBusSchema();
     

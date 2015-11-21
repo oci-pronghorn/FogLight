@@ -10,7 +10,10 @@ public class GroveResponseSchema extends MessageSchema {
             new String[]{"Time","Value",null,"UV","Connector","Value","Average",null,"Light","Connector","Value","Average",null,"Moisture","Connector","Value","Average",null,"Button","Connector","Value",null,"Motion","Connector","Value",null,"Rotary","Connector","Value","Delta","Speed",null},
             new long[]{10, 11, 0, 20, 21, 22, 23, 0, 30, 31, 32, 33, 0, 40, 41, 42, 43, 0, 50, 51, 52, 0, 60, 61, 62, 0, 70, 71, 72, 73, 74, 0},
             new String[]{"global",null,null,"global",null,null,null,null,"global",null,null,null,null,"global",null,null,null,null,"global",null,null,null,"global",null,null,null,"global",null,null,null,null,null},
-            "GroveResponse.xml");
+            "GroveResponse.xml",
+            new long[]{2, 2, 0},
+            new int[]{2, 2, 0});
+
     
     public static final GroveResponseSchema instance = new GroveResponseSchema();
     

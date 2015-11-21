@@ -11,7 +11,9 @@ public class GroveI2CResponseSchema extends MessageSchema{
             new String[]{"TempratureAndHumidity","Connector","Temprature","Humidity",null},
             new long[]{80, 81, 82, 83, 0},
             new String[]{"global",null,null,null,null},
-            "GroveI2CResponse.xml");
+            "GroveI2CResponse.xml",
+            new long[]{2, 2, 0},
+            new int[]{2, 2, 0});
     
     //NOT sure this temprature/humdidty stuff really does belong here.
     public static final int MSG_TEMPRATUREANDHUMIDITY_80 = 0x0;

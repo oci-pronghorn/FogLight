@@ -2,13 +2,13 @@
 <templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
 
 
-   <template name="LCDRGBBackLight" id="200" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+   <template name="LCDRGBBackLight" id="200">
       <uInt32 name="Red"   id="201"/>
       <uInt32 name="Greed" id="202"/>
       <uInt32 name="Blue"  id="203"/>
    </template>
    
-   <template name="LCDRGBText" id="210" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+   <template name="LCDRGBText" id="210">
       <string name="text"   id="211"/>
    </template>
    

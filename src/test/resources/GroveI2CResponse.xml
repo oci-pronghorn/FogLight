@@ -2,7 +2,7 @@
 <templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
 
 
-   <template name="TempratureAndHumidity" id="80" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+   <template name="TempratureAndHumidity" id="80">
       <uInt32 name="Connector" id="81">
      	<copy/>
       </uInt32>

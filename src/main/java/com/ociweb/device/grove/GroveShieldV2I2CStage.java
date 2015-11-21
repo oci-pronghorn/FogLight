@@ -203,6 +203,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 stepAtHand = 1;
                 break;
             case 1:
+                //TODO: must redo using the same logic as the ack read! needed for LCD text.
                 if (0==config.i2cReadClock()) {
                     return;//clock stretching, will come back to this state next cycle around 
                 }         

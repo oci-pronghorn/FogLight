@@ -10,7 +10,9 @@ public class GroveRequestSchema extends MessageSchema {
             new String[]{"Buzzer","Connector","Duration",null,"Relay","Connector","Duration",null,"Servo","Connector","Position",null},
             new long[]{110, 111, 112, 0, 120, 121, 122, 0, 140, 141, 142, 0},
             new String[]{"global",null,null,null,"global",null,null,null,"global",null,null,null},
-            "GroveRequest.xml");
+            "GroveRequest.xml",
+            new long[]{2, 2, 0},
+            new int[]{2, 2, 0});
     
     public static final int MSG_BUZZER_110 = 0x0;
     public static final int MSG_BUZZER_110_FIELD_CONNECTOR_111 = 0x1;

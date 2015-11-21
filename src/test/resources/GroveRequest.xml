@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
 
-  <template name="Buzzer" id="110" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1"> <!-- digital out -->
+  <template name="Buzzer" id="110"> <!-- digital out -->
      <uInt32 name="Connector" id="111">
      	<copy/>
      </uInt32>
      <uInt32 name="Duration" id="112"/>
   </template>  
     
-  <template name="Relay" id="120" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1"> <!-- digital out -->
+  <template name="Relay" id="120"> <!-- digital out -->
      <uInt32 name="Connector" id="121">
      	<copy/>
      </uInt32>
      <uInt32 name="Duration" id="122"/>
   </template>  
    
-  <template name="Servo" id="140" xmlns="http://www.fixprotocol.org/ns/fast/td/1.1"> <!-- digital out -->
+  <template name="Servo" id="140"> <!-- digital out -->
      <uInt32 name="Connector" id="141">
      	<copy/>
      </uInt32>

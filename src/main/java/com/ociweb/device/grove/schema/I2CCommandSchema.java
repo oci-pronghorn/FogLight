@@ -11,7 +11,9 @@ public class I2CCommandSchema extends RawDataSchema {
             new String[]{"Command","ByteArray",null,"SetDelay","BeforeByteOffset","DelayInNanoSeconds",null},
             new long[]{1, 2, 0, 10, 12, 13, 0},
             new String[]{"global",null,null,"global",null,null,null},
-            "I2CCommandSchema.xml");
+            "I2CCommandSchema.xml",
+            new long[]{2, 2, 0},
+            new int[]{2, 2, 0});
     
     public static final I2CCommandSchema instance = new I2CCommandSchema();
     

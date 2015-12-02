@@ -21,15 +21,15 @@ public class I2CBusSchema extends MessageSchema {
         super(FROM);
     }
 
-    public static final int MSG_POINT_100 = 0x0;
-    public static final int MSG_POINT_100_FIELD_CLOCK_101 = 0x1;
-    public static final int MSG_POINT_100_FIELD_DATA_102 = 0x2;
-    public static final int MSG_POINT_100_FIELD_TIME_103 = 0x2000003;
-    public static final int MSG_STATE_200 = 0x5;
-    public static final int MSG_STATE_200_FIELD_TASK_201 = 0x1;
-    public static final int MSG_STATE_200_FIELD_STEP_202 = 0x2;
-    public static final int MSG_STATE_200_FIELD_BYTE_202 = 0x3;
-    public static final int MSG_STATE_200_FIELD_TIME_103 = 0x2000004;
+    public static final int MSG_POINT_100 = 0x00000000;
+    public static final int MSG_POINT_100_FIELD_CLOCK_101 = 0x00000001;
+    public static final int MSG_POINT_100_FIELD_DATA_102 = 0x00000002;
+    public static final int MSG_POINT_100_FIELD_TIME_103 = 0x00800003;
+    public static final int MSG_STATE_200 = 0x00000005;
+    public static final int MSG_STATE_200_FIELD_TASK_201 = 0x00000001;
+    public static final int MSG_STATE_200_FIELD_STEP_202 = 0x00000002;
+    public static final int MSG_STATE_200_FIELD_BYTE_202 = 0x00000003;
+    public static final int MSG_STATE_200_FIELD_TIME_103 = 0x00800004;
 
     
     

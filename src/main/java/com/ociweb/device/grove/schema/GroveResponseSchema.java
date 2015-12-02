@@ -17,31 +17,31 @@ public class GroveResponseSchema extends MessageSchema {
     
     public static final GroveResponseSchema instance = new GroveResponseSchema();
     
-    public static final int MSG_TIME_10 = 0x0;
-    public static final int MSG_TIME_10_FIELD_VALUE_11 = 0x2000001;
-    public static final int MSG_UV_20 = 0x3;
-    public static final int MSG_UV_20_FIELD_CONNECTOR_21 = 0x1;
-    public static final int MSG_UV_20_FIELD_VALUE_22 = 0x2;
-    public static final int MSG_UV_20_FIELD_AVERAGE_23 = 0x3;
-    public static final int MSG_LIGHT_30 = 0x8;
-    public static final int MSG_LIGHT_30_FIELD_CONNECTOR_31 = 0x1;
-    public static final int MSG_LIGHT_30_FIELD_VALUE_32 = 0x2;
-    public static final int MSG_LIGHT_30_FIELD_AVERAGE_33 = 0x3;
-    public static final int MSG_MOISTURE_40 = 0xd;
-    public static final int MSG_MOISTURE_40_FIELD_CONNECTOR_41 = 0x1;
-    public static final int MSG_MOISTURE_40_FIELD_VALUE_42 = 0x2;
-    public static final int MSG_MOISTURE_40_FIELD_AVERAGE_43 = 0x3;
-    public static final int MSG_BUTTON_50 = 0x12;
-    public static final int MSG_BUTTON_50_FIELD_CONNECTOR_51 = 0x1;
-    public static final int MSG_BUTTON_50_FIELD_VALUE_52 = 0x2;
-    public static final int MSG_MOTION_60 = 0x16;
-    public static final int MSG_MOTION_60_FIELD_CONNECTOR_61 = 0x1;
-    public static final int MSG_MOTION_60_FIELD_VALUE_62 = 0x2;
-    public static final int MSG_ROTARY_70 = 0x1a;
-    public static final int MSG_ROTARY_70_FIELD_CONNECTOR_71 = 0x1;
-    public static final int MSG_ROTARY_70_FIELD_VALUE_72 = 0x1000002;
-    public static final int MSG_ROTARY_70_FIELD_DELTA_73 = 0x1000003;
-    public static final int MSG_ROTARY_70_FIELD_SPEED_74 = 0x4;
+    public static final int MSG_TIME_10 = 0x00000000;
+    public static final int MSG_TIME_10_FIELD_VALUE_11 = 0x00800001;
+    public static final int MSG_UV_20 = 0x00000003;
+    public static final int MSG_UV_20_FIELD_CONNECTOR_21 = 0x00000001;
+    public static final int MSG_UV_20_FIELD_VALUE_22 = 0x00000002;
+    public static final int MSG_UV_20_FIELD_AVERAGE_23 = 0x00000003;
+    public static final int MSG_LIGHT_30 = 0x00000008;
+    public static final int MSG_LIGHT_30_FIELD_CONNECTOR_31 = 0x00000001;
+    public static final int MSG_LIGHT_30_FIELD_VALUE_32 = 0x00000002;
+    public static final int MSG_LIGHT_30_FIELD_AVERAGE_33 = 0x00000003;
+    public static final int MSG_MOISTURE_40 = 0x0000000D;
+    public static final int MSG_MOISTURE_40_FIELD_CONNECTOR_41 = 0x00000001;
+    public static final int MSG_MOISTURE_40_FIELD_VALUE_42 = 0x00000002;
+    public static final int MSG_MOISTURE_40_FIELD_AVERAGE_43 = 0x00000003;
+    public static final int MSG_BUTTON_50 = 0x00000012;
+    public static final int MSG_BUTTON_50_FIELD_CONNECTOR_51 = 0x00000001;
+    public static final int MSG_BUTTON_50_FIELD_VALUE_52 = 0x00000002;
+    public static final int MSG_MOTION_60 = 0x00000016;
+    public static final int MSG_MOTION_60_FIELD_CONNECTOR_61 = 0x00000001;
+    public static final int MSG_MOTION_60_FIELD_VALUE_62 = 0x00000002;
+    public static final int MSG_ROTARY_70 = 0x0000001A;
+    public static final int MSG_ROTARY_70_FIELD_CONNECTOR_71 = 0x00000001;
+    public static final int MSG_ROTARY_70_FIELD_VALUE_72 = 0x00400002;
+    public static final int MSG_ROTARY_70_FIELD_DELTA_73 = 0x00400003;
+    public static final int MSG_ROTARY_70_FIELD_SPEED_74 = 0x00000004;
 
        
     

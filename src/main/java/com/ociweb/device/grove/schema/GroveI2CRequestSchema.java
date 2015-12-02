@@ -15,12 +15,12 @@ public class GroveI2CRequestSchema extends MessageSchema{
             new long[]{2, 2, 0},
             new int[]{2, 2, 0});
     
-    public static final int MSG_LCDRGBBACKLIGHT_200 = 0x0;
-    public static final int MSG_LCDRGBBACKLIGHT_200_FIELD_RED_201 = 0x1;
-    public static final int MSG_LCDRGBBACKLIGHT_200_FIELD_GREED_202 = 0x2;
-    public static final int MSG_LCDRGBBACKLIGHT_200_FIELD_BLUE_203 = 0x3;
-    public static final int MSG_LCDRGBTEXT_210 = 0x5;
-    public static final int MSG_LCDRGBTEXT_210_FIELD_TEXT_211 = 0x4000001;
+    public static final int MSG_LCDRGBBACKLIGHT_200 = 0x00000000;
+    public static final int MSG_LCDRGBBACKLIGHT_200_FIELD_RED_201 = 0x00000001;
+    public static final int MSG_LCDRGBBACKLIGHT_200_FIELD_GREED_202 = 0x00000002;
+    public static final int MSG_LCDRGBBACKLIGHT_200_FIELD_BLUE_203 = 0x00000003;
+    public static final int MSG_LCDRGBTEXT_210 = 0x00000005;
+    public static final int MSG_LCDRGBTEXT_210_FIELD_TEXT_211 = 0x01000001;
     
     public static final GroveI2CRequestSchema instance = new GroveI2CRequestSchema();
     

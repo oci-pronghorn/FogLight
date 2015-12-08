@@ -5,9 +5,9 @@ import java.io.IOException;
 import com.ociweb.device.grove.schema.I2CBusSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
-import com.ociweb.pronghorn.pipe.util.Appendables;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.Appendables;
 
 public class I2CSimulatedLineMonitorStage extends PronghornStage {
 

@@ -14,8 +14,8 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.HashSet;
 import java.util.Set;
 
-public class EdisonPinManager {
-
+public class GrovePiPinManager
+{   
     public final Path[] gpio; 
     public final Path[] gpioDirection;
     public final Path[] gpioValue;
@@ -84,7 +84,7 @@ public class EdisonPinManager {
         }
     }
     
-    public EdisonPinManager(short[] pins) {
+    public GrovePiPinManager(short[] pins) {
         
         gpioPinInt = pins;
         gpio = new Path[pins.length];    
@@ -310,5 +310,4 @@ public class EdisonPinManager {
             
 
     }
-
 }

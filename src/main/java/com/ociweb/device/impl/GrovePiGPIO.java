@@ -1,0 +1,26 @@
+//File: GrovePiGPIO.java
+//Project: PronghornIoT
+//Date: Jan 20, 2016
+//
+//Author: Brandon Sanders <brandon@mechakana.com>
+//
+///////////////////////////////////////////////////////////////////////////////
+//Copyright (c) 2016 Brandon Sanders <brandon@mechakana.com>
+//
+//All rights reserved.
+///////////////////////////////////////////////////////////////////////////////
+//
+package com.ociweb.device.impl;
+
+//Class: GrovePiGPIO
+/**
+ * TODO:
+ */
+public class GrovePiGPIO
+{
+    //Constructor//////////////////////////////////////////////////////////////
+    GrovePiGPIO()
+    {
+
+    }
+}

@@ -28,7 +28,6 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private static final int MAX_CONFIGURABLE_BYTES = 16;
     private int[] cyclesToWaitLookup = new int[MAX_CONFIGURABLE_BYTES];
     
-    
     private int bitFromBus;
     
     private static final int TASK_NONE = 0;
@@ -40,8 +39,6 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     
     private final Pipe<I2CCommandSchema> request;
     private final Pipe<I2CCommandSchema> response;
-  
-    
     
     //I2C is a little complex to ensure correctness.  As a result this stage is not aware of any 
     //specific grove modules which may be attached. It only does the sending and receiving of bytes
@@ -127,21 +124,21 @@ public class GroveShieldV2I2CStage extends PronghornStage {
         }
         
         if (TASK_NONE == taskAtHand) {
-        //    System.out.println("read request");
+//            System.out.println("read request");
             readRequest();//may populate task at hand
         }
         
         switch (taskAtHand) {
             case TASK_MASTER_START:
-                //System.out.println("task master start "+stepAtHand);
+//                System.out.println("task master start "+stepAtHand);
                 masterStart();
                 break;
             case TASK_WRITE_BYTES:
-               // System.out.println("task write bytes data "+stepAtHand);
+//                System.out.println("task write bytes data "+stepAtHand);
                 writeBytes();
                 break;
             case TASK_MASTER_STOP:
-               // System.out.println("task master stop "+stepAtHand);
+//                System.out.println("task master stop "+stepAtHand);
                 masterStop();
 
                 break;
@@ -205,6 +202,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 1:
                 //TODO: must redo using the same logic as the ack read! needed for LCD text.
                 if (0==config.i2cReadClock()) {
+                    System.out.println("failure, clock stretching");
                     return;//clock stretching, will come back to this state next cycle around 
                 }         
                 if (0==config.i2cReadData()) {
@@ -278,10 +276,10 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 0:
                   //byteToSendPos starts with 8
                   if (0==(1 & (byteToSend >> (--byteToSendPos)))) {
-                      //System.out.println("0 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
+//                      System.out.println("0 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
                       config.i2cSetDataLow();
                   } else {
-                      //System.out.println("1 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
+//                      System.out.println("1 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
                       config.i2cSetDataHigh();
                   } 
                   stepAtHand = 1;
@@ -305,8 +303,8 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                   config.i2cClockOut();
                   config.i2cSetClockLow();
       //            config.i2cDataOut();
-                                  
-                  if (0 == byteToSendPos) {                      
+                  
+                  if (0 == byteToSendPos) {   
                       stepAtHand = 3; //now read the ack for this byte
                   } else { //we will start on the next bit.
                       stepAtHand = 0;

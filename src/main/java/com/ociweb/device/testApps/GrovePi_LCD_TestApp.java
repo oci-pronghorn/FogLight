@@ -3,7 +3,7 @@ package com.ociweb.device.testApps;
 import java.util.concurrent.TimeUnit;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
-import com.ociweb.device.config.GrovePiConfiguration;
+import com.ociweb.device.config.grovepi.GrovePiConfiguration;
 import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.grove.GroveShieldV2I2CStage;
 import com.ociweb.device.grove.GroveShieldV2ResponseStage;

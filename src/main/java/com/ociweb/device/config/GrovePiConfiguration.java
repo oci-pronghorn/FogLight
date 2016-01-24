@@ -94,8 +94,7 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 
     public int readInt(int connector) {
         //TODO:
-//        return GrovePiPinManager.readInt(connector);
-        return 0;
+        return GrovePiPinManager.readInt(connector);
     }
     
     //TODO: Is it right to config them as outputs before writing?

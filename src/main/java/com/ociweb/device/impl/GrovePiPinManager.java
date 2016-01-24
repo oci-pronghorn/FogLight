@@ -40,15 +40,6 @@ public class GrovePiPinManager {
 //        Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage4_raw"), //TODO: what if we read these data lines for I2C?
 //        Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage5_raw")  //TODO: what if we read these data lines for I2C?
 //    };
-    
-    public static final Path[] PATH_A = new Path[] {
-        Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage0_raw"),
-        Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage1_raw"),
-        Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage2_raw"),
-        Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage3_raw"),
-        Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage4_raw"), //TODO: what if we read these data lines for I2C?
-        Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage5_raw")  //TODO: what if we read these data lines for I2C?
-    };
 
     private static final Path PATH_GPIO_EXPORT = Paths.get("/sys/class/gpio/export");
     private static final Path PATH_GPIO_UNEXPORT = Paths.get("/sys/class/gpio/unexport");
@@ -76,7 +67,7 @@ public class GrovePiPinManager {
     private static final Set<OpenOption> readOptions = new HashSet<OpenOption>();
     private static final Set<OpenOption> i2cOptions = new HashSet<OpenOption>();
 
-    private static ByteBuffer[] readIntBuffer;
+//    private static ByteBuffer[] readIntBuffer;
     private static ByteBuffer[] readBitBuffer;
 
     static {
@@ -234,36 +225,41 @@ public class GrovePiPinManager {
 
     public static int readInt(final int idx) {
 
-        try {
-            final ByteBuffer buffer = readIntBuffer[idx];
-
-            loadValueIntoBuffer(idx, buffer);
-
-            int i = buffer.remaining();
-            int result = 0;
-            byte c;
-            while ((--i >= 0) && ((c = buffer.get()) >= '0'))
-                result = (result * 10) + (c - '0');
-
-            return result;
-        }
-        catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//        try {
+//            System.out.println("ReadInt: ");
+//            System.out.println(idx);
+//            System.out.println(readIntBuffer.length);
+//            final ByteBuffer buffer = readIntBuffer[idx];
 //
-    private static void loadValueIntoBuffer(final int idx, final ByteBuffer buffer) throws IOException {
-        do {
-            final SeekableByteChannel bc = GrovePiGPIO.gpioLinuxPins.provider.newByteChannel(PATH_A[idx],
-                                                                                             readOptions);
-            buffer.clear();
-            while (bc.read(buffer) >= 0) {}
-            bc.close();
-            buffer.flip();
-            //if length is 0 read this again.
-        }
-        while ((buffer.limit() == 0) || (buffer.get(0) < '0'));
+//            loadValueIntoBuffer(idx, buffer);
+//
+//            int i = buffer.remaining();
+//            int result = 0;
+//            byte c;
+//            while ((--i >= 0) && ((c = buffer.get()) >= '0'))
+//                result = (result * 10) + (c - '0');
+//
+//            return result;
+//        }
+//        catch (final IOException e) {
+//            throw new RuntimeException(e);
+//        }
+        
+        return readBit(idx);
     }
+
+//    private static void loadValueIntoBuffer(final int idx, final ByteBuffer buffer) throws IOException {
+//        do {
+//            final SeekableByteChannel bc = GrovePiGPIO.gpioLinuxPins.provider.newByteChannel(PATH_A[idx],
+//                                                                                             readOptions);
+//            buffer.clear();
+//            while (bc.read(buffer) >= 0) {}
+//            bc.close();
+//            buffer.flip();
+//            //if length is 0 read this again.
+//        }
+//        while ((buffer.limit() == 0) || (buffer.get(0) < '0'));
+//    }
 
     public static int readBit(final int idx) {
         GrovePiGPIO.gpioLinuxPins.removeDevice(idx);

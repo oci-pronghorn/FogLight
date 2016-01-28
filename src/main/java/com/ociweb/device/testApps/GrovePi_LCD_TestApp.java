@@ -7,6 +7,8 @@ import com.ociweb.device.config.grovepi.GrovePiConfiguration;
 import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.grove.GroveShieldV2I2CStage;
 import com.ociweb.device.grove.GroveShieldV2ResponseStage;
+import com.ociweb.device.grove.grovepi.GrovePiI2CStage;
+import com.ociweb.device.grove.grovepi.GrovePiI2CStageV2;
 import com.ociweb.device.grove.schema.GroveRequestSchema;
 import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
@@ -55,9 +57,6 @@ public class GrovePi_LCD_TestApp {
         
         buildGraph(gm, config);
         
-        //new I2CSimulatedLineMonitorStage(gm, i2cBusPipe);
-        
-        
         //TODO: need to finish ColorMinusScheduler found in same package in Pronghorn as this scheduler
         //      then for edison use only 1 or 2 threads for doing all the work.
         ThreadPerStageScheduler scheduler = new ThreadPerStageScheduler(gm);
@@ -84,11 +83,11 @@ public class GrovePi_LCD_TestApp {
         Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(GrovePi_LCD_TestApp.responseConfig);
         
         GroveShieldV2ResponseStage groveStage = new GroveShieldV2ResponseStage(gm, responsePipe, config);       
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000*1000, groveStage); //poll every 10 ms
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10 * 1000 * 1000, groveStage); //poll every 10 ms
          
         //ConsoleSummaryStage<GroveResponseSchema> dump = new ConsoleSummaryStage<>(gm, responsePipe);
         ConsoleJSONDumpStage<GroveResponseSchema>  dump = new ConsoleJSONDumpStage<>(gm, responsePipe);
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 500*1000*1000, dump);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 500 * 1000 * 1000, dump);
         
         ///////
         //i2c testing
@@ -101,69 +100,70 @@ public class GrovePi_LCD_TestApp {
             int line = Grove_LCD_RGB.LCD_2LINE;//LCD_5x10DOTS;
             
             //turn on Backlight
-//            byte[] rawData = new byte[]{
-//                //(byte) (0b00000110), //(byte)0xA5, (byte)0x5A, //reset cmmand
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
-//                
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
-//                
+            byte[] rawData = new byte[] {
+                //(byte) (0b00000110), //(byte)0xA5, (byte)0x5A, //reset cmmand
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0x10101010,//(byte)0xAA, 
 //                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
-//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 0x06, (byte)0xFF, 
-//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0xAA, 
-//                
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte)0b10100010, (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,
-//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_GREEN,  (byte)0xFF,
-//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0x00,
+//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0,
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 0x06, (byte)0xFF, 
+//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0xAA,
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte)0b10100010, (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,
+                
 //                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_RED,    (byte)0x00,
-//             
-//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0x90,
+//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_GREEN,  (byte)0x00,
+//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0x00,
+//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_RED,    (byte)0xF1,
 //                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_GREEN,  (byte)0xFF,
-//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_RED,    (byte)0xF1, 0
-//                
-//                //(byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)(Grove_LCD_RGB.LCD_FUNCTIONSET | line),        
-//                        
-//                //sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_DISPLAYCONTROL | 
-//                //(Grove_LCD_RGB.LCD_DISPLAYON /*| Grove_LCD_RGB.LCD_CURSOROFF | Grove_LCD_RGB.LCD_BLINKOFF)) */ )));     
-//                //delay();
-//                //sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_DISPLAYCONTROL |    (Grove_LCD_RGB.LCD_DISPLAYOFF | Grove_LCD_RGB.LCD_CURSOROFF )));     
-//                //delay();
-//                //sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)Grove_LCD_RGB.LCD_CLEARDISPLAY);                                     
-//                //sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_FUNCTIONSET | line));
-//                        
-//                //(byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0,         
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 7,  (byte)0XFF, 
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_GREEN,    (byte)0XFF, 
-//                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0XFF   
-//            };
-            
-            byte[] rawData = new byte[]{
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),  Grove_LCD_RGB.REG_MODE1, 0,
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),  Grove_LCD_RGB.REG_MODE2, 0,
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0xAA,
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),  Grove_LCD_RGB.REG_GREEN, (byte)0xFF,
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),   Grove_LCD_RGB.REG_BLUE, (byte)0x00,
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),    Grove_LCD_RGB.REG_RED, (byte)0x00,
-             
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),   Grove_LCD_RGB.REG_BLUE, (byte)0x90,
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),  Grove_LCD_RGB.REG_GREEN, (byte)0xFF,
-                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),    Grove_LCD_RGB.REG_RED, (byte)0xF1, 0
+//                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0x90
+                
+                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 0, (byte) 0,
+                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 1, (byte) 0,
+                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 0x08, (byte) 0xaa,
+                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 4, (byte) 120,
+                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 3, (byte) 25,
+                (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 2, (byte) 75
+                
+                //(byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)(Grove_LCD_RGB.LCD_FUNCTIONSET | line),        
+                //sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_DISPLAYCONTROL | 
+                //(Grove_LCD_RGB.LCD_DISPLAYON /*| Grove_LCD_RGB.LCD_CURSOROFF | Grove_LCD_RGB.LCD_BLINKOFF)) */ )));     
+                //delay();
+                //sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_DISPLAYCONTROL |    (Grove_LCD_RGB.LCD_DISPLAYOFF | Grove_LCD_RGB.LCD_CURSOROFF )));     
+                //delay();
+                //sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)Grove_LCD_RGB.LCD_CLEARDISPLAY);                                     
+                //sendMsg(d, Grove_LCD_RGB.LCD_ADDRESS, (byte)0, (byte)(Grove_LCD_RGB.LCD_FUNCTIONSET | line));
+                //(byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0,         
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 7,  (byte)0XFF, 
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_GREEN,    (byte)0XFF, 
+                //(byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_BLUE,   (byte)0XFF              
             };
             
+//            byte[] rawData = new byte[] {
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),  Grove_LCD_RGB.REG_MODE1, 0,
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),  Grove_LCD_RGB.REG_MODE2, 0,
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte) 0xAA,
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),  Grove_LCD_RGB.REG_GREEN, (byte) 0xFF,
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),   Grove_LCD_RGB.REG_BLUE, (byte) 0x00,
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),    Grove_LCD_RGB.REG_RED, (byte) 0x00,
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),   Grove_LCD_RGB.REG_BLUE, (byte) 0x90,
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),  Grove_LCD_RGB.REG_GREEN, (byte) 0xFF,
+//                (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0),    Grove_LCD_RGB.REG_RED, (byte) 0xF1, 0
+//            };
+            
 //            byte[] rawData = Grove_LCD_RGB.bytesForColor((byte) 255, (byte) 0, (byte) 0);
-            int[] chunkSizes = new int[]{3,3,3, 3,3,3, 3,3,3, 1};
+            int[] chunkSizes = new int[]{3,3,3, 3,3,3};
 //            int[] chunkSizes = new int[]{3,3,3, 3,3,3, 1};
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
     
             //ConsoleJSONDumpStage<GroveI2CSchema> dumpJSON = new ConsoleJSONDumpStage<>(gm, i2cToBusPipe);
             
-            GroveShieldV2I2CStage i2cStage = new GroveShieldV2I2CStage(gm, i2cToBusPipe, config);
+            GrovePiI2CStageV2 i2cStage = new GrovePiI2CStageV2(gm, i2cToBusPipe, config);
         }
     }
 }

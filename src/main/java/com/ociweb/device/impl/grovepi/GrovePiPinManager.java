@@ -98,7 +98,6 @@ public class GrovePiPinManager {
 
                 sb.append("/value");
                 gpioValue[i] = fileSystem.getPath(sb.toString());
-
             }
         }
     }
@@ -179,21 +178,17 @@ public class GrovePiPinManager {
     }
 
     public static void writeValue(final int port, final ByteBuffer data, final GrovePiPinManager d) {
-
         try {
             final SeekableByteChannel channel = d.provider.newByteChannel(d.gpioValue[port],
                                                                           i2cOptions);
-            do
-                channel.write(data);
+            do channel.write(data);
             while (data.hasRemaining()); //Caution, TODO: this is blocking.
             data.flip();
             channel.close();
-
         }
         catch (final IOException e) {
             throw new RuntimeException(e);
         }
-
     }
     
     public static int readBit(final int idx) {
@@ -213,6 +208,5 @@ public class GrovePiPinManager {
         catch (final IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 }

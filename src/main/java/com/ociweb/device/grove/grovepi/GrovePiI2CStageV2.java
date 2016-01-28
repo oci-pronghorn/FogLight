@@ -48,17 +48,20 @@ public class GrovePiI2CStageV2 extends PronghornStage {
     private void writeBit(boolean bit) {
         if (bit) config.i2cSetDataHigh();
         else config.i2cSetDataLow();
+        config.i2cClockOut();
         
         pause();
         
         config.i2cSetClockHigh();
+        config.i2cClockIn();
         
         pause();
         
         while (config.i2cReadClock() == 0) {
             System.out.println("Clock stretching in writeBit...");
         }
-        
+
+        config.i2cClockOut();
         config.i2cSetClockLow();
     }
     
@@ -88,6 +91,7 @@ public class GrovePiI2CStageV2 extends PronghornStage {
         //Setup I2C.
         config.beginPinConfiguration();
         config.configurePinsForI2C();
+        config.i2cClockOut();
         config.endPinConfiguration();
         config.i2cSetClockHigh();
         pause();
@@ -153,6 +157,7 @@ public class GrovePiI2CStageV2 extends PronghornStage {
     
     private void masterStart() {
         config.i2cSetDataLow();
+        config.i2cClockOut();
         pause();
         config.i2cSetClockLow();
         pause();
@@ -177,6 +182,7 @@ public class GrovePiI2CStageV2 extends PronghornStage {
     
     private void masterStop() {
        config.i2cSetDataLow();
+       config.i2cClockIn();
        pause();
        while (config.i2cReadClock() == 0) {
            System.out.println("Clock stretching in masterStop...");

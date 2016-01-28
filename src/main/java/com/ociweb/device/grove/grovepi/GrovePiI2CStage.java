@@ -326,8 +326,6 @@ public class GrovePiI2CStage extends PronghornStage {
                 if (!ack) {
                     //What do we do up on ack?
                     //roll back and try again?
-                    
-                    
                 } else {
                     System.out.println();
                 }

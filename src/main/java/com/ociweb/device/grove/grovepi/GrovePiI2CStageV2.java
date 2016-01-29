@@ -19,11 +19,9 @@ public class GrovePiI2CStageV2 extends PronghornStage {
     public final GroveConnectionConfiguration config;
     
     private int taskPhase = 0;
-    private int stepPhase = 0;
     
     public int cyclesToWait;
     public int byteToSend;
-    private int byteToSendPos;
     
     //holds the same array as used by the Blob from the ring.
     private byte[] bytesToSendBacking; //set before send
@@ -50,12 +48,12 @@ public class GrovePiI2CStageV2 extends PronghornStage {
         else config.i2cSetDataLow();
         config.i2cClockOut();
         
-        pause();
+//        pause();
         
         config.i2cSetClockHigh();
         config.i2cClockIn();
         
-        pause();
+//        pause();
         
         while (config.i2cReadClock() == 0) {
             System.out.println("Clock stretching in writeBit...");
@@ -139,11 +137,9 @@ public class GrovePiI2CStageV2 extends PronghornStage {
                     bytesToSendRemaining = len;
                     
                     taskPhase = TASK_MASTER_START;
-                    stepPhase = 0;
                     
                     cyclesToWait = bytesToSendPosition<MAX_CONFIGURABLE_BYTES ? cyclesToWaitLookup[bytesToSendPosition] : 0;            
                     byteToSend = 0xFF&bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
-                    byteToSendPos = 8;
                 break;
                 case I2CCommandSchema.MSG_SETDELAY_10:                    
                     int offset = Pipe.takeValue(request);
@@ -158,9 +154,9 @@ public class GrovePiI2CStageV2 extends PronghornStage {
     private void masterStart() {
         config.i2cSetDataLow();
         config.i2cClockOut();
-        pause();
+//        pause();
         config.i2cSetClockLow();
-        pause();
+//        pause();
         taskPhase = TASK_WRITE_BYTES;
     }
     
@@ -183,13 +179,13 @@ public class GrovePiI2CStageV2 extends PronghornStage {
     private void masterStop() {
        config.i2cSetDataLow();
        config.i2cClockIn();
-       pause();
+//       pause();
        while (config.i2cReadClock() == 0) {
            System.out.println("Clock stretching in masterStop...");
        }
-       pause();
+//       pause();
        config.i2cSetDataHigh();
-       pause();
+//       pause();
        taskPhase = TASK_NONE;
     }
 }

@@ -2,6 +2,9 @@ package com.ociweb.device.grove.grovepi;
 
 
 /**
+ * TODO: This is a sample taken from wikipedia. 
+ *       It should be deleted once the GrovePiI2CStage is working
+ *       
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class GrovePiI2CDriver {

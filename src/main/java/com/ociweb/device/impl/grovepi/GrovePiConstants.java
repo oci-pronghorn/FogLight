@@ -4,16 +4,19 @@ import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.grove.GroveTwig;
 
 /**
- * TODO: GPIO 03 is SDA on an RPi
- *       GPIO 05 is SCL on an RPi
+ * TODO: GPIO 2 is SDA on an RPi
+ *       GPIO 3 is SCL on an RPi
+ *
+ * TODO: Only pins we're actually using/care about are 2 and 3.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class GrovePiConstants {
     
     public static final short[] GPIO_PINS = new short[] {
+        2,
         3,
-        5,
+//        5,
         7,
         11,
         12,
@@ -34,8 +37,9 @@ public class GrovePiConstants {
     };
 
     public static final short[] GPIO_PIN_MODES = new short[] {
+        2,
         3,
-        5,
+//        5,
         7,
         11,
         12,
@@ -56,8 +60,9 @@ public class GrovePiConstants {
     };
 
     public static final short[] OUTPUT_ENABLE = new short[] {
+        2,
         3,
-        5,
+//        5,
         7,
         11,
         12,
@@ -78,8 +83,9 @@ public class GrovePiConstants {
     };
     
     public static final short[] PULL_UP_ENABLE = new short[] {
+        2,
         3,
-        5,
+//        5,
         7,
         11,
         12,

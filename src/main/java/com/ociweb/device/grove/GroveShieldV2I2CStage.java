@@ -1,11 +1,8 @@
 package com.ociweb.device.grove;
 
-import java.util.Arrays;
-
 import com.ociweb.device.config.GroveConnectionConfiguration;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -24,10 +21,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private int    bytesToSendPosition;
     private int    bytesToSendMask;
     private int    bytesToSendReleaseSize;
-        
-    private static final int MAX_CONFIGURABLE_BYTES = 16;
-    private int[] cyclesToWaitLookup = new int[MAX_CONFIGURABLE_BYTES];
-    
+            
     
     private int bitFromBus;
     
@@ -59,7 +53,8 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 //        
 //    }
     
-    private static final int NS_PAUSE = 10*1000;
+    //must be between 10*1000 and 100*1000 for SMBus and I2C, NOTE some signals use two+ cycles so 10_000 is far too small.
+    public static final int NS_PAUSE = (1_000_000_000)/(100_000); 
     
     public GroveShieldV2I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, GroveConnectionConfiguration config) {
         super(gm, request, NONE);
@@ -80,7 +75,8 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     //only used in startup
     private void pause() {
         try {
-            Thread.sleep(NS_PAUSE/1000000,NS_PAUSE%1000000);
+          //  Thread.sleep(NS_PAUSE/1_000_000,NS_PAUSE%1_000_000);
+            Thread.sleep(40); //timeout for SMBus
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -98,9 +94,18 @@ public class GroveShieldV2I2CStage extends PronghornStage {
            config.beginPinConfiguration();
            config.configurePinsForI2C();
            config.endPinConfiguration();
-           config.i2cSetClockHigh();
+        //   int i;
+        //   i = 2000;
+        //   while (--i>=0) { //force hot spot to optimize this call
+               config.i2cClockOut();
+               config.i2cSetClockHigh();
+        //   }
            pause();
-           config.i2cSetDataHigh();
+       //    i = 2000;
+       //    while (--i>=0) { //force hot spot to optimize this call
+               config.i2cDataOut();
+               config.i2cSetDataHigh();
+        //   }
            pause();
            
         } else {
@@ -108,44 +113,40 @@ public class GroveShieldV2I2CStage extends PronghornStage {
         }
         //starting in the known state where both are high
         
-      if (0==config.i2cReadClock() ) {
-          throw new RuntimeException("expected clock to be high for start");
-      }        
-      if (0==config.i2cReadData() ) {
-          throw new RuntimeException("expected data to be high for start");
+      int j;
+      j = 2000;
+      while (-j>=0) { //force hot spot to optimize this call
+          if (0==config.i2cReadClock() ) {
+              throw new RuntimeException("expected clock to be high for start");
+          }        
+          if (0==config.i2cReadData() ) {
+              throw new RuntimeException("expected data to be high for start");
+          }
       }
-        
+      config.lastTime = System.nanoTime();
     }
 
     @Override
     public void run() {
-
+        
+        if (TASK_NONE == taskAtHand) {
+            readRequest();//may populate task at hand
+        }
+        
         //required wait based on slave device needs
         if (cyclesToWait>0) {
             cyclesToWait--;
             return;
         }
         
-        if (TASK_NONE == taskAtHand) {
-        //    System.out.println("read request");
-            readRequest();//may populate task at hand
+        if (TASK_WRITE_BYTES == taskAtHand) {
+            writeBytes();            
+        } else if (TASK_MASTER_START == taskAtHand) {
+            masterStart();            
+        } else {
+            masterStop();            
         }
         
-        switch (taskAtHand) {
-            case TASK_MASTER_START:
-                //System.out.println("task master start "+stepAtHand);
-                masterStart();
-                break;
-            case TASK_WRITE_BYTES:
-               // System.out.println("task write bytes data "+stepAtHand);
-                writeBytes();
-                break;
-            case TASK_MASTER_STOP:
-               // System.out.println("task master stop "+stepAtHand);
-                masterStop();
-
-                break;
-        }        
         //Must return after this point to ensure the clock speed is respected.
         config.progressLog(taskAtHand, stepAtHand, byteToSend);
     }
@@ -154,11 +155,11 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 
     
     private void readRequest() {
-        // TODO Auto-generated method stub
+        
         if (Pipe.hasContentToRead(request)) {
             
             int msgId = Pipe.takeMsgIdx(request);
-            if (msgId<0) {
+            if (msgId < 0) {
                 requestShutdown();
                 return;
             }
@@ -166,27 +167,42 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             
             switch(msgId) {
                 case I2CCommandSchema.MSG_COMMAND_1:
+                    
+                    
                     int meta = Pipe.takeRingByteMetaData(request);
                     int len = Pipe.takeRingByteLen(request);
-                    
-                    bytesToSendBacking = Pipe.byteBackingArray(meta, request);
-                    bytesToSendMask = Pipe.blobMask(request);
-                    bytesToSendPosition = Pipe.bytePosition(meta, request, len);
-                    bytesToSendRemaining = len;
-                    
-                    taskAtHand = TASK_MASTER_START;
-                    stepAtHand = 0;
-                    
-                    cyclesToWait = bytesToSendPosition<MAX_CONFIGURABLE_BYTES ? cyclesToWaitLookup[bytesToSendPosition] : 0;            
-                    byteToSend = 0xFF&bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
-                    byteToSendPos = 8;
+                    if (len>0) {
+                        
+                      //will mess up time, do not use  
+                      //  System.out.println("                        READING FROM QUEUE NEW COMMAND");
+                        
+                        bytesToSendBacking = Pipe.byteBackingArray(meta, request);
+                        bytesToSendMask = Pipe.blobMask(request);
+                        bytesToSendPosition = Pipe.bytePosition(meta, request, len);
+                        bytesToSendRemaining = len;
+                        
+                        taskAtHand = TASK_MASTER_START;
+                        stepAtHand = 0;
+                        
+                        byteToSend = 0xFF&bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
+                        byteToSendPos = 8;
+                    }
                 break;
-                case I2CCommandSchema.MSG_SETDELAY_10:                    
-                    int offset = Pipe.takeValue(request);
-                    cyclesToWaitLookup[offset] = 1 + (Pipe.takeValue(request)/NS_PAUSE);
+                case I2CCommandSchema.MSG_SETDELAY_10:  
+                    
+                    //will mess up time, do not use 
+                    System.out.println("                        READING FROM QUEUE DELAY");
+                    
+                    int offset = Pipe.takeValue(request); //TODO: ignrore?? old feature we may not want.
+                    
+                    cyclesToWait = 1 + (Pipe.takeValue(request)/NS_PAUSE); //schedule rate so value is in NS
                     Pipe.confirmLowLevelRead(request,bytesToSendReleaseSize);
-                    Pipe.releaseReads(request);
+                    Pipe.releaseReadLock(request);
                 break;    
+                default:
+                    requestShutdown();
+                    return;
+                   
             }
         }
 
@@ -196,13 +212,17 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private void masterStart() {
 
         switch (stepAtHand) {
-            case 0:           
+            case 0:
+                //do no use, slows down clock
+                //System.out.println("             begin request master");
+                config.i2cDataIn();
                 config.i2cClockOut();
                 config.i2cSetClockHigh();
-                config.i2cClockIn();
-                stepAtHand = 1;
+                
+                config.i2cClockIn(); 
+                stepAtHand = 2;
                 break;
-            case 1:
+            case 2:
                 //TODO: must redo using the same logic as the ack read! needed for LCD text.
                 if (0==config.i2cReadClock()) {
                     return;//clock stretching, will come back to this state next cycle around 
@@ -212,16 +232,20 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                     taskAtHand = TASK_NONE;
                     return;
                 }
+                config.i2cDataOut();//new
                 config.i2cSetDataLow(); //lower data while clock is high
-                stepAtHand = 2;
+                
+                
+                stepAtHand = 4;
                 break;//pause
-            case 2:
+            case 4:
                 if (0==config.i2cReadClock()) {                    
                    throw new RuntimeException("expected clock to be high");
                 }
                 config.i2cClockOut();
                 config.i2cSetClockLow();
-                
+  //BAD              config.i2cDataIn();//new
+  //BAD              config.i2cClockIn();//new
                 if (1==config.i2cReadData()) {
                     System.out.println("failure, unable to be master SDA");
                     taskAtHand = TASK_NONE;
@@ -253,18 +277,18 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 config.i2cSetClockHigh();
                 config.i2cClockIn();
                 stepAtHand = 2;
-                break;//pause
+                break;
             case 2:
+                stepAtHand = 3;
+                break;//pause
+            case 3:
                 if (0==config.i2cReadClock()) {
                     return;//clock stretching, will come back to this state next cycle around 
                 }                
                 config.i2cSetDataHigh();
                 stepAtHand = 0;
                 taskAtHand = TASK_NONE;
-                
-                //clear message specific delays, no need to keep going this slow.
-                Arrays.fill(cyclesToWaitLookup, 0);
-               
+  //bad              config.i2cDataIn();//new               
                 break;
             default:
                 throw new UnsupportedOperationException();
@@ -276,6 +300,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private void writeBytes() {
         switch (stepAtHand) {
             case 0:
+                  config.i2cDataOut();//new
                   //byteToSendPos starts with 8
                   if (0==(1 & (byteToSend >> (--byteToSendPos)))) {
                       //System.out.println("0 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
@@ -284,58 +309,67 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                       //System.out.println("1 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
                       config.i2cSetDataHigh();
                   } 
+                  config.i2cClockOut();
                   stepAtHand = 1;
                   break;
             case 1:
-                  config.i2cClockOut();
                   config.i2cSetClockHigh();
                   config.i2cClockIn();
                   stepAtHand = 2;
-                  break;//pause
-            case 2:                
+                  break;
+            case 2:
                   if (0==config.i2cReadClock()) {
-                     return;//clock stretching, will come back to this state next cycle around 
+                      System.out.println("clock stretching now.");
+                      return;//clock stretching, will come back to this state next cycle around 
                   }
-                  if (0!=(1 & (byteToSend >> byteToSendPos)) && config.i2cReadData()==0 ) {
-                      throw new RuntimeException("Unable to confirm data set high");           
-                  }
-                  if (0==config.i2cReadClock()) {
-                      throw new UnsupportedOperationException("Clock should still be high");
-                  }
-                  config.i2cClockOut();
-                  config.i2cSetClockLow();
-      //            config.i2cDataOut();
-                                  
-                  if (0 == byteToSendPos) {                      
-                      stepAtHand = 3; //now read the ack for this byte
-                  } else { //we will start on the next bit.
-                      stepAtHand = 0;
-                  }
-                  break;//pause
-            case 3:
-                config.i2cSetDataHigh(); //the state set here remains for the ack but why?       
-                config.i2cDataIn();   //needed to open this right now so we can read the ack upon change.       
-                stepAtHand = 4;
-                break;
-            case 4:                    
-                config.i2cSetClockHigh();
-                config.i2cClockIn();
-                stepAtHand = 5;
-                break;//pause
-            case 5:
-                if (0==config.i2cReadClock()) {
-                    return;//clock stretching, will come back to this state next cycle around 
-                }
-                if (0==config.i2cReadClock()) {
-                    throw new UnsupportedOperationException("Clock should still be high");
-                }
-                
+                  stepAtHand = 3;
+                  break;
+            case 3:  
+                assert(! (0!=(1 & (byteToSend >> byteToSendPos)) && 0==config.i2cReadData()) ) : "Clock should still be high";
+                assert(0!=config.i2cReadClock()) :"Unable to confirm data set high";
+
                 config.i2cClockOut();
-                config.i2cSetClockLow();       
+                config.i2cSetClockLow();
+              
+                if (0 == byteToSendPos) {                      
+                  stepAtHand = 4; //now read the ack for this byte
+                } else { //we will start on the next bit.
+                  stepAtHand = 0;
+                }
+
+                  break;//pause
+            case 4:
+                config.i2cSetDataHigh(); //set high so the ack can make this low   
+                config.i2cDataIn();   //needed to open this right now so we can read the ack upon change.       
+                stepAtHand = 5;
+                break;
+            case 5:                    
+                config.i2cSetClockHigh(); 
+                config.i2cClockIn();
                 stepAtHand = 6;
-                break;//pause
-            case 6:
-                System.out.print(" sent 0x"+Integer.toHexString(byteToSend)+"  ");
+                break;
+            case 6: 
+                stepAtHand = 7;
+                break;
+            case 7:
+                if (0!=config.i2cReadClock()) {
+                    assert(0==config.i2cReadClock()) : "Clock should still be high";
+                    
+                    config.i2cClockOut();
+                    config.i2cSetClockLow();      
+                    
+                    stepAtHand = 9;
+                } else {
+                    System.out.println("clock stretching now.");
+                    return;//clock stretching, will come back to this state next cycle around                     
+                }
+                break;
+            case 9:
+
+//                boolean debug = false; //may slow down response causing device to timeout, do not use
+//                if (debug) {
+//                    System.out.print(" sent 0x"+Integer.toHexString(byteToSend)+"  LEFT(1)"+Integer.toHexString(byteToSend>>1)+"  ");
+//                }  
                 
                 boolean ack = config.i2cReadAck();
 
@@ -343,10 +377,11 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 if (!ack) {
                     //What do we do up on ack?
                     //roll back and try again?
-                    
-                    
-                } else {
+                    System.out.println("failure on send 0x"+Integer.toHexString(byteToSend)+"  LEFT(1)"+Integer.toHexString(byteToSend>>1)+"  ");
                     System.out.println();
+                } else {
+                    //TODO: need to add flag that some devices respond with ack and others do not
+                    System.out.println("ok  "+Integer.toHexString(byteToSend));                    
                 }
                 
                 config.i2cDataOut();
@@ -358,12 +393,11 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                     
                     //release the resources from the pipe for more data
                     Pipe.confirmLowLevelRead(request,bytesToSendReleaseSize);
-                    Pipe.releaseReads(request);
+                    Pipe.releaseReadLock(request);
                     
                     
                 } else {       
                     
-                    cyclesToWait = bytesToSendPosition<MAX_CONFIGURABLE_BYTES ? cyclesToWaitLookup[bytesToSendPosition] : 0;
                     byteToSend = 0xFF&bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
                     byteToSendPos = 8;
                     //System.out.println("sending byte "+Integer.toHexString(byteToSend));

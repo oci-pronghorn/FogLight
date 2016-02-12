@@ -52,13 +52,16 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
                 PipeWriter.publishWrites(pipe);
                 
             } else {
-                System.err.println("error pipe is not keeping up with feed");
+                System.err.println("error pipe is not keeping up with feed ***** ");
+                System.err.println("");
+                System.exit(0);
             }
         }
         
     }
 
     private void sendDataPoint() {
+        
         if (null!=pipe) {
             
             while (! Pipe.isInit(pipe)) {

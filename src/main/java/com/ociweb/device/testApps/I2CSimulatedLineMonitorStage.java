@@ -17,7 +17,7 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
     private long lastTime = 0;
     private final int NAONS_PER_SECOND = 1000*1000*1000; 
     private final int FASTEST_CYCLES_PER_SECOND = 100_000;//safe limit for i2c
-    private final int SLOWEST_CYCLES_PER_SECOND =   3_000; //lower limit for SMBus is 10*1000 but timeout is much lower at 35ms
+    private final int SLOWEST_CYCLES_PER_SECOND =  10_000; //lower limit for SMBus is 10*1000 but timeout is much lower at 35ms
     private final int SAFE_NANO_DIF_TOP = NAONS_PER_SECOND / FASTEST_CYCLES_PER_SECOND; 
     private final int SAFE_NANO_DIF_BOT = NAONS_PER_SECOND / SLOWEST_CYCLES_PER_SECOND; 
     
@@ -61,8 +61,7 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
             
             //pull common time and check that its always incrementing.
             //PipeReader.readLong(input, I2CBusSchema.MSG_STATE_200_FIELD_TIME_103)
-            
-            
+                        
             PipeReader.releaseReadLock(input);
             
             
@@ -96,13 +95,14 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
             if (0 != lastTime) {
                 int dif = (int)(nanoTime-lastTime);
                 
-//                int expectedDif = GroveShieldV2I2CStage.NS_PAUSE;
-//                System.err.println("EXP:"+expectedDif);
-//                System.err.println("ACT:"+dif);
+                //int expectedDif = GroveShieldV2I2CStage.NS_PAUSE;
+                //System.err.println("\nEXP:"+expectedDif+"\nACT:"+dif);
                 
-                int cycles = 1_000_000_000/dif;
-                                
-                out.append("  p:"+Integer.toString(dif)+" Hz:"+Integer.toString(cycles));
+                if (0!=dif) {
+                    int cycles = 1_000_000_000/dif;
+                                    
+                    out.append("  p:"+Integer.toString(dif)+" Hz:"+Integer.toString(cycles));
+                }
                 
                 if (dif>SAFE_NANO_DIF_BOT) {
                     int times = 1+(SAFE_NANO_DIF_BOT/dif);

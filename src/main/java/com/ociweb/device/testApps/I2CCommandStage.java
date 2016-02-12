@@ -71,7 +71,8 @@ public class I2CCommandStage extends PronghornStage {
                                                                  (byte)'h',
                        (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR,
                                                                  (byte)'i',                                         
-                       
+                                                                 (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR,
+                                                                 (byte)('A'+(System.currentTimeMillis()&0xF)), 
                        
           //              (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)Grove_LCD_RGB.LCD_DISPLAYOFF,
                                                                  

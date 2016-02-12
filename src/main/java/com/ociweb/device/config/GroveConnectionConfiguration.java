@@ -96,7 +96,7 @@ public abstract class GroveConnectionConfiguration {
         }
         if (duration >= 35_000_000) {
             System.err.println("calling I2C too slow "+duration+" devices may have now timed out. next is "+taskAtHand+":"+stepAtHand);
-        } else if (duration> 20_000_000) {
+        } else if (duration> 10_000_000 /*20_000_000*/) {
             System.err.println("warning calling I2C too slow "+duration+". next is "+taskAtHand+":"+stepAtHand);
         }
         lastTime = now;

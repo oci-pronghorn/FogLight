@@ -42,10 +42,11 @@ public class GroveShieldTestApp {
     //TODO: Need an easy way to build this up, perhaps a fluent API.        
     public static final GroveConnectionConfiguration config = getConfig();
     
-    private static final PipeConfig<I2CBusSchema> busconfig = new PipeConfig<I2CBusSchema>(I2CBusSchema.instance, 1000);    
+    private static final PipeConfig<I2CBusSchema> busconfig = new PipeConfig<I2CBusSchema>(I2CBusSchema.instance, 100000);    
     public static Pipe<I2CBusSchema> i2cBusPipe = new Pipe<I2CBusSchema>(busconfig);
     static {
         if (CONSOLE_DEBUG) {
+            
             ((GroveShieldV2MockConfiguration)config).addOptionalI2CBusSimulationPipe(i2cBusPipe);
         }
     }
@@ -102,10 +103,7 @@ public class GroveShieldTestApp {
                      
             try {
                 config.coldSetup(); 
-                if (CONSOLE_DEBUG) {
-                    System.err.println("not supported");
-                    System.exit(0);
-                }
+
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("this is not on an Edison");

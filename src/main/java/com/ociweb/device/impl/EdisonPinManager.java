@@ -23,7 +23,7 @@ public class EdisonPinManager {
     public final Path[] gpioDirection;
     public final Path[] gpioDebugCurrentPinMux;
     public final Path[] gpioValue;
-    public final SeekableByteChannel[] gpioChannel;    
+    public final SeekableByteChannel[] gpioChannel;   
     
     public final short[]    gpioPinInt;
     public final String[] gpioPinString;
@@ -140,18 +140,6 @@ public class EdisonPinManager {
         write(this,gpioDirection[i], I2C_DIRECTION_HIGH);
     }
     
-
-//    
-//    public void setDebugCurrentPullModePullup(int i) {
-//        if (null!= gpioDebugPullMode[i]) {
-//            try {
-//                Files.write(gpioDebugPullMode[i],PULLUP);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
-
     
     public void setDebugCurrentPinmuxMode0(int i) {
         if (null!= gpioDebugCurrentPinMux[i]) {
@@ -188,12 +176,12 @@ public class EdisonPinManager {
     }
 
     public void setValueHigh(int i) {
-        write(this,gpioValue[i], I2C_HIGH);
+        writeValue(i,I2C_HIGH, this);
     }
 
 
     public void setValueLow(int i) {
-        write(this,gpioValue[i], I2C_LOW);
+        writeValue(i,I2C_LOW, this);
     }
 
     public void ensureDevice(int i) {
@@ -295,35 +283,20 @@ public class EdisonPinManager {
     }
     
     
-    static SeekableByteChannel bc1 = null;
-    static SeekableByteChannel bc2 = null;
-
     public static int readBit(int idx) {
             try {        
-                //System.err.println(idx);
                 
-                SeekableByteChannel bc;
-                if (18==idx) {
-                    if (bc1 == null) {
-                        bc1 = EdisonGPIO.gpioLinuxPins.provider.newByteChannel(EdisonGPIO.gpioLinuxPins.gpioValue[idx], readOptions);
-                    }
-                    bc = bc1;
-                    
-                } else if (19==idx) {
-                    if (bc2 == null) {
-                        bc2 = EdisonGPIO.gpioLinuxPins.provider.newByteChannel(EdisonGPIO.gpioLinuxPins.gpioValue[idx], readOptions);
-                    }
-                    bc = bc2;
-                } else {
-                                
-                    bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(EdisonGPIO.gpioLinuxPins.gpioValue[idx], readOptions);
-                }
+                SeekableByteChannel bc = EdisonGPIO.gpioLinuxPins.gpioChannel[idx];
+                if (null == bc) {
+                    bc = EdisonGPIO.gpioLinuxPins.provider.newByteChannel(EdisonGPIO.gpioLinuxPins.gpioValue[idx],i2cOptions);
+                    EdisonGPIO.gpioLinuxPins.gpioChannel[idx] = bc;
+               }
                 
                 bc.position(0);
                 ByteBuffer buffer = readBitBuffer[idx];
                 buffer.clear();
                 while (bc.read(buffer)==0){}//only need 1
-               // bc.close(); //HACK TEST IF ITS NOT 18 OR 19 WE SHOULD STILL CLOSE.
+             
                 buffer.flip();
                 return buffer.get()&0x1;
             } catch (IOException e) {

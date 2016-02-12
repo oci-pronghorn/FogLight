@@ -54,7 +54,8 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 //    }
     
     //must be between 10*1000 and 100*1000 for SMBus and I2C, NOTE some signals use two+ cycles so 10_000 is far too small.
-    public static final int NS_PAUSE = (1_000_000_000)/(100_000); 
+    //NOTE: this is the tick so the target cycle is half this speed
+    public static final int NS_PAUSE = (1_000_000_000)/(200_000); 
     
     public GroveShieldV2I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, GroveConnectionConfiguration config) {
         super(gm, request, NONE);
@@ -215,11 +216,11 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 0:
                 //do no use, slows down clock
                 //System.out.println("             begin request master");
-                config.i2cDataIn();
-                config.i2cClockOut();
+  //              config.i2cDataIn();
+ //               config.i2cClockOut();
                 config.i2cSetClockHigh();
                 
-                config.i2cClockIn(); 
+  //              config.i2cClockIn(); 
                 stepAtHand = 2;
                 break;
             case 2:
@@ -232,7 +233,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                     taskAtHand = TASK_NONE;
                     return;
                 }
-                config.i2cDataOut();//new
+ //               config.i2cDataOut();//new
                 config.i2cSetDataLow(); //lower data while clock is high
                 
                 
@@ -242,7 +243,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 if (0==config.i2cReadClock()) {                    
                    throw new RuntimeException("expected clock to be high");
                 }
-                config.i2cClockOut();
+ //               config.i2cClockOut();
                 config.i2cSetClockLow();
   //BAD              config.i2cDataIn();//new
   //BAD              config.i2cClockIn();//new
@@ -275,7 +276,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 1:
                 config.i2cClockOut();
                 config.i2cSetClockHigh();
-                config.i2cClockIn();
+//                config.i2cClockIn();
                 stepAtHand = 2;
                 break;
             case 2:
@@ -300,7 +301,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private void writeBytes() {
         switch (stepAtHand) {
             case 0:
-                  config.i2cDataOut();//new
+//                  config.i2cDataOut();//new
                   //byteToSendPos starts with 8
                   if (0==(1 & (byteToSend >> (--byteToSendPos)))) {
                       //System.out.println("0 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
@@ -309,12 +310,12 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                       //System.out.println("1 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
                       config.i2cSetDataHigh();
                   } 
-                  config.i2cClockOut();
+//                  config.i2cClockOut();
                   stepAtHand = 1;
                   break;
             case 1:
                   config.i2cSetClockHigh();
-                  config.i2cClockIn();
+ //                 config.i2cClockIn();
                   stepAtHand = 2;
                   break;
             case 2:
@@ -328,7 +329,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 assert(! (0!=(1 & (byteToSend >> byteToSendPos)) && 0==config.i2cReadData()) ) : "Clock should still be high";
                 assert(0!=config.i2cReadClock()) :"Unable to confirm data set high";
 
-                config.i2cClockOut();
+//                config.i2cClockOut();
                 config.i2cSetClockLow();
               
                 if (0 == byteToSendPos) {                      
@@ -340,20 +341,19 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                   break;//pause
             case 4:
                 config.i2cSetDataHigh(); //set high so the ack can make this low   
-                config.i2cDataIn();   //needed to open this right now so we can read the ack upon change.       
+ //               config.i2cDataIn();   //needed to open this right now so we can read the ack upon change.       
                 stepAtHand = 5;
                 break;
             case 5:                    
                 config.i2cSetClockHigh(); 
-                config.i2cClockIn();
-                stepAtHand = 6;
-                break;
-            case 6: 
+//                config.i2cClockIn();
                 stepAtHand = 7;
                 break;
+            //case 6: 
+             //   stepAtHand = 7;
+               // break;
             case 7:
                 if (0!=config.i2cReadClock()) {
-                    assert(0==config.i2cReadClock()) : "Clock should still be high";
                     
                     config.i2cClockOut();
                     config.i2cSetClockLow();      
@@ -384,7 +384,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                     System.out.println("ok  "+Integer.toHexString(byteToSend));                    
                 }
                 
-                config.i2cDataOut();
+   //             config.i2cDataOut();
              
                 stepAtHand = 0;
                 

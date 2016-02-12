@@ -21,9 +21,9 @@ public class EdisonPinManager {
 
     public final Path[] gpio; 
     public final Path[] gpioDirection;
-    public final Path[] gpioValue;
     public final Path[] gpioDebugCurrentPinMux;
-    
+    public final Path[] gpioValue;
+    public final SeekableByteChannel[] gpioChannel;    
     
     public final short[]    gpioPinInt;
     public final String[] gpioPinString;
@@ -96,6 +96,7 @@ public class EdisonPinManager {
         gpio = new Path[pins.length];    
         gpioDirection = new Path[pins.length];
         gpioValue = new Path[pins.length];
+        gpioChannel = new SeekableByteChannel[pins.length];
         gpioPinString = new String[pins.length];
         gpioDebugCurrentPinMux = new Path[pins.length];//NOTE only needed for mode array
         
@@ -218,7 +219,26 @@ public class EdisonPinManager {
     }
     
     public static void writeValue(int port, ByteBuffer data, EdisonPinManager d) {
-            write(d, d.gpioValue[port], data);
+            try {
+                //TODO: TEST IF THIS CHANNEL CAN BE KEPT INSTEAD OF RE-CREATING ONE EACH TIME.
+                
+                SeekableByteChannel channel = d.gpioChannel[port];
+                if (null == channel) {
+                        
+                  channel = d.provider.newByteChannel(d.gpioValue[port],i2cOptions);
+                  d.gpioChannel[port] = channel;
+                 
+               }
+                channel.position(0);
+                do {
+                    channel.write(data);
+                } while (data.hasRemaining());//Caution, this is blocking.
+                data.flip();
+            //    channel.close();
+            
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
     }
 

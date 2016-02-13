@@ -162,6 +162,11 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
      //   }
         return clockValue;
     }
+    
+    @Override
+    public boolean i2cReadClockBool() {
+        return clockValue!=0;
+    }
 
     @Override
     public void i2cDataIn() {

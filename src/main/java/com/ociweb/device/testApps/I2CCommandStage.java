@@ -54,7 +54,7 @@ public class I2CCommandStage extends PronghornStage {
 //                       (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0x80, (byte)(0x08 | 0x04), //# display on, no cursor
 //                       (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0x80, (byte)(0x28), //two lines
                        
-                       
+//                       
                        (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)0x3F,
                        (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)0x0F,
                        (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)0x01,
@@ -62,6 +62,7 @@ public class I2CCommandStage extends PronghornStage {
                        
                        (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)Grove_LCD_RGB.LCD_CLEARDISPLAY,
                        
+                       11,11,11,
                        
                        //NOTE: this works!!
                        (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0), (byte)0, (byte)(row == 0 ? (column | Grove_LCD_RGB.LCD_SETDDRAMADDR) :
@@ -155,7 +156,7 @@ public class I2CCommandStage extends PronghornStage {
                 if (pos>=35) {
                   //  group = 1;
              
-               //     sendDelay(0, 1_600_000);//should be 1.53 ms. but never above the 35 timeout
+                //    sendDelay(0, 1_600_000);//should be 1.53 ms. but never above the 35 timeout
                    
                 }
                 

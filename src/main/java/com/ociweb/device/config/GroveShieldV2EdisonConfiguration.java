@@ -66,12 +66,16 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
 
     public boolean i2cReadAck() {
         boolean ack;
-        int voltage = readInt(EdisonConstants.DATA_RAW_VOLTAGE);
+        int voltage = EdisonPinManager.readInt(EdisonConstants.DATA_RAW_VOLTAGE);
         ack = voltage<EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
         if (!ack) {    
             System.err.println("ack value "+ack+" "+Integer.toBinaryString(voltage));
         }
         return ack;
+    }
+    
+    public boolean i2cReadClockBool() {
+        return EdisonPinManager.readInt(EdisonConstants.CLOCK_RAW_VOLTAGE) > EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
     }
 
     public void beginPinConfiguration() {

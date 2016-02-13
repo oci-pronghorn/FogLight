@@ -82,24 +82,29 @@ public abstract class GroveConnectionConfiguration {
     public abstract void i2cClockIn();
     public abstract void i2cClockOut();
     public abstract boolean i2cReadAck();
+    public abstract boolean i2cReadClockBool();
     
     public abstract void coldSetup();
     public abstract void cleanup();
 
+    static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
         
-        long now = System.nanoTime();
-
-        long duration = now-lastTime;
-        if (duration<GroveShieldV2I2CStage.NS_PAUSE) {
-            System.err.println("calling I2C too fast");
+        if (debug) {
+        
+            long now = System.nanoTime();
+    
+            long duration = now-lastTime;
+            if (duration<GroveShieldV2I2CStage.NS_PAUSE) {
+                System.err.println("calling I2C too fast");
+            }
+            if (duration >= 35_000_000) {
+                System.err.println("calling I2C too slow "+duration+" devices may have now timed out. next is "+taskAtHand+":"+stepAtHand);
+            } else if (duration> 10_000_000 /*20_000_000*/) {
+                System.err.println("warning calling I2C too slow "+duration+". next is "+taskAtHand+":"+stepAtHand);
+            }
+            lastTime = now;
         }
-        if (duration >= 35_000_000) {
-            System.err.println("calling I2C too slow "+duration+" devices may have now timed out. next is "+taskAtHand+":"+stepAtHand);
-        } else if (duration> 10_000_000 /*20_000_000*/) {
-            System.err.println("warning calling I2C too slow "+duration+". next is "+taskAtHand+":"+stepAtHand);
-        }
-        lastTime = now;
     }
 
 

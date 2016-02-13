@@ -1,5 +1,8 @@
 package com.ociweb.device.grove;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.device.config.GroveConnectionConfiguration;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -8,6 +11,8 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveShieldV2I2CStage extends PronghornStage {
 
+    private static final Logger logger = LoggerFactory.getLogger(GroveShieldV2I2CStage.class);
+    
     private int taskAtHand;
     private int stepAtHand;
     
@@ -35,7 +40,9 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private final Pipe<I2CCommandSchema> request;
     private final Pipe<I2CCommandSchema> response;
   
-    
+    private long cycleTops = 0;
+    private long startTime = 0;
+    private long duration = 0;
     
     //I2C is a little complex to ensure correctness.  As a result this stage is not aware of any 
     //specific grove modules which may be attached. It only does the sending and receiving of bytes
@@ -55,7 +62,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     
     //must be between 10*1000 and 100*1000 for SMBus and I2C, NOTE some signals use two+ cycles so 10_000 is far too small.
     //NOTE: this is the tick so the target cycle is half this speed
-    public static final int NS_PAUSE = (1_000_000_000)/(100_000); 
+    public static final int NS_PAUSE = (1_000_000_000)/(800_000); 
     
     public GroveShieldV2I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, GroveConnectionConfiguration config) {
         super(gm, request, NONE);
@@ -95,36 +102,35 @@ public class GroveShieldV2I2CStage extends PronghornStage {
            config.beginPinConfiguration();
            config.configurePinsForI2C();
            config.endPinConfiguration();
+           config.i2cClockOut();
+           config.i2cDataOut();
            int i;
-        //   i = 2000;
-        //   while (--i>=0) { //force hot spot to optimize this call
-               config.i2cClockOut();
+           i = 1100;
+           while (--i>=0) { //force hot spot to optimize this call
                config.i2cSetClockHigh();
-        //   }
+               config.i2cReadClockBool();
+           }
            pause();
-       //    i = 2000;
-       //    while (--i>=0) { //force hot spot to optimize this call
-               config.i2cDataOut();
+           i = 1100;
+           while (--i>=0) { //force hot spot to optimize this call
                config.i2cSetDataHigh();
-        //   }
+              // config.i2cReadAck();
+           }
            pause();
            
         } else {
             System.out.println("warning, i2s stage used but not turned on");
         }
         //starting in the known state where both are high
-        
-     // int j;
-     // j = 2000;
-     // while (-j>=0) { //force hot spot to optimize this call
+
           if (0==config.i2cReadClock() ) {
               throw new RuntimeException("expected clock to be high for start");
           }        
           if (0==config.i2cReadData() ) {
               throw new RuntimeException("expected data to be high for start");
           }
-     // }
-      config.lastTime = System.nanoTime();
+
+      config.lastTime = startTime = System.nanoTime();
     }
 
     @Override
@@ -218,42 +224,33 @@ public class GroveShieldV2I2CStage extends PronghornStage {
         switch (stepAtHand) {
             case 0:
                 config.i2cSetClockHigh();
-                stepAtHand = 1;
-                break;
-            case 1:
-                stepAtHand = 2; //provide 1 cycle to watch for high to be set, needed due to testing.
+                cycleTops++;
+
+                stepAtHand = 2;
                 break;
             case 2:
-                //TODO: must redo using the same logic as the ack read! needed for LCD text.
-                if (0!=config.i2cReadClock()) {
-                    if (0!=config.i2cReadData()) {
+                if (config.i2cReadClockBool()) {
+                    if (0!=config.i2cReadData()) { //TODO: readACK????
                         config.i2cSetDataLow(); //lower data while clock is high
                         stepAtHand = 4;
                     } else {
-                        System.out.println("failure, unable to be master, data line should be high, will try again");
-                        config.i2cDataOut();
+                        logger.trace("unable to be master, data line should be high, will try again.");
+        
                         config.i2cSetDataHigh(); //force the issue.
                         taskAtHand = TASK_MASTER_START;
                         stepAtHand = 0;//so try again.
                         return;
                     }
-                } // else   //clock stretching, will come back to this state next cycle around 
-                break;//pause
+                } else {
+                    logger.trace("clock stretching now.");
+                    taskAtHand = TASK_MASTER_START;
+                    stepAtHand = 0;//so try again.
+                    return;//clock stretching, will come back to this state next cycle around                     
+                }
+                break;
             case 4:
-                if (0==config.i2cReadClock()) {                    
-                   throw new RuntimeException("expected clock to be high");
-                }
+                lastBit = 0;//data is set low and may be helpful for first bit
                 config.i2cSetClockLow();
-                if (1==config.i2cReadData()) {
-                    System.out.println("failure, unable to be master SDA");
-                    taskAtHand = TASK_NONE;
-                    return;
-                }
-                if (1==config.i2cReadClock()) {
-                    System.out.println("failure, unable to be master SCL");
-                    taskAtHand = TASK_NONE;
-                    return;
-                }
                 stepAtHand = 0;
                 taskAtHand = TASK_WRITE_BYTES;
                 break;//done
@@ -263,8 +260,6 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 
     }
 
-public long t = 0;
-
     private void masterStop() {
    
         switch (stepAtHand) {
@@ -273,22 +268,47 @@ public long t = 0;
                 stepAtHand = 1;
                 break;
             case 1:
-  //              config.i2cClockOut();
                 config.i2cSetClockHigh();
+                cycleTops++;
                 stepAtHand = 3;
                 break;
             case 3:
-                if (0!=config.i2cReadClock()) {
-                    config.i2cSetDataHigh();
-                    stepAtHand = 0;
-                    taskAtHand = TASK_NONE;
-                } //else clock stretching, will come back to this state next cycle around 
-             
+                if (config.i2cReadClockBool()) {
+                    config.i2cSetClockHigh();
+                    cycleTops++;
+                    stepAtHand = 5;
+                } else {
+                    logger.trace("clock stretching now.");
+                    stepAtHand = 4;
+                    return;//clock stretching, will come back to this state next cycle around                     
+                }
                 break;
+            case 4: //clock stretching
+                if (config.i2cReadClockBool()) {
+                    config.i2cSetClockHigh();
+                    cycleTops++;
+                    stepAtHand = 5;
+                } else {
+                    logger.trace("clock stretching now.");
+                    stepAtHand = 4;
+                    return;//clock stretching, will come back to this state next cycle around                     
+                }
+                break;
+            case 5: //done
+                config.i2cSetDataHigh();
+                stepAtHand = 0;
+                taskAtHand = TASK_NONE;
+                break; 
         }        
     }
 
-    //TODO: confirm if set dataout /in drops line
+    //TODO: add multiple pipes in
+    //TODO: add mulitple pipes out with array to map addr to the pipe for responses
+    //TODO: file io set postion when done.
+    //TODO: produce one stage per grove component with its own schema
+    
+    
+    int lastBit = -1;
     
     private void writeBytes() {
 
@@ -297,61 +317,52 @@ public long t = 0;
                   //byteToSendPos starts with 8
                   if (0==(1 & (byteToSend >> (--byteToSendPos)))) {
                       //System.out.println("0 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
-                      config.i2cSetDataLow();
+                      if (0!=lastBit) {
+                        config.i2cSetDataLow();
+                        lastBit = 0;
+                        stepAtHand = 1;
+                        break;
+                      }
                   } else {
                       //System.out.println("1 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
-                      config.i2cSetDataHigh();
+                      if (1!=lastBit) {
+                        config.i2cSetDataHigh();
+                        lastBit = 1;
+                        stepAtHand = 1;
+                        break;
+                      }
                   } 
-                  stepAtHand = 1;
-                  break;
+                  //fall through if the value is already what we need.
             case 1:
                   config.i2cSetClockHigh();
+                  cycleTops++;
                   stepAtHand = 2;
                   break;
             case 2:
-                  if (0==config.i2cReadClock()) {
-                      System.out.println("clock stretching now.");
-                      return;//clock stretching, will come back to this state next cycle around 
+                  if (config.i2cReadClockBool()) {
+                      config.i2cSetClockLow();
+                      //jump to 4 when byteToEndPos is zero else jump to 0 
+                      stepAtHand = 4 & ((byteToSendPos-1)>>31);
+                  } else {
+                      logger.trace("clock stretching now.");
+                      return;//clock stretching, will come back to this state next cycle around                     
                   }
-                  stepAtHand = 3;
                   break;
-            case 3:  
-                assert(! (0!=(1 & (byteToSend >> byteToSendPos)) && 0==config.i2cReadData()) ) : "Clock should still be high";
-                assert(0!=config.i2cReadClock()) :"Unable to confirm data set high";
-
-                config.i2cSetClockLow();
-              
-         //       stepAtHand = 4 & ((byteToSendPos-1)>>>31);
-                
-                if (0 == byteToSendPos) {                      
-                  stepAtHand = 4; //now read the ack for this byte
-                } else { //we will start on the next bit.
-                  stepAtHand = 0;
-                }
-
-                  break;//pause
             case 4:
                 config.i2cSetDataHigh(); //set high so the ack can make this low         
-             config.i2cDataIn(); 
                 stepAtHand = 5;
                 break;
-            case 5:                    
+            case 5:                 
                 config.i2cSetClockHigh();
-             config.i2cClockIn();
-                stepAtHand = 6;
-                break;
-            case 6:
+                cycleTops++;
                 stepAtHand = 7;
                 break;
             case 7:
-                if (0!=config.i2cReadClock()) {
-                    
-                    config.i2cClockOut();
-                    config.i2cSetClockLow();      
-                    
+                if (config.i2cReadClockBool()) {
+                    config.i2cSetClockLow(); 
                     stepAtHand = 9;
                 } else {
-                    System.out.println("clock stretching now.");
+                    logger.trace("clock stretching now.");
                     return;//clock stretching, will come back to this state next cycle around                     
                 }
                 break;
@@ -363,16 +374,17 @@ public long t = 0;
 //                }  
                 
                 boolean ack = config.i2cReadAck();
-                config.i2cDataOut();
 
+                lastBit = -1;
+                
                 if (!ack) {
                     //What do we do up on ack?
                     //roll back and try again?
-                    System.out.println("failure on send 0x"+Integer.toHexString(byteToSend)+"  LEFT(1)"+Integer.toHexString(byteToSend>>1)+"  ");
-                    System.out.println();
+      //              System.out.println("failure on send 0x"+Integer.toHexString(byteToSend)+"  LEFT(1)"+Integer.toHexString(byteToSend>>1)+"  ");
+        //            System.out.println();
                 } else {
                     //TODO: need to add flag that some devices respond with ack and others do not
-                    System.out.println("ok  "+Integer.toHexString(byteToSend));                    
+                   // System.out.println("ok  "+Integer.toHexString(byteToSend));                    
                 }
                 
              
@@ -394,8 +406,7 @@ public long t = 0;
                     //now back to zero to send the next byte 
                 }
                 break;//pause
-            default:
-                throw new UnsupportedOperationException();        
+      
         }
     }
 
@@ -427,7 +438,12 @@ public long t = 0;
 
     @Override
     public void shutdown() {
+        duration = System.nanoTime()-startTime;
         
+        long avgPeriod = duration/cycleTops;
+        long hz = 1_000_000_000/avgPeriod;
+        
+        logger.warn("Cycles per second {} ",hz);
         
     }
 

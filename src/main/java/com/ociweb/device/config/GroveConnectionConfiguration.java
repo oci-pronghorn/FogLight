@@ -21,7 +21,7 @@ public abstract class GroveConnectionConfiguration {
     public final GroveConnect[] digitalOutputs;//Relay Buzzer
     public final GroveConnect[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     public final boolean publishTime;
-    
+    public long lastTime;
     //TODO: ma per field with max defined here., 
     //TODO: publish with or with out ma??
     
@@ -82,12 +82,29 @@ public abstract class GroveConnectionConfiguration {
     public abstract void i2cClockIn();
     public abstract void i2cClockOut();
     public abstract boolean i2cReadAck();
+    public abstract boolean i2cReadClockBool();
     
     public abstract void coldSetup();
     public abstract void cleanup();
 
+    static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
-        //TODO: should add simulation here as a general debug tool
+        
+        if (debug) {
+        
+            long now = System.nanoTime();
+    
+            long duration = now-lastTime;
+            if (duration<GroveShieldV2I2CStage.NS_PAUSE) {
+                System.err.println("calling I2C too fast");
+            }
+            if (duration >= 35_000_000) {
+                System.err.println("calling I2C too slow "+duration+" devices may have now timed out. next is "+taskAtHand+":"+stepAtHand);
+            } else if (duration> 10_000_000 /*20_000_000*/) {
+                System.err.println("warning calling I2C too slow "+duration+". next is "+taskAtHand+":"+stepAtHand);
+            }
+            lastTime = now;
+        }
     }
 
 

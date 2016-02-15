@@ -18,9 +18,12 @@ public class EdisonPinManager {
 
     public final Path[] gpio; 
     public final Path[] gpioDirection;
-    public final Path[] gpioValue;
-    public final Path[] gpioDebugCurrentPinMux;
+    public final SeekableByteChannel[] gpioDirectionChannel;   
     
+    
+    public final Path[] gpioDebugCurrentPinMux;
+    public final Path[] gpioValue;
+    public final SeekableByteChannel[] gpioChannel;   
     
     public final short[]    gpioPinInt;
     public final String[] gpioPinString;
@@ -36,7 +39,7 @@ public class EdisonPinManager {
              Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage5_raw")  //TODO: what if we read these data lines for I2C?
              
     };
-    
+    public final SeekableByteChannel[] pathAChannel = new SeekableByteChannel[6];   
     
     private static final Path PATH_GPIO_EXPORT   = Paths.get("/sys/class/gpio/export");
     private static final Path PATH_GPIO_UNEXPORT = Paths.get("/sys/class/gpio/unexport");
@@ -54,6 +57,11 @@ public class EdisonPinManager {
     
     public static final ByteBuffer I2C_LOW  = ByteBuffer.wrap(VALUE_LOW);
     public static final ByteBuffer I2C_HIGH = ByteBuffer.wrap(VALUE_HIGH);
+    public static final ByteBuffer I2C_OUT  = ByteBuffer.wrap(OUT);
+    public static final ByteBuffer I2C_IN   = ByteBuffer.wrap(IN);
+    public static final ByteBuffer I2C_DIRECTION_LOW  = ByteBuffer.wrap(DIRECTION_LOW);
+    public static final ByteBuffer I2C_DIRECTION_HIGH = ByteBuffer.wrap(DRECTION_HIGH); 
+    
     public static final int I2C_CLOCK = 19;
     public static final int I2C_DATA = 18;
         
@@ -66,10 +74,9 @@ public class EdisonPinManager {
     static {
         i2cOptions.add(StandardOpenOption.READ);
         i2cOptions.add(StandardOpenOption.WRITE);
+        i2cOptions.add(StandardOpenOption.SYNC);
         
-        readOptions.add(StandardOpenOption.READ);
-        readOptions.add(StandardOpenOption.SYNC);
-        
+        readOptions.add(StandardOpenOption.READ);        
 
         int a = PATH_A.length;
         readIntBuffer = new ByteBuffer[a];
@@ -89,7 +96,9 @@ public class EdisonPinManager {
         gpioPinInt = pins;
         gpio = new Path[pins.length];    
         gpioDirection = new Path[pins.length];
+        gpioDirectionChannel = new SeekableByteChannel[pins.length];
         gpioValue = new Path[pins.length];
+        gpioChannel = new SeekableByteChannel[pins.length];
         gpioPinString = new String[pins.length];
         gpioDebugCurrentPinMux = new Path[pins.length];//NOTE only needed for mode array
         
@@ -126,37 +135,13 @@ public class EdisonPinManager {
     }
 
     public void setDirectionLow(int i) {
-        if (null!=gpioDirection[i]) {
-            try {
-                Files.write(gpioDirection[i],DIRECTION_LOW);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        writeDirection(i,I2C_DIRECTION_LOW,this);
     }
 
     public void setDirectionHigh(int i) {
-        if (null!=gpioDirection[i]) {
-            try {
-                Files.write(gpioDirection[i],DRECTION_HIGH);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        writeDirection(i,I2C_DIRECTION_HIGH,this);
     }
     
-
-//    
-//    public void setDebugCurrentPullModePullup(int i) {
-//        if (null!= gpioDebugPullMode[i]) {
-//            try {
-//                Files.write(gpioDebugPullMode[i],PULLUP);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
-
     
     public void setDebugCurrentPinmuxMode0(int i) {
         if (null!= gpioDebugCurrentPinMux[i]) {
@@ -185,36 +170,20 @@ public class EdisonPinManager {
     }
 
     public void setDirectionIn(int i) {
-        try {
-            Files.write(gpioDirection[i],IN);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeDirection(i,I2C_IN,this);
     }
 
     public void setDirectionOut(int i) {
-        try {
-            Files.write(gpioDirection[i],OUT);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeDirection(i,I2C_OUT,this);
     }
 
     public void setValueHigh(int i) {
-        try {
-            Files.write(gpioValue[i],VALUE_HIGH);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeValue(i,I2C_HIGH, this);
     }
 
 
     public void setValueLow(int i) {
-        try {
-            Files.write(gpioValue[i],VALUE_LOW);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeValue(i,I2C_LOW, this);
     }
 
     public void ensureDevice(int i) {
@@ -240,26 +209,50 @@ public class EdisonPinManager {
     }
     
     public static void writeValue(int port, ByteBuffer data, EdisonPinManager d) {
-
             try {
-                SeekableByteChannel channel = d.provider.newByteChannel(d.gpioValue[port],i2cOptions);
+                SeekableByteChannel channel = d.gpioChannel[port];
+                if (null == channel) {
+                        
+                  channel = d.provider.newByteChannel(d.gpioValue[port],i2cOptions);
+                  d.gpioChannel[port] = channel;
+                 
+               }
+                data.clear();
+                int limit = data.limit();
                 do {
-                    channel.write(data);
-                } while (data.hasRemaining());//Caution, TODO: this is blocking.
-                data.flip();
-                channel.close();
+                    limit -= channel.write(data);
+                } while (limit>0);//Caution, this is blocking.
+                channel.position(0);
+
             
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
     }
     
-    
+    public static void writeDirection(int port, ByteBuffer data, EdisonPinManager d) {
+        try {
+            SeekableByteChannel channel = d.gpioDirectionChannel[port];
+            if (null == channel) {
+                    
+              channel = d.provider.newByteChannel(d.gpioDirection[port],i2cOptions);
+              d.gpioDirectionChannel[port] = channel;
+                           
+           }
+            data.clear();
+            do {
+                channel.write(data);
+            } while (data.hasRemaining());//Caution, this is blocking.
+            channel.position(0);
+
+        
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+}
+
   
-
-
-    
     
     public static int readInt(int idx) {
 
@@ -282,27 +275,38 @@ public class EdisonPinManager {
     }
 
     private static void loadValueIntoBuffer(int idx, ByteBuffer buffer) throws IOException {
-        do {            
-            SeekableByteChannel bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(PATH_A[idx], readOptions);
+
+        SeekableByteChannel bc = EdisonGPIO.gpioLinuxPins.pathAChannel[idx];
+        if (null == bc) {
+            EdisonGPIO.gpioLinuxPins.pathAChannel[idx] = bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(PATH_A[idx], readOptions);
+        }
+        
+        do {  
             buffer.clear();
             while (bc.read(buffer)>=0){}
-            bc.close();
-            buffer.flip();              
+ 
             //if length is 0 read this again.
         } while (buffer.limit()==0 || (buffer.get(0)<'0'));
+        buffer.flip();              
+        bc.position(0);
     }
-
+    
+    
     public static int readBit(int idx) {
-            EdisonGPIO.gpioLinuxPins. removeDevice(idx);
-            EdisonGPIO.gpioLinuxPins. ensureDevice(idx);
-            
             try {        
+                
+                SeekableByteChannel bc = EdisonGPIO.gpioLinuxPins.gpioChannel[idx];
+                if (null == bc) {
+                    bc = EdisonGPIO.gpioLinuxPins.provider.newByteChannel(EdisonGPIO.gpioLinuxPins.gpioValue[idx],i2cOptions);
+                    EdisonGPIO.gpioLinuxPins.gpioChannel[idx] = bc;
+               }
+                
                 ByteBuffer buffer = readBitBuffer[idx];
-                SeekableByteChannel bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(EdisonGPIO.gpioLinuxPins.gpioValue[idx], readOptions);
                 buffer.clear();
                 while (bc.read(buffer)==0){}//only need 1
-                bc.close();
+             
                 buffer.flip();
+                bc.position(0);
                 return buffer.get()&0x1;
             } catch (IOException e) {
                throw new RuntimeException(e);

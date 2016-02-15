@@ -3,7 +3,7 @@ package com.ociweb.device.impl;
 public class Grove_LCD_RGB {
 
  // Device I2C Adress (note this only uses the lower 7 bits)
-    public static final int LCD_ADDRESS  =   (0x7c>>1); //  11 1110  0x3E
+    public static int LCD_ADDRESS  =   (0x7c>>1); //  11 1110  0x3E
     public static final int RGB_ADDRESS  =   (0xc4>>1); // 110 0010  0x62
 
 

@@ -20,8 +20,8 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
     private int clockValue = HIGH; //must be pulled down to low
     private int dataValue = HIGH; //must be pulled down to low
     
-    private int dataMode;
-    private int clockMode;
+    private int dataMode = IN;
+    private int clockMode = IN;
         
     
     ThreadLocalRandom r = ThreadLocalRandom.current();
@@ -52,13 +52,16 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
                 PipeWriter.publishWrites(pipe);
                 
             } else {
-                System.err.println("error pipe is not keeping up with feed");
+                System.err.println("error pipe is not keeping up with feed ***** ");
+                System.err.println("");
+                System.exit(0);
             }
         }
         
     }
 
     private void sendDataPoint() {
+        
         if (null!=pipe) {
             
             while (! Pipe.isInit(pipe)) {
@@ -93,44 +96,76 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
 
     @Override
     public void i2cSetClockLow() {
-        clockValue = LOW;
-
-        sendDataPoint();
+        if (clockMode != OUT) {
+            throw new UnsupportedOperationException();
+        }
+        if (clockValue!=LOW) {
+            clockValue = LOW;
+    
+            sendDataPoint();
+        }
             
     }
 
     @Override
     public void i2cSetClockHigh() {
-        clockValue = HIGH;
+        if (clockMode != OUT) {
+            throw new UnsupportedOperationException();
+        }
+        if (clockValue!=HIGH) {
+            clockValue = HIGH;
 
-        sendDataPoint();
+            sendDataPoint();
+        }
             
     }
 
     @Override
     public void i2cSetDataLow() {
-       dataValue = LOW;
+        if (dataMode != OUT) {
+            throw new UnsupportedOperationException();
+        }
+        if (dataValue!=LOW) {
+            dataValue = LOW;
 
-       sendDataPoint();
+           sendDataPoint();
+        }
            
     }
 
     @Override
     public void i2cSetDataHigh() {
-       dataValue = HIGH;
+        if (dataMode != OUT) {
+            throw new UnsupportedOperationException();
+        }
+        
+        if (dataValue!=HIGH) {
+            dataValue = HIGH;
 
-       sendDataPoint();
+           sendDataPoint();
+        }
            
     }
     
     @Override
     public int i2cReadData() {
+    //    if (dataMode != IN) {
+    //        throw new UnsupportedOperationException();
+    //    }
         return dataValue;
     }
 
     @Override
     public int i2cReadClock() {
+     //   if (clockMode != IN) {
+     //       throw new UnsupportedOperationException();
+     //   }
         return clockValue;
+    }
+    
+    @Override
+    public boolean i2cReadClockBool() {
+        return clockValue!=0;
     }
 
     @Override

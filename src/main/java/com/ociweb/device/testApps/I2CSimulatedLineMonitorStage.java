@@ -2,6 +2,7 @@ package com.ociweb.device.testApps;
 
 import java.io.IOException;
 
+import com.ociweb.device.grove.GroveShieldV2I2CStage;
 import com.ociweb.device.grove.schema.I2CBusSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -15,8 +16,12 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
     private final Appendable out = System.out;
     private long lastTime = 0;
     private final int NAONS_PER_SECOND = 1000*1000*1000; 
-    private final int CYCLES_PER_SECOND = 100*1000;//safe limit for i2c
-    private final int SAFE_NANO_DIF = NAONS_PER_SECOND / CYCLES_PER_SECOND; 
+    private final int FASTEST_CYCLES_PER_SECOND = 100_000;//safe limit for i2c
+    private final int SLOWEST_CYCLES_PER_SECOND =  10_000; //lower limit for SMBus is 10*1000 but timeout is much lower at 35ms
+    private final int SAFE_NANO_DIF_TOP = NAONS_PER_SECOND / FASTEST_CYCLES_PER_SECOND; 
+    private final int SAFE_NANO_DIF_BOT = NAONS_PER_SECOND / SLOWEST_CYCLES_PER_SECOND; 
+    
+    
     
     protected I2CSimulatedLineMonitorStage(GraphManager graphManager, Pipe<I2CBusSchema> input) {
         super(graphManager, input, NONE);
@@ -28,7 +33,7 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
         
         try {
             out.append("required nanos per change ");
-            Appendables.appendFixedDecimalDigits(out, SAFE_NANO_DIF, 100000).append('\n');
+            Appendables.appendFixedDecimalDigits(out, SAFE_NANO_DIF_TOP, 100000).append('\n');
             
             out.append("sc.mil.mcr.nan Clk Dat  \n");
         } catch (IOException e) {
@@ -49,13 +54,14 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
                 break;
                 case I2CBusSchema.MSG_STATE_200:
                     outputStateDetails();
-                break;    
+                break;   
+                default:
+                    requestShutdown();
             }
             
             //pull common time and check that its always incrementing.
             //PipeReader.readLong(input, I2CBusSchema.MSG_STATE_200_FIELD_TIME_103)
-            
-            
+                        
             PipeReader.releaseReadLock(input);
             
             
@@ -79,16 +85,31 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
     }
 
     private void outputPointDetails() {
-        long time = PipeReader.readLong(input, I2CBusSchema.MSG_POINT_100_FIELD_TIME_103);
+        long nanoTime = PipeReader.readLong(input, I2CBusSchema.MSG_POINT_100_FIELD_TIME_103);
         try {
             
-            appendTime(time, out).append(' ');
+            appendTime(nanoTime, out).append(' ');
             Appendables.appendFixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_POINT_100_FIELD_CLOCK_101), 1).append(' ').append(' ').append(' ');
             Appendables.appendFixedDecimalDigits(out, PipeReader.readInt(input,  I2CBusSchema.MSG_POINT_100_FIELD_DATA_102), 1);
             
             if (0 != lastTime) {
-                int dif = (int)(time-lastTime);
-                if (dif<SAFE_NANO_DIF) {
+                int dif = (int)(nanoTime-lastTime);
+                
+                //int expectedDif = GroveShieldV2I2CStage.NS_PAUSE;
+                //System.err.println("\nEXP:"+expectedDif+"\nACT:"+dif);
+                
+                if (0!=dif) {
+                    int cycles = 1_000_000_000/dif;
+                                    
+                    out.append("  p:"+Integer.toString(dif)+" Hz:"+Integer.toString(cycles));
+                }
+                
+                if (dif>SAFE_NANO_DIF_BOT) {
+                    int times = 1+(SAFE_NANO_DIF_BOT/dif);
+                    out.append(" *** Line change was too slow, SMBus may timeout. Make "+times+"x faster");
+                }
+                
+                if (dif<SAFE_NANO_DIF_TOP) {
                     out.append(" *** Line change was too soon ");
                 }
             }
@@ -99,7 +120,7 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
             throw new RuntimeException(e);
         }
         
-        lastTime = time;
+        lastTime = nanoTime;
     }
 
     private Appendable appendTime(long nanoTime, Appendable target) throws IOException {

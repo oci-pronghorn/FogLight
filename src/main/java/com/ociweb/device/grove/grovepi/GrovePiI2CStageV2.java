@@ -51,6 +51,15 @@ public class GrovePiI2CStageV2 extends PronghornStage {
         config.i2cSetClockHigh();
         config.i2cClockIn();
         
+        //TODO:
+        try {
+            Thread.sleep(20);
+        }
+
+        catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        
         while (config.i2cReadClock() == 0) {
             System.out.println("Clock stretching in writeBit...");
         }

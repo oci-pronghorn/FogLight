@@ -10,3 +10,5 @@ buildNumber.properties
 /.classpath
 /.project
 .DS_Store
+.idea
+*.iml

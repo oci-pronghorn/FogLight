@@ -16,9 +16,9 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
     private final Appendable out = System.out;
     private long lastTime = 0;
     private final int NAONS_PER_SECOND = 1000*1000*1000; 
-    private final int FASTEST_CYCLES_PER_SECOND = 100_000;//safe limit for i2c
+    private final int FASTEST_CYCLES_PER_SECOND = 400_000;//safe limit for i2c
     private final int SLOWEST_CYCLES_PER_SECOND =  10_000; //lower limit for SMBus is 10*1000 but timeout is much lower at 35ms
-    private final int SAFE_NANO_DIF_TOP = NAONS_PER_SECOND / FASTEST_CYCLES_PER_SECOND; 
+    private final int SAFE_NANO_DIF_TOP = NAONS_PER_SECOND / (FASTEST_CYCLES_PER_SECOND*2);//dif is per state change 
     private final int SAFE_NANO_DIF_BOT = NAONS_PER_SECOND / SLOWEST_CYCLES_PER_SECOND; 
     
     
@@ -99,7 +99,7 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
                 //System.err.println("\nEXP:"+expectedDif+"\nACT:"+dif);
                 
                 if (0!=dif) {
-                    int cycles = 1_000_000_000/dif;
+                    int cycles = (1_000_000_000/(2*dif));
                                     
                     out.append("  p:"+Integer.toString(dif)+" Hz:"+Integer.toString(cycles));
                 }

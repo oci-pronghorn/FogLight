@@ -32,44 +32,44 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     
     private static final int TASK_NONE = 0;
     private static final int TASK_MASTER_START = 1;
-    private static final int TASK_MASTER_STOP  = 2;
     private static final int TASK_WRITE_BYTES  = 3;
+    private static final int TASK_MASTER_STOP  = 5;
+    private static final int TASK_DELAY        = 7;
+    
     
     public final GroveConnectionConfiguration config;
     
-    private final Pipe<I2CCommandSchema> request;
+    private final Pipe<I2CCommandSchema>[] request;
     private final Pipe<I2CCommandSchema> response;
+    
+    private Pipe<I2CCommandSchema> activePipe;
   
     private long cycleTops = 0;
     private long startTime = 0;
     private long duration = 0;
     
+    private int pipeIdx;
+
+    private int lastBit = -1;
+    
     //I2C is a little complex to ensure correctness.  As a result this stage is not aware of any 
     //specific grove modules which may be attached. It only does the sending and receiving of bytes
-    
-//    public GroveShieldV2I2CStage(GraphManager gm, Pipe<GroveI2CSchema> request, Pipe<GroveI2CSchema> response, GroveConnectionConfiguration config) {
-//        super(gm, request, response);
-//        
-//        this.request = request;
-//        this.response = response;
-//        this.config = config;
-//        
-//        //Fixed at a slow 100K per second for broad compatibility
-//        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 100*1000, this);
-//        GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
-//        
-//    }
+  
     
     //must be between 10*1000 and 100*1000 for SMBus and I2C, NOTE some signals use two+ cycles so 10_000 is far too small.
     //NOTE: this is the tick so the target cycle is half this speed
-    public static final int NS_PAUSE = (1_000_000_000)/(800_000); 
+    //NOTE: these devices are I2C and do not show any lower bounds for speed.
+    public static final int NS_PAUSE = (1_000_000_000)/(800_000); //slower cycles is less power consumption.
     
-    public GroveShieldV2I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, GroveConnectionConfiguration config) {
-        super(gm, request, NONE);
+    public GroveShieldV2I2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] request, Pipe[] response, GroveConnectionConfiguration config) {
+        super(gm, request, response);
         
         this.request = request;
         this.response = null;
         this.config = config;
+        
+        this.pipeIdx = request.length;
+        
         
         //NOTE: this assumes the scheduler will never get aggressive an will always respect the call rate
         //      even when a call to run is longer than the requested period.
@@ -84,7 +84,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     private void pause() {
         try {
           //  Thread.sleep(NS_PAUSE/1_000_000,NS_PAUSE%1_000_000);
-            Thread.sleep(40); //timeout for SMBus
+            Thread.sleep(35); //timeout for SMBus
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -92,11 +92,8 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     
     @Override
     public void startup() {
-        //bus read/write priority should be the lowest an need not conflict with other tasks.
-        //if shared with another thread wanting to be high leave it alone
-        if (Thread.currentThread().getPriority()!=Thread.MAX_PRIORITY) {
-            Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-        }
+
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         
         if (config.configI2C) {
            config.beginPinConfiguration();
@@ -104,17 +101,22 @@ public class GroveShieldV2I2CStage extends PronghornStage {
            config.endPinConfiguration();
            config.i2cClockOut();
            config.i2cDataOut();
+           boolean temp = false;
            int i;
            i = 1100;
            while (--i>=0) { //force hot spot to optimize this call
-               config.i2cSetClockHigh();
-               config.i2cReadClockBool();
+               temp |= config.i2cReadClockBool();
+               config.i2cSetClockHigh();//done last
            }
            pause();
            i = 1100;
            while (--i>=0) { //force hot spot to optimize this call
-               config.i2cSetDataHigh();
-              // config.i2cReadAck();
+               temp |= config.i2cReadAck();
+               temp |= config.i2cReadDataBool();
+               config.i2cSetDataHigh();//done last
+           }
+           if (!temp) {
+               throw new UnsupportedOperationException();
            }
            pause();
            
@@ -131,32 +133,50 @@ public class GroveShieldV2I2CStage extends PronghornStage {
           }
 
       config.lastTime = startTime = System.nanoTime();
+      startTime = System.nanoTime();
     }
 
     @Override
     public void run() {
 
-        if (TASK_NONE == taskAtHand) {
-            readRequest();//may populate task at hand
-        }
-        
-        //required wait based on slave device needs
-        if (cyclesToWait > 0) {
-            --cyclesToWait;
-            return;
-        }
-        
-        if (TASK_WRITE_BYTES == taskAtHand) {
-            writeBytes();            
-        } else if (TASK_MASTER_START == taskAtHand) {
-            masterStart();            
-        } else {
-            masterStop();            
-        }
+        //These are ordered by the most frequent first and the least last
+        int localHand = taskAtHand;
+        if        (TASK_WRITE_BYTES == localHand) {
+            
+            writeBytes(); 
+            
+        } else if (TASK_MASTER_START == localHand) {
+            
+            masterStart();
+            
+        } else if (TASK_MASTER_STOP == localHand) {
+            
+            masterStop();
+            
+        } else if (TASK_NONE == localHand) {
+            
+            readRequest();
+            
+        } else if (TASK_DELAY == localHand) {
+            
+            delay();//this is for slowing down so putting it very last is good 
+            
+        } 
         
         //Must return after this point to ensure the clock speed is respected.
         config.progressLog(taskAtHand, stepAtHand, byteToSend);
 
+    }
+
+    private void delay() {
+        //required wait based on slave device needs
+        if (cyclesToWait > 0) {
+            --cyclesToWait;
+        } else {
+            taskAtHand = TASK_NONE;
+            readRequest();
+                        
+        }
     }
     
     long lastTimeX;    
@@ -165,57 +185,88 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 
     
     private void readRequest() {
-        
-        if (Pipe.hasContentToRead(request)) {
+                
+        activePipe = selectPipe();
+                        
+        if (null != activePipe && Pipe.hasContentToRead(activePipe)) {
             
-            int msgId = Pipe.takeMsgIdx(request);
+            int msgId = Pipe.takeMsgIdx(activePipe);
             if (msgId < 0) {
                 requestShutdown();
                 return;
             }
-            bytesToSendReleaseSize =  Pipe.sizeOf(request, msgId);
+            
+            bytesToSendReleaseSize =  Pipe.sizeOf(activePipe, msgId);
             
             switch(msgId) {
                 case I2CCommandSchema.MSG_COMMAND_1:
-                    
-                    
-                    int meta = Pipe.takeRingByteMetaData(request);
-                    int len = Pipe.takeRingByteLen(request);
-                    if (len>0) {
-                        
-                      //will mess up time, do not use  
-                      //  System.out.println("                        READING FROM QUEUE NEW COMMAND");
-                        
-                        bytesToSendBacking = Pipe.byteBackingArray(meta, request);
-                        bytesToSendMask = Pipe.blobMask(request);
-                        bytesToSendPosition = Pipe.bytePosition(meta, request, len);
-                        bytesToSendRemaining = len;
-                        
-                        taskAtHand = TASK_MASTER_START;
-                        stepAtHand = 0;
-                        
-                        byteToSend = 0xFF&bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
-                        byteToSendPos = 8;
-                    }
+                    readCommandMessage();
                 break;
                 case I2CCommandSchema.MSG_SETDELAY_10:  
-                    
-                    //will mess up time, do not use 
-                    System.out.println("                        READING FROM QUEUE DELAY");
-                    
-                    int offset = Pipe.takeValue(request); //TODO: ignrore?? old feature we may not want.
-                    
-                    cyclesToWait = 1 + (Pipe.takeValue(request)/NS_PAUSE); //schedule rate so value is in NS
-                    Pipe.confirmLowLevelRead(request,bytesToSendReleaseSize);
-                    Pipe.releaseReadLock(request);
-                break;    
-                default:
-                    requestShutdown();
-                    return;
-                   
+                    readDelayMessage();
+                break;                   
             }
         }
 
+    }
+
+    
+    
+    private Pipe<I2CCommandSchema> selectPipe() {
+        
+     //   return request[0];
+        if (0==pipeIdx) {                
+            pipeIdx = request.length;                
+        } 
+        int startIdx = pipeIdx;
+        do {
+            if (Pipe.contentRemaining(request[--pipeIdx]) > 0) {
+                return request[pipeIdx];
+            }            
+            if (0==pipeIdx) {                
+                pipeIdx = request.length;                
+            }            
+        } while (pipeIdx != startIdx);
+        return null;
+        
+    }
+
+    private void readDelayMessage() {
+        //will mess up time, do not use 
+        System.out.println("                        READING FROM QUEUE DELAY");
+        
+        int offset = Pipe.takeValue(activePipe); //TODO: ignrore?? old feature we may not want.
+        
+        cyclesToWait = 1 + (Pipe.takeValue(activePipe)/NS_PAUSE); //schedule rate so value is in NS
+        
+        //we do not need the data so release now.
+        Pipe.confirmLowLevelRead(activePipe,bytesToSendReleaseSize);
+        Pipe.releaseReadLock(activePipe);
+        
+        taskAtHand = TASK_DELAY;
+    }
+
+    private void readCommandMessage() {
+        int meta = Pipe.takeRingByteMetaData(activePipe);
+        int len = Pipe.takeRingByteLen(activePipe);
+        if (len>0) {
+            
+          //will mess up time, do not use  
+           // System.out.println("                        READING FROM QUEUE NEW COMMAND");
+            
+            bytesToSendBacking = Pipe.byteBackingArray(meta, activePipe);
+            bytesToSendMask = Pipe.blobMask(activePipe);
+            bytesToSendPosition = Pipe.bytePosition(meta, activePipe, len);
+            bytesToSendRemaining = len;
+            
+            taskAtHand = TASK_MASTER_START;
+            stepAtHand = 0;
+            
+            byteToSend = 0xFF&bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
+            byteToSendPos = 8;
+        }
+        
+        //NOTE: we release after the data is consumed later
     }
 
 
@@ -230,19 +281,21 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 break;
             case 2:
                 if (config.i2cReadClockBool()) {
-                    if (0!=config.i2cReadData()) { //TODO: readACK????
+                    if ( config.i2cReadDataBool()) {
                         config.i2cSetDataLow(); //lower data while clock is high
                         stepAtHand = 4;
                     } else {
-                        logger.trace("unable to be master, data line should be high, will try again.");
+                        logger.error("unable to be master, data line should be high, will try again.");
         
+                        config.i2cDataOut(); //force the issue.
                         config.i2cSetDataHigh(); //force the issue.
+                        
                         taskAtHand = TASK_MASTER_START;
                         stepAtHand = 0;//so try again.
                         return;
                     }
                 } else {
-                    logger.trace("clock stretching now.");
+                    logger.error("clock stretching now.");
                     taskAtHand = TASK_MASTER_START;
                     stepAtHand = 0;//so try again.
                     return;//clock stretching, will come back to this state next cycle around                     
@@ -251,11 +304,13 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 4:
                 lastBit = 0;//data is set low and may be helpful for first bit
                 config.i2cSetClockLow();
-                stepAtHand = 0;
-                taskAtHand = TASK_WRITE_BYTES;
+                stepAtHand = 5;
                 break;//done
-            default:
-                throw new UnsupportedOperationException();
+            case 5:
+                stepAtHand = 1;
+                taskAtHand = TASK_WRITE_BYTES;               
+                break;
+                
         }
 
     }
@@ -275,44 +330,33 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 3:
                 if (config.i2cReadClockBool()) {
                     config.i2cSetClockHigh();
-                    cycleTops++;
-                    stepAtHand = 5;
+                    //do not count as cycle top we just changed it above
                 } else {
                     logger.trace("clock stretching now.");
-                    stepAtHand = 4;
-                    return;//clock stretching, will come back to this state next cycle around                     
+                    //clock stretching, will come back to this state next cycle around                     
                 }
-                break;
-            case 4: //clock stretching
-                if (config.i2cReadClockBool()) {
-                    config.i2cSetClockHigh();
-                    cycleTops++;
-                    stepAtHand = 5;
-                } else {
-                    logger.trace("clock stretching now.");
-                    stepAtHand = 4;
-                    return;//clock stretching, will come back to this state next cycle around                     
-                }
+                stepAtHand = 5;
                 break;
             case 5: //done
                 config.i2cSetDataHigh();
                 stepAtHand = 0;
                 taskAtHand = TASK_NONE;
+                readRequest();
                 break; 
         }        
     }
 
-    //TODO: add multiple pipes in
     //TODO: add mulitple pipes out with array to map addr to the pipe for responses
-    //TODO: file io set postion when done.
     //TODO: produce one stage per grove component with its own schema
     
     
-    int lastBit = -1;
     
     private void writeBytes() {
 
+        //System.out.println("write "+taskAtHand+" "+stepAtHand);
+        
         switch (stepAtHand) {
+            case 1:
             case 0:
                   //byteToSendPos starts with 8
                   if (0==(1 & (byteToSend >> (--byteToSendPos)))) {
@@ -320,7 +364,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                       if (0!=lastBit) {
                         config.i2cSetDataLow();
                         lastBit = 0;
-                        stepAtHand = 1;
+                        stepAtHand = 2;
                         break;
                       }
                   } else {
@@ -328,24 +372,24 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                       if (1!=lastBit) {
                         config.i2cSetDataHigh();
                         lastBit = 1;
-                        stepAtHand = 1;
+                        stepAtHand = 2;
                         break;
                       }
                   } 
                   //fall through if the value is already what we need.
-            case 1:
+            case 2:
                   config.i2cSetClockHigh();
                   cycleTops++;
-                  stepAtHand = 2;
+                  stepAtHand = 3;
                   break;
-            case 2:
+            case 3:
                   if (config.i2cReadClockBool()) {
                       config.i2cSetClockLow();
                       //jump to 4 when byteToEndPos is zero else jump to 0 
                       stepAtHand = 4 & ((byteToSendPos-1)>>31);
                   } else {
-                      logger.trace("clock stretching now.");
-                      return;//clock stretching, will come back to this state next cycle around                     
+                      logger.error("clock stretching now.");
+                      //clock stretching, will come back to this state next cycle around                     
                   }
                   break;
             case 4:
@@ -355,15 +399,15 @@ public class GroveShieldV2I2CStage extends PronghornStage {
             case 5:                 
                 config.i2cSetClockHigh();
                 cycleTops++;
-                stepAtHand = 7;
+                stepAtHand = 7;                                
                 break;
             case 7:
                 if (config.i2cReadClockBool()) {
                     config.i2cSetClockLow(); 
                     stepAtHand = 9;
                 } else {
-                    logger.trace("clock stretching now.");
-                    return;//clock stretching, will come back to this state next cycle around                     
+                    logger.error("clock stretching now.");
+                    //clock stretching, will come back to this state next cycle around                     
                 }
                 break;
             case 9:
@@ -393,14 +437,18 @@ public class GroveShieldV2I2CStage extends PronghornStage {
                 if (--bytesToSendRemaining<=0) {
                     taskAtHand = TASK_MASTER_STOP; //we are all done
                     
+  //                  duration += System.nanoTime()-startTime;
+                                        
                     //release the resources from the pipe for more data
-                    Pipe.confirmLowLevelRead(request,bytesToSendReleaseSize);
-                    Pipe.releaseReadLock(request);
+                    Pipe.confirmLowLevelRead(activePipe, bytesToSendReleaseSize);
+                    Pipe.releaseReadLock(activePipe);
+                    
+                    
                     
                     
                 } else {       
                     
-                    byteToSend = 0xFF&bytesToSendBacking[bytesToSendMask&bytesToSendPosition++];
+                    byteToSend = 0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++];
                     byteToSendPos = 8;
                     //System.out.println("sending byte "+Integer.toHexString(byteToSend));
                     //now back to zero to send the next byte 
@@ -438,6 +486,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 
     @Override
     public void shutdown() {
+                        
         duration = System.nanoTime()-startTime;
         
         long avgPeriod = duration/cycleTops;

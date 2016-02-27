@@ -17,9 +17,6 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 
     public void coldSetup() {
         usedLines = buildUsedLines();
-        
-        System.out.println("Ensure");
-        
         GrovePiGPIO.ensureAllLinuxDevices(usedLines);
     }
     
@@ -65,6 +62,11 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
         return ack;
     }
 
+    @Override
+    public boolean i2cReadClockBool() {
+        return i2cReadClock() == 0; //TODO: 0 or 1 for HI?
+    }
+
     public void beginPinConfiguration() {
         super.beginPinConfiguration();        
     }
@@ -77,7 +79,7 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
         return GrovePiPinManager.readBit(connector);
     }
 
-    //TODO: Since there's no ADC on the Pi, we can only read HI or LO.
+    //TODO: Since there's no ADC built into the Pi, we can only read HI or LO.
     public int readInt(int connector) {
         return GrovePiPinManager.readBit(connector);
     }

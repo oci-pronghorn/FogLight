@@ -58,16 +58,15 @@ public class Grove_LCD_RGB {
     public static final int LCD_1LINE =0x00;
     public static final int LCD_5x10DOTS =0x04;
     public static final int LCD_5x8DOTS =0x00;
-    
-    //TODO: Doesn't return information for calculating message group sizes.
-    public static final byte[] bytesForColor(byte r, byte g, byte b) {
+
+    public static final byte[] commandForColor(byte r, byte g, byte b) {
         return new byte[]{
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 0, 0,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 1, 0,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 0x08, (byte) 0xaa,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 4, r,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 3, g,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), 2, b, 0
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 0, (byte) 0,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 1, (byte) 0,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 0x08, (byte) 0xaa,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 4, r,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 3, g,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 2, b
         };
     }
     

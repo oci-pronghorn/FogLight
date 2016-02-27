@@ -26,10 +26,11 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
     //Native C library.
     private static final CLib c = CLib.instance;
 
-    //Active I2C connections and files.
+    //Native I2C file handle.
     private int i2cFile = -1;
 
     //TODO: Does the maximum number of I2C addresses cap out at 0x77? Is this partially wasting memory?
+    //TODO: Actually, this array doesn't need to exist...
     private int[] ioctls = new int[0x77];
 
     //Member Function: ensureI2CDevice/////////////////////////////////////////
@@ -54,7 +55,7 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
             logger.error("I2C Device 0x" + Integer.toHexString(address) + " is out of array bounds.");
         }
 
-        return false;
+        return true;
     }
 
 //Public///////////////////////////////////////////////////////////////////////
@@ -73,7 +74,7 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
         }
     }
 
-    @Override public void update() { }
+    @Override public void update() { /* TODO: This only exists for Java backings */ }
 
     @Override public byte[] read(byte address, byte... message) {
         //Check if we need to load the address into memory.
@@ -87,12 +88,6 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
     @Override public void write(byte address, byte... message) {
         //Check if we need to load the address into memory.
         if (ensureI2CDevice(address)) {
-
-            //TODO: Debugging output.
-//            for (byte b : message) {
-//                logger.info("Writing 0x" + Integer.toHexString(b));
-//            }
-
             c.write(i2cFile, message, message.length);
         }
     }

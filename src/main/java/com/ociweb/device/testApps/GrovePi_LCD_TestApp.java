@@ -106,6 +106,7 @@ public class GrovePi_LCD_TestApp {
                 (byte)((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 3, (byte) 25,
                 (byte)((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 2, (byte) 75
             };
+            //TODO: byte[] rawData = Grove_LCD_RGB.commandForColor(120, 25, 75);
 
             int[] chunkSizes = new int[]{3,3,3, 3,3,3};
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);

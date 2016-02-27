@@ -2,6 +2,8 @@ package com.ociweb.device.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -31,14 +33,21 @@ public class EdisonPinManager {
 
     
     public static final Path[] PATH_A = new Path[] {
-             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage0_raw"),
-             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage1_raw"),
-             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage2_raw"),
-             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage3_raw"), 
-             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage4_raw"), //TODO: what if we read these data lines for I2C?
-             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage5_raw")  //TODO: what if we read these data lines for I2C?
-             
+             FileSystems.getDefault().getPath("/sys/bus/iio/devices/iio:device1", "in_voltage0_raw"),
+             FileSystems.getDefault().getPath("/sys/bus/iio/devices/iio:device1", "in_voltage1_raw"),
+             FileSystems.getDefault().getPath("/sys/bus/iio/devices/iio:device1", "in_voltage2_raw"),
+             FileSystems.getDefault().getPath("/sys/bus/iio/devices/iio:device1", "in_voltage3_raw"),
+             FileSystems.getDefault().getPath("/sys/bus/iio/devices/iio:device1", "in_voltage4_raw"), //for I2C
+             FileSystems.getDefault().getPath("/sys/bus/iio/devices/iio:device1", "in_voltage5_raw"), //for I2C
     };
+//             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage0_raw"),
+//             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage1_raw"),
+//             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage2_raw"),
+//             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage3_raw"), 
+//             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage4_raw"), //TODO: what if we read these data lines for I2C?
+//             Paths.get("/sys/bus/iio/devices/iio:device1/in_voltage5_raw")  //TODO: what if we read these data lines for I2C?
+//             
+//    };
     public final SeekableByteChannel[] pathAChannel = new SeekableByteChannel[6];   
     
     private static final Path PATH_GPIO_EXPORT   = Paths.get("/sys/class/gpio/export");
@@ -55,12 +64,12 @@ public class EdisonPinManager {
     public static final byte[] MODE_2         = "mode2".getBytes();
     public static final byte[] PULLUP         = "pullup".getBytes();
     
-    public static final ByteBuffer I2C_LOW  = ByteBuffer.wrap(VALUE_LOW);
-    public static final ByteBuffer I2C_HIGH = ByteBuffer.wrap(VALUE_HIGH);
-    public static final ByteBuffer I2C_OUT  = ByteBuffer.wrap(OUT);
-    public static final ByteBuffer I2C_IN   = ByteBuffer.wrap(IN);
-    public static final ByteBuffer I2C_DIRECTION_LOW  = ByteBuffer.wrap(DIRECTION_LOW);
-    public static final ByteBuffer I2C_DIRECTION_HIGH = ByteBuffer.wrap(DRECTION_HIGH); 
+    public static final ByteBuffer I2C_LOW;
+    public static final ByteBuffer I2C_HIGH;
+    public static final ByteBuffer I2C_OUT;
+    public static final ByteBuffer I2C_IN;
+    public static final ByteBuffer I2C_DIRECTION_LOW;
+    public static final ByteBuffer I2C_DIRECTION_HIGH;
     
     public static final int I2C_CLOCK = 19;
     public static final int I2C_DATA = 18;
@@ -72,6 +81,32 @@ public class EdisonPinManager {
     private static ByteBuffer[] readBitBuffer;
     
     static {
+        
+        I2C_LOW = ByteBuffer.allocateDirect(VALUE_LOW.length);
+        I2C_LOW.put(VALUE_LOW);
+        I2C_LOW.clear();
+        
+        I2C_HIGH = ByteBuffer.allocateDirect(VALUE_HIGH.length);
+        I2C_HIGH.put(VALUE_HIGH);
+        I2C_HIGH.clear();
+        
+        I2C_OUT = ByteBuffer.allocateDirect(OUT.length);
+        I2C_OUT.put(OUT);
+        I2C_OUT.clear();
+        
+        I2C_IN = ByteBuffer.allocateDirect(IN.length);
+        I2C_IN.put(IN);
+        I2C_IN.clear();
+        
+        I2C_DIRECTION_LOW = ByteBuffer.allocateDirect(DIRECTION_LOW.length);
+        I2C_DIRECTION_LOW.put(DIRECTION_LOW);
+        I2C_DIRECTION_LOW.clear();
+        
+        I2C_DIRECTION_HIGH = ByteBuffer.allocateDirect(DRECTION_HIGH.length);
+        I2C_DIRECTION_HIGH.put(DRECTION_HIGH);
+        I2C_DIRECTION_HIGH.clear();
+        
+        
         i2cOptions.add(StandardOpenOption.READ);
         i2cOptions.add(StandardOpenOption.WRITE);
         i2cOptions.add(StandardOpenOption.SYNC);
@@ -216,7 +251,8 @@ public class EdisonPinManager {
                   channel = d.provider.newByteChannel(d.gpioValue[port],i2cOptions);
                   d.gpioChannel[port] = channel;
                  
-               }
+                }
+                
                 data.clear();
                 int limit = data.limit();
                 do {
@@ -250,9 +286,21 @@ public class EdisonPinManager {
             throw new RuntimeException(e);
         }
 
-}
+   }
 
-  
+//    public static boolean readLengthTest(int idx, int len) {
+//
+//        try {
+//            ByteBuffer buffer = readIntBuffer[idx];
+//            
+//            loadValueIntoBuffer(idx, buffer);
+//            
+//            return buffer.remaining()>len;
+//           
+//       } catch (IOException e) {
+//           throw new RuntimeException(e);
+//       }
+//    }
     
     public static int readInt(int idx) {
 
@@ -276,19 +324,53 @@ public class EdisonPinManager {
 
     private static void loadValueIntoBuffer(int idx, ByteBuffer buffer) throws IOException {
 
+        
         SeekableByteChannel bc = EdisonGPIO.gpioLinuxPins.pathAChannel[idx];
         if (null == bc) {
+            
+            /////////////
+            //R&D code not ready for use
+            //attempting to memory map this driver
+            ////////////
+//            FileChannel fc = null;
+//            try {
+//                fc = FileChannel.open(PATH_A[idx], StandardOpenOption.READ, StandardOpenOption.CREATE_NEW);
+//            } catch (Exception e) {
+//                System.out.println("Error opening file: " + e.getMessage());
+//            }
+//            MappedByteBuffer mbb = null;
+//            try {
+//                mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, 100);
+//                
+//                
+//            } catch (IOException e) {
+//                System.out.println("Error mapping file: " + e.getMessage()+"   "+PATH_A[idx]);
+//            }
+            
+            
+            
             EdisonGPIO.gpioLinuxPins.pathAChannel[idx] = bc =EdisonGPIO.gpioLinuxPins.provider.newByteChannel(PATH_A[idx], readOptions);
         }
         
-        do {  
-            buffer.clear();
-            while (bc.read(buffer)>=0){}
+        buffer.clear();
+        
+    //    long start = System.nanoTime();
+        do {            
+            
+            while (bc.read(buffer)>=0){}//read everything available
  
             //if length is 0 read this again.
-        } while (buffer.limit()==0 || (buffer.get(0)<'0'));
+        } while (buffer.position()==0);// || (buffer.get(0)<'0'));
+  //      long duration = System.nanoTime()-start;
+        
         buffer.flip();              
         bc.position(0);
+        
+        
+    //    System.out.println("read duration "+duration+"ns");
+        
+        
+        
     }
     
     

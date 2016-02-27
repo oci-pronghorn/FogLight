@@ -149,23 +149,22 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
     
     @Override
     public int i2cReadData() {
-    //    if (dataMode != IN) {
-    //        throw new UnsupportedOperationException();
-    //    }
         return dataValue;
     }
 
     @Override
     public int i2cReadClock() {
-     //   if (clockMode != IN) {
-     //       throw new UnsupportedOperationException();
-     //   }
         return clockValue;
     }
     
     @Override
     public boolean i2cReadClockBool() {
         return clockValue!=0;
+    }
+    
+    @Override
+    public boolean i2cReadDataBool() {
+        return dataValue!=0;
     }
 
     @Override
@@ -188,7 +187,6 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
         clockMode = OUT;
     }
     
-    //TODO: ADD LOTS OF VALIDATION HERE.
     
     @Override
     public void configurePinsForDigitalInput(byte connection) {

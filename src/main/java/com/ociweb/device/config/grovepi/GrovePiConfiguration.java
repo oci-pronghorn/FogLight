@@ -108,6 +108,7 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
     public int i2cReadData() {
         return readBit(GrovePiPinManager.I2C_DATA);
     }
+    public boolean i2cReadDataBool() { return false; } //TODO:
 
     public int i2cReadClock() {
         return readBit(GrovePiPinManager.I2C_CLOCK);

@@ -23,36 +23,38 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
 
     private static final Logger logger = LoggerFactory.getLogger(GrovePiI2CStageNativeBacking.class);
 
+    //Highest value for an I2C address. TODO: Is this the right value?
+    private static final int I2C_MAX_ADDRESSES = 0x77;
+
     //Native C library.
     private static final CLib c = CLib.instance;
 
     //Native I2C file handle.
     private int i2cFile = -1;
 
-    //TODO: Does the maximum number of I2C addresses cap out at 0x77? Is this partially wasting memory?
-    //TODO: Actually, this array doesn't need to exist...
-    private int[] ioctls = new int[0x77];
-
     //Member Function: ensureI2CDevice/////////////////////////////////////////
     /**
-     * Registers an ioctl handle for the device at the specified address if
-     * it hasn't been registered already.
+     * Configures I2C to communicate with the specified byte address.
      *
-     * @param address Address of the I2C device to register.
+     * @param address Byte address of the I2C device to configure for.
      */
     private boolean ensureI2CDevice(byte address) {
-        if (address > 0 && ioctls.length >= address && ioctls[address] == 0) {
-            ioctls[address] = c.ioctl(i2cFile, CLib.I2C_SLAVE_FORCE, new NativeLong(address));
+        if (address > 0 && address <= I2C_MAX_ADDRESSES) {
 
-            if (ioctls[address] < 0) {
-                logger.error("Could not connect I2C device at 0x" + Integer.toHexString(address));
-//                throw new RuntimeException("Could not connect I2C device at 0x" + Integer.toHexString(address));
+            /**
+             * IOCTL will return -1 if it fails for any reason.
+             *
+             * NativeLong is used so that the JNA wrapper doesn't try to pass ioctl a pointer instead of
+             * the raw byte value.
+             */
+            if (c.ioctl(i2cFile, CLib.I2C_SLAVE_FORCE, new NativeLong(address)) < 0) {
+                throw new RuntimeException("Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));
             } else {
-                logger.info("Connected I2C device at 0x" + Integer.toHexString(address));
+                logger.debug("IOCTL configured for I2C device at 0x" + Integer.toHexString(address));
                 return true;
             }
-        } else if (address < 0 || ioctls.length <= address) {
-            logger.error("I2C Device 0x" + Integer.toHexString(address) + " is out of array bounds.");
+        } else if (address < 0 || address > I2C_MAX_ADDRESSES) {
+            throw new RuntimeException("I2C Device 0x" + Integer.toHexString(address) + " is outside of the possible I2C address range.");
         }
 
         return true;
@@ -67,21 +69,18 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
 
         //Make sure it worked....
         if (i2cFile < 0) {
-            logger.error("Could not open /dev/i2c-1");
-            throw new RuntimeException("Could not open /dev/i2c-1");
+            throw new RuntimeException("Could not open /dev/i2c-1.");
         } else {
-            logger.info("Successfully opened /dev/i2c-1");
+            logger.info("Successfully opened /dev/i2c-1.");
         }
     }
-
-    @Override public void update() { /* TODO: This only exists for Java backings */ }
 
     @Override public byte[] read(byte address, byte... message) {
         //Check if we need to load the address into memory.
         if (ensureI2CDevice(address)){
             return new byte[] {(byte) c.read(i2cFile, message, message.length)};
         } else {
-            return new byte[]{};
+            return new byte[] {};
         }
     }
 
@@ -91,4 +90,6 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
             c.write(i2cFile, message, message.length);
         }
     }
+
+    @Override public void update() { /* TODO: This only exists for Java backings */ }
 }

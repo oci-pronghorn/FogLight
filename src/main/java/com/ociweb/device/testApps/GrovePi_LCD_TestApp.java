@@ -6,7 +6,7 @@ import com.ociweb.device.config.GroveConnectionConfiguration;
 import com.ociweb.device.config.grovepi.GrovePiConfiguration;
 import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.grove.GroveShieldV2ResponseStage;
-import com.ociweb.device.grove.grovepi.GrovePiI2CStageV2;
+import com.ociweb.device.grove.grovepi.GrovePiI2CStage;
 import com.ociweb.device.grove.schema.GroveRequestSchema;
 import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
@@ -110,7 +110,7 @@ public class GrovePi_LCD_TestApp {
 
             int[] chunkSizes = new int[]{3,3,3, 3,3,3};
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
-            GrovePiI2CStageV2 i2cStage = new GrovePiI2CStageV2(gm, i2cToBusPipe, config);
+            GrovePiI2CStage i2cStage = new GrovePiI2CStage(gm, i2cToBusPipe, config);
         }
     }
 }

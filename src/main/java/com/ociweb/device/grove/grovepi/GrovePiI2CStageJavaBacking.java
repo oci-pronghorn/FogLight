@@ -20,6 +20,8 @@ import com.ociweb.pronghorn.pipe.Pipe;
  * Java I2C backing implementation for a GrovePi using the amazing technique of
  * bit-banging GPIO ports.
  *
+ * TODO: Completely untested.
+ *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {
@@ -212,6 +214,18 @@ public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {
         pause();
     }
 
+    //TODO: Unimplemented; need to figure out how to extract the messages from
+    //      the pipe and feed them to these methods.
+    @Override public byte[] read(byte address, byte... message) {
+        return new byte[0];
+    }
+
+    //TODO: Unimplemeted; need to figure out how to extract the messages from
+    //      the pipe and feed them to these methods.
+    @Override public void write(byte address, byte... message) {
+
+    }
+
     @Override public void update() {
         if (taskPhase == TASK_NONE) {
             readRequest();
@@ -228,17 +242,5 @@ public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {
                 masterStop();
                 break;
         }
-    }
-
-    //TODO: Unimplemented; need to figure out how to extract the messages from
-    //      the pipe and feed them to these methods.
-    @Override public byte[] read(byte address, byte... message) {
-        return new byte[0];
-    }
-
-    //TODO: Unimplemeted; need to figure out how to extract the messages from
-    //      the pipe and feed them to these methods.
-    @Override public void write(byte address, byte... message) {
-
     }
 }

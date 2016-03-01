@@ -17,8 +17,6 @@ public class GrovePiGPIO {
 
         int j = usedLines.length;
         while (--j >= 0) {
-            System.out.println(usedLines[j].connection);
-            System.out.println(usedLines[j].twig.name());
             final int i = usedLines[j].connection;
             gpioLinuxPins.ensureDevice(i);
             gpioOutputEnablePins.ensureDevice(i);
@@ -86,6 +84,5 @@ public class GrovePiGPIO {
         gpioLinuxPins.setDirectionOut(0);
         gpioOutputEnablePins.setDirectionHigh(1);
         gpioOutputEnablePins.setDirectionHigh(0);
-        System.out.println("I2C enabled for out");
     }
 }

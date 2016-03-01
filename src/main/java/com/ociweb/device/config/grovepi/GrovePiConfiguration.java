@@ -142,7 +142,7 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
         pos+=digitalInputs.length;
         
         if (0!=(encoderInputs.length&0x1)) {
-            throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");
+            throw new UnsupportedOperationException("Rotary encoder requires two neighboring digital inputs.");
         }
         findDup(result,pos,encoderInputs, false);
         System.arraycopy(encoderInputs, 0, result, pos, encoderInputs.length);

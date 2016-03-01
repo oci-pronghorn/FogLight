@@ -84,4 +84,13 @@ public class Grove_LCD_RGB {
             (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 2, b
         };
     }
+
+    /**
+     * Integer helper for {@link #commandForColor(byte, byte, byte)}.
+     *
+     * @see #commandForColor(byte, byte, byte);
+     */
+    public static final byte[] commandForColor(int r, int g, int b) {
+        return commandForColor((byte) r, (byte) g, (byte) b);
+    }
 }

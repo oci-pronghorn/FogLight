@@ -160,7 +160,6 @@ public class GrovePiPinManager {
 
         if ((null != gpio[i]) && !gpio[i].toFile().exists()) try {
             Files.write(PATH_GPIO_EXPORT, gpioPinString[i].getBytes());
-            System.out.println("Ensure: " + PATH_GPIO_EXPORT + " : " + gpioPinString[i]);
         }
         catch (final IOException e) {
             throw new RuntimeException(e);

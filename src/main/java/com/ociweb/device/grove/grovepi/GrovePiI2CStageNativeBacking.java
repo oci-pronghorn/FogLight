@@ -1,12 +1,3 @@
-// Project: PronghornIoT
-// Since: Feb 21, 2016
-//
-///////////////////////////////////////////////////////////////////////////////
-/**
- * TODO: What license?
- */
-///////////////////////////////////////////////////////////////////////////////
-//
 package com.ociweb.device.grove.grovepi;
 
 import com.sun.jna.NativeLong;
@@ -19,7 +10,6 @@ import org.slf4j.LoggerFactory;
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
-//Private//////////////////////////////////////////////////////////////////////
 
     private static final Logger logger = LoggerFactory.getLogger(GrovePiI2CStageNativeBacking.class);
 
@@ -32,7 +22,6 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
     //Native I2C file handle.
     private int i2cFile = -1;
 
-    //Member Function: ensureI2CDevice/////////////////////////////////////////
     /**
      * Configures I2C to communicate with the specified byte address.
      *
@@ -60,9 +49,6 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
         return true;
     }
 
-//Public///////////////////////////////////////////////////////////////////////
-
-    //Constructor//////////////////////////////////////////////////////////////
     public GrovePiI2CStageNativeBacking() {
         //Get the I2C file.
         i2cFile = c.open("/dev/i2c-1", CLib.O_RDWR);
@@ -73,6 +59,15 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
         } else {
             logger.info("Successfully opened /dev/i2c-1.");
         }
+
+        //Close the file when the application shuts down.
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                if (i2cFile >= 0) {
+                    c.close(i2cFile);
+                }
+            }
+        });
     }
 
     @Override public byte[] read(byte address, byte... message) {
@@ -90,6 +85,4 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
             c.write(i2cFile, message, message.length);
         }
     }
-
-    @Override public void update() { /* TODO: This only exists for Java backings */ }
 }

@@ -38,12 +38,4 @@ public interface GrovePiI2CStageBacking {
      * @param message Array of bytes to write to the I2C device.
      */
     public void write(byte address, byte... message);
-
-    //Member Function: update//////////////////////////////////////////////////
-    /**
-     * Updates the state of this I2C stage backing; this function is only
-     * needed by backings that need to execute their reads and writes in
-     * stages instead of all at once.
-     */
-    public void update();
 }

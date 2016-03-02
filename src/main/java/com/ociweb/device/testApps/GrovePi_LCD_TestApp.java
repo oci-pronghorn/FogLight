@@ -1,5 +1,6 @@
 package com.ociweb.device.testApps;
 
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
@@ -93,11 +94,15 @@ public class GrovePi_LCD_TestApp {
 
             Pipe<I2CCommandSchema> i2cToBusPipe = new Pipe<I2CCommandSchema>(requestI2CConfig);
 
+            //Random color.
+            Random rand = new Random();
+            byte[] rawData = Grove_LCD_RGB.commandForColor(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
+
             //Purple.
 //            byte[] rawData = Grove_LCD_RGB.commandForColor(120, 25, 75);
 
             //Green.
-            byte[] rawData = Grove_LCD_RGB.commandForColor(94, 255, 118);
+//            byte[] rawData = Grove_LCD_RGB.commandForColor(94, 255, 118);
 
             int[] chunkSizes = new int[] {3,3,3, 3,3,3};
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);

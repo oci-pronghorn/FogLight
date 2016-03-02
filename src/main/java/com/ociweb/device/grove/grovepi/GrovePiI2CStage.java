@@ -1,12 +1,3 @@
-// Project: PronghornIoT
-// Since: Feb 21, 2016
-//
-///////////////////////////////////////////////////////////////////////////////
-/**
- * TODO: What license?
- */
-///////////////////////////////////////////////////////////////////////////////
-//
 package com.ociweb.device.grove.grovepi;
 
 import org.slf4j.Logger;
@@ -21,7 +12,10 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 /**
  * Sample I2C stage for use with a Grove Pi.
  *
+ * TODO: This stage can be used with ANY system that has ioctl libraries on-hand; this means it could be generified for Edisons and Pis.
+ *
  * TODO: A lot of the code in here was blindly copied from the old Edison I2C stage.
+ *
  * TODO: It needs to be cleaned up now that a complex series of case statements aren't being used.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
@@ -36,9 +30,7 @@ public class GrovePiI2CStage extends PronghornStage {
     private GrovePiI2CStageBacking backing;
 
     //Current byte buffer.
-//    private int cyclesToWait;
     private int[] cyclesToWaitLookup = new int[MAX_CONFIGURABLE_BYTES];
-//    private int byteToSend;
 
     //Holds the same array as used by the Blob from the ring.
     private byte[] bytesToSendBacking;
@@ -71,73 +63,65 @@ public class GrovePiI2CStage extends PronghornStage {
         } catch (Exception e) {
             logger.warn("Couldn't start up native I2C backing; " +
                         "falling back to bit-banged Java implementation.");
-            backing = new GrovePiI2CStageJavaBacking(request, config);
+            backing = new GrovePiI2CStageJavaBacking(config);
         }
     }
     
     @Override
     public void run() {
-        //TODO: Shouldn't need to actually check what kind of backing is in use.
         //TODO: This logic can definitely be cleaned up.
-        if (backing instanceof GrovePiI2CStageNativeBacking) {
-            if (Pipe.hasContentToRead(request)) {
-                //Verify message ID.
-                int msgId = Pipe.takeMsgIdx(request);
-                if (msgId < 0 ) {
-                    requestShutdown();
-                    return;
-                }
+        if (Pipe.hasContentToRead(request)) {
+            //Verify message ID.
+            int msgId = Pipe.takeMsgIdx(request);
+            if (msgId < 0 ) {
+                requestShutdown();
+                return;
+            }
 
-                //Process ID.
-                bytesToSendReleaseSize = Pipe.sizeOf(request, msgId);
-                switch (msgId) {
-                    case I2CCommandSchema.MSG_COMMAND_1:
-                        int meta = Pipe.takeRingByteMetaData(request);
-                        int len = Pipe.takeRingByteLen(request);
+            //Process ID.
+            bytesToSendReleaseSize = Pipe.sizeOf(request, msgId);
+            switch (msgId) {
+                case I2CCommandSchema.MSG_COMMAND_1:
+                    int meta = Pipe.takeRingByteMetaData(request);
+                    int len = Pipe.takeRingByteLen(request);
 
-                        bytesToSendBacking = Pipe.byteBackingArray(meta, request);
-                        bytesToSendMask = Pipe.blobMask(request);
-                        bytesToSendPosition = Pipe.bytePosition(meta, request, len);
-                        bytesToSendRemaining = len;
-                        int cyclesToWait = bytesToSendPosition < MAX_CONFIGURABLE_BYTES ? cyclesToWaitLookup[bytesToSendPosition] : 0;
-                        int byteToSend = 0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++];
+                    bytesToSendBacking = Pipe.byteBackingArray(meta, request);
+                    bytesToSendMask = Pipe.blobMask(request);
+                    bytesToSendPosition = Pipe.bytePosition(meta, request, len);
+                    bytesToSendRemaining = len;
+                    int cyclesToWait = bytesToSendPosition < MAX_CONFIGURABLE_BYTES ? cyclesToWaitLookup[bytesToSendPosition] : 0;
+                    int byteToSend = 0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++];
 
-                        break;
+                    break;
 
-                    case I2CCommandSchema.MSG_SETDELAY_10:
-                        int offset = Pipe.takeValue(request);
+                case I2CCommandSchema.MSG_SETDELAY_10:
+                    int offset = Pipe.takeValue(request);
 
-                        cyclesToWaitLookup[offset] = 1 + (Pipe.takeValue(request) / NS_PAUSE);
-                        Pipe.confirmLowLevelRead(request, bytesToSendReleaseSize);
-                        Pipe.releaseReads(request);
-
-                        break;
-                }
-
-                if (bytesToSendRemaining > 0) {
-                    byte[] bytes = new byte[bytesToSendRemaining - 1];
-                    int i = 0;
-
-                    while (--bytesToSendRemaining > 0) {
-                        bytes[i] = (byte) (0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++]);
-                        i++;
-                    }
-
-//                    byte address2 = (byte) (0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++]);
-//                    int address2 = 0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++];
-//                    System.out.println("ORIGADDR: 0x" + Integer.toHexString(address2 >> 1));
-//                    byte address = (0xc4 >> 1);
-                    int temp = 0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++];
-                    byte address = (byte) (temp >> 1);
-
-                    backing.write(address, bytes);
-
+                    cyclesToWaitLookup[offset] = 1 + (Pipe.takeValue(request) / NS_PAUSE);
                     Pipe.confirmLowLevelRead(request, bytesToSendReleaseSize);
                     Pipe.releaseReads(request);
+
+                    break;
+            }
+
+            if (bytesToSendRemaining > 0) {
+                byte[] bytes = new byte[bytesToSendRemaining - 1];
+                int i = 0;
+
+                while (--bytesToSendRemaining > 0) {
+                    bytes[i] = (byte) (0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++]);
+                    i++;
                 }
+
+                //TODO: For some reason, this gives something like 0xffffff6 if we don't assign to a temporary int first.
+                int temp = 0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++];
+                byte address = (byte) (temp >> 1);
+
+                backing.write(address, bytes);
+
+                Pipe.confirmLowLevelRead(request, bytesToSendReleaseSize);
+                Pipe.releaseReads(request);
             }
         }
-
-        backing.update();
     }
 }

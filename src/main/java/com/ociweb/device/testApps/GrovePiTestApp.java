@@ -24,8 +24,8 @@ import org.slf4j.LoggerFactory;
 /**
  * TODO:
  */
-public class GrovePi_LCD_TestApp {
-    private static final Logger logger = LoggerFactory.getLogger(GrovePi_LCD_TestApp.class);
+public class GrovePiTestApp {
+    private static final Logger logger = LoggerFactory.getLogger(GrovePiTestApp.class);
 
     private static final PipeConfig<GroveResponseSchema> responseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 30, 0);
     private static final PipeConfig<GroveRequestSchema> requestConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 30, 0);
@@ -82,7 +82,7 @@ public class GrovePi_LCD_TestApp {
 
     protected static void buildGraph(GraphManager gm, final GroveConnectionConfiguration config) {
         
-        Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(GrovePi_LCD_TestApp.responseConfig);
+        Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(GrovePiTestApp.responseConfig);
         
         GroveShieldV2ResponseStage groveStage = new GroveShieldV2ResponseStage(gm, responsePipe, config);       
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10 * 1000 * 1000, groveStage); //poll every 10 ms

@@ -10,7 +10,10 @@
 package com.ociweb.device.grove.grovepi;
 
 /**
- * Represents a generic backing for the GrovePi I2C lines.
+ * Represents a generic backing for the GrovePi's I2C lines.
+ *
+ * TODO: This interface and all of the Grove Pi I2C code can be generified
+ *       to work with any device and reduce code duplication.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
@@ -27,7 +30,7 @@ public interface GrovePiI2CStageBacking {
      * @return Data received from the I2C device, or an empty array if no
      *         data was received.
      */
-    public byte[] read(byte address, byte... message);
+    byte[] read(byte address, byte... message);
 
     //Member Function: write///////////////////////////////////////////////////
     /**
@@ -37,5 +40,5 @@ public interface GrovePiI2CStageBacking {
      *                GrovePi's LCD RGB backlight.
      * @param message Array of bytes to write to the I2C device.
      */
-    public void write(byte address, byte... message);
+    void write(byte address, byte... message);
 }

@@ -13,6 +13,11 @@ import com.ociweb.pronghorn.pipe.Pipe;
  *
  * TODO: Completely untested and mostly unimplemented.
  *
+ * TODO: One very apparent issue with this backing is that it loiters in the
+ *       read/write functions for a long time since it will attempt to
+ *       perform the entire operation all at once instead of across multiple
+ *       loops (like the Edison's bitbanged implementation).
+ *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {

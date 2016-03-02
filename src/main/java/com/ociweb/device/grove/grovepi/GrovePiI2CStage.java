@@ -12,11 +12,10 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 /**
  * Sample I2C stage for use with a Grove Pi.
  *
- * TODO: This stage can be used with ANY system that has ioctl libraries on-hand; this means it could be generified for Edisons and Pis.
+ * TODO: This stage can be used with ANY system that has ioctl libraries on-hand;
+ *       this means it could be generified for Edisons and Pis.
  *
- * TODO: A lot of the code in here was blindly copied from the old Edison I2C stage.
- *
- * TODO: It needs to be cleaned up now that a complex series of case statements aren't being used.
+ * TODO: This stage can be cleaned up as it was blindly copied from the pre-JNA I2C stage.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */

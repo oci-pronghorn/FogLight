@@ -79,12 +79,12 @@ public class Grove_LCD_RGB {
     */
     public static final byte[] commandForColor(byte r, byte g, byte b) {
         return new byte[]{
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 0, (byte) 0,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 1, (byte) 0,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 0x08, (byte) 0xaa,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 4, r,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 3, g,
-            (byte) ((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte) 2, b
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 0, (byte) 0,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 1, (byte) 0,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 0x08, (byte) 0xaa,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 4, r,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 3, g,
+            (byte) ((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 2, b
         };
     }
 
@@ -112,17 +112,17 @@ public class Grove_LCD_RGB {
         List<Byte> bytes = new ArrayList<Byte>();
 
         //Clear display.
-        bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1) | 0));
+        bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1)));
         bytes.add((byte) LCD_SETDDRAMADDR);
         bytes.add((byte) LCD_CLEARDISPLAY);
 
         //Display on, no cursor.
-        bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1) | 0));
+        bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1)));
         bytes.add((byte) LCD_SETDDRAMADDR);
         bytes.add((byte) ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));
 
         //Two lines.
-        bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1) | 0));
+        bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1)));
         bytes.add((byte) LCD_SETDDRAMADDR);
         bytes.add((byte) LCD_TWO_LINES);
 
@@ -136,7 +136,7 @@ public class Grove_LCD_RGB {
                 if (row == 2) break;
 
                 //Write a thing. TODO: What's the thing?
-                bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1) | 0));
+                bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1)));
                 bytes.add((byte) LCD_SETDDRAMADDR);
                 bytes.add((byte) 0xc0);
 
@@ -146,7 +146,7 @@ public class Grove_LCD_RGB {
             count += 1;
 
             //Write chars.
-            bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1) | 0));
+            bytes.add((byte) ((Grove_LCD_RGB.LCD_ADDRESS << 1)));
             bytes.add((byte) LCD_SETCGRAMADDR);
             bytes.add((byte) ((int) c)); //TODO: Is this equiv. to Python's ord()?
         }

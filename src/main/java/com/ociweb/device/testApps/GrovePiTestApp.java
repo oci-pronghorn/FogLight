@@ -95,7 +95,7 @@ public class GrovePiTestApp {
             Pipe<I2CCommandSchema> i2cToBusPipe = new Pipe<I2CCommandSchema>(requestI2CConfig);
 
             //Text.
-            byte[] rawData = Grove_LCD_RGB.commandForText("GrovePi+ with\nPronghorn IoT");
+            byte[] rawData = Grove_LCD_RGB.commandForText("GrovePi+ with\nPronghorn IoT <3");
 
             //Random color.
 //            Random rand = new Random();

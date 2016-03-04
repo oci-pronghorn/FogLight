@@ -96,8 +96,6 @@ public class GrovePiTestApp {
 
             //Text.
             byte[] rawData = Grove_LCD_RGB.commandForText("GrovePi+ with\nPronghorn IoT");
-            int[] chunkSizes = new int[rawData.length / 3];
-            for (int i = 0; i < chunkSizes.length; i++) chunkSizes[i] = 3;
 
             //Random color.
 //            Random rand = new Random();
@@ -109,7 +107,11 @@ public class GrovePiTestApp {
             //Green.
 //            byte[] rawData = Grove_LCD_RGB.commandForColor(94, 255, 118);
 
-//            int[] chunkSizes = new int[] {3,3,3, 3,3,3};
+            //Calculate chunk sizes; for now, we assume every chunk is 3 bytes long.
+            int[] chunkSizes = new int[rawData.length / 3];
+            for (int i = 0; i < chunkSizes.length; i++) chunkSizes[i] = 3;
+
+            //Pipe that data.
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
             GrovePiI2CStage i2cStage = new GrovePiI2CStage(gm, i2cToBusPipe, config);
         }

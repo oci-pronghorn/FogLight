@@ -19,7 +19,6 @@ package com.ociweb.device.grove.grovepi;
  */
 public interface GrovePiI2CStageBacking {
 
-    //Member Function: read////////////////////////////////////////////////////
     /**
      * Reads a message from the I2C device at the specified address.
      *
@@ -32,7 +31,6 @@ public interface GrovePiI2CStageBacking {
      */
     byte[] read(byte address, byte... message);
 
-    //Member Function: write///////////////////////////////////////////////////
     /**
      * Writes a message to an I2C device at the specified address.
      *

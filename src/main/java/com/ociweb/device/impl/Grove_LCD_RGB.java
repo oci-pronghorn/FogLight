@@ -5,6 +5,12 @@ import com.ociweb.device.grove.grovepi.GrovePiI2CStage;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * TODO: This class probably needs to be renamed and moved; it's now both a simple API and collection of constants.
+ *
+ * @author Nathan Tippy
+ * @author Brandon Sanders [brandon@alicorn.io]
+ */
 public class Grove_LCD_RGB {
 
  // Device I2C Adress (note this only uses the lower 7 bits)

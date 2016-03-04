@@ -1,6 +1,5 @@
 package com.ociweb.device.testApps;
 
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
@@ -23,6 +22,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TODO:
+ *
+ * @author Nathan Tippy
+ * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class GrovePiTestApp {
     private static final Logger logger = LoggerFactory.getLogger(GrovePiTestApp.class);

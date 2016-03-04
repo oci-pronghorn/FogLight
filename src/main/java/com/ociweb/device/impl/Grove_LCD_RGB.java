@@ -68,8 +68,7 @@ public class Grove_LCD_RGB {
    /**
     * Creates a complete byte array that will set the color of a Grove RGB LCD
     * display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
-    * which is using a chunk size of {3,3,3, 3,3,3} and is being piped to a
-    * {@link GrovePiI2CStage}.
+    * which is using a chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
     *
     * @param r 0-255 value for the Red color.
     * @param g 0-255 value for the Green color.
@@ -99,8 +98,7 @@ public class Grove_LCD_RGB {
     /**
      * Creates a complete byte array that will set the text of a Grove RGB LCD
      * display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
-     * which is using a chunk size of {3,3,3, 3,3,3} and is being piped to a
-     * {@link GrovePiI2CStage}.
+     * which is using chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
      *
      * TODO: Behold the garbage; this was copied almost verbatim from a Python example.
      * TODO: Python example from https://github.com/DexterInd/GrovePi/blob/master/Projects/Advanced_RGB_LCD_TempAndHumidity/grove_rgb_lcd.py.

@@ -141,7 +141,7 @@ public class GroveShieldV2I2CStage extends PronghornStage {
 
         //These are ordered by the most frequent first and the least last
         int localHand = taskAtHand;
-        if        (TASK_WRITE_BYTES == localHand) {
+        if (TASK_WRITE_BYTES == localHand) {
             
             writeBytes(); 
             
@@ -180,9 +180,6 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     }
     
     long lastTimeX;    
-
-    //TODO: try dropping file and recreating to read.
-
     
     private void readRequest() {
                 

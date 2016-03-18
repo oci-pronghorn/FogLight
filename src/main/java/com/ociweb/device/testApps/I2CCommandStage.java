@@ -39,8 +39,8 @@ public class I2CCommandStage extends PronghornStage {
            //            (byte) (0b00000110), //(byte)0xA5, (byte)0x5A, //reset cmmand
                        
                        (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE1, 0,
-                       (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0, 
-                       (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0xAA, 
+                       (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_MODE2, 0,
+                       (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_OUTPUT, (byte)0xAA,
                        
               //         (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), (byte)0b10100010, (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,
 //                       (byte)((Grove_LCD_RGB.RGB_ADDRESS<<1)|0), Grove_LCD_RGB.REG_RED,    (byte)0x00,
@@ -87,35 +87,35 @@ public class I2CCommandStage extends PronghornStage {
                       
                        
                        //NOTE: this works!!
-                       (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0),                        
-                       (byte)0x80, (byte)Grove_LCD_RGB.LCD_CLEARDISPLAY,
+                       (byte)((Grove_LCD_RGB.LCD_ADDRESS<<1)|0),
+                       (byte)0x80, (byte) Grove_LCD_RGB.LCD_CLEARDISPLAY,
                        
                        (byte)0x80, (byte)(rowA == 0 ? (columnA | Grove_LCD_RGB.LCD_SETDDRAMADDR) :
                            (columnA | Grove_LCD_RGB.LCD_SETDDRAMADDR | Grove_LCD_RGB.LCD_SETCGRAMADDR)),
                                               
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'E',
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'m',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'E',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'m',
                        
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'b',
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'e',
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'d',
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'d',
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'e',
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'d',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'b',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'e',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'d',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'d',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'e',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'d',
                        
                        
                        (byte)0x80, (byte)(rowB == 0 ? (columnB | Grove_LCD_RGB.LCD_SETDDRAMADDR) :
                            (columnB | Grove_LCD_RGB.LCD_SETDDRAMADDR | Grove_LCD_RGB.LCD_SETCGRAMADDR)),
                                               
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'Z',
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'u',   
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'l',  
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'u',  
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)' ',  
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'J',
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'a',   
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'v',  
-                       (byte)Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x0, (byte)'a',  
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'Z',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'u',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'l',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'u',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)' ',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'J',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'a',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x80, (byte)'v',
+                       (byte) Grove_LCD_RGB.LCD_SETCGRAMADDR | (byte)0x0, (byte)'a',
                                               
                              
         };

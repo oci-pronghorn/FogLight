@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class Grove_LCD_RGB {
 
- // Device I2C Adress (note this only uses the lower 7 bits)
+    // Device I2C Adress (note this only uses the lower 7 bits)
     public static int LCD_ADDRESS  =   (0x7c>>1); //  11 1110  0x3E
     public static final int RGB_ADDRESS  =   (0xc4>>1); // 110 0010  0x62
 
@@ -74,7 +74,7 @@ public class Grove_LCD_RGB {
    /**
     * Creates a complete byte array that will set the color of a Grove RGB LCD
     * display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
-    * which is using a chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
+    * which is using chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
     *
     * @param r 0-255 value for the Red color.
     * @param g 0-255 value for the Green color.
@@ -102,19 +102,22 @@ public class Grove_LCD_RGB {
     }
 
     /**
+     * <pre>
      * Creates a complete byte array that will set the text of a Grove RGB LCD
      * display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
      * which is using chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
      *
      * TODO: Behold the garbage; this was copied almost verbatim from a Python example.
      * TODO: Python example from https://github.com/DexterInd/GrovePi/blob/master/Projects/Advanced_RGB_LCD_TempAndHumidity/grove_rgb_lcd.py.
+     * </pre>
      *
-     * @param text Byte array of characters to send.
+     * @param text String to display on the Grove RGB LCD.
      *
      * @return Formatted byte array which can be passed directly to a
      *         {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}.
      */
     public static final byte[] commandForText(String text) {
+        //TODO: Optimize this to not use a Java collection.
         List<Byte> bytes = new ArrayList<Byte>();
 
         //Clear display.
@@ -161,6 +164,45 @@ public class Grove_LCD_RGB {
         byte[] ret = new byte[bytes.size()];
         for (int i = 0; i < bytes.size(); i++) {
             ret[i] = bytes.get(i);
+        }
+
+        return ret;
+    }
+
+    /**
+     * <pre>
+     * Creates a complete byte array that will set the text and color of a Grove RGB
+     * LCD display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
+     * which is using chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
+     *
+     * <b>Note: Internally, this method makes calls to {@link #commandForText(String)}
+     * and {@link #commandForColor(int, int, int)} and then combines the results into
+     * a single array. This results in some leftover arrays that could create garbage.</b>
+     *
+     * TODO: This function is currently causing the last letter of the text to be dropped
+     *       when displayed on the Grove RGB LCD; there's currently a work-around that
+     *       simply appens a space to the incoming text variable, but it's hackish
+     *       and should be looked into more...
+     *
+     * @param text String to display on the Grove RGB LCD.
+     * @param r 0-255 value for the Red color.
+     * @param g 0-255 value for the Green color.
+     * @param b 0-255 value for the Blue color.
+     *
+     * @return Formatted byte array which can be passed directly to a
+     *         {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}.
+     * </pre>
+     */
+    public static byte[] commandForTextAndColor(String text, int r, int g, int b) {
+        //TODO: For some reason, this is dropping the last character on the grove display.
+        byte[] textCommand = commandForText(text + " ");
+        byte[] colorCommand = commandForColor(r, g, b);
+
+        byte[] ret = new byte[textCommand.length + colorCommand.length];
+
+        //Hail StackOverflow, king of hax.
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = i < textCommand.length ? textCommand[i] : colorCommand[i - textCommand.length];
         }
 
         return ret;

@@ -1,5 +1,6 @@
 package com.ociweb.device.testApps;
 
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
@@ -97,7 +98,7 @@ public class GrovePiTestApp {
             Pipe<I2CCommandSchema> i2cToBusPipe = new Pipe<I2CCommandSchema>(requestI2CConfig);
 
             //Text.
-            byte[] rawData = Grove_LCD_RGB.commandForText("GrovePi+ with\nPronghorn IoT <3");
+//            byte[] rawData = Grove_LCD_RGB.commandForText("GrovePi+ with\nPronghorn IoT <3");
 
             //Random color.
 //            Random rand = new Random();
@@ -106,8 +107,20 @@ public class GrovePiTestApp {
             //Purple.
 //            byte[] rawData = Grove_LCD_RGB.commandForColor(120, 25, 75);
 
-            //Green.
-//            byte[] rawData = Grove_LCD_RGB.commandForColor(94, 255, 118);
+            //Random string list.
+            String[] randomStrings = {
+                    "GrovePi+ with\nPronghorn IoT",
+                    "Hello,\nPronghorn!",
+                    "Embedded\nZulu Java",
+                    "Hello,\nGrovePi+!"
+            };
+
+            //Build command.
+            Random rand = new Random();
+            byte[] rawData = Grove_LCD_RGB.commandForTextAndColor(randomStrings[rand.nextInt(randomStrings.length)],
+                                                                  rand.nextInt(256),
+                                                                  rand.nextInt(256),
+                                                                  rand.nextInt(256));
 
             //Calculate chunk sizes; for now, we assume every chunk is 3 bytes long.
             int[] chunkSizes = new int[rawData.length / 3];

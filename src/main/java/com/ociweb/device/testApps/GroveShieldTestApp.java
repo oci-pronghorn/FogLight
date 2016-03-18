@@ -1,11 +1,5 @@
 package com.ociweb.device.testApps;
 
-import static com.ociweb.device.grove.GroveTwig.Button;
-import static com.ociweb.device.grove.GroveTwig.LightSensor;
-import static com.ociweb.device.grove.GroveTwig.MoistureSensor;
-import static com.ociweb.device.grove.GroveTwig.MotionSensor;
-import static com.ociweb.device.grove.GroveTwig.RotaryEncoder;
-
 import java.util.concurrent.TimeUnit;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
@@ -16,23 +10,17 @@ import com.ociweb.device.grove.GroveShieldV2I2CStage;
 import com.ociweb.device.grove.GroveShieldV2ResponseStage;
 import com.ociweb.device.grove.device.lcdrgb.LCDRGBBacklightAPI;
 import com.ociweb.device.grove.device.lcdrgb.LCDRGBBacklightSchema;
-import com.ociweb.device.grove.device.lcdrgb.LCDRGBBacklightStage;
 import com.ociweb.device.grove.device.lcdrgb.LCDRGBContentAPI;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.device.grove.schema.GroveRequestSchema;
 import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.grove.schema.I2CBusSchema;
-import com.ociweb.device.grove.schema.I2CCommandSchema;
-import com.ociweb.device.impl.Grove_LCD_RGB;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.PronghornStage;
-import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
-import com.ociweb.pronghorn.stage.test.ByteArrayProducerStage;
 import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
-import com.ociweb.pronghorn.stage.test.ConsoleSummaryStage;
 
 public class GroveShieldTestApp {
     

@@ -15,7 +15,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
  * TODO: This stage can be used with ANY system that has ioctl libraries on-hand;
  *       this means it could be generified for Edisons and Pis.
  *
- * TODO: This stage can be cleaned up as it was blindly copied from the pre-JNA I2C stage.
+ * TODO: This stage can be cleaned up as it was (mostly) blindly copied from the pre-JNA I2C stage.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */

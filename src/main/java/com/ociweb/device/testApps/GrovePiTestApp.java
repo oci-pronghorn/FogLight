@@ -112,7 +112,8 @@ public class GrovePiTestApp {
                     "GrovePi+ with\nPronghorn IoT",
                     "Hello,\nPronghorn!",
                     "Embedded\nZulu Java",
-                    "Hello,\nGrovePi+!"
+                    "Hello,\nGrovePi+!",
+                    "I'm sorry John\nI can't do that"
             };
 
             //Build command.

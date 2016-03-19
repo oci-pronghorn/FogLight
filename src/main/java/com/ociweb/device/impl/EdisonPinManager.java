@@ -15,9 +15,6 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.locks.LockSupport;
-
-import com.ociweb.device.grove.GroveShieldV2ResponseStage;
 
 public class EdisonPinManager {
 

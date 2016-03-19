@@ -16,7 +16,6 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     private static final short activeIdxMask = (short)activeSize-1;
     private short activeIdx;
     
-    
     //script defines which port must be read or write on each cycle
     //when the rotary encoder is used it is checked on every cycle
     
@@ -26,11 +25,9 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     private int[]       scriptConn;
     private int[]       scriptTask; 
     private GroveTwig[] scriptTwig;
-        
     
     private int[][]    movingAverageHistory;
     private int[]      lastPublished;
-    
     
     private int[]       rotaryRolling;
     private int[]       rotationState;
@@ -47,8 +44,6 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     private static final short DO_NOTHING     = 0;
     private static final short DO_BIT_READ    = 1;
     private static final short DO_INT_READ    = 2;    
-    
-
     
     private final Pipe<GroveResponseSchema> responsePipe;    
     final GroveConnectionConfiguration config;

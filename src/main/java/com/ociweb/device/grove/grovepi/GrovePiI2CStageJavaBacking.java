@@ -113,7 +113,7 @@ public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {
         this.config = config;
     }
 
-    @Override public byte[] read(byte address, byte... message) {
+    @Override public byte[] read(int bufferSize, byte address, byte... message) {
         //TODO: Unimplemented.
         throw new RuntimeException("Bit-banged reads aren't supported yet.");
     }

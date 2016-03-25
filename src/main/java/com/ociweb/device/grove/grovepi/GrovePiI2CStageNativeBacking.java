@@ -70,10 +70,13 @@ public class GrovePiI2CStageNativeBacking implements GrovePiI2CStageBacking {
         });
     }
 
-    @Override public byte[] read(byte address, byte... message) {
+    @Override public byte[] read(int bufferSize, byte address, byte... message) {
         //Check if we need to load the address into memory.
-        if (ensureI2CDevice(address)){
-            return new byte[] {(byte) c.read(i2cFile, message, message.length)};
+        if (ensureI2CDevice(address)) {
+            write(address, message);
+            byte[] receiving = new byte[bufferSize];
+            c.read(i2cFile, receiving, receiving.length);
+            return receiving;
         } else {
             return new byte[] {};
         }

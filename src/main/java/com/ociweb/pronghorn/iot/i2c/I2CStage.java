@@ -1,13 +1,12 @@
-package com.ociweb.device.grove.grovepi;
+package com.ociweb.pronghorn.iot.i2c;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.ociweb.device.config.GroveConnectionConfiguration;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.i2c.impl.I2CStageNativeLinuxBacking;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sample I2C stage for use with a Grove Pi.
@@ -19,14 +18,14 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class GrovePiI2CStage extends PronghornStage {
-    private static final Logger logger = LoggerFactory.getLogger(GrovePiI2CStage.class);
+public class I2CStage extends PronghornStage {
+    private static final Logger logger = LoggerFactory.getLogger(I2CStage.class);
     private static final int NS_PAUSE = 10*1000;
     private static final int MAX_CONFIGURABLE_BYTES = 16;
 
     private final Pipe<I2CCommandSchema> request;
-    private final GroveConnectionConfiguration config;
-    private GrovePiI2CStageBacking backing;
+    private final I2CStageBacking fallback;
+    private I2CStageBacking backing;
 
     //Current byte buffer.
     private int[] cyclesToWaitLookup = new int[MAX_CONFIGURABLE_BYTES];
@@ -38,11 +37,11 @@ public class GrovePiI2CStage extends PronghornStage {
     private int    bytesToSendMask;
     private int    bytesToSendReleaseSize;
     
-    public GrovePiI2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, GroveConnectionConfiguration config) {
+    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, I2CStageBacking fallback) {
         super(gm, request, NONE);
-        
+
+        this.fallback = fallback;
         this.request = request;
-        this.config = config;
         
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, NS_PAUSE, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
@@ -56,13 +55,15 @@ public class GrovePiI2CStage extends PronghornStage {
         }
 
         //Figure out which backing to use.
+        //TODO: This should probably be chosen by the creator of this stage, not
+        //      this stage itself.
         try {
-            backing = new GrovePiI2CStageNativeBacking();
+            backing = new I2CStageNativeLinuxBacking();
             logger.info("Successfully initialized native I2C backing.");
         } catch (Exception e) {
             logger.warn("Couldn't start up native I2C backing; " +
                         "falling back to bit-banged Java implementation.");
-            backing = new GrovePiI2CStageJavaBacking(config);
+            backing = fallback;
         }
     }
     

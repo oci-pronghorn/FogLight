@@ -1,11 +1,10 @@
-package com.ociweb.device.grove.grovepi;
+package com.ociweb.pronghorn.iot.i2c.impl;
 
+import com.ociweb.pronghorn.iot.i2c.I2CStageBacking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
-import com.ociweb.device.grove.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.pipe.Pipe;
 
 /**
  * Java I2C backing implementation for a GrovePi using the amazing technique of
@@ -20,8 +19,8 @@ import com.ociweb.pronghorn.pipe.Pipe;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {
-    private static final Logger logger = LoggerFactory.getLogger(GrovePiI2CStageJavaBacking.class);
+public class I2CStageGrovePiJavaBacking implements I2CStageBacking {
+    private static final Logger logger = LoggerFactory.getLogger(I2CStageGrovePiJavaBacking.class);
 
     //Nanoseconds to pause between I2C commands.
     private static final int NS_PAUSE = 10 * 1000;
@@ -109,7 +108,7 @@ public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {
         config.i2cSetDataHigh();
     }
 
-    public GrovePiI2CStageJavaBacking(GroveConnectionConfiguration config) {
+    public I2CStageGrovePiJavaBacking(GroveConnectionConfiguration config) {
         this.config = config;
     }
 

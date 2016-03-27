@@ -7,7 +7,7 @@
  */
 ///////////////////////////////////////////////////////////////////////////////
 //
-package com.ociweb.device.grove.grovepi;
+package com.ociweb.pronghorn.iot.i2c;
 
 /**
  * Represents a generic backing for the GrovePi's I2C lines.
@@ -17,7 +17,7 @@ package com.ociweb.device.grove.grovepi;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public interface GrovePiI2CStageBacking {
+public interface I2CStageBacking {
 
     /**
      * Reads a message from the I2C device at the specified address.

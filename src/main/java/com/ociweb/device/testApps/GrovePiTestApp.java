@@ -7,11 +7,11 @@ import com.ociweb.device.config.GroveConnectionConfiguration;
 import com.ociweb.device.config.grovepi.GrovePiConfiguration;
 import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.grove.GroveShieldV2ResponseStage;
-import com.ociweb.device.grove.grovepi.GrovePiI2CStage;
-import com.ociweb.device.grove.schema.GroveRequestSchema;
 import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.device.impl.Grove_LCD_RGB;
+import com.ociweb.pronghorn.iot.i2c.I2CStage;
+import com.ociweb.pronghorn.iot.i2c.impl.I2CStageGrovePiJavaBacking;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -31,7 +31,6 @@ public class GrovePiTestApp {
     private static final Logger logger = LoggerFactory.getLogger(GrovePiTestApp.class);
 
     private static final PipeConfig<GroveResponseSchema> responseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 30, 0);
-    private static final PipeConfig<GroveRequestSchema> requestConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 30, 0);
     private static final PipeConfig<I2CCommandSchema> requestI2CConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 128);
         
     //TODO: Need an easy way to build this up, perhaps a fluent API.        
@@ -129,7 +128,7 @@ public class GrovePiTestApp {
 
             //Pipe that data.
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
-            GrovePiI2CStage i2cStage = new GrovePiI2CStage(gm, i2cToBusPipe, config);
+            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe, new I2CStageGrovePiJavaBacking(config));
         }
     }
 }

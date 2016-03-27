@@ -18,7 +18,7 @@ import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.device.impl.Grove_LCD_RGB;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
-import com.ociweb.pronghorn.iot.i2c.impl.I2CStageGrovePiJavaBacking;
+import com.ociweb.pronghorn.iot.i2c.impl.I2CStageGroveJavaBacking;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -96,7 +96,7 @@ public final class GroveI2CExample {
 
             //Pipe that data.
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
-            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe, new I2CStageGrovePiJavaBacking(config));
+            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe, new I2CStageGroveJavaBacking(config));
         }
 
         //TODO: need to finish ColorMinusScheduler found in same package in Pronghorn as this scheduler
@@ -106,7 +106,7 @@ public final class GroveI2CExample {
         scheduler.startup();
 
         try {
-            Thread.sleep(60000*60*24); //shuts off server if you leave it running for a full day.
+            Thread.sleep(60000 * 60 * 24); //shuts off server if you leave it running for a full day.
         }
 
         catch (InterruptedException e) {

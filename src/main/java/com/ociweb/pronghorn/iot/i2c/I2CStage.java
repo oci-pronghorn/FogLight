@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Sample I2C stage for use with a Grove Pi.
- *
- * TODO: This stage can be used with ANY system that has ioctl libraries on-hand;
- *       this means it could be generified for Edisons and Pis.
+ * Generic I2C stage with native support for Linux systems.
  *
  * TODO: This stage can be cleaned up as it was (mostly) blindly copied from the pre-JNA I2C stage.
  *
@@ -55,15 +52,19 @@ public class I2CStage extends PronghornStage {
         }
 
         //Figure out which backing to use.
-        //TODO: This should probably be chosen by the creator of this stage, not
-        //      this stage itself.
+        //TODO: This should probably be chosen by the creator of this stage instead.
         try {
             backing = new I2CStageNativeLinuxBacking();
-            logger.info("Successfully initialized native I2C backing.");
+            logger.info("Successfully initialized native Linux I2C backing.");
         } catch (Exception e) {
-            logger.warn("Couldn't start up native I2C backing; " +
-                        "falling back to bit-banged Java implementation.");
-            backing = fallback;
+            logger.warn("Couldn't start up native Linux I2C backing; " +
+                        "Using fallback backing if present.");
+            if (fallback != null) {
+                backing = fallback;
+            } else {
+                logger.error("Fallback backing not present; I2C stage shutting down.");
+                requestShutdown(); //TODO: Is this all we need to call in order to shutdown?
+            }
         }
     }
     

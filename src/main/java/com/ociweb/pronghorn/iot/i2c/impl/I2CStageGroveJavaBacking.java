@@ -7,10 +7,10 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.device.config.GroveConnectionConfiguration;
 
 /**
- * Java I2C backing implementation for a GrovePi using the amazing technique of
+ * Java I2C backing implementation for a Grove using the amazing technique of
  * bit-banging GPIO ports.
  *
- * TODO: Completely untested and mostly unimplemented.
+ * TODO: Completely untested and mostly unimplemented. Probably needs rewriting in order to work.
  *
  * TODO: One very apparent issue with this backing is that it loiters in the
  *       read/write functions for a long time since it will attempt to
@@ -19,8 +19,8 @@ import com.ociweb.device.config.GroveConnectionConfiguration;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class I2CStageGrovePiJavaBacking implements I2CStageBacking {
-    private static final Logger logger = LoggerFactory.getLogger(I2CStageGrovePiJavaBacking.class);
+public class I2CStageGroveJavaBacking implements I2CStageBacking {
+    private static final Logger logger = LoggerFactory.getLogger(I2CStageGroveJavaBacking.class);
 
     //Nanoseconds to pause between I2C commands.
     private static final int NS_PAUSE = 10 * 1000;
@@ -108,7 +108,7 @@ public class I2CStageGrovePiJavaBacking implements I2CStageBacking {
         config.i2cSetDataHigh();
     }
 
-    public I2CStageGrovePiJavaBacking(GroveConnectionConfiguration config) {
+    public I2CStageGroveJavaBacking(GroveConnectionConfiguration config) {
         this.config = config;
     }
 

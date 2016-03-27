@@ -43,6 +43,10 @@ public class I2CStage extends PronghornStage {
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, NS_PAUSE, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
     }
+
+    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request) {
+        this(gm, request, null);
+    }
     
     @Override
     public void startup() {

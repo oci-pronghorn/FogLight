@@ -10,15 +10,11 @@
 //
 package com.ociweb.device.testApps;
 
-import com.ociweb.device.config.GroveConnectionConfiguration;
-import com.ociweb.device.config.grovepi.GrovePiConfiguration;
-import com.ociweb.device.grove.GroveConnect;
-import com.ociweb.device.grove.GroveShieldV2ResponseStage;
 import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.device.impl.Grove_LCD_RGB;
+import com.ociweb.pronghorn.iot.Stack;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
-import com.ociweb.pronghorn.iot.i2c.impl.I2CStageGroveJavaBacking;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -36,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public final class GroveI2CExample {
+public final class GroveI2CExample extends Stack {
 //Private//////////////////////////////////////////////////////////////////////
 
     private static final Logger logger = LoggerFactory.getLogger(GroveI2CExample.class);
@@ -47,30 +43,30 @@ public final class GroveI2CExample {
 //Public///////////////////////////////////////////////////////////////////////
 
     //TODO: Need an easy way to build this up, perhaps a fluent API.
-    public static final GroveConnectionConfiguration config = new GrovePiConfiguration(
-            false, //publish time
-            true,  //turn on I2C
-            new GroveConnect[] {/*new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)*/},//rotary encoder
-            new GroveConnect[] {/*new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)*/},//7 should be avoided it can disrupt WiFi, button and motion
-            new GroveConnect[] {}, //for requests like do the buzzer on 4
-            new GroveConnect[] {}, //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
-            new GroveConnect[] {//new GroveConnect(MoistureSensor,1), //1 here is A1
-                    //new GroveConnect(LightSensor,2)
-                    //new GroveConnect(UVSensor,3)
-            }); //for analog sensors A0, A1, A2, A3
+//    public static final GroveConnectionConfiguration config = new GrovePiConfiguration(
+//            false, //publish time
+//            true,  //turn on I2C
+//            new GroveConnect[] {/*new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)*/},//rotary encoder
+//            new GroveConnect[] {/*new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)*/},//7 should be avoided it can disrupt WiFi, button and motion
+//            new GroveConnect[] {}, //for requests like do the buzzer on 4
+//            new GroveConnect[] {}, //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
+//            new GroveConnect[] {//new GroveConnect(MoistureSensor,1), //1 here is A1
+//                    //new GroveConnect(LightSensor,2)
+//                    //new GroveConnect(UVSensor,3)
+//            }); //for analog sensors A0, A1, A2, A3
 
-    public static void main(String[] args) {
+    @Override public void start() {
         GraphManager gm = new GraphManager();
 
         Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(responseConfig);
 
-        GroveShieldV2ResponseStage groveStage = new GroveShieldV2ResponseStage(gm, responsePipe, config);
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10 * 1000 * 1000, groveStage); //poll every 10 ms
+//        GroveShieldV2ResponseStage groveStage = new GroveShieldV2ResponseStage(gm, responsePipe, config);
+//        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10 * 1000 * 1000, groveStage); //poll every 10 ms
 
-        ConsoleJSONDumpStage<GroveResponseSchema> dump = new ConsoleJSONDumpStage<>(gm, responsePipe);
+        ConsoleJSONDumpStage<GroveResponseSchema> dump = new ConsoleJSONDumpStage<GroveResponseSchema>(gm, responsePipe);
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 500 * 1000 * 1000, dump);
 
-        if (config.configI2C) {
+//        if (config.configI2C) {
 
             Pipe<I2CCommandSchema> i2cToBusPipe = new Pipe<I2CCommandSchema>(requestI2CConfig);
 
@@ -96,8 +92,9 @@ public final class GroveI2CExample {
 
             //Pipe that data.
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
-            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe, new I2CStageGroveJavaBacking(config));
-        }
+//            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe, new I2CGroveJavaBacking(config));
+            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe);
+//        }
 
         //TODO: need to finish ColorMinusScheduler found in same package in Pronghorn as this scheduler
         //      then for edison use only 1 or 2 threads for doing all the work.
@@ -117,6 +114,6 @@ public final class GroveI2CExample {
         scheduler.awaitTermination(5, TimeUnit.SECONDS);
 
         //must wait until all stages are done using the configuration
-        config.cleanup();
+//        config.cleanup();
     }
 }

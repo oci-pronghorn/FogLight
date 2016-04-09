@@ -1,6 +1,6 @@
 package com.ociweb.device.impl;
 
-import com.ociweb.device.grove.grovepi.GrovePiI2CStage;
+import com.ociweb.pronghorn.iot.i2c.I2CStage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +74,7 @@ public class Grove_LCD_RGB {
    /**
     * Creates a complete byte array that will set the color of a Grove RGB LCD
     * display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
-    * which is using chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
+    * which is using chunk sizes of 3 and is being piped to a {@link I2CStage}.
     *
     * @param r 0-255 value for the Red color.
     * @param g 0-255 value for the Green color.
@@ -105,7 +105,7 @@ public class Grove_LCD_RGB {
      * <pre>
      * Creates a complete byte array that will set the text of a Grove RGB LCD
      * display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
-     * which is using chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
+     * which is using chunk sizes of 3 and is being piped to a {@link I2CStage}.
      *
      * TODO: Behold the garbage; this was copied almost verbatim from a Python example.
      * TODO: Python example from https://github.com/DexterInd/GrovePi/blob/master/Projects/Advanced_RGB_LCD_TempAndHumidity/grove_rgb_lcd.py.
@@ -173,7 +173,7 @@ public class Grove_LCD_RGB {
      * <pre>
      * Creates a complete byte array that will set the text and color of a Grove RGB
      * LCD display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
-     * which is using chunk sizes of 3 and is being piped to a {@link GrovePiI2CStage}.
+     * which is using chunk sizes of 3 and is being piped to a {@link I2CStage}.
      *
      * <b>Note: Internally, this method makes calls to {@link #commandForText(String)}
      * and {@link #commandForColor(int, int, int)} and then combines the results into

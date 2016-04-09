@@ -1,6 +1,6 @@
 package com.ociweb.pronghorn.iot.i2c.impl;
 
-import com.ociweb.pronghorn.iot.i2c.I2CStageBacking;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +19,8 @@ import com.ociweb.device.config.GroveConnectionConfiguration;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class I2CStageGroveJavaBacking implements I2CStageBacking {
-    private static final Logger logger = LoggerFactory.getLogger(I2CStageGroveJavaBacking.class);
+public class I2CGroveJavaBacking implements I2CBacking {
+    private static final Logger logger = LoggerFactory.getLogger(I2CGroveJavaBacking.class);
 
     //Nanoseconds to pause between I2C commands.
     private static final int NS_PAUSE = 10 * 1000;
@@ -108,7 +108,7 @@ public class I2CStageGroveJavaBacking implements I2CStageBacking {
         config.i2cSetDataHigh();
     }
 
-    public I2CStageGroveJavaBacking(GroveConnectionConfiguration config) {
+    public I2CGroveJavaBacking(GroveConnectionConfiguration config) {
         this.config = config;
     }
 

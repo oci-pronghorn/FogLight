@@ -1,50 +1,46 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.ociweb</groupId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>PronghornIoT</name>
-  <artifactId>PronghornIoT</artifactId>
-  
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.ociweb</groupId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>PronghornIoT</name>
+    <artifactId>PronghornIoT</artifactId>
+
     <dependencies>
         <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>4.2.1</version>
+            <groupId>com.github.jnr</groupId>
+            <artifactId>jnr-ffi</artifactId>
+            <version>2.0.9</version>
         </dependency>
+
         <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna-platform</artifactId>
-            <version>4.2.1</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <type>jar</type>
+            <scope>test</scope>
+            <optional>false</optional>
         </dependency>
 
-		<dependency>
-		  <groupId>junit</groupId>
-		  <artifactId>junit</artifactId>
-	  	  <version>4.8.1</version>
-	  	  <type>jar</type>
-	  	  <scope>test</scope>
-	      <optional>false</optional>
-	    </dependency>
+        <dependency>
+            <groupId>com.ociweb</groupId>
+            <artifactId>Pronghorn</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
 
-		<dependency>
-	      <groupId>com.ociweb</groupId>
-	      <artifactId>Pronghorn</artifactId>
-	      <version>0.0.1-SNAPSHOT</version>
-    	</dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.9</version>
+        </dependency>
 
-		<dependency>
-	      <groupId>org.apache.commons</groupId>
-	      <artifactId>commons-compress</artifactId>
-	      <version>1.9</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.7</version>
-		</dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.7</version>
+        </dependency>
 
-		<dependency>
+        <dependency>
             <groupId>com.github.AssertLogger</groupId>
             <artifactId>AssertLogger</artifactId>
             <version>0.3.0-SNAPSHOT</version>
@@ -52,97 +48,129 @@
             <scope>test</scope>
             <optional>false</optional>
             <exclusions>
-		       <exclusion> 
-		          <groupId>org.slf4j</groupId>
-                  <artifactId>slf4j-simple</artifactId>
-		       </exclusion>
-		    </exclusions> 
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
+            <!-- TODO: Need a way to build both Compact-1 JDK8 and regular JDK7 builds for testing. -->
             <plugin>
-	           <groupId>org.apache.maven.plugins</groupId>
-	           <artifactId>maven-compiler-plugin</artifactId>
-	           <version>3.2</version>
-	
-	           <configuration>
-		          <!-- 	<compilerArguments>
-					    <profile>compact1</profile>
-					</compilerArguments> -->
-	               <source>1.7</source>
-	               <target>1.7</target>
-	               <encoding>UTF-8</encoding>
-	           </configuration>
-            </plugin>
-	        
-	         <plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.2</version>
-				<configuration>
-				   
-				    <compilerArguments>
-				        <profile>compact1</profile>
-				    </compilerArguments>
-					
-					<source>1.8</source>
-					<target>1.8</target>
-					<encoding>UTF-8</encoding>
-				</configuration>
-				</plugin>
-				
-			    <plugin>
-		          <artifactId>maven-assembly-plugin</artifactId>
-		          <configuration>
-		            <archive>
-		              <manifest>
-		                <mainClass>com.ociweb.device.testApps.GroveShieldTestApp</mainClass>
-		              </manifest>
-		            </archive>
-		            <descriptorRefs>
-		              <descriptorRef>jar-with-dependencies</descriptorRef>
-		            </descriptorRefs>
-		            <finalName>edisonGroveDemo</finalName>  
-		            <appendAssemblyId>false</appendAssemblyId>      
-		          </configuration>
-		          <executions>
-		          <execution>
-		            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-		            <phase>prepare-package</phase> <!-- bind to the packaging phase -->
-		            <goals>
-		              <goal>single</goal>
-		            </goals>
-		          </execution>
-		        </executions>
-		        </plugin>
-		
-        </plugins>
-        
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <!--<compilerArguments>-->
+                        <!--<profile>compact1</profile>-->
+                    <!--</compilerArguments>-->
+                    <!--<source>1.8</source>-->
+                    <!--<target>1.8</target>-->
 
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- TODO: Probably need to write a more robust assembler to build jars for each of the examples. -->
+            <!--<plugin>-->
+                <!--<artifactId>maven-assembly-plugin</artifactId>-->
+                <!--<configuration>-->
+                    <!--<archive>-->
+                        <!--<manifest>-->
+                            <!--<mainClass>com.ociweb.device.testApps.GroveShieldTestApp</mainClass>-->
+                        <!--</manifest>-->
+                    <!--</archive>-->
+                    <!--<descriptorRefs>-->
+                        <!--<descriptorRef>jar-with-dependencies</descriptorRef>-->
+                    <!--</descriptorRefs>-->
+                    <!--<finalName>edisonGroveDemo</finalName>-->
+                    <!--<appendAssemblyId>false</appendAssemblyId>-->
+                <!--</configuration>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>make-assembly</id> &lt;!&ndash; this is used for inheritance merges &ndash;&gt;-->
+                        <!--<phase>prepare-package</phase> &lt;!&ndash; bind to the packaging phase &ndash;&gt;-->
+                        <!--<goals>-->
+                            <!--<goal>single</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <finalName>PronghornIoT</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.ociweb.device.testApps.GrovePiTestApp</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Overwrite resources from dependencies, specifically libjffi for RPis. -->
+            <!-- TODO: There must be an easier way to do this (probably with an assembler). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>repack</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <unzip src="${project.basedir}/target/PronghornIoT.jar" dest="${project.basedir}/target/tmp"/>
+                                <copy file="${project.basedir}/src/main/resources/jni/arm-Linux/libjffi-1.2.so"
+                                      tofile="${project.basedir}/target/tmp/jni/arm-Linux/libjffi-1.2.so" overwrite="true"/>
+                                <zip basedir="${project.basedir}/target/tmp" destfile="${project.basedir}/target/PronghornIoT.jar"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
-  <repositories>
-    <repository>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </snapshots>
-      <id>repository-pronghorn.forge.cloudbees.com</id>
-      <name>Active Repo for Pronghorn</name>
-      <!-- Looking for the release jar? This project is under active development.
-           Please consider getting involved and sponsoring the completion of Pronghorn.
-           mailto:info@ociweb.com;?subject=Pronghorn%20Sponsor%20Inquiry
-       -->
-      <url>http://repository-pronghorn.forge.cloudbees.com/snapshot/</url>
-      <layout>default</layout>
-    </repository> 
-  </repositories>
-
-  
-  
+    <repositories>
+        <repository>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+            <id>repository-pronghorn.forge.cloudbees.com</id>
+            <name>Active Repo for Pronghorn</name>
+            <!-- Looking for the release jar? This project is under active development.
+                 Please consider getting involved and sponsoring the completion of Pronghorn.
+                 mailto:info@ociweb.com;?subject=Pronghorn%20Sponsor%20Inquiry
+             -->
+            <url>http://repository-pronghorn.forge.cloudbees.com/snapshot/</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
 </project>

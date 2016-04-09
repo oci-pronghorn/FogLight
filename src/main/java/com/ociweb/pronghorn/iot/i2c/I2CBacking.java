@@ -17,7 +17,7 @@ package com.ociweb.pronghorn.iot.i2c;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public interface I2CStageBacking {
+public interface I2CBacking {
 
     /**
      * Reads a message from the I2C device at the specified address.

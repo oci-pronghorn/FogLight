@@ -1,7 +1,7 @@
 package com.ociweb.pronghorn.iot.i2c;
 
 import com.ociweb.device.grove.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.i2c.impl.I2CStageNativeLinuxBacking;
+import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -21,8 +21,8 @@ public class I2CStage extends PronghornStage {
     private static final int MAX_CONFIGURABLE_BYTES = 16;
 
     private final Pipe<I2CCommandSchema> request;
-    private final I2CStageBacking fallback;
-    private I2CStageBacking backing;
+    private final I2CBacking fallback;
+    private I2CBacking backing;
 
     //Current byte buffer.
     private int[] cyclesToWaitLookup = new int[MAX_CONFIGURABLE_BYTES];
@@ -34,7 +34,7 @@ public class I2CStage extends PronghornStage {
     private int    bytesToSendMask;
     private int    bytesToSendReleaseSize;
     
-    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, I2CStageBacking fallback) {
+    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, I2CBacking fallback) {
         super(gm, request, NONE);
 
         this.fallback = fallback;
@@ -58,7 +58,7 @@ public class I2CStage extends PronghornStage {
         //Figure out which backing to use.
         //TODO: This should probably be chosen by the creator of this stage instead.
         try {
-            backing = new I2CStageNativeLinuxBacking();
+            backing = new I2CNativeLinuxBacking();
             logger.info("Successfully initialized native Linux I2C backing.");
         } catch (Exception e) {
             logger.warn("Couldn't start up native Linux I2C backing; " +

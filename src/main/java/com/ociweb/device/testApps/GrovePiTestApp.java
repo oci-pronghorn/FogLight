@@ -11,7 +11,7 @@ import com.ociweb.device.grove.schema.GroveResponseSchema;
 import com.ociweb.device.grove.schema.I2CCommandSchema;
 import com.ociweb.device.impl.Grove_LCD_RGB;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
-import com.ociweb.pronghorn.iot.i2c.impl.I2CStageGroveJavaBacking;
+import com.ociweb.pronghorn.iot.i2c.impl.I2CGroveJavaBacking;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -89,7 +89,7 @@ public class GrovePiTestApp {
         GroveShieldV2ResponseStage groveStage = new GroveShieldV2ResponseStage(gm, responsePipe, config);       
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10 * 1000 * 1000, groveStage); //poll every 10 ms
 
-        ConsoleJSONDumpStage<GroveResponseSchema>  dump = new ConsoleJSONDumpStage<>(gm, responsePipe);
+        ConsoleJSONDumpStage<GroveResponseSchema>  dump = new ConsoleJSONDumpStage<GroveResponseSchema>(gm, responsePipe);
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 500 * 1000 * 1000, dump);
 
         if (config.configI2C) {
@@ -128,7 +128,7 @@ public class GrovePiTestApp {
 
             //Pipe that data.
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
-            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe, new I2CStageGroveJavaBacking(config));
+            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe, new I2CGroveJavaBacking(config));
         }
     }
 }

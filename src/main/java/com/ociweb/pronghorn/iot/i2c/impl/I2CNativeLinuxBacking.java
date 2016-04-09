@@ -1,7 +1,6 @@
 package com.ociweb.pronghorn.iot.i2c.impl;
 
-import com.ociweb.pronghorn.iot.i2c.I2CStageBacking;
-import com.sun.jna.NativeLong;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,9 +9,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class I2CStageNativeLinuxBacking implements I2CStageBacking {
+public class I2CNativeLinuxBacking implements I2CBacking {
 
-    private static final Logger logger = LoggerFactory.getLogger(I2CStageNativeLinuxBacking.class);
+    private static final Logger logger = LoggerFactory.getLogger(I2CNativeLinuxBacking.class);
 
     //Highest value for an I2C address. TODO: Is this the right value?
     private static final int I2C_MAX_ADDRESSES = 0x77;
@@ -37,7 +36,7 @@ public class I2CStageNativeLinuxBacking implements I2CStageBacking {
              * NativeLong is used so that the JNA wrapper doesn't try to pass ioctl a pointer instead of
              * the raw byte value.
              */
-            if (c.ioctl(i2cFile, UnixIoctlLib.I2C_SLAVE_FORCE, new NativeLong(address)) < 0) {
+            if (c.ioctl(i2cFile, UnixIoctlLib.I2C_SLAVE_FORCE, address) < 0) {
                 throw new RuntimeException("Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));
             } else {
                 logger.debug("IOCTL configured for I2C device at 0x" + Integer.toHexString(address));
@@ -50,7 +49,7 @@ public class I2CStageNativeLinuxBacking implements I2CStageBacking {
         return true;
     }
 
-    public I2CStageNativeLinuxBacking() {
+    public I2CNativeLinuxBacking() {
         //Get the I2C file.
         i2cFile = c.open("/dev/i2c-1", UnixIoctlLib.O_RDWR);
 

@@ -80,7 +80,7 @@
 
         <!-- TODO: Temporary for testing JDK1.7 builds on the Pi. -->
         <profile>
-            <id>pi</id>
+            <id>jre7</id>
             <build>
                 <plugins>
                     <plugin>

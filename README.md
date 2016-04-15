@@ -9,4 +9,4 @@ You can find the two primary example applications in com.ociweb.device.testApps.
 - Combine the test applications such that Pronghorn can detect the difference between a Pi and an Edison (perhaps this is just a dream...?)
 
 ## Known Issues ##
-- Libjffi is broken on Raspberry Pi's, requiring a manual recompile as covered in this post [here](https://github.com/jruby/jruby/issues/1561).
+- Libjffi is broken on Raspberry Pi's, requiring a manual recompile which is talked about [here](https://github.com/jruby/jruby/issues/1561#issuecomment-67953147).

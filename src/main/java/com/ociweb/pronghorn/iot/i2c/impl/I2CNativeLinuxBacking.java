@@ -32,9 +32,6 @@ public class I2CNativeLinuxBacking implements I2CBacking {
 
             /**
              * IOCTL will return -1 if it fails for any reason.
-             *
-             * NativeLong is used so that the JNA wrapper doesn't try to pass ioctl a pointer instead of
-             * the raw byte value.
              */
             if (c.ioctl(i2cFile, UnixIoctlLib.I2C_SLAVE_FORCE, address) < 0) {
                 throw new RuntimeException("Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));

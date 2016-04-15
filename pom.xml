@@ -58,7 +58,6 @@
 
     <build>
         <plugins>
-            <!-- TODO: Need a way to build both Compact-1 JDK8 and regular JDK7 builds for testing. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -70,6 +69,7 @@
                     <!--<source>1.8</source>-->
                     <!--<target>1.8</target>-->
 
+                    <!-- TODO: Need a way to build both Compact-1 JDK8 and regular JDK7 builds for testing (Pi's don't have official JDk8 yet). -->
                     <source>1.7</source>
                     <target>1.7</target>
                     <encoding>UTF-8</encoding>

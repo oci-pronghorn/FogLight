@@ -19,7 +19,6 @@ public interface UnixIoctlLib {
     int O_RDWR = 00000002;
 
     //Native Methods///////////////////////////////////////////////////////////
-//    int ioctl(int fd, int cmd, NativeLong address);
     int ioctl(int fd, int cmd, long address);
     int open(String path, int flags);
     int close(int fd);

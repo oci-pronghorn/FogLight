@@ -42,19 +42,6 @@ public final class GroveI2CExample extends Stack {
 
 //Public///////////////////////////////////////////////////////////////////////
 
-    //TODO: Need an easy way to build this up, perhaps a fluent API.
-//    public static final GroveConnectionConfiguration config = new GrovePiConfiguration(
-//            false, //publish time
-//            true,  //turn on I2C
-//            new GroveConnect[] {/*new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)*/},//rotary encoder
-//            new GroveConnect[] {/*new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)*/},//7 should be avoided it can disrupt WiFi, button and motion
-//            new GroveConnect[] {}, //for requests like do the buzzer on 4
-//            new GroveConnect[] {}, //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
-//            new GroveConnect[] {//new GroveConnect(MoistureSensor,1), //1 here is A1
-//                    //new GroveConnect(LightSensor,2)
-//                    //new GroveConnect(UVSensor,3)
-//            }); //for analog sensors A0, A1, A2, A3
-
     @Override public void start() {
         GraphManager gm = new GraphManager();
 

@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Native I2C backing implementation for a GrovePi using JNA and ioctl.h.
+ * Native I2C backing implementation for a GrovePi using ioctl.h.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */

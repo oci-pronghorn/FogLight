@@ -1,17 +1,15 @@
-package com.ociweb.device.grove.grovepi;
+package com.ociweb.pronghorn.iot.i2c.impl;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.NativeLong;
+import jnr.ffi.LibraryLoader;
 
 /**
- * Library wrapper for a Linux native C library.
+ * JNI library wrapper for IOCTL operations on a UNIX system
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public interface CLib extends Library {
+public interface UnixIoctlLib {
     //C Library instance.
-    CLib instance = (CLib) Native.loadLibrary("c", CLib.class);
+    UnixIoctlLib instance = LibraryLoader.create(UnixIoctlLib.class).load("c");
 
     //I2C constants.
     int I2C_SLAVE = 0x0703;
@@ -21,7 +19,7 @@ public interface CLib extends Library {
     int O_RDWR = 00000002;
 
     //Native Methods///////////////////////////////////////////////////////////
-    int ioctl(int fd, int cmd, NativeLong address);
+    int ioctl(int fd, int cmd, long address);
     int open(String path, int flags);
     int close(int fd);
     int read(int fd, byte[] buffer, int count);

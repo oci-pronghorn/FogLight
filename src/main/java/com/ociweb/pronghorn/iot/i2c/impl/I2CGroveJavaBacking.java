@@ -1,17 +1,16 @@
-package com.ociweb.device.grove.grovepi;
+package com.ociweb.pronghorn.iot.i2c.impl;
 
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
-import com.ociweb.device.grove.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.pipe.Pipe;
 
 /**
- * Java I2C backing implementation for a GrovePi using the amazing technique of
+ * Java I2C backing implementation for a Grove using the amazing technique of
  * bit-banging GPIO ports.
  *
- * TODO: Completely untested and mostly unimplemented.
+ * TODO: Completely untested and mostly unimplemented. Probably needs rewriting in order to work.
  *
  * TODO: One very apparent issue with this backing is that it loiters in the
  *       read/write functions for a long time since it will attempt to
@@ -20,8 +19,8 @@ import com.ociweb.pronghorn.pipe.Pipe;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {
-    private static final Logger logger = LoggerFactory.getLogger(GrovePiI2CStageJavaBacking.class);
+public class I2CGroveJavaBacking implements I2CBacking {
+    private static final Logger logger = LoggerFactory.getLogger(I2CGroveJavaBacking.class);
 
     //Nanoseconds to pause between I2C commands.
     private static final int NS_PAUSE = 10 * 1000;
@@ -109,11 +108,11 @@ public class GrovePiI2CStageJavaBacking implements GrovePiI2CStageBacking {
         config.i2cSetDataHigh();
     }
 
-    public GrovePiI2CStageJavaBacking(GroveConnectionConfiguration config) {
+    public I2CGroveJavaBacking(GroveConnectionConfiguration config) {
         this.config = config;
     }
 
-    @Override public byte[] read(byte address, byte... message) {
+    @Override public byte[] read(int bufferSize, byte address, byte... message) {
         //TODO: Unimplemented.
         throw new RuntimeException("Bit-banged reads aren't supported yet.");
     }

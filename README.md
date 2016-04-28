@@ -7,3 +7,6 @@ You can find the two primary example applications in com.ociweb.device.testApps.
 - Refactor I2C code to be device-agnostic.
 - Unify and simplify interaction with the RGB LCD.
 - Combine the test applications such that Pronghorn can detect the difference between a Pi and an Edison (perhaps this is just a dream...?)
+
+## Known Issues ##
+- Libjffi is broken on Raspberry Pi's, requiring a manual recompile which is talked about [here](https://github.com/jruby/jruby/issues/1561#issuecomment-67953147).

@@ -1,13 +1,4 @@
-// Project: PronghornIoT
-// Since: Feb 21, 2016
-//
-///////////////////////////////////////////////////////////////////////////////
-/**
- * TODO: Which license?
- */
-///////////////////////////////////////////////////////////////////////////////
-//
-package com.ociweb.device.grove.grovepi;
+package com.ociweb.pronghorn.iot.i2c;
 
 /**
  * Represents a generic backing for the GrovePi's I2C lines.
@@ -17,11 +8,12 @@ package com.ociweb.device.grove.grovepi;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public interface GrovePiI2CStageBacking {
+public interface I2CBacking {
 
     /**
      * Reads a message from the I2C device at the specified address.
      *
+     * @param bufferSize Size of the byte buffer to read into (and return).
      * @param address Address of the I2C device to read, e.g., "0x32" for a
      *                GrovePi's LCD RGB backlight.
      * @param message Array of bytes to write to the I2C device.
@@ -29,7 +21,7 @@ public interface GrovePiI2CStageBacking {
      * @return Data received from the I2C device, or an empty array if no
      *         data was received.
      */
-    byte[] read(byte address, byte... message);
+    byte[] read(int bufferSize, byte address, byte... message);
 
     /**
      * Writes a message to an I2C device at the specified address.

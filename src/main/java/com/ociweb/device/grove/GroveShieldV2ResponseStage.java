@@ -245,7 +245,7 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     private void readButton(int j, int connector) {
         //read and xmit
         int fieldValue = config.readBit(connector);
-        if (frequentScriptLastPublished[j]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                        
+        if (frequentScriptLastPublished[j]!=fieldValue && Pipe.hasRoomForWrite(responsePipe)) {                        
             frequentScriptTwig[j].writeBit(responsePipe, connector, fieldValue);
             frequentScriptLastPublished[j]=fieldValue;
         } else {
@@ -276,9 +276,6 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
              int sendTrigger = useAverageAsTrigger ? avg : intValue;
              
              if (lastPublished[doit] != sendTrigger && Pipe.hasRoomForWrite(responsePipe)) {
-                 
-                // System.out.println(lastPublished[doit]+" != "+sendTrigger+" == "+avg);
-                 
                  scriptTwig[doit].writeInt(responsePipe, connector, intValue, avg);
                  int j = maTotal-1;
                  while (--j>0) {//must stop before zero because we do copy from previous lower index.

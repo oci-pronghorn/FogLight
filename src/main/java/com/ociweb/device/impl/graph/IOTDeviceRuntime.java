@@ -2,10 +2,7 @@ package com.ociweb.device.impl.graph;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import javax.swing.event.ListSelectionEvent;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
 import com.ociweb.device.grove.GroveShieldV2RequestStage;
@@ -20,23 +17,28 @@ import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 
 public class IOTDeviceRuntime {
 
-    private GroveConnectionConfiguration config;
-    private static GraphManager gm = new GraphManager();
-    private static List<Pipe<GroveRequestSchema>> collectedRequestPipes = new ArrayList<Pipe<GroveRequestSchema>>();
-    private static List<Pipe<GroveResponseSchema>> collectedResponsePipes = new ArrayList<Pipe<GroveResponseSchema>>();
+    /*
+     * Caution: in order to make good use of ProGuard we need to make an effort to avoid using static so 
+     * dependencies can be traced and kept in the jar.
+     *  
+     */
+    
+    protected GroveConnectionConfiguration config;
+    private GraphManager gm = new GraphManager();
+    private List<Pipe<GroveRequestSchema>> collectedRequestPipes = new ArrayList<Pipe<GroveRequestSchema>>();
+    private List<Pipe<GroveResponseSchema>> collectedResponsePipes = new ArrayList<Pipe<GroveResponseSchema>>();
     
     
-    private static PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 100);
-    private static PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 100);
+    private PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 100);
+    private PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 100);
     
     
     protected IOTDeviceRuntime() {
         
         
-        
     }
     
-    public static RequestAdapter requestAdapterInstance() {
+    public RequestAdapter requestAdapterInstance() {
                
         Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
         collectedRequestPipes.add(pipe);
@@ -63,26 +65,13 @@ public class IOTDeviceRuntime {
 
     }
     
-    public static void main(String[] args) {
-        
-        IOTDeviceRuntime runtimeInstance = new IOTDeviceRuntime();
-        
-        runtimeInstance.config = runtimeInstance.configuration();
-       
-        runtimeInstance.init(); //user defined business logic 
-        
-        runtimeInstance.buildGraph(); //finish building the graph
-        
-        runtimeInstance.start();
-        
-    }
 
     protected void init() {
         // TODO user must override this
         
     }
 
-    private void start() {
+    protected void start() {
         //NOTE: need to consider different schedulers in the future.
        ThreadPerStageScheduler scheduler = new ThreadPerStageScheduler(gm);
        scheduler.startup();
@@ -97,7 +86,7 @@ public class IOTDeviceRuntime {
        
     }
 
-    private void buildGraph() {
+    protected void buildGraph() {
 
         //all the request pipes are passed into this single stage for modification of the hardware
         int s = collectedRequestPipes.size();        

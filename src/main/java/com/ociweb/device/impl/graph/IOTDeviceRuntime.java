@@ -38,6 +38,11 @@ public class IOTDeviceRuntime {
         
     }
     
+    protected IOTDeviceRuntime(GroveConnectionConfiguration config) {
+        this.config = config;
+        
+    }
+    
     public RequestAdapter requestAdapterInstance() {
                
         Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
@@ -64,14 +69,10 @@ public class IOTDeviceRuntime {
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, new Pipe[]{pipe});
 
     }
-    
-
-    protected void init() {
-        // TODO user must override this
-        
-    }
 
     protected void start() {
+       buildGraph(); 
+        
         //NOTE: need to consider different schedulers in the future.
        ThreadPerStageScheduler scheduler = new ThreadPerStageScheduler(gm);
        scheduler.startup();
@@ -86,7 +87,7 @@ public class IOTDeviceRuntime {
        
     }
 
-    protected void buildGraph() {
+    private void buildGraph() {
 
         //all the request pipes are passed into this single stage for modification of the hardware
         int s = collectedRequestPipes.size();        
@@ -99,15 +100,6 @@ public class IOTDeviceRuntime {
         new GroveShieldV2ResponseStage(gm,responsePipe,config);
         
     }
-
-    
-    //TODO: review name and usage for simplicity.
-    protected GroveConnectionConfiguration configuration() {
-        
-        return null;
-        
-    }
-
     
     
 }

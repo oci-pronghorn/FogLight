@@ -22,11 +22,12 @@ public class RequestAdapter {
         
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {            
-            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BUZZER_110)) { //TODO: this needs to be generic 
+            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_120)) { //TODO: this needs to be generic 
                 
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BUZZER_110_FIELD_CONNECTOR_111, connector);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BUZZER_110_FIELD_DURATION_112, duration);
-                                
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_120_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_120_FIELD_DURATION_113, duration);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_120_FIELD_VALUE_112, value);
+                                                
                 PipeWriter.publishWrites(output);
                 
                 return true;
@@ -39,17 +40,36 @@ public class RequestAdapter {
         }
     }
     
-   
-    
-    
-    public boolean setServoPositionint(int connector, int position) {
+    public boolean digitalSetValue(int connector, int value) {
         
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {            
-            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_SERVO_140)) {
+            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) { //TODO: this needs to be generic 
                 
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_SERVO_140_FIELD_CONNECTOR_141, connector);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_SERVO_140_FIELD_POSITION_142, position);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, value);
+                                                
+                PipeWriter.publishWrites(output);
+                
+                return true;
+            } else {
+                return false;
+            }
+            
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+    }
+    
+    
+    public boolean analogSetValue(int connector, int value) {
+        
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {            
+            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_ANALOGSET_140)) {
+                
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, connector);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);
                                 
                 PipeWriter.publishWrites(output);
                 

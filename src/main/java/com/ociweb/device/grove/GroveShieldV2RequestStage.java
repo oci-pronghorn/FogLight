@@ -59,7 +59,7 @@ public class GroveShieldV2RequestStage extends PronghornStage {
             int msg = Pipe.takeMsgIdx(requestPipe);
             
             switch (msg) {
-                case GroveRequestSchema.MSG_BUZZER_110:
+                case GroveRequestSchema.MSG_DIGITALSET_110:
                 {
                     int connector = Pipe.takeValue(requestPipe);
                     int duration = Pipe.takeValue(requestPipe);     
@@ -69,7 +69,7 @@ public class GroveShieldV2RequestStage extends PronghornStage {
                     
                 }   
                 break;
-                case GroveRequestSchema.MSG_RELAY_120:
+                case GroveRequestSchema.MSG_DIGITALSET_120:
                 {
                     int connector = Pipe.takeValue(requestPipe);
                     int duration = Pipe.takeValue(requestPipe); 
@@ -78,7 +78,7 @@ public class GroveShieldV2RequestStage extends PronghornStage {
                     
                 }   
                 break;
-                case GroveRequestSchema.MSG_SERVO_140:
+                case GroveRequestSchema.MSG_ANALOGSET_140:
                 { 
                     int connector = Pipe.takeValue(requestPipe);
                     int position = Pipe.takeValue(requestPipe); 

@@ -3,6 +3,9 @@ This project contains example stages and applications for use with a Raspbery Pi
 
 You can find the two primary example applications in com.ociweb.device.testApps.GrovePiTestApp and com.ociweb.device.testApps.GroveShieldTestApp.
 
+## Important Notes ##
+This project contains specially compiled version of the libjffi-1.2.so file for use with the Edison (i386-linux) and Pi (arm-Linux).
+
 ## Roadmap ##
 - Refactor I2C code to be device-agnostic.
 - Unify and simplify interaction with the RGB LCD.

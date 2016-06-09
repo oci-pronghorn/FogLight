@@ -1,13 +1,3 @@
-// File: I2CExampleApp.java
-// Project: PronghornIoT
-// Since: Jun 08, 2016
-//
-///////////////////////////////////////////////////////////////////////////////
-// Copyright (c) Brandon Sanders [brandon@alicorn.io]
-//
-// All rights reserved.
-///////////////////////////////////////////////////////////////////////////////
-//
 package com.ociweb.device.testApps;
 
 import com.ociweb.device.impl.Grove_LCD_RGB;

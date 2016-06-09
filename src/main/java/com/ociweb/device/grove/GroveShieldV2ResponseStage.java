@@ -24,7 +24,7 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     // other id?
     private int[]       scriptConn;
     private int[]       scriptTask; 
-    private GroveTwig[] scriptTwig;
+    private Twig[] scriptTwig;
     
     private int[][]    movingAverageHistory;
     private int[]      lastPublished;
@@ -35,7 +35,7 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     
     //for devices that must poll frequently
     private int[]       frequentScriptConn;
-    private GroveTwig[] frequentScriptTwig;
+    private Twig[] frequentScriptTwig;
     private int[]       frequentScriptLastPublished;
     private int         frequentScriptLength = 0;
 
@@ -113,7 +113,7 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
         i = config.digitalInputs.length;
         while (--i>=0) {
             config.configurePinsForDigitalInput(config.digitalInputs[i].connection);
-            GroveTwig twig = config.digitalInputs[i].twig;
+            Twig twig = config.digitalInputs[i].twig;
             
             if (twig == GroveTwig.Button) {                    
                 frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection;
@@ -166,11 +166,12 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
         
         
         //These are the sensors we must check on every single pass
+        //TODO: should refactor so this is part of the Twig interface and we need not hard code.
         int j = frequentScriptLength;
         while (--j>=0) {
                         
             int connector = frequentScriptConn[j];
-            switch (frequentScriptTwig[j]) {
+            switch ((GroveTwig)frequentScriptTwig[j]) {
                 case Button:
                 readButton(j, connector);                    
                 break;

@@ -10,6 +10,10 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 
     private GroveConnect[] usedLines;
     
+    public GrovePiConfiguration() {
+        super();
+    }
+    
     public GrovePiConfiguration(boolean publishTime, boolean configI2C, GroveConnect[] encoderInputs,
             GroveConnect[] digitalInputs, GroveConnect[] digitalOutputs, GroveConnect[] pwmOutputs, GroveConnect[] analogInputs) {
         super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);

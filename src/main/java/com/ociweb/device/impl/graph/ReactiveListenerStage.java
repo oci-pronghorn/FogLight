@@ -48,8 +48,8 @@ public class ReactiveListenerStage extends PronghornStage {
         if (PipeReader.tryReadFragment(p)) {                
             
             int msgIdx = PipeReader.getMsgIdx(p);
-            switch (msgIdx) {   //Just 4 methods??
-                case GroveResponseSchema.MSG_TIME_10:                        
+            switch (msgIdx) {   //Just 4 methods??  TODO: must remove specifc field times and use the general types here as well.
+                case GroveResponseSchema.MSG_TIME_10:                         
                     if (listener instanceof TimeListener) {                 
                     
                         long time = PipeReader.readLong(p, GroveResponseSchema.MSG_TIME_10_FIELD_VALUE_11);

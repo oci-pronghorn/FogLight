@@ -10,6 +10,10 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
 
     private GroveConnect[] usedLines;
     
+    public GroveShieldV2EdisonConfiguration() {
+        super();
+    }
+    
     public GroveShieldV2EdisonConfiguration(boolean publishTime, boolean configI2C, GroveConnect[] encoderInputs,
             GroveConnect[] digitalInputs, GroveConnect[] digitalOutputs, GroveConnect[] pwmOutputs, GroveConnect[] analogInputs) {
         super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.ociweb.device.config.GroveConnectionConfiguration;
+import com.ociweb.device.config.GroveShieldV2EdisonConfiguration;
+import com.ociweb.device.config.grovepi.GrovePiConfiguration;
 import com.ociweb.device.grove.GroveShieldV2RequestStage;
 import com.ociweb.device.grove.GroveShieldV2ResponseStage;
 import com.ociweb.device.grove.schema.GroveRequestSchema;
@@ -23,7 +25,8 @@ public class IOTDeviceRuntime {
      *  
      */
     
-    protected GroveConnectionConfiguration config;
+    protected static GroveConnectionConfiguration config;
+    
     private GraphManager gm = new GraphManager();
     private List<Pipe<GroveRequestSchema>> collectedRequestPipes = new ArrayList<Pipe<GroveRequestSchema>>();
     private List<Pipe<GroveResponseSchema>> collectedResponsePipes = new ArrayList<Pipe<GroveResponseSchema>>();
@@ -37,11 +40,31 @@ public class IOTDeviceRuntime {
         
         
     }
+
     
-    protected IOTDeviceRuntime(GroveConnectionConfiguration config) {
-        this.config = config;
+    protected static GroveConnectionConfiguration getHarwareConfig() {
+        if (null==config) {
+            
+            //TODO: use the name of the JVM in the system properties to determine which one we are on
+            System.out.println("PLEASE REVIEW AND FIND A WAY TO CHOOSE:\n");
+            System.out.println(   System.getProperties() );
+            
+            boolean isEdison = true;
+            boolean isPi     = false;
+            
+            if (isEdison) {
+                config = new GroveShieldV2EdisonConfiguration();
+            }
+            
+            if (isPi) {
+                config = new GrovePiConfiguration();
+            }
+            
+        }
         
+        return config;
     }
+    
     
     public RequestAdapter requestAdapterInstance() {
                

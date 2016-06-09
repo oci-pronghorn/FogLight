@@ -18,11 +18,11 @@ public class RequestAdapter {
     }
 
     
-    public boolean buzzForDuration(int connector, int duration) {
+    public boolean digitalForDuration(int connector, int duration, int value) {
         
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {            
-            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BUZZER_110)) {
+            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BUZZER_110)) { //TODO: this needs to be generic 
                 
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_BUZZER_110_FIELD_CONNECTOR_111, connector);
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_BUZZER_110_FIELD_DURATION_112, duration);
@@ -39,27 +39,9 @@ public class RequestAdapter {
         }
     }
     
-    public boolean relayCloseForDuration(int connector, int duration) {
-        
-        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-        try {            
-            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_RELAY_120)) {
-                
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_RELAY_120_FIELD_CONNECTOR_121, connector);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_RELAY_120_FIELD_DURATION_122, duration);
-                                
-                PipeWriter.publishWrites(output);
-                
-                return true;
-            } else {
-                return false;
-            }
-            
-        } finally {
-            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-        }
-    }
-
+   
+    
+    
     public boolean setServoPositionint(int connector, int position) {
         
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";

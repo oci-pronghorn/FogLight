@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.grove.GroveShieldV2I2CStage;
+import com.ociweb.device.grove.Twig;
 import com.ociweb.device.impl.EdisonGPIO;
 import com.ociweb.device.impl.EdisonPinManager;
 import com.ociweb.device.testApps.GroveShieldTestApp;
@@ -14,13 +15,18 @@ public abstract class GroveConnectionConfiguration {
     private static final int PIN_SETUP_TIMEOUT = 3; //in seconds
     public static final int MAX_MOVING_AVERAGE_SUPPORTED = 101;
     
-    public final boolean configI2C;       //Humidity, LCD need I2C address so..
-    public final GroveConnect[] encoderInputs; //Rotary Encoder
-    public final GroveConnect[] digitalInputs; //Button, Motion
-    public final GroveConnect[] analogInputs;  //Light, UV, Moisture
-    public final GroveConnect[] digitalOutputs;//Relay Buzzer
-    public final GroveConnect[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
-    public final boolean publishTime;
+    private static final GroveConnect[] EMPTY = new GroveConnect[0];
+    
+    public boolean configI2C;       //Humidity, LCD need I2C address so..
+    public GroveConnect[] encoderInputs; //Rotary Encoder
+    
+    public GroveConnect[] digitalInputs; //Button, Motion
+    public GroveConnect[] digitalOutputs;//Relay Buzzer
+    
+    public GroveConnect[] analogInputs;  //Light, UV, Moisture
+    public GroveConnect[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
+    
+    public boolean publishTime;
     public long lastTime;
     //TODO: ma per field with max defined here., 
     //TODO: publish with or with out ma??
@@ -29,18 +35,99 @@ public abstract class GroveConnectionConfiguration {
     
     private ReentrantLock lock = new ReentrantLock();
     
+    public GroveConnectionConfiguration() {
+        this(false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+    }
+    
     public GroveConnectionConfiguration(boolean publishTime, boolean configI2C, GroveConnect[] encoderInputs,
             GroveConnect[] digitalInputs, GroveConnect[] digitalOutputs, GroveConnect[] pwmOutputs, GroveConnect[] analogInputs) {
         
         this.publishTime = publishTime;
         this.configI2C = configI2C;
-        this.encoderInputs = encoderInputs;
+        this.encoderInputs = encoderInputs; //TODO: rename as multi digital
+        
+        
         this.digitalInputs = digitalInputs;
         this.digitalOutputs = digitalOutputs;
         this.pwmOutputs = pwmOutputs;
         this.analogInputs = analogInputs;
     }
 
+    /////
+    /////
+    
+    GroveConnect[] growConnections(GroveConnect[] original, GroveConnect toAdd) {
+        int l = original.length;
+        GroveConnect[] result = new GroveConnect[l+1];
+        System.arraycopy(original, 0, result, 0, l);
+        result[l] = toAdd;
+        return result;
+    }
+    
+    public GroveConnectionConfiguration useConnectA(Twig t, int connection) {
+        return useConnectA(t,connection,-1);
+    }
+    
+    public GroveConnectionConfiguration useConnectA(Twig t, int connection, int customRate) {
+        GroveConnect gc = new GroveConnect(t,connection);
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            analogInputs = growConnections(analogInputs, gc);
+        } else {
+            assert(t.isOutput());
+            pwmOutputs = growConnections(pwmOutputs, gc);
+        }
+        return this;
+    }
+    
+    public GroveConnectionConfiguration useConnectD(Twig t, int connection) {
+        return useConnectD(t,connection,-1);
+    }
+    
+    public GroveConnectionConfiguration useConnectD(Twig t, int connection, int customRate) {
+        GroveConnect gc = new GroveConnect(t,connection);
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            digitalInputs = growConnections(digitalInputs, gc);
+        } else {
+            assert(t.isOutput());
+            digitalOutputs = growConnections(digitalOutputs, gc);
+        }
+        return this;
+    }  
+    
+
+    public GroveConnectionConfiguration useConnectDs(Twig t, int ... connections) {
+
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            for(int con:connections) {
+                encoderInputs = growConnections(encoderInputs, new GroveConnect(t,con));
+            }
+        } else {
+            throw new UnsupportedOperationException("TODO: finish this implementation");
+//            assert(t.isOutput());
+//            for(int con:connections) {
+//                encoderOutputs = growConnections(encoderOutputs, new GroveConnect(t,con));
+//            }
+        }
+        return this;
+        
+    }  
+    
+    public GroveConnectionConfiguration useTime(int rate) {
+        this.publishTime = true; //TODO: add support for time rate.
+        return this;
+    }
+    
+    public GroveConnectionConfiguration useI2C() {
+        this.publishTime = true; //TODO: add support for time rate.
+        return this;
+    }
+    
+    /////
+    /////
+    
     public void setToKnownStateFromColdStart() {
         //Not always needed
     }

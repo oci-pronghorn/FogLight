@@ -59,61 +59,32 @@ public class ReactiveListenerStage extends PronghornStage {
                     
                     }   
                 break;
-                case GroveResponseSchema.MSG_UV_20:
+                case GroveResponseSchema.MSG_ANALOGSAMPLE_30:
                     if (listener instanceof AnalogListener) {
                         
-                        int average = PipeReader.readInt(p, GroveResponseSchema.MSG_UV_20_FIELD_AVERAGE_23);
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_UV_20_FIELD_CONNECTOR_21);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_UV_20_FIELD_VALUE_22);
+                        int average = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_AVERAGE_33);
+                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31);
+                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32);
                         
-                        ((AnalogListener)listener).analogEvent(msgIdx, connector, average, value);
-                        
-                    }   
-                break;
-                case GroveResponseSchema.MSG_LIGHT_30:
-                    if (listener instanceof AnalogListener) {   
-                        
-                        int average = PipeReader.readInt(p, GroveResponseSchema.MSG_LIGHT_30_FIELD_AVERAGE_33);
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_LIGHT_30_FIELD_CONNECTOR_31);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_LIGHT_30_FIELD_VALUE_32);
-                                                
-                        ((AnalogListener)listener).analogEvent(msgIdx, connector, average, value);
+                        ((AnalogListener)listener).analogEvent(connector, average, value);
                         
                     }   
-                break;
-                case GroveResponseSchema.MSG_MOISTURE_40:
-                    if (listener instanceof AnalogListener) {
-                        int average = PipeReader.readInt(p, GroveResponseSchema.MSG_MOISTURE_40_FIELD_AVERAGE_43);
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_MOISTURE_40_FIELD_CONNECTOR_41);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_MOISTURE_40_FIELD_VALUE_42);
-                     
-                        ((AnalogListener)listener).analogEvent(msgIdx, connector, average, value);
-                                                
-                    }   
-                break;
-                case GroveResponseSchema.MSG_BUTTON_50:
+                break;               
+                case GroveResponseSchema.MSG_DIGITALSAMPLE_20:
                     if (listener instanceof DigitalListener) {
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_BUTTON_50_FIELD_CONNECTOR_51);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_BUTTON_50_FIELD_VALUE_52);
+                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21);
+                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22);
                             
-                        ((DigitalListener)listener).digitalEvent(msgIdx, connector, value);
+                        ((DigitalListener)listener).digitalEvent(connector, value);
                         
                     }   
-                break;
-                case GroveResponseSchema.MSG_MOTION_60:
-                    if (listener instanceof DigitalListener) {   
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_MOTION_60_FIELD_CONNECTOR_61);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_MOTION_60_FIELD_VALUE_62);
-                     
-                        ((DigitalListener)listener).digitalEvent(msgIdx, connector, value);
-                    }   
-                break;
-                case GroveResponseSchema.MSG_ROTARY_70:
+                break; 
+                case GroveResponseSchema.MSG_ENCODER_70:
                     if (listener instanceof RotaryListener) {    
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ROTARY_70_FIELD_CONNECTOR_71);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ROTARY_70_FIELD_VALUE_72);
-                        int delta = PipeReader.readInt(p, GroveResponseSchema.MSG_ROTARY_70_FIELD_DELTA_73);
-                        int speed = PipeReader.readInt(p, GroveResponseSchema.MSG_ROTARY_70_FIELD_SPEED_74);
+                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_CONNECTOR_71);
+                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_VALUE_72);
+                        int delta = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_DELTA_73);
+                        int speed = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_SPEED_74);
                         
                         ((RotaryListener)listener).rotaryEvent(connector, value, delta, speed);
                                             

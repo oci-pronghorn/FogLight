@@ -20,7 +20,7 @@ public class ReactiveListenerStage extends PronghornStage {
     }
     
     protected ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes, Pipe restResponsePipes) {
-        super(graphManager, join(groveResponsePipes, restResponsePipes), NONE);
+        super(graphManager, new Pipe[]{groveResponsePipes, restResponsePipes}, NONE);
         this.listener = listener;
         this.groveResponsePipe = groveResponsePipes;    
         assert(null!=restResponsePipes);

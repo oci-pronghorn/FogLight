@@ -129,7 +129,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>com.ociweb.device.testApps.GroveShieldTestApp</mainClass>
+                                    <mainClass>com.ociweb.device.testApps.EdisonTestApp</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
@@ -160,8 +160,8 @@
                         <configuration>
                             <target>
                                 <unzip src="${project.basedir}/target/PronghornIoT-Edison.jar" dest="${project.basedir}/target/tmp"/>
-                                <copy file="${project.basedir}/src/main/resources/jni/arm-Linux/libjffi-1.2.so"
-                                      tofile="${project.basedir}/target/tmp/jni/arm-Linux/libjffi-1.2.so" overwrite="true"/>
+                                <copy file="${project.basedir}/src/main/resources/jni/i386-linux/libjffi-1.2.so"
+                                      tofile="${project.basedir}/target/tmp/jni/i386-linux/libjffi-1.2.so" overwrite="true"/>
                                 <zip basedir="${project.basedir}/target/tmp" destfile="${project.basedir}/target/PronghornIoT-Edison.jar"/>
                             </target>
                         </configuration>

@@ -31,7 +31,12 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
     public void configurePinsForDigitalInput(byte connection) {
         GrovePiGPIO.configDigitalInput(connection); //readBit
     }
-
+    
+	public void configurePinsForDigitalOutput(byte connection) {
+		GrovePiGPIO.configDigitalOutput(connection);//writeBit
+		
+	}
+    
     public void configurePinsForAnalogInput(byte connection) {
         System.err.println("Analog pins are not supported.");
     }
@@ -172,4 +177,5 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
     
         return result;
     }
+
 }

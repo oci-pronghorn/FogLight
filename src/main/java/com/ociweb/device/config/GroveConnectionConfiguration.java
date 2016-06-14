@@ -149,9 +149,9 @@ public abstract class GroveConnectionConfiguration {
     
     public abstract int readBit(int connector); //Platform specific
     public abstract int readInt(int connector); //Platform specific
+    public abstract void writeBit(int connector, int value); //Platform specific
     
-    
-    public abstract void writeBit(int connector, int value);             //Platform specific
+    public abstract void configurePinsForDigitalOutput(byte connection); //Platform specific
     public abstract void configurePinsForDigitalInput(byte connection); //Platform specific
     public abstract void configurePinsForAnalogInput(byte connection); //Platform specific
     public abstract void configurePinsForI2C();
@@ -197,6 +197,8 @@ public abstract class GroveConnectionConfiguration {
             lastTime = System.nanoTime();//use new time because we must avoid recording our log message in the duration time.
         }
     }
+
+	
 
 	
 

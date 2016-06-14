@@ -1,5 +1,7 @@
 package com.ociweb.device.config;
 
+import java.util.Arrays;
+
 import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.impl.EdisonConstants;
 import com.ociweb.device.impl.EdisonGPIO;
@@ -20,7 +22,9 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
     }
 
     public void coldSetup() {
-        usedLines = buildUsedLines();         
+        usedLines = buildUsedLines();
+        System.out.println("CHECK HERE THIS IS USEDLINE");
+        System.out.println(Arrays.toString(usedLines));
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
     }
     
@@ -46,6 +50,10 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
 
     public void configurePinsForAnalogInput(byte connection) {
         EdisonGPIO.configAnalogInput(connection);  //readInt
+    }
+    
+    public void configurePinsForDigitalOutput(byte connection){
+    	EdisonGPIO.configDigitalOutput(connection); //writeBit
     }
     
     public void configurePinsForI2C() {
@@ -99,8 +107,7 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
     }
     
 	public void writeBit(int connector, int value) {
-	EdisonPinManager.writeBit(connector, value, EdisonGPIO.gpioLinuxPins);
-		//TODO: this need to be completed
+	EdisonPinManager.writeBit(connector, value, EdisonGPIO.gpioLinuxPins);//maybe gpioOutputEnablePins or others (pick one)
 	}
 	
     public void i2cSetClockLow() {

@@ -147,9 +147,9 @@ public abstract class GroveConnectionConfiguration {
        lock.unlock();
     }
     
-    public abstract int readBit(int connector); //Platform specific
-    public abstract int readInt(int connector); //Platform specific
-    public abstract void writeBit(int connector, int value); //Platform specific
+    public abstract int digitalRead(int connector); //Platform specific
+    public abstract int analogRead(int connector); //Platform specific
+    public abstract void digitalWrite(int connector, int value); //Platform specific
     
     public abstract void configurePinsForDigitalOutput(byte connection); //Platform specific
     public abstract void configurePinsForDigitalInput(byte connection); //Platform specific

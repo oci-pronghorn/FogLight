@@ -85,12 +85,12 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
      
     
     @Override
-    public int readBit(int connector) {
+    public int digitalRead(int connector) {
        return r.nextInt(100) > 80 ? 1 : 0;
     }
 
     @Override
-    public int readInt(int connector) {
+    public int analogRead(int connector) {
         return Math.abs(r.nextInt());
     }
 
@@ -232,7 +232,7 @@ public class GroveShieldV2MockConfiguration extends GroveConnectionConfiguration
     }
 
 	@Override
-	public void writeBit(int connector, int value) {
+	public void digitalWrite(int connector, int value) {
 		//TODO:System.out.println();
 		//TODO:Log show the log to show the mock process 
 		

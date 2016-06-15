@@ -309,7 +309,7 @@ public class EdisonPinManager {
 //       }
 //    }
     
-    public static int readInt(int idx) {
+    public static int analogRead(int idx) {
 
             try {
                 ByteBuffer buffer = readIntBuffer[idx];
@@ -381,7 +381,7 @@ public class EdisonPinManager {
     }
     
     
-    public static int readBit(int idx) {
+    public static int digitalRead(int idx) {
             try {        
                 
                 SeekableByteChannel bc = EdisonGPIO.gpioLinuxPins.gpioChannel[idx];
@@ -404,7 +404,7 @@ public class EdisonPinManager {
 
     }
 
-	public static void writeBit(int connector, int value, EdisonPinManager gpiolinuxpins) {
+	public static void digitalWrite(int connector, int value, EdisonPinManager gpiolinuxpins) {
 		writeValue(connector, BIT_BYTES[value],gpiolinuxpins);
 		
 	}

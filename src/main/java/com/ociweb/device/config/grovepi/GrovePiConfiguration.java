@@ -63,7 +63,7 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 
     public boolean i2cReadAck() {
         boolean ack;
-        int voltage = readInt(GrovePiConstants.DATA_RAW_VOLTAGE);
+        int voltage = analogRead(GrovePiConstants.DATA_RAW_VOLTAGE);
         ack = voltage<GrovePiConstants.HIGH_LINE_VOLTAGE_MARK;
         if (!ack) {    
             System.err.println("ack value "+ack+" "+Integer.toBinaryString(voltage));
@@ -84,17 +84,17 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
         super.endPinConfiguration();
     }
 
-    public int readBit(int connector) {   
-        return GrovePiPinManager.readBit(connector);
+    public int digitalRead(int connector) {   
+        return GrovePiPinManager.digitalRead(connector);
     }
     
     //TODO: Since there's no ADC built into the Pi, we can only read HI or LO.
-    public int readInt(int connector) {
-        return GrovePiPinManager.readBit(connector);
+    public int analogRead(int connector) {
+        return GrovePiPinManager.digitalRead(connector);
     }
     
-    public void writeBit(int connector, int value) {   
-         GrovePiPinManager.writeBit(connector,value,GrovePiGPIO.gpioLinuxPins);
+    public void digitalWrite(int connector, int value) {   
+         GrovePiPinManager.digitalWrite(connector,value,GrovePiGPIO.gpioLinuxPins);
     }
     
     //TODO: Is it right to config them as outputs before writing?
@@ -119,12 +119,12 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
     }
 
     public int i2cReadData() {
-        return readBit(GrovePiPinManager.I2C_DATA);
+        return digitalRead(GrovePiPinManager.I2C_DATA);
     }
     public boolean i2cReadDataBool() { return false; } //TODO:
 
     public int i2cReadClock() {
-        return readBit(GrovePiPinManager.I2C_CLOCK);
+        return digitalRead(GrovePiPinManager.I2C_CLOCK);
     }
     
     static void findDup(GroveConnect[] base, int baseLimit, GroveConnect[] items, boolean mapAnalogs) {

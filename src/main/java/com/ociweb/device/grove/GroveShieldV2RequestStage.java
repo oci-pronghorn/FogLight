@@ -136,7 +136,7 @@ public class GroveShieldV2RequestStage extends PronghornStage {
                     int value = Pipe.takeValue(requestPipe);     
                     
                     
-                    config.writeBit(connector,value);
+                    config.digitalWrite(connector,value);
                     
        
                 }   

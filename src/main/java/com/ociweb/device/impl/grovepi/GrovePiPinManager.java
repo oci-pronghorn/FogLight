@@ -191,7 +191,7 @@ public class GrovePiPinManager {
         }
     }
     
-    public static int readBit(final int idx) {
+    public static int digitalRead(final int idx) {
         GrovePiGPIO.gpioLinuxPins.removeDevice(idx);
         GrovePiGPIO.gpioLinuxPins.ensureDevice(idx);
 
@@ -210,7 +210,7 @@ public class GrovePiPinManager {
         }
     }
 
-	public static void writeBit(int connector, int value, final GrovePiPinManager d) {
+	public static void digitalWrite(int connector, int value, final GrovePiPinManager d) {
 		writeValue(connector, BIT_BYTES[value],d);
 		
 	}

@@ -29,7 +29,7 @@ public class PronghornMinecraftPlugin extends JavaPlugin{
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     	if (cmd.getName().equalsIgnoreCase("generatepi")) {
-    		World world 
+    		World world = sender.getWorld(); 
     		Location loc = new Location(null, 0, 0, 0);
     		return true;
     	} else if (cmd.getName().equalsIgnoreCase("pluginLight")) {

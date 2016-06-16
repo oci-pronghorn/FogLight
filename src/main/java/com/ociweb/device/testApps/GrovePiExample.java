@@ -66,7 +66,7 @@ public class GrovePiExample {
 	}
 
 	static byte digitalRead(int pin){ //0 is input, 1 is output
-		byte[] message = {0x01, (byte) pin, 0x00, 0x00};
+		byte[] message = {0x01, 0x01, (byte) pin, 0x00, 0x00};
 		i2c.write(Grove_ADDR, message);
 		return i2c.read(Grove_ADDR, 1)[0];
 	}

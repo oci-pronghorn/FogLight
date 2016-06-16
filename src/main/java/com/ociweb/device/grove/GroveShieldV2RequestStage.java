@@ -3,6 +3,7 @@ package com.ociweb.device.grove;
 import com.ociweb.device.config.GroveConnectionConfiguration;
 import com.ociweb.device.grove.schema.GroveRequestSchema;
 import com.ociweb.device.impl.EdisonPinManager;
+import com.ociweb.device.impl.Util;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -16,10 +17,10 @@ public class GroveShieldV2RequestStage extends PronghornStage {
     
     private int[][]    movingAverageHistory;
     private int[]      lastPublished;
-    
-    private int[]       rotaryRolling;
-    private int[]       rotationState;
-    private long[]      rotationLastCycle;
+    private int[]       scriptConn;
+    private int[]       scriptTask; 
+    private Twig[] 		scriptTwig;
+    private static final short DO_BIT_Write    = 1;
     
     //for devices that must poll frequently
     private int[]       frequentScriptConn;
@@ -66,21 +67,24 @@ public class GroveShieldV2RequestStage extends PronghornStage {
         
         config.setToKnownStateFromColdStart();        
         
-        
+        byte sliceCount = 0;
         
         //configure each sensor
         config.beginPinConfiguration();
-        
-        
         
         
         int i=config.digitalOutputs.length;
         while(--i>0){
         	config.configurePinsForDigitalOutput(config.digitalOutputs[i].connection);
         	Twig twig = config.digitalOutputs[i].twig;
+//        	int idx = Util.reverseBits(sliceCount++);
+//        	 scriptConn[idx]=config.digitalInputs[i].connection;
+//             scriptTask[idx]=DO_BIT_Write;
+//             scriptTwig[idx] = twig; 
         	frequentScriptConn[frequentScriptLength] = config.digitalOutputs[i].connection;
         	frequentScriptTwig[frequentScriptLength] = twig;  
         	frequentScriptLength++; 
+        	System.out.println("configured "+config.digitalOutputs[i].twig+" on connection "+config.digitalOutputs[i].connection);
         }
     	
     	
@@ -95,7 +99,7 @@ public class GroveShieldV2RequestStage extends PronghornStage {
         config.endPinConfiguration();
         
         
-        System.out.println("Turn on ");
+        System.out.println("The Attempt to setup the port ends here");
         config.digitalWrite(4, 1);
     }
     

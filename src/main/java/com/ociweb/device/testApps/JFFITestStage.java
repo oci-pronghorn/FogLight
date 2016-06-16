@@ -67,9 +67,6 @@ public class JFFITestStage extends PronghornStage {
 		try{
 
 
-
-
-
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}
@@ -80,31 +77,27 @@ public class JFFITestStage extends PronghornStage {
 
 
 	@Override
-	public void run() { //message: {address, package size, package[]}
+	public void run() { //message: {address, package size, bytes to be read, package[]}
 		byte addr = 0x00;
+		byte readBytes = 0x00;
 		byte data[] = {};
 		while (PipeReader.tryReadFragment(fromConfig)) {		
 
-
 			assert(PipeReader.isNewMessage(fromConfig)) : "This test should only have one simple message made up of one fragment";
-
 			int msgIdx = PipeReader.getMsgIdx(fromConfig);
-
-
-
+			
 			if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
 				reader.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				try {
 					addr = reader.readByte();
 					data = new byte[reader.readByte()];
+					readBytes = reader.readByte();
 					for (int i = 0; i < data.length; i++) {
 						data[i]=reader.readByte();
 					}
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
-
-
 			}
 
 			i2c.write(addr, data);
@@ -116,42 +109,25 @@ public class JFFITestStage extends PronghornStage {
 			}
 
 			PipeReader.releaseReadLock(fromConfig);
-
-
-
 		} 
-		int readData = -1;
 		
-		if(data[1] == 0x01){
-			readData = (int) i2c.read(addr, 1)[0];
-		}else if(data[1]==0x03){
-			byte[] temp = i2c.read(addr, 3);
-			readData = temp[1]*256+((int)temp[2]&0xFF);
-		}
-		
-		if(readData>=0){
+		if(readBytes>0){
+			byte[] readData = i2c.read(addr, readBytes);
 			while (tryWriteFragment(toConfig, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
-
 				DataOutputBlobWriter.openField(writer);
 				try {
-					writer.writeByte((byte)0x04);
+					for (int i = 0; i < readData.length; i++) {
+						writer.writeByte(readData[i]);
+					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}
 
 				DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				publishWrites(toConfig);
-
 			}
 		}
-
-
-
-
-
 	}
-
 
 	@Override
 	public void shutdown() {

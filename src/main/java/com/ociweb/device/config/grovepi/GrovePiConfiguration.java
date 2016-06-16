@@ -5,6 +5,7 @@ import com.ociweb.device.grove.GroveConnect;
 import com.ociweb.device.impl.grovepi.GrovePiConstants;
 import com.ociweb.device.impl.grovepi.GrovePiGPIO;
 import com.ociweb.device.impl.grovepi.GrovePiPinManager;
+import com.ociweb.device.testApps.GrovePiExample;
 import com.ociweb.device.testApps.JFFITestStage;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -18,6 +19,9 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import static com.ociweb.pronghorn.pipe.PipeWriter.publishWrites;
 import static com.ociweb.pronghorn.pipe.PipeWriter.tryWriteFragment;
 import static com.ociweb.pronghorn.pipe.PipeWriter.writeLong;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -33,8 +37,10 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 
 	private final FieldReferenceOffsetManager FROMFromJFFI = Pipe.from(fromJFFI);
 	private final DataInputBlobReader reader = new DataInputBlobReader(fromJFFI);
-	
+
 	private JFFITestStage jffiTestStage;
+
+	private static final Logger logger = LoggerFactory.getLogger(GrovePiConfiguration.class);
 
 	public GrovePiConfiguration() {
 		super();
@@ -47,25 +53,26 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 	}
 
 	public void coldSetup() {
-		usedLines = buildUsedLines();
-		GrovePiGPIO.ensureAllLinuxDevices(usedLines);
+		//usedLines = buildUsedLines();
+		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);
 	}
 
 	public void cleanup() {
-		GrovePiGPIO.removeAllLinuxDevices(usedLines);
+		//GrovePiGPIO.removeAllLinuxDevices(usedLines);
 	}
 
 	public void configurePinsForDigitalInput(byte connection) {
-		GrovePiGPIO.configDigitalInput(connection); //readBit
+		//GrovePiGPIO.configDigitalInput(connection); //readBit
+		System.out.println("No config needed");
 	}
 
 	public void configurePinsForDigitalOutput(byte connection) {
-		GrovePiGPIO.configDigitalOutput(connection);//writeBit
-
+		//GrovePiGPIO.configDigitalOutput(connection);//writeBit
+		System.out.println("No config needed");
 	}
 
 	public void configurePinsForAnalogInput(byte connection) {
-		System.err.println("Analog pins are not supported.");
+		//System.err.println("Analog pins are not supported.");
 	}
 
 	public void configurePinsForI2C() {
@@ -104,29 +111,25 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 	}
 
 	public void beginPinConfiguration() {
-		super.beginPinConfiguration();        
+		//super.beginPinConfiguration();        
 	}
 
 	public void endPinConfiguration() {
-		super.endPinConfiguration();
+		//super.endPinConfiguration();
 	}
 
 	public int digitalRead(int connector) { 
 		int temp = 0;
 		if(connector>1000){ //for grove add 1000 to pin numbers
 			connector -= 1000;
-			byte[] message = {0x04, (byte) 5, 0x01, 0x01, (byte) connector, 0x00, 0x00};
+			byte[] message = {0x04, 0x05, 0x01, 0x01, 0x01, (byte) connector, 0x00, 0x00}; //address, package size, returnBytes, package[]
 			while (tryWriteFragment(toJFFI, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 
 				DataOutputBlobWriter.openField(writer);
-				
 				try {
-
-					writer.write(message);;
-
+					writer.write(message);
 				} catch (IOException e) {
-
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}
 
 				DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
@@ -134,31 +137,21 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 
 			}
 			while (PipeReader.tryReadFragment(fromJFFI)) {		
-
-
 				assert(PipeReader.isNewMessage(fromJFFI)) : "This test should only have one simple message made up of one fragment";
-
 				int msgIdx = PipeReader.getMsgIdx(fromJFFI);
-
-
-
+				
 				if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
 					reader.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 					try {
 						temp = reader.readByte();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						//address, package size, returnBytes, package[]
 					}
-
 				}
-
-
 				try {
 					reader.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getMessage(), e);
 				}
 
 				PipeReader.releaseReadLock(fromJFFI);
@@ -180,20 +173,21 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 
 	//Now using the JFFI stage
 	public void digitalWrite(int connector, int value) {
-
-		while (tryWriteFragment(toJFFI, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
-
-			DataOutputBlobWriter.openField(writer);
-			try {
-				writer.writeByte((byte)0x04);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if(connector>1000){ //for grove add 1000 to pin numbers
+			connector -= 1000;
+			byte[] message = {0x04, 0x05, 0x00, 0x01, 0x02, (byte) connector, (byte) value, 0x00}; //address, package size, returnBytes, package[]
+			while (tryWriteFragment(toJFFI, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+				DataOutputBlobWriter.openField(writer);
+				try {
+					writer.writeByte((byte)0x04);
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
+				}
+				DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+				publishWrites(toJFFI);
 			}
-
-			DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-			publishWrites(toJFFI);
-
+		}else{
+			//TODO: Add standard GPIO pin support
 		}
 	}
 

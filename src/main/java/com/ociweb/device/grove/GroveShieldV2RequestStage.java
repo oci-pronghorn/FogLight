@@ -31,22 +31,14 @@ public class GroveShieldV2RequestStage extends PronghornStage {
     private final Pipe<GroveRequestSchema>[] requestPipes;
     private final GroveConnectionConfiguration config;
     
-
-    
-	  public GroveShieldV2RequestStage(GraphManager gm, Pipe<GroveRequestSchema> requestPipe, GroveConnectionConfiguration config) {
-	  super(gm, requestPipe, NONE);
-	  
-	  this.requestPipes = new Pipe[]{requestPipe};
-	  this.config = config;
-	  GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
-	  GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);        
-	}
     
     public GroveShieldV2RequestStage(GraphManager gm, Pipe<GroveRequestSchema>[] requestPipes, GroveConnectionConfiguration config) {
         super(gm, requestPipes, NONE);
         
         this.requestPipes = requestPipes;
         this.config = config;
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
+        GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);  
         
     }
     
@@ -63,10 +55,6 @@ public class GroveShieldV2RequestStage extends PronghornStage {
         }
         lastPublished = new int[activeSize];
         
-        rotaryRolling = new int[activeSize];
-  //      Arrays.fill(rotaryRolling, 0xFFFFFFFF);
-        rotationState = new int[activeSize];
-        rotationLastCycle = new long[activeSize];
         
         //for devices that must poll frequently
         frequentScriptConn = new int[activeSize];
@@ -108,7 +96,7 @@ public class GroveShieldV2RequestStage extends PronghornStage {
         
         
         System.out.println("Turn on ");
-//        config.writeBit(4, 1);
+        config.digitalWrite(4, 1);
     }
     
     

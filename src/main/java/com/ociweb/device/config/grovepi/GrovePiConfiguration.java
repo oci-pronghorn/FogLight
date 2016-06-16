@@ -32,8 +32,15 @@ public class GrovePiConfiguration extends GroveConnectionConfiguration {
 	public Pipe toJFFI;
 	public Pipe fromJFFI;
 
-	private final FieldReferenceOffsetManager FROMToJFFI = Pipe.from(toJFFI);
-	private final DataOutputBlobWriter writer = new DataOutputBlobWriter(toJFFI);
+	private final FieldReferenceOffsetManager FROMToJFFI = Pipe.from(toJFFI); 
+//	  TODO: Exception in thread "main" java.lang.NullPointerException
+//    at com.ociweb.pronghorn.pipe.Pipe.from(Pipe.java:2603)
+//    at com.ociweb.device.config.grovepi.GrovePiConfiguration.<init>(GrovePiConfiguration.java:35)
+//    at com.ociweb.device.impl.graph.IOTDeviceRuntime.getHarwareConfig(IOTDeviceRuntime.java:65)
+//    at com.ociweb.pronghorn.iot.Demo.<init>(Demo.java:20)
+//    at com.ociweb.pronghorn.iot.Demo.main(Demo.java:36)
+
+    private final DataOutputBlobWriter writer = new DataOutputBlobWriter(toJFFI);
 
 	private final FieldReferenceOffsetManager FROMFromJFFI = Pipe.from(fromJFFI);
 	private final DataInputBlobReader reader = new DataInputBlobReader(fromJFFI);

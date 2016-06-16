@@ -14,7 +14,7 @@ public class GrovePiGPIO {
     public static final GrovePiPinManager gpioPullupEnablePins = new GrovePiPinManager(GrovePiConstants.PULL_UP_ENABLE);
     
     public static void ensureAllLinuxDevices(final GroveConnect[] usedLines) {
-
+    	System.out.println("I reach here");
         int j = usedLines.length;
         while (--j >= 0) {
             final int i = usedLines[j].connection;

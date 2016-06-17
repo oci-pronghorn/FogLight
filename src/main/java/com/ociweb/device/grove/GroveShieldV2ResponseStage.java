@@ -207,8 +207,8 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
         int maxCycles = 80; //what if stuck in middle must detect.
         do {
             //TODO: how do we know we have these two on the same clock?
-            int r1  = config.readBit(connector); 
-            int r2  = config.readBit(connector+1); 
+            int r1  = config.digitalRead(connector); 
+            int r2  = config.digitalRead(connector+1); 
             
             rotaryPoll = (byte)((r1<<1)|r2);
             
@@ -245,7 +245,7 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
 
     private void readButton(int j, int connector) {
         //read and xmit
-        int fieldValue = config.readBit(connector);
+        int fieldValue = config.digitalRead(connector);
         if (frequentScriptLastPublished[j]!=fieldValue && Pipe.hasRoomForWrite(responsePipe)) {                        
             frequentScriptTwig[j].writeBit(responsePipe, connector, fieldValue);
             frequentScriptLastPublished[j]=fieldValue;
@@ -260,7 +260,7 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
              int connector = scriptConn[doit];
              int maTotal = config.maxAnalogMovingAverage();  //TODO: update so each connection can have its own ma
              boolean useAverageAsTrigger = true;            //TODO: update so some connections send every value
-             int intValue = config.readInt(connector);
+             int intValue = config.analogRead(connector);
              
              int i = maTotal-1;
              long sum = 0;
@@ -295,7 +295,7 @@ public class GroveShieldV2ResponseStage extends PronghornStage {
     private void bitRead(final short doit) {
         {
               int connector = scriptConn[doit];
-              int fieldValue = config.readBit(connector);
+              int fieldValue = config.digitalRead(connector);
               if (lastPublished[doit]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                  
                   scriptTwig[doit].writeBit(responsePipe, connector, fieldValue);                  
                   lastPublished[doit]=fieldValue;                          

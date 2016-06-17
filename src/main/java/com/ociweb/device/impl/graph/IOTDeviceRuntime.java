@@ -56,7 +56,7 @@ public class IOTDeviceRuntime {
              isEdison = true;
              isPi     = false;
             }
-            
+            System.out.println("The Operating is Edision true or false: " + isEdison);
             if (isEdison) {
                 config = new GroveShieldV2EdisonConfiguration();
             }

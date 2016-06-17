@@ -77,15 +77,15 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
     }
 
     public boolean i2cReadAck() {
-        return EdisonPinManager.readInt(EdisonConstants.DATA_RAW_VOLTAGE) < EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
+        return EdisonPinManager.analogRead(EdisonConstants.DATA_RAW_VOLTAGE) < EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
 
     }
     public boolean i2cReadDataBool() {
-        return EdisonPinManager.readInt(EdisonConstants.DATA_RAW_VOLTAGE) > EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
+        return EdisonPinManager.analogRead(EdisonConstants.DATA_RAW_VOLTAGE) > EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
     }
     
     public boolean i2cReadClockBool() {
-        return EdisonPinManager.readInt(EdisonConstants.CLOCK_RAW_VOLTAGE) > EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
+        return EdisonPinManager.analogRead(EdisonConstants.CLOCK_RAW_VOLTAGE) > EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
     }
 
     public void beginPinConfiguration() {
@@ -98,16 +98,16 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
         super.endPinConfiguration();
     }
 
-    public int readBit(int connector) {        
-        return EdisonPinManager.readBit(connector);
+    public int digitalRead(int connector) {        
+        return EdisonPinManager.digitalRead(connector);
     }
 
-    public int readInt(int connector) {
-        return EdisonPinManager.readInt(connector);
+    public int analogRead(int connector) {
+        return EdisonPinManager.analogRead(connector);
     }
     
-	public void writeBit(int connector, int value) {
-	EdisonPinManager.writeBit(connector, value, EdisonGPIO.gpioLinuxPins);//maybe gpioOutputEnablePins or others (pick one)
+	public void digitalWrite(int connector, int value) {
+	EdisonPinManager.digitalWrite(connector, value, EdisonGPIO.gpioLinuxPins);//maybe gpioOutputEnablePins or others (pick one)
 	}
 	
     public void i2cSetClockLow() {
@@ -127,11 +127,11 @@ public class GroveShieldV2EdisonConfiguration extends GroveConnectionConfigurati
     }
 
     public int i2cReadData() {
-        return readBit(EdisonPinManager.I2C_DATA);
+        return digitalRead(EdisonPinManager.I2C_DATA);
     }
 
     public int i2cReadClock() {
-        return readBit(EdisonPinManager.I2C_CLOCK);
+        return digitalRead(EdisonPinManager.I2C_CLOCK);
     }
     
     static void findDup(GroveConnect[] base, int baseLimit, GroveConnect[] items, boolean mapAnalogs) {

@@ -15,7 +15,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.device.config.GroveConnectionConfiguration;
+import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;

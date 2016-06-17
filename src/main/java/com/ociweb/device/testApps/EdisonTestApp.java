@@ -1,12 +1,18 @@
 package com.ociweb.device.testApps;
 
-import com.ociweb.device.config.GroveConnectionConfiguration;
-import com.ociweb.device.config.grovepi.GrovePiConfiguration;
-import com.ociweb.device.grove.GroveConnect;
-import com.ociweb.device.grove.GroveShieldV2ResponseStage;
-import com.ociweb.device.grove.schema.GroveResponseSchema;
-import com.ociweb.device.grove.schema.I2CCommandSchema;
-import com.ociweb.device.impl.Grove_LCD_RGB;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ociweb.iot.grove.device.Grove_LCD_RGB;
+import com.ociweb.iot.hardware.HardConnection;
+import com.ociweb.iot.hardware.GrovePiImpl;
+import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.schema.GroveResponseSchema;
+import com.ociweb.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CGroveJavaBacking;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -15,11 +21,6 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.stage.test.ByteArrayProducerStage;
 import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 /**
  * TODO:
@@ -33,22 +34,23 @@ public class EdisonTestApp {
     private static final PipeConfig<GroveResponseSchema> responseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 30, 0);
     private static final PipeConfig<I2CCommandSchema> requestI2CConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 128);
         
+    private static GraphManager gm = new GraphManager();
+    
     //TODO: Need an easy way to build this up, perhaps a fluent API.        
-    public static final GroveConnectionConfiguration config = new GrovePiConfiguration(
+    public static final Hardware config = new GrovePiImpl(
            false, //publish time 
            true,  //turn on I2C
-           new GroveConnect[] {/*new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)*/}, //rotary encoder 
-           new GroveConnect[] {/*new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)*/}, //7 should be avoided it can disrupt WiFi, button and motion 
-           new GroveConnect[] {}, //for requests like do the buzzer on 4
-           new GroveConnect[] {}, //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
-           new GroveConnect[] {//new GroveConnect(MoistureSensor,1), //1 here is A1
+           new HardConnection[] {/*new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)*/}, //rotary encoder 
+           new HardConnection[] {/*new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)*/}, //7 should be avoided it can disrupt WiFi, button and motion 
+           new HardConnection[] {}, //for requests like do the buzzer on 4
+           new HardConnection[] {}, //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
+           new HardConnection[] {//new GroveConnect(MoistureSensor,1), //1 here is A1
                                //new GroveConnect(LightSensor,2) 
                                //new GroveConnect(UVSensor,3)
-                              }); //for analog sensors A0, A1, A2, A3
+                              }, gm); //for analog sensors A0, A1, A2, A3
     
     public static void main(String[] args) {
         
-        GraphManager gm = new GraphManager();
         logger.info("Edison RGB LCD via I2C Example Starting.");
                  
         try {
@@ -82,11 +84,11 @@ public class EdisonTestApp {
         config.cleanup();                
     }
 
-    protected static void buildGraph(GraphManager gm, final GroveConnectionConfiguration config) {
+    protected static void buildGraph(GraphManager gm, final Hardware config) {
         
         Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(EdisonTestApp.responseConfig);
         
-        GroveShieldV2ResponseStage groveStage = new GroveShieldV2ResponseStage(gm, responsePipe, config);       
+        ReadDeviceInputStage groveStage = new ReadDeviceInputStage(gm, responsePipe, config);       
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10 * 1000 * 1000, groveStage); //poll every 10 ms
 
         ConsoleJSONDumpStage<GroveResponseSchema>  dump = new ConsoleJSONDumpStage<GroveResponseSchema>(gm, responsePipe);

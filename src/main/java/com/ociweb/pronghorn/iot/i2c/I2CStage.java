@@ -1,12 +1,13 @@
 package com.ociweb.pronghorn.iot.i2c;
 
-import com.ociweb.device.grove.schema.I2CCommandSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ociweb.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Generic I2C stage with native support for Linux systems.

@@ -4,8 +4,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.ociweb.device.grove.device.lcdrgb.LCDRGBBacklightSchema;
-import com.ociweb.device.grove.device.lcdrgb.LCDRGBContentSchema;
+import com.ociweb.iot.grove.device.lcdrgb.LCDRGBBacklightSchema;
+import com.ociweb.iot.grove.device.lcdrgb.LCDRGBContentSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class LCDRGBSchemaValidation {

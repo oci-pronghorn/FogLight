@@ -1,7 +1,7 @@
 package com.ociweb.device.testApps;
 
-import com.ociweb.device.grove.schema.I2CCommandSchema;
-import com.ociweb.device.impl.Grove_LCD_RGB;
+import com.ociweb.iot.grove.device.Grove_LCD_RGB;
+import com.ociweb.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.PronghornStage;

@@ -2,19 +2,19 @@ package com.ociweb.device.testApps;
 
 import java.util.concurrent.TimeUnit;
 
-import com.ociweb.device.config.GroveConnectionConfiguration;
-import com.ociweb.device.config.GroveShieldV2EdisonConfiguration;
-import com.ociweb.device.config.GroveShieldV2MockConfiguration;
-import com.ociweb.device.grove.GroveConnect;
-import com.ociweb.device.grove.GroveShieldV2I2CStage;
-import com.ociweb.device.grove.GroveShieldV2ResponseStage;
-import com.ociweb.device.grove.device.lcdrgb.LCDRGBBacklightAPI;
-import com.ociweb.device.grove.device.lcdrgb.LCDRGBBacklightSchema;
-import com.ociweb.device.grove.device.lcdrgb.LCDRGBContentAPI;
-import com.ociweb.device.grove.schema.I2CCommandSchema;
-import com.ociweb.device.grove.schema.GroveRequestSchema;
-import com.ociweb.device.grove.schema.GroveResponseSchema;
-import com.ociweb.device.grove.schema.I2CBusSchema;
+import com.ociweb.iot.grove.GroveShieldV2I2CStage;
+import com.ociweb.iot.grove.device.lcdrgb.LCDRGBBacklightAPI;
+import com.ociweb.iot.grove.device.lcdrgb.LCDRGBBacklightSchema;
+import com.ociweb.iot.grove.device.lcdrgb.LCDRGBContentAPI;
+import com.ociweb.iot.hardware.GroveShieldV2EdisonImpl;
+import com.ociweb.iot.hardware.GroveShieldV2MockImpl;
+import com.ociweb.iot.hardware.HardConnection;
+import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.schema.GroveRequestSchema;
+import com.ociweb.iot.schema.GroveResponseSchema;
+import com.ociweb.iot.schema.I2CBusSchema;
+import com.ociweb.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -37,44 +37,44 @@ public class GroveShieldTestApp {
     private static LCDRGBContentAPI contentAPI;
 
     //TODO: Need an easy way to build this up, perhaps a fluent API.        
-    public static final GroveConnectionConfiguration config = getConfig();
+    public static final Hardware config = getConfig();
     
     private static final PipeConfig<I2CBusSchema> busconfig = new PipeConfig<I2CBusSchema>(I2CBusSchema.instance, 100000);    
     public static Pipe<I2CBusSchema> i2cBusPipe = new Pipe<I2CBusSchema>(busconfig);
     static {
         if (CONSOLE_DEBUG) {
             
-            ((GroveShieldV2MockConfiguration)config).addOptionalI2CBusSimulationPipe(i2cBusPipe);
+            ((GroveShieldV2MockImpl)config).addOptionalI2CBusSimulationPipe(i2cBusPipe);
         }
     }
     
     
-    public static GroveConnectionConfiguration getConfig() {
+    public static Hardware getConfig() {
         
         if (CONSOLE_DEBUG) {
           //Fake configuration to mock behavior of hardware.
-          return new GroveShieldV2MockConfiguration(
+          return new GroveShieldV2MockImpl(
                   false, //publish time 
                   true,  //turn on I2C
-                  new GroveConnect[] {},//{new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)}, //rotary encoder 
-                  new GroveConnect[] {},//{new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)}, //7 should be avoided it can disrupt WiFi, button and motion 
-                  new GroveConnect[] {}, //for requests like do the buzzer on 4
-                  new GroveConnect[]{},  //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
-                  new GroveConnect[] {
+                  new HardConnection[] {},//{new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)}, //rotary encoder 
+                  new HardConnection[] {},//{new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)}, //7 should be avoided it can disrupt WiFi, button and motion 
+                  new HardConnection[] {}, //for requests like do the buzzer on 4
+                  new HardConnection[]{},  //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
+                  new HardConnection[] {
                           //new GroveConnect(MoistureSensor,1), //1 here is A1
                             //     new GroveConnect(LightSensor,2) 
                               //   new GroveConnect(UVSensor,3)
                                 }); //for analog sensors A0, A1, A2, A3
         } else {
         //TODO: Need an easy way to build this up, perhaps a fluent API.        
-        return new GroveShieldV2EdisonConfiguration(
+        return new GroveShieldV2EdisonImpl(
                 false, //publish time 
                 true,  //turn on I2C
-                new GroveConnect[] {/*new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)*/}, //rotary encoder 
-                new GroveConnect[] {/*new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)*/}, //7 should be avoided it can disrupt WiFi, button and motion 
-                new GroveConnect[] {}, //for requests like do the buzzer on 4
-                new GroveConnect[]{},  //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
-                new GroveConnect[] {//new GroveConnect(MoistureSensor,1), //1 here is A1
+                new HardConnection[] {/*new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)*/}, //rotary encoder 
+                new HardConnection[] {/*new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)*/}, //7 should be avoided it can disrupt WiFi, button and motion 
+                new HardConnection[] {}, //for requests like do the buzzer on 4
+                new HardConnection[]{},  //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
+                new HardConnection[] {//new GroveConnect(MoistureSensor,1), //1 here is A1
                                     //new GroveConnect(LightSensor,2) 
                             //   new GroveConnect(UVSensor,3)
                               }); //for analog sensors A0, A1, A2, A3
@@ -157,11 +157,11 @@ public class GroveShieldTestApp {
                         
     }
 
-    protected static PronghornStage buildGraph(GraphManager gm, final GroveConnectionConfiguration config) {
+    protected static PronghornStage buildGraph(GraphManager gm, final Hardware config) {
         
         Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(GroveShieldTestApp.responseConfig);
         
-        GroveShieldV2ResponseStage groveStage = new GroveShieldV2ResponseStage(gm, responsePipe, config);       
+        ReadDeviceInputStage groveStage = new ReadDeviceInputStage(gm, responsePipe, config);       
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10*1000*1000, groveStage); //poll every 10 ms
          
    //     ConsoleSummaryStage<GroveResponseSchema> dump = new ConsoleSummaryStage<>(gm, responsePipe);

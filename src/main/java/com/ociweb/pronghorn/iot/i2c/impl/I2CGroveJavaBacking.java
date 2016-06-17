@@ -1,10 +1,9 @@
 package com.ociweb.pronghorn.iot.i2c.impl;
 
+import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.ociweb.device.config.GroveConnectionConfiguration;
 
 /**
  * Java I2C backing implementation for a Grove using the amazing technique of
@@ -26,7 +25,7 @@ public class I2CGroveJavaBacking implements I2CBacking {
     private static final int NS_PAUSE = 10 * 1000;
 
     //GrovePi GPIO connection.
-    private final GroveConnectionConfiguration config;
+    private final Hardware config;
 
     /**
      * Puts the thread to sleep just long enough for I2C based off of
@@ -108,7 +107,7 @@ public class I2CGroveJavaBacking implements I2CBacking {
         config.i2cSetDataHigh();
     }
 
-    public I2CGroveJavaBacking(GroveConnectionConfiguration config) {
+    public I2CGroveJavaBacking(Hardware config) {
         this.config = config;
     }
 

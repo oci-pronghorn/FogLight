@@ -1,6 +1,6 @@
 package com.ociweb.device.testApps;
 
-import com.ociweb.device.impl.Grove_LCD_RGB;
+import com.ociweb.iot.grove.device.Grove_LCD_RGB;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

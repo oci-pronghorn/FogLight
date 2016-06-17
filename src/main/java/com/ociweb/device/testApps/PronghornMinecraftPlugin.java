@@ -29,7 +29,10 @@ public class PronghornMinecraftPlugin extends JavaPlugin{
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     	if (cmd.getName().equalsIgnoreCase("generatepi")) {
-    		World world = sender.getWorld(); 
+    		
+    	    //Method not found so removed for now.
+    	    //World world = sender.getWorld(); 
+    		
     		Location loc = new Location(null, 0, 0, 0);
     		return true;
     	} else if (cmd.getName().equalsIgnoreCase("pluginLight")) {

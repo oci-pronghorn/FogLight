@@ -2,8 +2,7 @@ package com.ociweb.device.testApps;
 
 import java.io.IOException;
 
-import com.ociweb.device.grove.GroveShieldV2I2CStage;
-import com.ociweb.device.grove.schema.I2CBusSchema;
+import com.ociweb.iot.schema.I2CBusSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.PronghornStage;

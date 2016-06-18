@@ -95,7 +95,7 @@ public class IOTDeviceRuntime {
         collectedResponsePipes.add(pipe);
         
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
-
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 2_000_000,stage);
     }
     
     protected void addAnalogListener(AnalogListener listener) {
@@ -104,7 +104,7 @@ public class IOTDeviceRuntime {
         collectedResponsePipes.add(pipe);
         
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
-
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 2_000_000,stage);
     }
     
     protected void addDigitalListener(DigitalListener listener) {
@@ -113,13 +113,14 @@ public class IOTDeviceRuntime {
         collectedResponsePipes.add(pipe);
         
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
-
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10_000_000,stage);
     }
     
     protected void registerListener(Object listener) {
         
         Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
         collectedResponsePipes.add(pipe);
+        ReactiveListenerStage stage;
         
         if (listener instanceof RestListener) {
             
@@ -130,13 +131,15 @@ public class IOTDeviceRuntime {
             //add pipe to collection for starting the server ??
             
             
-            ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe, restPipe);
+            stage = new ReactiveListenerStage(gm, listener, pipe, restPipe);
             
         } else {
         
         
-            ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
+            stage = new ReactiveListenerStage(gm, listener, pipe);
         }
+        
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10_000_000,stage);
     }
 
     protected void start() {
@@ -163,13 +166,18 @@ public class IOTDeviceRuntime {
         //all the request pipes are passed into this single stage for modification of the hardware
         int s = collectedRequestPipes.size();   
         if (s>0) {
-            new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config);
+                new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config);
         }
         //all the registered listers are managed here.
         s = collectedResponsePipes.size();           
         Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(responsePipeConfig);
-        new SplitterStage<>(gm, responsePipe, collectedResponsePipes.toArray(new Pipe[s]));
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10_000_000,
+                new SplitterStage<>(gm, responsePipe, collectedResponsePipes.toArray(new Pipe[s]))
+                );
+        
+      
         new ReadDeviceInputStage(gm,responsePipe,config);
+     
         
     }
 

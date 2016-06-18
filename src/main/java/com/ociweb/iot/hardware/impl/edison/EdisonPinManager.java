@@ -15,9 +15,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class EdisonPinManager {
 
-    public final Path[] gpio; 
+    private static final Logger logger = LoggerFactory.getLogger(EdisonPinManager.class);
+    
+    public final Path[] primaryDevicePath; 
     public final Path[] gpioDirection;
     public final SeekableByteChannel[] gpioDirectionChannel;   
     
@@ -27,7 +33,7 @@ public class EdisonPinManager {
     public final SeekableByteChannel[] gpioChannel;   
     
     public final short[]    gpioPinInt;
-    public final String[] gpioPinString;
+    public final String[] exportIdText;
     public FileSystemProvider provider;
 
     
@@ -40,6 +46,40 @@ public class EdisonPinManager {
              FileSystems.getDefault().getPath("/sys/bus/iio/devices/iio:device1", "in_voltage5_raw"), //for I2C
     };
 
+    public static final Path[] PATH_PWM        = new Path[EdisonConstants.PWM_PINS.length];
+    public static final Path[] PATH_PWM_PERIOD = new Path[EdisonConstants.PWM_PINS.length];
+    public static final Path[] PATH_PWM_DUTY   = new Path[EdisonConstants.PWM_PINS.length];
+    public static final Path[] PATH_PWM_ENABLE = new Path[EdisonConstants.PWM_PINS.length];
+    
+    
+    
+  //  public static final Path[] PATH_PWM_PERIOD = new Path[EdisonConstants.PWM_PINS.length];
+    
+   // Path p = FileSystems.getDefault().getPath("/sys/class/pwm/pwmchip0/pwm1", "period");
+    // Path e = FileSystems.getDefault().getPath("/sys/class/pwm/pwmchip0/pwm1", "enable");
+
+    // Path d = FileSystems.getDefault().getPath("/sys/class/pwm/pwmchip0/pwm1", "duty_cycle");
+    
+    static {
+       //build array of all the paths based on the pin definitions in the constants class. 
+       //This ensures these two match each other.
+       int j = EdisonConstants.PWM_PINS.length;
+       while (--j >= 0) {
+           int v = EdisonConstants.PWM_PINS[j];
+           if (v>=0) {
+               String root = "/sys/class/pwm/pwmchip0/pwm"+v;
+               PATH_PWM[j] = FileSystems.getDefault().getPath(root);
+               
+               PATH_PWM_PERIOD[j] = FileSystems.getDefault().getPath(root+"/period");
+               PATH_PWM_DUTY[j] = FileSystems.getDefault().getPath(root+"/duty_cycle");
+               PATH_PWM_ENABLE[j] = FileSystems.getDefault().getPath(root+"/enable");
+               
+           }
+       }
+        //  Path pmwPath = Paths.get("/sys/class/pwm/pwmchip0/pwm"+exportIdText[i]);//TODO: hack, make static 
+    }
+    
+    
     public final SeekableByteChannel[] pathAChannel = new SeekableByteChannel[6];   
     
     private static final Path PATH_PWM_EXPORT   = Paths.get("/sys/class/pwm/pwmchip0/export");
@@ -74,6 +114,7 @@ public class EdisonPinManager {
 
     private static ByteBuffer[] readIntBuffer;
     private static ByteBuffer[] readBitBuffer;
+    private static ByteBuffer[] writePWMBuffer;
     
     static {
         
@@ -109,6 +150,12 @@ public class EdisonPinManager {
         
         readOptions.add(StandardOpenOption.READ);        
 
+        int p = PATH_PWM.length;
+        writePWMBuffer = new ByteBuffer[p];
+        while (--p>=0) {
+            writePWMBuffer[p] = ByteBuffer.allocate(16);   
+        }
+        
         int a = PATH_A.length;
         readIntBuffer = new ByteBuffer[a];
         while (--a>=0) {
@@ -125,12 +172,12 @@ public class EdisonPinManager {
     public EdisonPinManager(short[] pins) {
         
         gpioPinInt = pins;
-        gpio = new Path[pins.length];    
+        primaryDevicePath = new Path[pins.length];    
         gpioDirection = new Path[pins.length];
         gpioDirectionChannel = new SeekableByteChannel[pins.length];
         gpioValue = new Path[pins.length];
         gpioChannel = new SeekableByteChannel[pins.length];
-        gpioPinString = new String[pins.length];
+        exportIdText = new String[pins.length];
         gpioDebugCurrentPinMux = new Path[pins.length];//NOTE only needed for mode array
         
         
@@ -144,13 +191,13 @@ public class EdisonPinManager {
         while (--i>=0) {
             
             if (pins[i]>=0) {
-                gpioPinString[i] = Integer.toString(pins[i]);
+                exportIdText[i] = Integer.toString(pins[i]);
                 
-                gpioDebugCurrentPinMux[i] = fileSystem.getPath("/sys/kernel/debug/gpio_debug/gpio"+gpioPinString[i]+"/current_pinmux");
+                gpioDebugCurrentPinMux[i] = fileSystem.getPath("/sys/kernel/debug/gpio_debug/gpio"+exportIdText[i]+"/current_pinmux");
 
                 sb.setLength(baseLen);
-                sb.append(gpioPinString[i]);
-                gpio[i]          = fileSystem.getPath(sb.toString());
+                sb.append(exportIdText[i]);
+                primaryDevicePath[i]          = fileSystem.getPath(sb.toString());
                                 
                 int withIdLen = sb.length();
                 sb.append("/direction");
@@ -219,9 +266,9 @@ public class EdisonPinManager {
 
     public void ensureDevice(int i) {
         
-        if (null!=gpio[i] && !gpio[i].toFile().exists()) {
+        if (null!=primaryDevicePath[i] && !primaryDevicePath[i].toFile().exists()) {
             try {
-                Files.write(PATH_GPIO_EXPORT, gpioPinString[i].getBytes());
+                Files.write(PATH_GPIO_EXPORT, exportIdText[i].getBytes());
             } catch (IOException e) {
                throw new RuntimeException(e);
             }
@@ -229,22 +276,31 @@ public class EdisonPinManager {
                 
     }
     
-//    public void ensurePMWDevice(int i) {
-//        
-//        if (null!=pwm[i] && !pwm[i].toFile().exists()) {
-//            try {
-//                Files.write(PATH_PWM_EXPORT, pwmPinString[i].getBytes());
-//            } catch (IOException e) {
-//               throw new RuntimeException(e);
-//            }
-//        }
-//                
-//    }
+    public void ensurePMWDevice(int i, int periodInNS) {
+
+            try {
+                if (null!=PATH_PWM[i] && !PATH_PWM[i].toFile().exists()) {
+                    System.out.println("did not find "+PATH_PWM[i]);
+                    System.out.println("now exporting "+exportIdText[i]);
+                    Files.write(PATH_PWM_EXPORT, exportIdText[i].getBytes());
+                    
+                }
+                
+                //this is in NS
+                EdisonPinManager.writePWMPeriod(i, periodInNS);
+                EdisonPinManager.writePWMDuty(i, 0);
+                
+                Files.write(PATH_PWM_ENABLE[i], "1".getBytes());
+
+            } catch (IOException e) {
+               throw new RuntimeException(e);
+            }
+    }
     
     public void removeDevice(int i) {
-        if (null!=gpio[i] && !gpio[i].toFile().exists()) {
+        if (null!=primaryDevicePath[i] && !primaryDevicePath[i].toFile().exists()) {
             try {
-                Files.write(PATH_GPIO_UNEXPORT, gpioPinString[i].getBytes());
+                Files.write(PATH_GPIO_UNEXPORT, exportIdText[i].getBytes());
             } catch (IOException e) {
                throw new RuntimeException(e);
             }
@@ -309,60 +365,61 @@ public class EdisonPinManager {
         
     }
     
-   //"PWM only available on 3, 5, 6, 9, 10 or 11"
-    public static void pwmWrite(int idx, int value) {
-        
-        Path e = FileSystems.getDefault().getPath("/sys/class/pwm/pwmchip0/", "export"); //export
-        
-        
-        Path p = FileSystems.getDefault().getPath("/sys/class/pwm/pwmchip0/pwm2", "period");
-        Path d = FileSystems.getDefault().getPath("/sys/class/pwm/pwmchip0/pwm2", "duty_cycle");
-        
-        try {
-            ByteBuffer data = ByteBuffer.wrap("2".getBytes());
-            SeekableByteChannel chnl = EdisonGPIO.gpioLinuxPins.provider.newByteChannel(e,i2cOptions);
-            data.clear();
-            do {
-                chnl.write(data);
-            } while (data.hasRemaining());//Caution, this is blocking.
-            chnl.position(0);
-            
-            
-            chnl = EdisonGPIO.gpioLinuxPins.provider.newByteChannel(p,i2cOptions);
-            
-            data = ByteBuffer.wrap("625000".getBytes());
-            
-            data.clear();
-            do {
-                chnl.write(data);
-            } while (data.hasRemaining());//Caution, this is blocking.
-            chnl.position(0);
-            
-            chnl = EdisonGPIO.gpioLinuxPins.provider.newByteChannel(d,i2cOptions);
-            data = ByteBuffer.wrap("312500".getBytes());
-            
-            data.clear();
-            do {
-                chnl.write(data);
-            } while (data.hasRemaining());//Caution, this is blocking.
-            chnl.position(0);
-            
-        } catch (IOException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
+
+    public static void writePWMPeriod(int idx, int periodInNS) {
+        if (periodInNS<1_000_000) {
+            logger.warn("Unable to set PWM period ns, only values 1,000,000 or larger are supported. Passed in {} ",periodInNS);
+            return;// do not change
         }
         
+        try {
+            SeekableByteChannel chnl = EdisonGPIO.pwmPins.provider.newByteChannel( PATH_PWM_PERIOD[idx],i2cOptions);     
+                       
+            ByteBuffer data = writePWMBuffer[idx];
+            populateWithInt(data, Math.abs(periodInNS));
+         //   ByteBuffer data = ByteBuffer.wrap(Integer.toString(periodInNS).getBytes());
+            
+            do {
+                chnl.write(data);
+            } while (data.hasRemaining());//Caution, this is blocking.
+            chnl.position(0);
+           
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
         
-  //      ssss
-//        # echo 2 >       /sys/class/pwm/pwmchip0/export 
-//        # echo 2000000 > /sys/class/pwm/pwmchip0/pwm2/duty_cycle 
-//        # echo 1 >       /sys/class/pwm/pwmchip0/pwm2/enable 
+    }
+
+    private static void populateWithInt(ByteBuffer data, int v) {
+        assert(v>=0);
+        data.clear();
+        int p = data.limit();
+        do {
+            int a = v/10;
+            int b = v%10;
+            data.put(--p, (byte)('0'+b));
+            v = a;
+        } while (v!=0);
+        data.position(p);
+    }
+
+    public static void writePWMDuty(int idx, int units) {
+                
+        try {
+            
+            SeekableByteChannel chnl = EdisonGPIO.pwmPins.provider.newByteChannel( PATH_PWM_DUTY[idx],i2cOptions); 
         
-//        If you want a 1.6kHz wave that is a 625 microsecond period or 626000 nanoseconds (assuming a 50% duty cycle).
-//
-//        echo -n "625000" > /sys/class/pwm/pwmchip0/pwm3/period
-//        echo -n "312500" > /sys/class/pwm/pwmchip0/pwm3/duty_cycle
-        //                    /sys/class/pwm/pwmchip0/pwm2/period
+            ByteBuffer data = writePWMBuffer[idx];
+            populateWithInt(data, Math.abs(units));
+            //ByteBuffer data = ByteBuffer.wrap(Integer.toString(units).getBytes());
+            do {
+                chnl.write(data);
+            } while (data.hasRemaining());//Caution, this is blocking.
+            chnl.position(0);
+           
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
     
     public static int analogRead(int idx) {

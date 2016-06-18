@@ -122,8 +122,10 @@ public class SendDeviceOutputStage extends PronghornStage {
                     int connector = Pipe.takeValue(requestPipe);
                     int value = Pipe.takeValue(requestPipe); 
             
+                    //TODO: Ask Alex how we should support setting the period?
+                    
                     config.analogWrite(connector, value);
-                    //TODO write something to device
+    
                     
                 }   
                 break;    

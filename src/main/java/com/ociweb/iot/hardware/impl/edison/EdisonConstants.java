@@ -32,6 +32,31 @@ public class EdisonConstants {
             14, //IO18 D18 A4 204
             165, //IO19 D19 A5 205
     };
+    
+    public static final short[] PWM_PINS = new short[] {// (only 3, 5, 6, 9, 10 ??, 11 ??) 
+            -1, //IO 0 D 0
+            -1, //IO 1 D 1
+            -1, //IO 2 D 2
+             0,  //IO 3 D 3  (PWM)
+            -1, //IO 4 D 4
+             1,  //IO 5 D 5  (PWM)
+             2, //IO 6 D 6   (PWM)
+            -1,  //IO 7 D 7
+            -1,  //IO 8 D 8
+             3, //IO 9 D 9   (PWM)
+             4,  //IO10 D10  (PWM ??)
+             5,  //IO11 D11  (PWM ??)
+            -1,  //IO12 D12
+            -1,  //IO13 D13
+            -1, //IO14 D14 A0 200
+            -1, //IO15 D15 A1 201
+            -1, //IO16 D16 A2 202
+            -1, //IO17 D17 A3 203
+            -1, //IO18 D18 A4 204
+            -1, //IO19 D19 A5 205
+    };
+    
+    
     public static final short[] GPIO_PIN_MODES = new short[] {
             130, //IO 0 D 0
             131, //IO 1 D 1

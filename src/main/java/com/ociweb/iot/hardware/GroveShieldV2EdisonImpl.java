@@ -111,9 +111,18 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         return EdisonPinManager.analogRead(connector);
     }    
 
+    boolean xx = false;
+    
     @Override
     public void analogWrite(int connector, int value) {
-       EdisonPinManager.pwmWrite(connector, value);
+        
+       if (!xx) { 
+           // works with this method 
+           EdisonPinManager.writePWMPeriod(connector, 1_000_000); //no smaller
+           xx = true;
+       }
+       
+       EdisonPinManager.writePWMDuty(connector, value);
     }
 
     

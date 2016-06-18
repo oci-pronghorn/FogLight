@@ -4,6 +4,8 @@ import com.ociweb.iot.hardware.HardConnection;
 
 public class EdisonGPIO {
 
+    private static final int DEFAULT_PWM_PERIOD_NS = 50_000_000;//this is the boards default value
+    
     public static final EdisonPinManager gpioPinMux = new EdisonPinManager(EdisonConstants.GPIO_PIN_MUX);
     public static final EdisonPinManager gpioPinMuxExt = new EdisonPinManager(EdisonConstants.GPIO_PIN_MUX_EXT);
     public static final EdisonPinManager gpioPinModes = new EdisonPinManager(EdisonConstants.GPIO_PIN_MODES);
@@ -11,29 +13,23 @@ public class EdisonGPIO {
     public static final EdisonPinManager gpioOutputEnablePins = new EdisonPinManager(EdisonConstants.OUTPUT_ENABLE);
     public static final EdisonPinManager gpioPullupEnablePins = new EdisonPinManager(EdisonConstants.PULL_UP_ENABLE);
     public static final EdisonPinManager shieldControl = new EdisonPinManager(EdisonConstants.SHIELD_CONTROL);
+    public static final EdisonPinManager pwmPins = new EdisonPinManager(EdisonConstants.PWM_PINS);
     
     public static void ensureAllLinuxDevices(HardConnection[] usedLines) {
 
         shieldControl.ensureDevice(0); //tri statebyte
         //create the edision later write mode 
         shieldControl.ensureDevice(1); //shield reset
-
-        
         
         int j = usedLines.length;
         while (--j>=0) {       
             
+            int i = usedLines[j].connection;
             if (usedLines[j].twig.isPWM()) {
                 assert(usedLines[j].twig.isOutput()) : "PWM must also be output";
-                
-                
-                //TODO must export the pwm in here somewere if used. PATH_PWM_EXPORT
-                //need to know if its pwm!!!
-                
+                pwmPins.ensurePMWDevice(i,DEFAULT_PWM_PERIOD_NS);
             }
             
-            
-            int i = usedLines[j].connection;
             gpioLinuxPins.ensureDevice(i);
             gpioOutputEnablePins.ensureDevice(i);
             gpioPullupEnablePins.ensureDevice(i);   

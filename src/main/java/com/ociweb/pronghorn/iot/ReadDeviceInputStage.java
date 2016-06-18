@@ -6,7 +6,7 @@ import com.ociweb.iot.grove.GroveTwig;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.Util;
-import com.ociweb.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;

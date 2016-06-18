@@ -1,6 +1,6 @@
 package com.ociweb.iot.hardware;
 
-import com.ociweb.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 
 public interface IODevice {

@@ -2,7 +2,7 @@ package com.ociweb.iot.grove.device.lcdrgb;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.ociweb.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 

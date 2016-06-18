@@ -4,6 +4,10 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class SchemaValidation {

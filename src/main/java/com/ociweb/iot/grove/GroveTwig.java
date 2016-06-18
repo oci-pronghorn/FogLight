@@ -1,7 +1,7 @@
 package com.ociweb.iot.grove;
 
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 
 public enum GroveTwig implements IODevice {

@@ -2,7 +2,7 @@ package com.ociweb.iot.hardware;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import com.ociweb.iot.schema.I2CBusSchema;
+import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 

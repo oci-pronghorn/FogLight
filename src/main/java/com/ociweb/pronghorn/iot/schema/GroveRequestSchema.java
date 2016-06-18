@@ -1,4 +1,4 @@
-package com.ociweb.iot.schema;
+package com.ociweb.pronghorn.iot.schema;
 
 import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.MessageSchema;

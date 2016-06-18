@@ -1,6 +1,6 @@
 package com.ociweb.iot.maker;
 
-import com.ociweb.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.PronghornStage;

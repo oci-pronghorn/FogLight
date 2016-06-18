@@ -7,14 +7,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.grove.device.Grove_LCD_RGB;
-import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.GrovePiImpl;
+import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
-import com.ociweb.iot.schema.GroveResponseSchema;
-import com.ociweb.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CGroveJavaBacking;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;

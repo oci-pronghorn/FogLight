@@ -2,7 +2,7 @@ package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.ociweb.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 

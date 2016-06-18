@@ -45,7 +45,7 @@ public class IOTDeviceRuntime {
     private int SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
     
     
-    protected IOTDeviceRuntime() {
+    public IOTDeviceRuntime() {
         
         
     }
@@ -53,7 +53,7 @@ public class IOTDeviceRuntime {
     
     
     
-    protected static Hardware getHarware() {
+    public Hardware getHarware() {
         if (null==config) {
 
             String osversion  =System.getProperty("os.version");
@@ -94,7 +94,7 @@ public class IOTDeviceRuntime {
         
     }
     
-    protected void addRotaryListener(RotaryListener listener) {
+    public void addRotaryListener(RotaryListener listener) {
         
         Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);
         collectedResponsePipes.add(pipe);
@@ -103,7 +103,7 @@ public class IOTDeviceRuntime {
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
-    protected void addAnalogListener(AnalogListener listener) {
+    public void addAnalogListener(AnalogListener listener) {
        
         Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);
         collectedResponsePipes.add(pipe);
@@ -112,7 +112,7 @@ public class IOTDeviceRuntime {
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
-    protected void addDigitalListener(DigitalListener listener) {
+    public void addDigitalListener(DigitalListener listener) {
         
         Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);
         collectedResponsePipes.add(pipe);
@@ -121,7 +121,7 @@ public class IOTDeviceRuntime {
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
-    protected void registerListener(Object listener) {
+    public void registerListener(Object listener) {
         
         Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
         collectedResponsePipes.add(pipe);
@@ -147,7 +147,7 @@ public class IOTDeviceRuntime {
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
 
-    protected void start() {
+    public void start() {
        config.coldSetup(); 
         
        buildGraph(); 

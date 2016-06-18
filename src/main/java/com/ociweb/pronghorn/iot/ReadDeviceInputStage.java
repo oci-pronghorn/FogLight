@@ -55,7 +55,11 @@ public class ReadDeviceInputStage extends PronghornStage {
         
         this.responsePipe = resposnePipe;
         this.config = config;
-        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 10_000_000, this);
+        
+        //NOTE: rotary encoder would work best using native hardware and this rate only need
+        //      be faster than 20K because the rotary and the button needs to be polled.
+        //TODO: with a user space GPIO Sysfs or similar driver see of we can remove this work, will save most of the CPU.
+        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 1_000_000, this);
         GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);        
     }
 

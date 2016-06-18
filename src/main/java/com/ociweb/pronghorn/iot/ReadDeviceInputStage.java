@@ -55,7 +55,7 @@ public class ReadDeviceInputStage extends PronghornStage {
         
         this.responsePipe = resposnePipe;
         this.config = config;
-        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 10*1000*1000, this);
+        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 10_000_000, this);
         GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);        
     }
 

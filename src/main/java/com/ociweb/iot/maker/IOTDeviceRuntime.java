@@ -42,11 +42,16 @@ public class IOTDeviceRuntime {
     private PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 100);
     private PipeConfig<GroveResponseSchema> responsePipeConfig2x = responsePipeConfig.grow2x();
     
+    private int SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
+    
+    
     protected IOTDeviceRuntime() {
         
         
     }
 
+    
+    
     
     protected static Hardware getHarware() {
         if (null==config) {
@@ -95,7 +100,7 @@ public class IOTDeviceRuntime {
         collectedResponsePipes.add(pipe);
         
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 2_000_000,stage);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
     protected void addAnalogListener(AnalogListener listener) {
@@ -104,7 +109,7 @@ public class IOTDeviceRuntime {
         collectedResponsePipes.add(pipe);
         
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 2_000_000,stage);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
     protected void addDigitalListener(DigitalListener listener) {
@@ -113,7 +118,7 @@ public class IOTDeviceRuntime {
         collectedResponsePipes.add(pipe);
         
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10_000_000,stage);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
     protected void registerListener(Object listener) {
@@ -139,7 +144,7 @@ public class IOTDeviceRuntime {
             stage = new ReactiveListenerStage(gm, listener, pipe);
         }
         
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10_000_000,stage);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
 
     protected void start() {
@@ -166,16 +171,19 @@ public class IOTDeviceRuntime {
         //all the request pipes are passed into this single stage for modification of the hardware
         int s = collectedRequestPipes.size();   
         if (s>0) {
-                new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config);
+            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
+                    new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config)
+            );
         }
         //all the registered listers are managed here.
         s = collectedResponsePipes.size();           
         Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(responsePipeConfig);
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 10_000_000,
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
                 new SplitterStage<>(gm, responsePipe, collectedResponsePipes.toArray(new Pipe[s]))
                 );
         
       
+        //Do not modfy the sleep of this object it is decided inernally by the config and devices plugged in.
         new ReadDeviceInputStage(gm,responsePipe,config);
      
         

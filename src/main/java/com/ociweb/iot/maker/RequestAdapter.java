@@ -16,15 +16,18 @@ public class RequestAdapter {
     }
 
     
-    public boolean digitalForDuration(int connector, int duration, int value) {
+    public boolean digitalBlock(int connector, int duration) {
         
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        
         try {            
-            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_120)) { //TODO: this needs to be generic 
+            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCK_220)) {
                 
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_120_FIELD_CONNECTOR_111, connector);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_120_FIELD_DURATION_113, duration);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_120_FIELD_VALUE_112, value);
+                System.out.println("write duration of "+duration);
+                //TODO: how to detect the wrong ones??
+                
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113, duration);
                                                 
                 PipeWriter.publishWrites(output);
                 

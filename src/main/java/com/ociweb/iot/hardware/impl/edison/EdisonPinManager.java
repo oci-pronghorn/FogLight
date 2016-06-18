@@ -377,7 +377,6 @@ public class EdisonPinManager {
                        
             ByteBuffer data = writePWMBuffer[idx];
             populateWithInt(data, Math.abs(periodInNS));
-         //   ByteBuffer data = ByteBuffer.wrap(Integer.toString(periodInNS).getBytes());
             
             do {
                 chnl.write(data);
@@ -410,15 +409,20 @@ public class EdisonPinManager {
             SeekableByteChannel chnl = EdisonGPIO.pwmPins.provider.newByteChannel( PATH_PWM_DUTY[idx],i2cOptions); 
         
             ByteBuffer data = writePWMBuffer[idx];
-            populateWithInt(data, Math.abs(units));
-            //ByteBuffer data = ByteBuffer.wrap(Integer.toString(units).getBytes());
+            populateWithInt(data, Math.abs(units));           
             do {
                 chnl.write(data);
             } while (data.hasRemaining());//Caution, this is blocking.
             chnl.position(0);
            
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            
+            if (ex.getMessage().contains("Invalid argument")) {
+                //not serious so, do not shut down the JVM instance. 
+                logger.error("check the period and duty for connection {}, duty {} is out of bounds",idx,units);
+            } else {
+                throw new RuntimeException(ex);
+            }
         }
     }
     

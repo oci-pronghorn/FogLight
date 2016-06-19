@@ -2,7 +2,6 @@ package com.ociweb.device.testApps;
 
 import java.util.concurrent.TimeUnit;
 
-import com.ociweb.iot.grove.GroveShieldV2I2CStage;
 import com.ociweb.iot.grove.device.lcdrgb.LCDRGBBacklightAPI;
 import com.ociweb.iot.grove.device.lcdrgb.LCDRGBBacklightSchema;
 import com.ociweb.iot.grove.device.lcdrgb.LCDRGBContentAPI;
@@ -11,6 +10,8 @@ import com.ociweb.iot.hardware.GroveShieldV2MockImpl;
 import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
+import com.ociweb.pronghorn.iot.i2c.I2CSimulatedLineMonitorStage;
+import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
@@ -192,7 +193,7 @@ public class GroveShieldTestApp {
           //  backlightAPI = backlightStage;
           //  contentAPI = contentStage;
 
-            return new GroveShieldV2I2CStage(gm, requests, response, config);
+            return new PureJavaI2CStage(gm, requests, response, config);
                     
 //        }+
 //        return dump;

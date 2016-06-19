@@ -50,14 +50,17 @@ public class I2CNativeLinuxBacking implements I2CBacking {
     }
 
     public I2CNativeLinuxBacking() {
+        String device = "/dev/i2c-6";//"/sys/class/i2c-dev/i2c-6";//"/dev/i2c-6";
+     //   String device = "/dev/i2c-1"; //this dievice is for the pi.
+        
         //Get the I2C file.
-        i2cFile = c.open("/dev/i2c-1", UnixIoctlLib.O_RDWR);
+        i2cFile = c.open(device, UnixIoctlLib.O_RDWR);
 
         //Make sure it worked....
         if (i2cFile < 0) {
-            throw new RuntimeException("Could not open /dev/i2c-1.");
+            throw new RuntimeException("Could not open "+device);
         } else {
-            logger.info("Successfully opened /dev/i2c-1.");
+            logger.warn("Successfully opened "+device);
         }
 
         //Close the file when the application shuts down.
@@ -82,8 +85,11 @@ public class I2CNativeLinuxBacking implements I2CBacking {
     }
 
     @Override public void write(byte address, byte... message) {
+        
+        System.out.println("write to address:"+ Integer.toHexString(address));
+        
         //Check if we need to load the address into memory.
-        if (ensureI2CDevice(address)) {
+        if (ensureI2CDevice(address)) {            
             c.write(i2cFile, message, message.length);
         }
     }

@@ -13,7 +13,7 @@ public class I2CCommandStage extends PronghornStage {
     private byte[] rawData;
     private int pos;
     
-    protected I2CCommandStage(GraphManager graphManager, Pipe<I2CCommandSchema> output) {
+    public I2CCommandStage(GraphManager graphManager, Pipe<I2CCommandSchema> output) {
         super(graphManager, NONE, output);
         this.output = output;
     }

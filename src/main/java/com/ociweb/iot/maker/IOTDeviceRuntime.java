@@ -2,23 +2,29 @@ package com.ociweb.iot.maker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.grove.device.Grove_LCD_RGB;
 import com.ociweb.iot.hardware.GrovePiImpl;
 import com.ociweb.iot.hardware.GroveShieldV2EdisonImpl;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.SendDeviceOutputStage;
+import com.ociweb.pronghorn.iot.i2c.I2CStage;
+import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
+import com.ociweb.pronghorn.stage.test.ByteArrayProducerStage;
 
 public class IOTDeviceRuntime {
 
@@ -187,9 +193,107 @@ public class IOTDeviceRuntime {
         new ReadDeviceInputStage(gm,responsePipe,config);
      
         
+        ///////////////////
+        //////////////////
+        
+        
+//        if (config.configI2C) {
+//           config.beginPinConfiguration();
+//           
+//           
+//           
+//           config.configurePinsForI2C();
+//           config.endPinConfiguration();
+//           config.i2cClockOut();
+//           config.i2cDataOut();
+//           boolean temp = false;
+//           int i;
+//           i = 1100;
+//           while (--i>=0) { //force hot spot to optimize this call
+//               temp |= config.i2cReadClockBool();
+//               config.i2cSetClockHigh();//done last
+//           }
+//           pause();
+//           i = 1100;
+//           while (--i>=0) { //force hot spot to optimize this call
+//               temp |= config.i2cReadAck();
+//               temp |= config.i2cReadDataBool();
+//               config.i2cSetDataHigh();//done last
+//           }
+//           if (!temp) {
+//               throw new UnsupportedOperationException();
+//           }
+//           pause();
+//           
+//           
+//           
+//        } else {
+//            System.out.println("warning, i2s stage used but not turned on");
+//        }
+//        //starting in the known state where both are high
+//
+//          if (0==config.i2cReadClock() ) {
+//              throw new RuntimeException("expected clock to be high for start");
+//          }        
+//          if (0==config.i2cReadData() ) {
+//              throw new RuntimeException("expected data to be high for start");
+//          }
+        
+        /////////////////////////
+        /////////////////////////
+        //////////
+        //hack test for I2C
+        config.beginPinConfiguration();
+        config.configurePinsForI2C();
+        config.endPinConfiguration();
+        
+//        
+        PipeConfig<I2CCommandSchema> requestI2CConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 128);
+        
+        Pipe<I2CCommandSchema> i2cToBusPipe = new Pipe<I2CCommandSchema>(requestI2CConfig);
+
+        //Text.
+//        byte[] rawData = Grove_LCD_RGB.commandForText("GrovePi+ with\nPronghorn IoT <3");
+
+        //Random color.
+//        Random rand = new Random();
+//        byte[] rawData = Grove_LCD_RGB.commandForColor(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
+
+        //Purple.
+//        byte[] rawData = Grove_LCD_RGB.commandForColor(120, 25, 75);
+
+        //Random string list.
+        String[] randomStrings = {
+                "Edison with\nPronghorn IoT",
+                "Hello,\nPronghorn!",
+                "Embedded\nZulu Java",
+                "Hello,\nEdison!",
+                "I'm sorry Dave,\nI can't do that."
+        };
+
+        //Build command.
+        Random rand = new Random();
+        byte[] rawData = Grove_LCD_RGB.commandForTextAndColor(randomStrings[rand.nextInt(randomStrings.length)],
+                                                              rand.nextInt(256),
+                                                              rand.nextInt(256),
+                                                              rand.nextInt(256));
+
+        //Calculate chunk sizes; for now, we assume every chunk is 3 bytes long.
+        int[] chunkSizes = new int[rawData.length / 3];
+        for (int i = 0; i < chunkSizes.length; i++) chunkSizes[i] = 3;
+
+        //Pipe that data.
+       ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
+     //   I2CCommandStage cmd = new I2CCommandStage(gm, i2cToBusPipe);
+        
+      //  I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe);
+        PureJavaI2CStage i2cStage = new PureJavaI2CStage(gm, new Pipe[]{i2cToBusPipe},config);
+        
+        //TODO: we can build a command line stage to use FSYS linux (but should not be trusted they do not work so well??)
+        // http://www.i-programmer.info/programming/hardware/9124-exploring-edison-i2c-bus.html?start=2 
+        
+        
     }
-
-
 
 
 

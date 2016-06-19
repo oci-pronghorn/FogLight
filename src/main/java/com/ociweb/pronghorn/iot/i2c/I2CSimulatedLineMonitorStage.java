@@ -1,4 +1,4 @@
-package com.ociweb.device.testApps;
+package com.ociweb.pronghorn.iot.i2c;
 
 import java.io.IOException;
 
@@ -22,7 +22,7 @@ public class I2CSimulatedLineMonitorStage extends PronghornStage {
     
     
     
-    protected I2CSimulatedLineMonitorStage(GraphManager graphManager, Pipe<I2CBusSchema> input) {
+    public I2CSimulatedLineMonitorStage(GraphManager graphManager, Pipe<I2CBusSchema> input) {
         super(graphManager, input, NONE);
         this.input = input;
     }

@@ -22,7 +22,6 @@ public class I2CStage extends PronghornStage {
     private static final int MAX_CONFIGURABLE_BYTES = 16;
 
     private final Pipe<I2CCommandSchema> request;
-    private final I2CBacking fallback;
     private I2CBacking backing;
 
     //Current byte buffer.
@@ -35,19 +34,16 @@ public class I2CStage extends PronghornStage {
     private int    bytesToSendMask;
     private int    bytesToSendReleaseSize;
     
-    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request, I2CBacking fallback) {
+    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request) {
         super(gm, request, NONE);
 
-        this.fallback = fallback;
         this.request = request;
         
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, NS_PAUSE, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
     }
+    
 
-    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request) {
-        this(gm, request, null);
-    }
     
     @Override
     public void startup() {
@@ -55,6 +51,10 @@ public class I2CStage extends PronghornStage {
         if (Thread.currentThread().getPriority() != Thread.MAX_PRIORITY) {
             Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         }
+        
+        
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+        
 
         //Figure out which backing to use.
         //TODO: This should probably be chosen by the creator of this stage instead.
@@ -62,23 +62,24 @@ public class I2CStage extends PronghornStage {
             backing = new I2CNativeLinuxBacking();
             logger.info("Successfully initialized native Linux I2C backing.");
         } catch (Exception e) {
-            logger.warn("Couldn't start up native Linux I2C backing; " +
-                        "Using fallback backing if present.");
-            if (fallback != null) {
-                backing = fallback;
-            } else {
-                logger.error("Fallback backing not present; I2C stage shutting down.");
-                requestShutdown(); //TODO: Is this all we need to call in order to shutdown?
-            }
+            e.printStackTrace();
+            
+            logger.error("Fallback backing not present; I2C stage shutting down.");
+            requestShutdown(); //TODO: Is this all we need to call in order to shutdown?
         }
+        
     }
     
     @Override
     public void run() {
         //TODO: This logic can definitely be cleaned up.
-        if (Pipe.hasContentToRead(request)) {
+        while (Pipe.hasContentToRead(request)) {
             //Verify message ID.
             int msgId = Pipe.takeMsgIdx(request);
+            
+            
+            System.out.println("reading I2C message "+msgId);
+            
             if (msgId < 0 ) {
                 requestShutdown();
                 return;

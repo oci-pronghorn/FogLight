@@ -23,7 +23,21 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
         
         setToKnownStateFromColdStart();  
+        
     }
+    
+
+    //only used in startup
+    private void pause() {
+        try {
+          //  Thread.sleep(NS_PAUSE/1_000_000,NS_PAUSE%1_000_000);
+            Thread.sleep(35); //timeout for SMBus
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    
     
     public void cleanup() {
         EdisonGPIO.removeAllLinuxDevices(usedLines);

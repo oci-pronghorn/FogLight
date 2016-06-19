@@ -12,7 +12,6 @@ import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
-import com.ociweb.pronghorn.iot.i2c.impl.I2CGroveJavaBacking;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -130,7 +129,7 @@ public class EdisonTestApp {
 
             //Pipe that data.
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
-            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe, new I2CGroveJavaBacking(config));
+            I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe);
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove;
+package com.ociweb.pronghorn.iot.i2c;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,9 +9,9 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class GroveShieldV2I2CStage extends PronghornStage {
+public class PureJavaI2CStage extends PronghornStage {
 
-    private static final Logger logger = LoggerFactory.getLogger(GroveShieldV2I2CStage.class);
+    private static final Logger logger = LoggerFactory.getLogger(PureJavaI2CStage.class);
     
     private int taskAtHand;
     private int stepAtHand;
@@ -61,8 +61,27 @@ public class GroveShieldV2I2CStage extends PronghornStage {
     //NOTE: these devices are I2C and do not show any lower bounds for speed.
     public static final int NS_PAUSE = (1_000_000_000)/(800_000); //slower cycles is less power consumption.
     
-    public GroveShieldV2I2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] request, Pipe[] response, Hardware config) {
+    public PureJavaI2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] request, Pipe[] response, Hardware config) {
         super(gm, request, response);
+        
+        this.request = request;
+        this.response = null;
+        this.config = config;
+        
+        this.pipeIdx = request.length;
+
+
+        //NOTE: this assumes the scheduler will never get aggressive an will always respect the call rate
+        //      even when a call to run is longer than the requested period.
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, NS_PAUSE, this);
+        
+        
+        GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
+        
+    }
+    
+    public PureJavaI2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] request, Hardware config) {
+        super(gm, request, NONE);
         
         this.request = request;
         this.response = null;

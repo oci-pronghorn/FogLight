@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.ociweb.iot.grove.GroveShieldV2I2CStage;
+import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class Hardware {
@@ -125,7 +125,7 @@ public abstract class Hardware {
     }
     
     public Hardware useI2C() {
-        this.publishTime = true; //TODO: add support for time rate.
+        this.configI2C = true;
         return this;
     }
     
@@ -189,7 +189,7 @@ public abstract class Hardware {
             long now = System.nanoTime();
     
             long duration = now-lastTime;
-            if (duration<GroveShieldV2I2CStage.NS_PAUSE) {
+            if (duration<PureJavaI2CStage.NS_PAUSE) {
                 System.err.println("calling I2C too fast");
             }
             if (duration >= 35_000_000) {

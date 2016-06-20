@@ -1,9 +1,13 @@
 package com.ociweb.iot.grove.device;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ociweb.iot.maker.RequestAdapter;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
+import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
 
 /**
  * TODO: This class probably needs to be renamed and moved; it's now both a simple API and collection of constants.
@@ -83,6 +87,7 @@ public class Grove_LCD_RGB {
     * @return Formatted byte array which can be passed directly to a
     *         {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}.
     */
+    @Deprecated
     public static final byte[] commandForColor(byte r, byte g, byte b) {
         return new byte[]{
             (byte) ((Grove_LCD_RGB.RGB_ADDRESS << 1)), (byte) 0, (byte) 0,
@@ -97,6 +102,7 @@ public class Grove_LCD_RGB {
     /**
      * @see #commandForColor(byte, byte, byte);
      */
+    @Deprecated
     public static final byte[] commandForColor(int r, int g, int b) {
         return commandForColor((byte) r, (byte) g, (byte) b);
     }
@@ -116,6 +122,7 @@ public class Grove_LCD_RGB {
      * @return Formatted byte array which can be passed directly to a
      *         {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}.
      */
+    @Deprecated
     public static final byte[] commandForText(String text) {
         //TODO: Optimize this to not use a Java collection.
         List<Byte> bytes = new ArrayList<Byte>();
@@ -169,6 +176,22 @@ public class Grove_LCD_RGB {
         return ret;
     }
 
+    @Deprecated
+    public static byte[] commandForTextAndColor(String text, int r, int g, int b) {
+        //TODO: For some reason, this is dropping the last character on the grove display.
+        byte[] textCommand = commandForText(text + " ");
+        byte[] colorCommand = commandForColor(r, g, b);
+
+        byte[] ret = new byte[textCommand.length + colorCommand.length];
+
+        //Hail StackOverflow, king of hax.
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = i < textCommand.length ? textCommand[i] : colorCommand[i - textCommand.length];
+        }
+
+        return ret;
+    }
+    
     /**
      * <pre>
      * Creates a complete byte array that will set the text and color of a Grove RGB
@@ -193,18 +216,74 @@ public class Grove_LCD_RGB {
      *         {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}.
      * </pre>
      */
-    public static byte[] commandForTextAndColor(String text, int r, int g, int b) {
-        //TODO: For some reason, this is dropping the last character on the grove display.
-        byte[] textCommand = commandForText(text + " ");
-        byte[] colorCommand = commandForColor(r, g, b);
-
-        byte[] ret = new byte[textCommand.length + colorCommand.length];
-
-        //Hail StackOverflow, king of hax.
-        for (int i = 0; i < ret.length; i++) {
-            ret[i] = i < textCommand.length ? textCommand[i] : colorCommand[i - textCommand.length];
+    public static boolean commandForTextAndColor(RequestAdapter target, String text, int r, int g, int b) {
+        
+        if (!target.i2cIsReady()) {
+            return false;
         }
-
-        return ret;
+        
+        showRGBColor(target, r, g, b);
+        showTwoLineText(target, text);
+        while (!target.i2cFlushBatch()) {
+            //WARNING: this is now a blocking call, should NEVER happen because we checked up front.
+        }
+        return true;
     }
+
+    private static void showRGBColor(RequestAdapter target, int r, int g, int b) {
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 0, 0);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 1, 0);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 0x08, 0xaa);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 4, r);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 3, g);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 2, b);
+    }
+
+    private static void showTwoLineText(RequestAdapter target, String text) {
+        //clear display
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
+        //display on - no cursor
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));
+        //two lines
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, LCD_TWO_LINES);
+                  
+        //Parse text.
+        int count = 0;
+        int row = 0;
+        for(int i = 0; i < text.length(); i++ ) {
+            char c = text.charAt(i);
+            if (c == '\n' || count == 16) {
+                count = 0;
+                row += 1;
+                if (row == 2) break;
+        
+                //Write a thing. TODO: What's the thing?
+                writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, 0xc0);
+
+                if (c == '\n') continue;
+            }
+        
+            count += 1;
+        
+            //Write chars.
+            writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETCGRAMADDR, c);
+
+        }
+    }
+    
+    private static void writeSingleByteToRegister(RequestAdapter target, int address, int register, int value) {
+        try {
+            DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
+            do {
+            i2cPayloadWriter = target.i2cCommandOpen();
+            } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enought for the known messages to ensure this never happens  TODO: check this figure.
+            i2cPayloadWriter.writeByte(address);
+            i2cPayloadWriter.writeByte(register);
+            i2cPayloadWriter.writeByte(value);
+            target.i2cCommandClose();
+        } catch (IOException e) {
+           throw new RuntimeException(e);
+        }
+    }
+    
 }

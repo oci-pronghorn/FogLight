@@ -3,16 +3,24 @@ package com.ociweb.iot.maker;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
 
 public class RequestAdapter {
 
     private Pipe<GroveRequestSchema> output;
-    private AtomicBoolean aBool = new AtomicBoolean(false);
+    private Pipe<I2CCommandSchema> i2cOutput;
+    private AtomicBoolean aBool = new AtomicBoolean(false);    
+    private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
+    private int runningI2CCommandCount;
     
-    protected RequestAdapter(Pipe<GroveRequestSchema> output) {
+    protected RequestAdapter(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput) {
        this.output = output;
+       this.i2cOutput = i2cOutput;       
+      
     }
 
     
@@ -83,7 +91,61 @@ public class RequestAdapter {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
         }
     }
-
+  
+    public boolean i2cIsReady() {
+        if (null==i2cWriter) {
+            i2cWriter = new DataOutputBlobWriter(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
+        }
+        
+        
+        //TODO: need to set this as a constant driven from the known i2c devices and the final methods
+        int maxCommands = 16;
+        
+        return PipeWriter.hasRoomForWrite(output) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_1)*maxCommands);
+        
+    }
+   
+    public DataOutputBlobWriter<RawDataSchema> i2cCommandOpen() {       
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_1)) {
+                DataOutputBlobWriter.openField(i2cWriter);
+                return i2cWriter;
+            } else {
+                return null;//can not write try again later.
+            }
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+    }
+    
+    public void i2cCommandClose() {  
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            runningI2CCommandCount++;
+            DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
+            PipeWriter.publishWrites(i2cOutput);
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+    }
+ 
+    public boolean i2cFlushBatch() {        
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_I2CWRITE_400) ) { 
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_I2CWRITE_400_FIELD_MESSAGECOUNT_410, runningI2CCommandCount);
+                PipeWriter.publishWrites(output);
+                runningI2CCommandCount = 0;                
+                return true;
+            }
+           return false;            
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+    }
+    
+    
     private boolean enterBlockOk() {
        return aBool.compareAndSet(false, true);
     }
@@ -91,6 +153,6 @@ public class RequestAdapter {
     private boolean exitBlockOk() {
         return aBool.compareAndSet(true, false);
     }
-    
+
 
 }

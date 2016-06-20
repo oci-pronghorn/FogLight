@@ -125,7 +125,7 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         return EdisonPinManager.analogRead(connector);
     }    
 
-    boolean xx = false;
+    boolean xx = false; //TODO: this is a total hack until we talk to Alex to resolve.
     
     @Override
     public void analogWrite(int connector, int value) {
@@ -141,7 +141,8 @@ public class GroveShieldV2EdisonImpl extends Hardware {
 
     
 	public void digitalWrite(int connector, int value) {
-	EdisonPinManager.digitalWrite(connector, value, EdisonGPIO.gpioLinuxPins);//maybe gpioOutputEnablePins or others (pick one)
+	    assert(0==value || 1==value);    
+	    EdisonPinManager.digitalWrite(connector, value, EdisonGPIO.gpioLinuxPins);
 	}
 	
     public void i2cSetClockLow() {

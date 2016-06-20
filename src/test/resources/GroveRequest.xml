@@ -7,14 +7,6 @@
      </uInt32>
      <uInt32 name="Value" id="112"/>
   </template>  
-    
-  <template name="DigitalSet" id="120"> 
-     <uInt32 name="Connector" id="111">
-     	<copy/>
-     </uInt32>
-     <uInt32 name="value" id="112"/>
-     <uInt32 name="Duration" id="113"/>
-  </template>  
    
   <template name="Block" id="220"> 
      <uInt32 name="Connector" id="111">
@@ -22,8 +14,20 @@
      </uInt32>
      <uInt32 name="Duration" id="113"/>
   </template>   
+  
+  <template name="I2CWrite" id="400"> 
+     <uInt32 name="MessageCount" id="410"/>
+     <!-- NOTE messages are not found here but on a different pipe, this is to ensure
+              A) Events are triggered in a fixed order as they are put on the pipe.
+              B) This pipe does not consume extra wasted space by unused blob.
+			  C) Supports zero copy of the pipe directly to the stage that will consume them
+      -->
+  </template> 
    
-   <!--  TODO: add send 'event' with byte payload.  this is to be sent on pipe to response back for ack that requests have been completed. -->
+   
+   <!--  TODO: add send 'event' with byte payload.  this is to be sent on pipe to response back for ack that requests have been completed. 
+   	     NOTE: we must not add any var fields here or the size of the pipe will grow to very large size
+   -->
    
   <template name="AnalogSet" id="140"> 
      <uInt32 name="Connector" id="141">

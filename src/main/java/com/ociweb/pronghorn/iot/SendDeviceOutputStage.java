@@ -35,7 +35,6 @@ public class SendDeviceOutputStage extends PronghornStage {
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);  
         
     }
-    
         
     
     @Override
@@ -129,15 +128,13 @@ public class SendDeviceOutputStage extends PronghornStage {
                     }
                     int duration = Pipe.takeValue(requestPipe); 
                     
-                    System.out.println("block "+connector+"  now "+now+" duration "+duration+" target time "+(now+duration));
-                    
                     blocker.until(connector, now + (long)duration);
                     
                     Pipe.confirmLowLevelRead(requestPipe, Pipe.sizeOf(requestPipe, msg));
                     Pipe.releaseReadLock(requestPipe);
-                    return;
+                    return;//TODO: it would be nice to remove this return (Nathan)
                 }   
-            //    break;
+                //break;
                 case GroveRequestSchema.MSG_ANALOGSET_140:
                 { 
                     int connector = Pipe.takeValue(requestPipe);
@@ -152,8 +149,17 @@ public class SendDeviceOutputStage extends PronghornStage {
     
                     
                 }   
-                break;    
-                        
+                break;   
+                case GroveRequestSchema.MSG_I2CWRITE_400:
+                {
+                   
+                    int msgCount = Pipe.takeValue(requestPipe); 
+                    
+                    //TODO: (ask Nathan about this before working, low priority) send message over to the I2CCommandStage that it should now consume msgCount commands
+                                        
+                    
+                }  
+                break;
             }
             
             Pipe.confirmLowLevelRead(requestPipe, Pipe.sizeOf(requestPipe, msg));

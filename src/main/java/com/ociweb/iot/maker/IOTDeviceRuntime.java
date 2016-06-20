@@ -21,6 +21,8 @@ import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
@@ -38,14 +40,19 @@ public class IOTDeviceRuntime {
     protected static Hardware config;
     
     private static GraphManager gm = new GraphManager();
+    
     private List<Pipe<GroveRequestSchema>> collectedRequestPipes = new ArrayList<Pipe<GroveRequestSchema>>();
+    private List<Pipe<I2CCommandSchema>> collectedI2CRequestPipes = new ArrayList<Pipe<I2CCommandSchema>>();
+    
     private List<Pipe<GroveResponseSchema>> collectedResponsePipes = new ArrayList<Pipe<GroveResponseSchema>>();
     
     
-    private PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 100,2000);
-  
+    private PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 128);
+    private PipeConfig<I2CCommandSchema> requestI2CPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 1024); //count should never be larger than requestPipeConfig
     
-    private PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 100);
+    private PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 64,1024);
+    
+    private PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);
     private PipeConfig<GroveResponseSchema> responsePipeConfig2x = responsePipeConfig.grow2x();
     
     private int SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
@@ -88,11 +95,16 @@ public class IOTDeviceRuntime {
                
         Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
         collectedRequestPipes.add(pipe);
-        return new RequestAdapter(pipe);//TODO: do I need to make this an unschedlued stage? or can we make graph support this??
+        Pipe<I2CCommandSchema> i2cPayloadPipe = null;
+        
+        if (config.configI2C) {
+            i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
+            collectedI2CRequestPipes.add(i2cPayloadPipe);
+        }               
+        
+        return new RequestAdapter(pipe, i2cPayloadPipe);
         
     }
-    
-
     
     public void addRESTSignature(int i, String string) {
 
@@ -177,9 +189,33 @@ public class IOTDeviceRuntime {
         //all the request pipes are passed into this single stage for modification of the hardware
         int s = collectedRequestPipes.size();   
         if (s>0) {
-            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
-                    new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config)
-            );
+            if (config.configI2C) {
+                //second pipe allows for zero copy use of this data.
+                
+                ///TODO: send payload to i2c stage
+                //  also send trigger pipe
+                
+                Pipe<I2CCommandSchema>[] i2cPipes = collectedI2CRequestPipes.toArray(new Pipe[s]);
+                
+                boolean usePureJava = true; //TODO: urgent, make this work when we turn this off.
+                
+                PronghornStage i2cStage;
+                if (usePureJava) {
+                    i2cStage = new PureJavaI2CStage(gm, i2cPipes, config);
+                } else {
+                    i2cStage = new I2CStage(gm, i2cPipes);
+                }
+                                
+                GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
+                        new SendDeviceOutputStage(gm, 
+                                collectedRequestPipes.toArray(new Pipe[s]), config)
+                );
+                
+            } else {            
+                GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
+                        new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config)
+                );
+            }
         }
         //all the registered listers are managed here.
         s = collectedResponsePipes.size();           
@@ -191,109 +227,11 @@ public class IOTDeviceRuntime {
       
         //Do not modfy the sleep of this object it is decided inernally by the config and devices plugged in.
         new ReadDeviceInputStage(gm,responsePipe,config);
-     
-        
-        ///////////////////
-        //////////////////
-        
-        
-//        if (config.configI2C) {
-//           config.beginPinConfiguration();
-//           
-//           
-//           
-//           config.configurePinsForI2C();
-//           config.endPinConfiguration();
-//           config.i2cClockOut();
-//           config.i2cDataOut();
-//           boolean temp = false;
-//           int i;
-//           i = 1100;
-//           while (--i>=0) { //force hot spot to optimize this call
-//               temp |= config.i2cReadClockBool();
-//               config.i2cSetClockHigh();//done last
-//           }
-//           pause();
-//           i = 1100;
-//           while (--i>=0) { //force hot spot to optimize this call
-//               temp |= config.i2cReadAck();
-//               temp |= config.i2cReadDataBool();
-//               config.i2cSetDataHigh();//done last
-//           }
-//           if (!temp) {
-//               throw new UnsupportedOperationException();
-//           }
-//           pause();
-//           
-//           
-//           
-//        } else {
-//            System.out.println("warning, i2s stage used but not turned on");
-//        }
-//        //starting in the known state where both are high
-//
-//          if (0==config.i2cReadClock() ) {
-//              throw new RuntimeException("expected clock to be high for start");
-//          }        
-//          if (0==config.i2cReadData() ) {
-//              throw new RuntimeException("expected data to be high for start");
-//          }
-        
-        /////////////////////////
-        /////////////////////////
-        //////////
-        //hack test for I2C
-        config.beginPinConfiguration();
-        config.configurePinsForI2C();
-        config.endPinConfiguration();
-        
-//        
-        PipeConfig<I2CCommandSchema> requestI2CConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 128);
-        
-        Pipe<I2CCommandSchema> i2cToBusPipe = new Pipe<I2CCommandSchema>(requestI2CConfig);
-
-        //Text.
-//        byte[] rawData = Grove_LCD_RGB.commandForText("GrovePi+ with\nPronghorn IoT <3");
-
-        //Random color.
-//        Random rand = new Random();
-//        byte[] rawData = Grove_LCD_RGB.commandForColor(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
-
-        //Purple.
-//        byte[] rawData = Grove_LCD_RGB.commandForColor(120, 25, 75);
-
-        //Random string list.
-        String[] randomStrings = {
-                "Edison with\nPronghorn IoT",
-                "Hello,\nPronghorn!",
-                "Embedded\nZulu Java",
-                "Hello,\nEdison!",
-                "I'm sorry Dave,\nI can't do that."
-        };
-
-        //Build command.
-        Random rand = new Random();
-        byte[] rawData = Grove_LCD_RGB.commandForTextAndColor(randomStrings[rand.nextInt(randomStrings.length)],
-                                                              rand.nextInt(256),
-                                                              rand.nextInt(256),
-                                                              rand.nextInt(256));
-
-        //Calculate chunk sizes; for now, we assume every chunk is 3 bytes long.
-        int[] chunkSizes = new int[rawData.length / 3];
-        for (int i = 0; i < chunkSizes.length; i++) chunkSizes[i] = 3;
-
-        //Pipe that data.
-       ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
-     //   I2CCommandStage cmd = new I2CCommandStage(gm, i2cToBusPipe);
-        
-      //  I2CStage i2cStage = new I2CStage(gm, i2cToBusPipe);
-        PureJavaI2CStage i2cStage = new PureJavaI2CStage(gm, new Pipe[]{i2cToBusPipe},config);
-        
-        //TODO: we can build a command line stage to use FSYS linux (but should not be trusted they do not work so well??)
-        // http://www.i-programmer.info/programming/hardware/9124-exploring-edison-i2c-bus.html?start=2 
-        
-        
+    
+          
     }
+
+
 
 
 

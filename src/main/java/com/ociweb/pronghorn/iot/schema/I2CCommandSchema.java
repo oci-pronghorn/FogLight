@@ -18,6 +18,7 @@ public class I2CCommandSchema extends RawDataSchema {
     
     public static final int MSG_COMMAND_1 = 0x00000000;
     public static final int MSG_COMMAND_1_FIELD_BYTEARRAY_2 = 0x01C00001;
+    
     public static final int MSG_SETDELAY_10 = 0x00000003;
     public static final int MSG_SETDELAY_10_FIELD_BEFOREBYTEOFFSET_12 = 0x00000001;
     public static final int MSG_SETDELAY_10_FIELD_DELAYINNANOSECONDS_13 = 0x00000002;

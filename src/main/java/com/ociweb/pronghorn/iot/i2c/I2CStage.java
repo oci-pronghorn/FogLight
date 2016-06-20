@@ -21,7 +21,7 @@ public class I2CStage extends PronghornStage {
     private static final int NS_PAUSE = 10*1000;
     private static final int MAX_CONFIGURABLE_BYTES = 16;
 
-    private final Pipe<I2CCommandSchema> request;
+    private final Pipe<I2CCommandSchema>[] requests;
     private I2CBacking backing;
 
     //Current byte buffer.
@@ -34,10 +34,10 @@ public class I2CStage extends PronghornStage {
     private int    bytesToSendMask;
     private int    bytesToSendReleaseSize;
     
-    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema> request) {
-        super(gm, request, NONE);
+    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] requests) {
+        super(gm, requests, NONE);
 
-        this.request = request;
+        this.requests = requests;
         
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, NS_PAUSE, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
@@ -72,6 +72,17 @@ public class I2CStage extends PronghornStage {
     
     @Override
     public void run() {
+        
+        int i = requests.length;
+        while (--i >= 0) {
+            consumePipe(requests[i]); //TODO: Nathan at some point we must stop these pipes from getting consumed until after we send a release message (low prority, make the i2c logic work first).
+        }
+        
+    }
+
+
+
+    private void consumePipe(Pipe<I2CCommandSchema> request) {
         //TODO: This logic can definitely be cleaned up.
         while (Pipe.hasContentToRead(request)) {
             //Verify message ID.

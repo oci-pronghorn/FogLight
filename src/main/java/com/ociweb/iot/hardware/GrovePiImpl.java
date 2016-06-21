@@ -46,7 +46,6 @@ public class GrovePiImpl extends Hardware {
 		this.readData = new ArrayList<byte[]>();
 	}
 
-<<<<<<< HEAD
 	public GrovePiImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
 			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
 		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
@@ -60,8 +59,7 @@ public class GrovePiImpl extends Hardware {
 		
 	}
 
-=======
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/PronghornIoT.git
+
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);
@@ -233,7 +231,7 @@ public class GrovePiImpl extends Hardware {
 		}     
 	}
 
-<<<<<<< HEAD
+
 //	public HardConnection[] buildUsedLines() {
 //
 //		
@@ -271,7 +269,7 @@ public class GrovePiImpl extends Hardware {
 //
 //		return result;
 //	}
-=======
+
 	public HardConnection[] buildUsedLines() {
 
 		HardConnection[] result = new HardConnection[digitalInputs.length+
@@ -308,7 +306,7 @@ public class GrovePiImpl extends Hardware {
 
 		return result;
 	}
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/PronghornIoT.git
+
 
 
 

@@ -118,6 +118,16 @@ public class IOTDeviceRuntime {
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
+    public void addStartupListener(StartupListener listener) {
+        
+        Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);
+        collectedResponsePipes.add(pipe);
+        
+        ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
+    }
+    
+    
     public void addAnalogListener(AnalogListener listener) {
        
         Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);

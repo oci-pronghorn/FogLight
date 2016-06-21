@@ -24,10 +24,9 @@ public class GroveShieldV2MockImpl extends Hardware {
         
     
     ThreadLocalRandom r = ThreadLocalRandom.current();
-    public GroveShieldV2MockImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
-            HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs,
-            HardConnection[] analogInputs) {
-        super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);        
+    
+    public GroveShieldV2MockImpl() {
+        super();
     }    
     
     public void addOptionalI2CBusSimulationPipe(Pipe<I2CBusSchema> pipe) {

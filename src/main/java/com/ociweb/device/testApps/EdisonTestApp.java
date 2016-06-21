@@ -35,18 +35,8 @@ public class EdisonTestApp {
         
     private static GraphManager gm = new GraphManager();
     
-    //TODO: Need an easy way to build this up, perhaps a fluent API.        
-    public static final Hardware config = new GrovePiImpl(
-           false, //publish time 
-           true,  //turn on I2C
-           new HardConnection[] {/*new GroveConnect(RotaryEncoder,2),new GroveConnect(RotaryEncoder,3)*/}, //rotary encoder 
-           new HardConnection[] {/*new GroveConnect(Button,0) ,new GroveConnect(MotionSensor,8)*/}, //7 should be avoided it can disrupt WiFi, button and motion 
-           new HardConnection[] {}, //for requests like do the buzzer on 4
-           new HardConnection[] {}, //for PWM requests //(only 3, 5, 6, 9, 10, 11) //3 here is D3
-           new HardConnection[] {//new GroveConnect(MoistureSensor,1), //1 here is A1
-                               //new GroveConnect(LightSensor,2) 
-                               //new GroveConnect(UVSensor,3)
-                              }, gm); //for analog sensors A0, A1, A2, A3
+           
+    public static final Hardware config = new GrovePiImpl(gm).useI2C();
     
     public static void main(String[] args) {
         

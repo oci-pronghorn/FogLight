@@ -136,17 +136,17 @@ public class ReadDeviceInputStage extends PronghornStage {
                             
         }
         
-        i = config.encoderInputs.length;
+        i = config.multiBitInputs.length;
         while (--i>=0) {
-            config.configurePinsForDigitalInput(config.encoderInputs[i].connection);
+            config.configurePinsForDigitalInput(config.multiBitInputs[i].connection);
             if (0!=(i&0x1)) {
-                if ((config.encoderInputs[i].connection!=(1+config.encoderInputs[i-1].connection)) ) {
+                if ((config.multiBitInputs[i].connection!=(1+config.multiBitInputs[i-1].connection)) ) {
                     throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");                    
                 }      
-                frequentScriptConn[frequentScriptLength] = config.encoderInputs[i].connection-1;
-                frequentScriptTwig[frequentScriptLength] = config.encoderInputs[i].twig;
+                frequentScriptConn[frequentScriptLength] = config.multiBitInputs[i].connection-1;
+                frequentScriptTwig[frequentScriptLength] = config.multiBitInputs[i].twig;
                 frequentScriptLength++; 
-                System.out.println("configured "+config.encoderInputs[i].twig+" on connection "+(config.encoderInputs[i].connection-1)+"/"+(config.encoderInputs[i].connection));
+                System.out.println("configured "+config.multiBitInputs[i].twig+" on connection "+(config.multiBitInputs[i].connection-1)+"/"+(config.multiBitInputs[i].connection));
                 
             }
         }                      

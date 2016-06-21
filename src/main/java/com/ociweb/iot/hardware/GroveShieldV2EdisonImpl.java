@@ -12,11 +12,6 @@ public class GroveShieldV2EdisonImpl extends Hardware {
     public GroveShieldV2EdisonImpl() {
         super();
     }
-    
-    public GroveShieldV2EdisonImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
-            HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs) {
-        super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
-    }
 
     public void coldSetup() {
         usedLines = buildUsedLines();
@@ -184,7 +179,7 @@ public class GroveShieldV2EdisonImpl extends Hardware {
     public HardConnection[] buildUsedLines() {
         
         HardConnection[] result = new HardConnection[digitalInputs.length+
-                                 encoderInputs.length+
+                                 multiBitInputs.length+
                                  digitalOutputs.length+
                                  pwmOutputs.length+
                                  analogInputs.length+
@@ -194,12 +189,12 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         System.arraycopy(digitalInputs, 0, result, pos, digitalInputs.length);
         pos+=digitalInputs.length;
         
-        if (0!=(encoderInputs.length&0x1)) {
+        if (0!=(multiBitInputs.length&0x1)) {
             throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");
         }
-        findDup(result,pos,encoderInputs, false);
-        System.arraycopy(encoderInputs, 0, result, pos, encoderInputs.length);
-        pos+=encoderInputs.length;
+        findDup(result,pos,multiBitInputs, false);
+        System.arraycopy(multiBitInputs, 0, result, pos, multiBitInputs.length);
+        pos+=multiBitInputs.length;
                 
         findDup(result,pos,digitalOutputs, false);
         System.arraycopy(digitalOutputs, 0, result, pos, digitalOutputs.length);

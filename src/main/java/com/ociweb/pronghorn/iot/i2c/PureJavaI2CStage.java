@@ -151,7 +151,7 @@ public class PureJavaI2CStage extends PronghornStage {
               throw new RuntimeException("expected data to be high for start");
           }
 
-      config.lastTime = startTime = System.nanoTime();
+      config.debugI2CRateLastTime = startTime = System.nanoTime();
       startTime = System.nanoTime();
     }
 

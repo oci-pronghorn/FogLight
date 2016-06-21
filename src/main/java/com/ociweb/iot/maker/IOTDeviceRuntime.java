@@ -2,16 +2,15 @@ package com.ociweb.iot.maker;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.grove.device.Grove_LCD_RGB;
 import com.ociweb.iot.hardware.GrovePiImpl;
 import com.ociweb.iot.hardware.GroveShieldV2EdisonImpl;
 import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.SendDeviceOutputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
@@ -21,12 +20,10 @@ import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
-import com.ociweb.pronghorn.stage.test.ByteArrayProducerStage;
 
 public class IOTDeviceRuntime {
 
@@ -157,9 +154,14 @@ public class IOTDeviceRuntime {
             stage = new ReactiveListenerStage(gm, listener, pipe, restPipe);
             
         } else {
-        
-        
+                
             stage = new ReactiveListenerStage(gm, listener, pipe);
+        }
+        
+        //if we have a time event turn it on.
+        long rate = config.getTriggerRate();
+        if (rate>0) {
+            stage.setTimeEventSchedule(rate);
         }
         
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);

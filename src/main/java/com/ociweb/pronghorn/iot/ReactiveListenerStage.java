@@ -1,5 +1,11 @@
-package com.ociweb.iot.maker;
+package com.ociweb.pronghorn.iot;
 
+import com.ociweb.iot.maker.AnalogListener;
+import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.RestListener;
+import com.ociweb.iot.maker.RotaryListener;
+import com.ociweb.iot.maker.StartupListener;
+import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -8,18 +14,23 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class ReactiveListenerStage extends PronghornStage {
 
-    private final Object listener;
+    private final Object              listener;
     private Pipe<GroveResponseSchema> groveResponsePipe;
     private Pipe<?>                   restResponsePipes;
     
+    private long                      timeTrigger;
+    private long                      timeRate;
     
-    protected ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes) {
+    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes) {
+        
         super(graphManager, groveResponsePipes, NONE);
         this.listener = listener;
         this.groveResponsePipe = groveResponsePipes;    
+                
     }
     
-    protected ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes, Pipe restResponsePipes) {
+    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes, Pipe restResponsePipes) {
+        
         super(graphManager, new Pipe[]{groveResponsePipes, restResponsePipes}, NONE);
         this.listener = listener;
         this.groveResponsePipe = groveResponsePipes;    
@@ -29,17 +40,44 @@ public class ReactiveListenerStage extends PronghornStage {
         
     }
 
+    public void setTimeEventSchedule(long rate) {
+        
+        timeRate = rate;
+        long now = System.currentTimeMillis();
+        if (timeTrigger <= now) {
+            timeTrigger = now + timeRate;
+        }
+        
+    }
+    
+    @Override
+    public void startup() {
+        if (listener instanceof StartupListener) {
+            ((StartupListener)listener).startup();
+        }
+    }
+    
     @Override
     public void run() {
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         consumeResponseMessage(listener, groveResponsePipe);
         consumeRestMessage(listener, restResponsePipes);
+        processTimeEvents(listener);
         
-        
-        //if additional array sources are added then processors will go here for those pipe arrays
-         
-        
+    }
+
+    private void processTimeEvents(Object listener) {
+        //if we do have a clock schedule
+        if (0 != timeRate) {
+            long now = System.currentTimeMillis();
+            if (now >= timeTrigger) {
+                if (listener instanceof TimeListener) {
+                    ((TimeListener)listener).timeEvent(now);
+                    timeTrigger = now + timeRate;
+                }
+            }
+        }
     }
 
     private void consumeRestMessage(Object listener2, Pipe<?> p) {

@@ -216,7 +216,7 @@ public class IOTDeviceRuntime {
                 
                 Pipe<I2CCommandSchema>[] i2cPipes = collectedI2CRequestPipes.toArray(new Pipe[s]);
                 
-                boolean usePureJava = false; //TODO: urgent, make this work when we turn this off.
+                boolean usePureJava = true; //TODO: urgent, make this work when we turn this off.
                 
                 PronghornStage i2cStage;
                 if (usePureJava) {

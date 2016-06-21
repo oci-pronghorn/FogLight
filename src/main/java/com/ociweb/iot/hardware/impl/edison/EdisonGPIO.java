@@ -183,7 +183,7 @@ public class EdisonGPIO {
     
     //is only supported at 18/19,  Note this disables use of A4 and A5
     public static void configI2C() {
-    	boolean runJava = false;
+    	boolean runJava = true;
     	
     	if (runJava) {
         gpioPinMux.setDirectionLow(18);

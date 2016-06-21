@@ -1,7 +1,5 @@
 package com.ociweb.device.testApps;
 
-import static com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager.lookupFieldLocator;
-import static com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager.lookupTemplateLocator;
 import static com.ociweb.pronghorn.pipe.PipeWriter.publishWrites;
 import static com.ociweb.pronghorn.pipe.PipeWriter.tryWriteFragment;
 import static com.ociweb.pronghorn.pipe.PipeWriter.writeASCII;
@@ -32,31 +30,28 @@ import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 
 public class JFFITestStage extends PronghornStage {
 
-	private final Pipe toConfig;
-	private final Pipe fromConfig;
+	private final Pipe<RawDataSchema> toHardware;
+	private final Pipe<RawDataSchema> fromHardware;
 
-	private final FieldReferenceOffsetManager FROMToConfig;
-	private final DataOutputBlobWriter writer;
+	private DataOutputBlobWriter<RawDataSchema> writer;
 
-	private final FieldReferenceOffsetManager FROMFromJFFI;
-	private final DataInputBlobReader reader;
+	private DataInputBlobReader<RawDataSchema> reader;
 
 	private static final Logger logger = LoggerFactory.getLogger(JFFITestStage.class);
 
-	private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking();
+	private static I2CNativeLinuxBacking i2c;
 
-	public JFFITestStage(GraphManager graphManager, Pipe<RawDataSchema> fromConfig, Pipe<RawDataSchema> toConfig) {
-		super(graphManager, NONE, toConfig);
+	public JFFITestStage(GraphManager graphManager, Pipe<RawDataSchema> fromHardware, Pipe<RawDataSchema> toHardware) {
+		super(graphManager, NONE, toHardware);
 
 		////////
 		//STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
-		this.toConfig = toConfig;
-		this.fromConfig = fromConfig;
-		this.FROMToConfig = Pipe.from(toConfig);
-		this.writer = new DataOutputBlobWriter(toConfig);
-		this.FROMFromJFFI = Pipe.from(fromConfig);
-		this.reader = new DataInputBlobReader(fromConfig);
+		this.toHardware = toHardware;
+		this.fromHardware = fromHardware;
+		this.writer = null;
+		this.reader = null;
+		this.i2c = null;
 
 	}
 
@@ -72,19 +67,41 @@ public class JFFITestStage extends PronghornStage {
 		}
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
 		super.startup();
+		System.out.println("JFFI Stage setup successful");
 	}
 
-
+	private I2CNativeLinuxBacking getI2C(){
+		if(i2c == null){
+			this.i2c = new I2CNativeLinuxBacking();
+		}
+		return this.i2c;
+	}
+	private DataOutputBlobWriter<RawDataSchema> getWriter(){
+    	//assert Pipe.isInit(toHardware);
+		if(null == writer){
+    		this.writer = new DataOutputBlobWriter<RawDataSchema>(toHardware);
+    	}
+    	return writer;
+    }
+	private DataInputBlobReader<RawDataSchema> getReader(){
+    	if(null == reader){
+    		this.reader = new DataInputBlobReader<RawDataSchema>(fromHardware);
+    	}
+    	return reader;
+    }
 
 	@Override
 	public void run() { //message: {address, package size, bytes to be read, package[]}
 		byte addr = 0x00;
 		byte readBytes = 0x00;
 		byte data[] = {};
-		while (PipeReader.tryReadFragment(fromConfig)) {		
+		I2CNativeLinuxBacking i2c = getI2C();
+		DataOutputBlobWriter<RawDataSchema> writer = getWriter();
+		DataInputBlobReader<RawDataSchema> reader = getReader();
+		while (PipeReader.tryReadFragment(fromHardware)) {		
 
-			assert(PipeReader.isNewMessage(fromConfig)) : "This test should only have one simple message made up of one fragment";
-			int msgIdx = PipeReader.getMsgIdx(fromConfig);
+			assert(PipeReader.isNewMessage(fromHardware)) : "This test should only have one simple message made up of one fragment";
+			int msgIdx = PipeReader.getMsgIdx(fromHardware);
 			
 			if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
 				reader.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
@@ -108,12 +125,12 @@ public class JFFITestStage extends PronghornStage {
 				logger.error(e.getMessage(), e);
 			}
 
-			PipeReader.releaseReadLock(fromConfig);
+			PipeReader.releaseReadLock(fromHardware);
 		} 
 		
 		if(readBytes>0){
 			byte[] readData = i2c.read(addr, readBytes);
-			while (tryWriteFragment(toConfig, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+			while (tryWriteFragment(toHardware, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 				DataOutputBlobWriter.openField(writer);
 				try {
 					for (int i = 0; i < readData.length; i++) {
@@ -124,9 +141,10 @@ public class JFFITestStage extends PronghornStage {
 				}
 
 				DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-				publishWrites(toConfig);
+				publishWrites(toHardware);
 			}
 		}
+		System.out.println("JFFI Stage run successful");
 	}
 
 	@Override

@@ -16,29 +16,23 @@ import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GrovePiImpl extends Hardware {
 
-	private HardConnection[] usedLines;
+	private PipeConfig<RawDataSchema> toJFFIConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+	private PipeConfig<RawDataSchema> fromJFFIConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+	public Pipe<RawDataSchema> toJFFI;
+	public Pipe<RawDataSchema> fromJFFI;
+	
+	
 
-	public Pipe toJFFI;
-	public Pipe fromJFFI;
+    private DataOutputBlobWriter<RawDataSchema> writer;
 
-	private final FieldReferenceOffsetManager FROMToJFFI = Pipe.from(toJFFI); 
-//	  TODO: Exception in thread "main" java.lang.NullPointerException
-//    at com.ociweb.pronghorn.pipe.Pipe.from(Pipe.java:2603)
-//    at com.ociweb.device.config.grovepi.GrovePiConfiguration.<init>(GrovePiConfiguration.java:35)
-//    at com.ociweb.device.impl.graph.IOTDeviceRuntime.getHarwareConfig(IOTDeviceRuntime.java:65)
-//    at com.ociweb.pronghorn.iot.Demo.<init>(Demo.java:20)
-//    at com.ociweb.pronghorn.iot.Demo.main(Demo.java:36)
-
-    private final DataOutputBlobWriter writer = new DataOutputBlobWriter(toJFFI);
-
-	private final FieldReferenceOffsetManager FROMFromJFFI = Pipe.from(fromJFFI);
-	private final DataInputBlobReader reader = new DataInputBlobReader(fromJFFI);
+	private DataInputBlobReader<RawDataSchema> reader;
 
 	private JFFITestStage jffiTestStage;
 
@@ -46,6 +40,8 @@ public class GrovePiImpl extends Hardware {
 
 	public GrovePiImpl(GraphManager gm) {
 		super();
+		this.toJFFI = new Pipe(toJFFIConfig);
+		this.fromJFFI = new Pipe(fromJFFIConfig);
 		this.jffiTestStage= new JFFITestStage(gm, toJFFI, fromJFFI);
 	}
 
@@ -53,6 +49,7 @@ public class GrovePiImpl extends Hardware {
 			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
 		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
 		this.jffiTestStage= new JFFITestStage(gm, toJFFI, fromJFFI);
+		
 	}
 
 	public void coldSetup() {
@@ -85,38 +82,47 @@ public class GrovePiImpl extends Hardware {
     }
 
 	public void configurePinsForI2C() {
-		GrovePiGPIO.configI2C();
+//		GrovePiGPIO.configI2C();
+		System.out.println("No config needed");
 	}
 
 	public void i2cDataIn() {
-		GrovePiGPIO.configI2CDataIn();
+//		GrovePiGPIO.configI2CDataIn();
+		System.out.println("Pure Java I2c not currently supported on Pi");
 	}
 
 	public void i2cDataOut() {
-		GrovePiGPIO.configI2CDataOut();
+		//GrovePiGPIO.configI2CDataOut();
+		System.out.println("Pure Java I2c not currently supported on Pi");
 	}
 
 	public void i2cClockIn() {
-		GrovePiGPIO.configI2CClockIn();
+		//GrovePiGPIO.configI2CClockIn();
+		System.out.println("Pure Java I2c not currently supported on Pi");
 	}
 
 	public void i2cClockOut() {
-		GrovePiGPIO.configI2CClockOut();
+		//GrovePiGPIO.configI2CClockOut();
+		System.out.println("Pure Java I2c not currently supported on Pi");
 	}
 
 	public boolean i2cReadAck() {
-		boolean ack;
-		int voltage = analogRead(GrovePiConstants.DATA_RAW_VOLTAGE);
-		ack = voltage<GrovePiConstants.HIGH_LINE_VOLTAGE_MARK;
-		if (!ack) {    
-			System.err.println("ack value "+ack+" "+Integer.toBinaryString(voltage));
-		}
-		return ack;
+//		boolean ack;
+//		int voltage = analogRead(GrovePiConstants.DATA_RAW_VOLTAGE);
+//		ack = voltage<GrovePiConstants.HIGH_LINE_VOLTAGE_MARK;
+//		if (!ack) {    
+//			System.err.println("ack value "+ack+" "+Integer.toBinaryString(voltage));
+//		}
+//		return ack;
+		System.out.println("Pure Java I2c not currently supported on Pi");
+		return true;
 	}
 
 	@Override
 	public boolean i2cReadClockBool() {
-		return i2cReadClock() == 0; //TODO: 0 or 1 for HI?
+		//return i2cReadClock() == 0; //TODO: 0 or 1 for HI?
+		System.out.println("Pure Java I2c not currently supported on Pi");
+		return false;
 	}
 
 	public void beginPinConfiguration() {
@@ -131,6 +137,8 @@ public class GrovePiImpl extends Hardware {
 		int temp = 0;
 		if(connector>1000){ //for grove add 1000 to pin numbers
 			connector -= 1000;
+			DataInputBlobReader<RawDataSchema> reader = getReader();
+			DataOutputBlobWriter<RawDataSchema> writer = getWriter();
 			byte[] message = {0x04, 0x05, 0x01, 0x01, 0x01, (byte) connector, 0x00, 0x00}; //address, package size, returnBytes, package[]
 			while (tryWriteFragment(toJFFI, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 
@@ -177,7 +185,8 @@ public class GrovePiImpl extends Hardware {
 
 	//TODO: Since there's no ADC built into the Pi, we can only read HI or LO.
 	public int analogRead(int connector) {
-		return GrovePiPinManager.digitalRead(connector);
+		//return GrovePiPinManager.digitalRead(connector);
+		return 0; //TODO: add JFFI support
 	}
 	
 
@@ -188,17 +197,29 @@ public class GrovePiImpl extends Hardware {
         // GrovePiPinManager.analogWrite(connector,value);
         
     }
-
+    private DataOutputBlobWriter<RawDataSchema> getWriter(){
+    	if(null == writer){
+    		this.writer = new DataOutputBlobWriter<RawDataSchema>(toJFFI);
+    	}
+    	return writer;
+    }
+    private DataInputBlobReader<RawDataSchema> getReader(){
+    	if(null == reader){
+    		this.reader = new DataInputBlobReader<RawDataSchema>(fromJFFI);
+    	}
+    	return reader;
+    }
 
 	//Now using the JFFI stage
 	public void digitalWrite(int connector, int value) {
 		if(connector>1000){ //for grove add 1000 to pin numbers
 			connector -= 1000;
+			DataOutputBlobWriter<RawDataSchema> writer = getWriter();
 			byte[] message = {0x04, 0x05, 0x00, 0x01, 0x02, (byte) connector, (byte) value, 0x00}; //address, package size, returnBytes, package[]
 			while (tryWriteFragment(toJFFI, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 				DataOutputBlobWriter.openField(writer);
 				try {
-					writer.writeByte((byte)0x04);
+					writer.writeByteArray(message);
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -212,32 +233,40 @@ public class GrovePiImpl extends Hardware {
 
 	//TODO: Is it right to config them as outputs before writing?
 	public void i2cSetClockLow() {
-		GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_CLOCK);
-		GrovePiPinManager.writeValue(GrovePiPinManager.I2C_CLOCK, GrovePiPinManager.I2C_LOW, GrovePiGPIO.gpioLinuxPins);
+//		GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_CLOCK);
+//		GrovePiPinManager.writeValue(GrovePiPinManager.I2C_CLOCK, GrovePiPinManager.I2C_LOW, GrovePiGPIO.gpioLinuxPins);
+		System.out.println("Pure Java I2c not currently supported on Pi");
 	}
 
 	public void i2cSetClockHigh() {
-		GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_CLOCK);
-		GrovePiPinManager.writeValue(GrovePiPinManager.I2C_CLOCK, GrovePiPinManager.I2C_HIGH, GrovePiGPIO.gpioLinuxPins);
+//		GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_CLOCK);
+//		GrovePiPinManager.writeValue(GrovePiPinManager.I2C_CLOCK, GrovePiPinManager.I2C_HIGH, GrovePiGPIO.gpioLinuxPins);
+		System.out.println("Pure Java I2c not currently supported on Pi");
 	}
 
 	public void i2cSetDataLow() {
-		GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_DATA);
-		GrovePiPinManager.writeValue(GrovePiPinManager.I2C_DATA, GrovePiPinManager.I2C_LOW, GrovePiGPIO.gpioLinuxPins);
+//		GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_DATA);
+//		GrovePiPinManager.writeValue(GrovePiPinManager.I2C_DATA, GrovePiPinManager.I2C_LOW, GrovePiGPIO.gpioLinuxPins);
+		System.out.println("Pure Java I2c not currently supported on Pi");
 	}
 
 	public void i2cSetDataHigh() {
-		GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_DATA);
-		GrovePiPinManager.writeValue(GrovePiPinManager.I2C_DATA, GrovePiPinManager.I2C_HIGH, GrovePiGPIO.gpioLinuxPins);
+//		GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_DATA);
+//		GrovePiPinManager.writeValue(GrovePiPinManager.I2C_DATA, GrovePiPinManager.I2C_HIGH, GrovePiGPIO.gpioLinuxPins);
+		System.out.println("Pure Java I2c not currently supported on Pi");
 	}
 
 	public int i2cReadData() {
-		return digitalRead(GrovePiPinManager.I2C_DATA);
+		System.out.println("Pure Java I2c not currently supported on Pi");
+		//return digitalRead(GrovePiPinManager.I2C_DATA);
+		return -1;
 	}
 	public boolean i2cReadDataBool() { return false; } //TODO:
 
 	public int i2cReadClock() {
-		return digitalRead(GrovePiPinManager.I2C_CLOCK);
+		System.out.println("Pure Java I2c not currently supported on Pi");
+		//return digitalRead(GrovePiPinManager.I2C_CLOCK);
+		return -1;
 	}
 
 	static void findDup(HardConnection[] base, int baseLimit, HardConnection[] items, boolean mapAnalogs) {

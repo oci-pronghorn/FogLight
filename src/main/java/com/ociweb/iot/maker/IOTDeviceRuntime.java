@@ -72,7 +72,12 @@ public class IOTDeviceRuntime {
             String osversion  =System.getProperty("os.version");
  
             boolean isEdison = ( osversion.toLowerCase().indexOf("edison") != -1 );
-            boolean isPi     = ( osversion.toLowerCase().indexOf("raspbian") != -1);
+            boolean isPi     = ( osversion.toLowerCase().indexOf("raspbian") != -1); //does not work on Pi
+            
+            if(!isEdison){
+            	isPi = true; //for testing on the Pi for now
+            	System.out.println("Device detection for Pi does not work. Defaulting to Pi Hardware for now");
+            }
             
             if (!isEdison && !isPi) {
                 logger.error("Unable to detect hardware : {}",osversion);

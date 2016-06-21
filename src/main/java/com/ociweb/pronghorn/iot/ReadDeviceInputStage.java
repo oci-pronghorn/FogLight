@@ -92,9 +92,7 @@ public class ReadDeviceInputStage extends PronghornStage {
         
         //before we setup the pins they must start in a known state
         //this is required for the ATD converters (eg any analog port usage)
-        
-              
-        
+                
         
         byte sliceCount = 0;
         
@@ -109,8 +107,9 @@ public class ReadDeviceInputStage extends PronghornStage {
             config.configurePinsForAnalogInput(config.analogInputs[i].connection);
                         
             int idx = Util.reverseBits(sliceCount++);
-            scriptConn[idx]=config.analogInputs[i].connection;
-            scriptTask[idx]=DO_INT_READ;
+            scriptConn[idx] = config.analogInputs[i].connection;
+            
+            scriptTask[idx] = DO_INT_READ;
             scriptTwig[idx] = config.analogInputs[i].twig;
             System.out.println("configured "+config.analogInputs[i].twig+" on connection "+config.analogInputs[i].connection);
   
@@ -123,29 +122,31 @@ public class ReadDeviceInputStage extends PronghornStage {
             
             if (twig == GroveTwig.Button) {                    
                 frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection;
+                
                 frequentScriptTwig[frequentScriptLength] = twig;                           
                 frequentScriptLength++; 
             } else {                               
                 int idx = Util.reverseBits(sliceCount++);
-                scriptConn[idx]=config.digitalInputs[i].connection;
-                scriptTask[idx]=DO_BIT_READ;
+                scriptConn[idx] = config.digitalInputs[i].connection;
+                
+                scriptTask[idx] = DO_BIT_READ;
                 scriptTwig[idx] = twig;                    
             }
             System.out.println("configured "+twig+" on connection "+config.digitalInputs[i].connection);
                             
         }
         
-        i = config.encoderInputs.length;
+        i = config.multiBitInputs.length;
         while (--i>=0) {
-            config.configurePinsForDigitalInput(config.encoderInputs[i].connection);
+            config.configurePinsForDigitalInput(config.multiBitInputs[i].connection);
             if (0!=(i&0x1)) {
-                if ((config.encoderInputs[i].connection!=(1+config.encoderInputs[i-1].connection)) ) {
+                if ((config.multiBitInputs[i].connection!=(1+config.multiBitInputs[i-1].connection)) ) {
                     throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");                    
                 }      
-                frequentScriptConn[frequentScriptLength] = config.encoderInputs[i].connection-1;
-                frequentScriptTwig[frequentScriptLength] = config.encoderInputs[i].twig;
+                frequentScriptConn[frequentScriptLength] = config.multiBitInputs[i].connection-1;
+                frequentScriptTwig[frequentScriptLength] = config.multiBitInputs[i].twig;
                 frequentScriptLength++; 
-                System.out.println("configured "+config.encoderInputs[i].twig+" on connection "+(config.encoderInputs[i].connection-1)+"/"+(config.encoderInputs[i].connection));
+                System.out.println("configured "+config.multiBitInputs[i].twig+" on connection "+(config.multiBitInputs[i].connection-1)+"/"+(config.multiBitInputs[i].connection));
                 
             }
         }                      
@@ -161,15 +162,6 @@ public class ReadDeviceInputStage extends PronghornStage {
     @Override
     public void run() {
         cycles++; 
-        
-        if (config.publishTime) {
-            int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_TIME_10);
-            Pipe.addLongValue(System.currentTimeMillis(), responsePipe);
-            Pipe.publishWrites(responsePipe);
-            Pipe.confirmLowLevelWrite(responsePipe, size);
-        }
-        
-        
         
         //These are the sensors we must check on every single pass
         //TODO: should refactor so this is part of the Twig interface and we need not hard code.
@@ -241,7 +233,7 @@ public class ReadDeviceInputStage extends PronghornStage {
             
         if (frequentScriptLastPublished[j]!=rotationState[j] && Pipe.hasRoomForWrite(responsePipe)) {
             int speed = (int)Math.min( (cycles - rotationLastCycle[j]), Integer.MAX_VALUE);
-            frequentScriptTwig[j].writeRotation(responsePipe, connector, rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
+            frequentScriptTwig[j].writeRotation(responsePipe, connector, System.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
                        
             frequentScriptLastPublished[j] = rotationState[j];
             rotationLastCycle[j] = cycles;
@@ -253,7 +245,7 @@ public class ReadDeviceInputStage extends PronghornStage {
         //read and xmit
         int fieldValue = config.digitalRead(connector);
         if (frequentScriptLastPublished[j]!=fieldValue && Pipe.hasRoomForWrite(responsePipe)) {                        
-            frequentScriptTwig[j].writeBit(responsePipe, connector, fieldValue);
+            frequentScriptTwig[j].writeBit(responsePipe, connector, System.currentTimeMillis(), fieldValue);
             frequentScriptLastPublished[j]=fieldValue;
         } else {
             //tossing fieldValue but this could be saved to send on next call.
@@ -283,7 +275,7 @@ public class ReadDeviceInputStage extends PronghornStage {
              int sendTrigger = useAverageAsTrigger ? avg : intValue;
              
              if (lastPublished[doit] != sendTrigger && Pipe.hasRoomForWrite(responsePipe)) {
-                 scriptTwig[doit].writeInt(responsePipe, connector, intValue, avg);
+                 scriptTwig[doit].writeInt(responsePipe, connector, System.currentTimeMillis(), intValue, avg);
                  int j = maTotal-1;
                  while (--j>0) {//must stop before zero because we do copy from previous lower index.
                      movingAverageHistory[j][doit]=movingAverageHistory[j-1][doit];                     
@@ -303,7 +295,7 @@ public class ReadDeviceInputStage extends PronghornStage {
               int connector = scriptConn[doit];
               int fieldValue = config.digitalRead(connector);
               if (lastPublished[doit]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                  
-                  scriptTwig[doit].writeBit(responsePipe, connector, fieldValue);                  
+                  scriptTwig[doit].writeBit(responsePipe, connector, System.currentTimeMillis(), fieldValue);                  
                   lastPublished[doit]=fieldValue;                          
               } else {
                   //tossing fieldValue but this could be saved to send on next call.

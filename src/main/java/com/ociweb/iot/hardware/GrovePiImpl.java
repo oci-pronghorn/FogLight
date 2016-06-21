@@ -23,6 +23,8 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GrovePiImpl extends Hardware {
 
+	private HardConnection[] usedLines;
+	
 	private PipeConfig<RawDataSchema> toJFFIConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
 	private PipeConfig<RawDataSchema> fromJFFIConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
 	public Pipe<RawDataSchema> toJFFI;

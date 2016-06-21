@@ -8,9 +8,10 @@ public enum GroveTwig implements IODevice {
 
     UVSensor(){
         @Override
-        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue, int average) {
+        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ANALOGSAMPLE_30);
             Pipe.addIntValue(connector, responsePipe);
+            Pipe.addLongValue(time, responsePipe);
             Pipe.addIntValue(intValue, responsePipe);
             Pipe.addIntValue(average, responsePipe);
             Pipe.publishWrites(responsePipe);
@@ -24,9 +25,10 @@ public enum GroveTwig implements IODevice {
     },
     LightSensor(){
         @Override
-        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue, int average) {
+        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ANALOGSAMPLE_30);
             Pipe.addIntValue(connector, responsePipe);
+            Pipe.addLongValue(time, responsePipe);
             Pipe.addIntValue(intValue, responsePipe);
             Pipe.addIntValue(average, responsePipe);
             Pipe.publishWrites(responsePipe);
@@ -40,9 +42,10 @@ public enum GroveTwig implements IODevice {
     },
     MoistureSensor(){
         @Override
-        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue, int average) {
+        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ANALOGSAMPLE_30);
             Pipe.addIntValue(connector, responsePipe);
+            Pipe.addLongValue(time, responsePipe);
             Pipe.addIntValue(intValue, responsePipe);
             Pipe.addIntValue(average, responsePipe);
             Pipe.publishWrites(responsePipe);
@@ -56,9 +59,10 @@ public enum GroveTwig implements IODevice {
     },
     Button() {
         @Override
-        public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, int bitValue) {
+        public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_DIGITALSAMPLE_20);
             Pipe.addIntValue(connector, responsePipe);
+            Pipe.addLongValue(time, responsePipe);
             Pipe.addIntValue(bitValue, responsePipe);
             Pipe.publishWrites(responsePipe);
             Pipe.confirmLowLevelWrite(responsePipe, size);
@@ -72,9 +76,10 @@ public enum GroveTwig implements IODevice {
     },
     MotionSensor(){
         @Override
-        public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, int bitValue) {
+        public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
             int size = Pipe.addMsgIdx(responsePipe,GroveResponseSchema.MSG_DIGITALSAMPLE_20);
             Pipe.addIntValue(connector, responsePipe);
+            Pipe.addLongValue(time, responsePipe);
             Pipe.addIntValue(bitValue, responsePipe);
             Pipe.publishWrites(responsePipe);
             Pipe.confirmLowLevelWrite(responsePipe, size);
@@ -87,9 +92,10 @@ public enum GroveTwig implements IODevice {
     },
     RotaryEncoder() {
         @Override
-        public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, int value, int delta, int speed) {            
+        public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int value, int delta, int speed) {            
             int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ENCODER_70);
             Pipe.addIntValue(connector, responsePipe);
+            Pipe.addLongValue(time, responsePipe);
             Pipe.addIntValue(value, responsePipe);
             Pipe.addIntValue(delta, responsePipe);            
             Pipe.addIntValue(speed, responsePipe);
@@ -152,17 +158,17 @@ public enum GroveTwig implements IODevice {
     
     
 
-    public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, int bitValue) {
+    public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
        System.err.println(this);
        throw new UnsupportedOperationException();
     }
 
-    public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, int intValue, int average) {
+    public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
         System.err.println(this);
         throw new UnsupportedOperationException();
     }
 
-    public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, int value, int delta, int speed) {
+    public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int value, int delta, int speed) {
         System.err.println(this);
         throw new UnsupportedOperationException();
     }

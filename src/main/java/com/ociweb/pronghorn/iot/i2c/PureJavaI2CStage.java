@@ -73,7 +73,7 @@ public class PureJavaI2CStage extends PronghornStage {
 
         //NOTE: this assumes the scheduler will never get aggressive an will always respect the call rate
         //      even when a call to run is longer than the requested period.
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, NS_PAUSE, this);
+  //      GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, NS_PAUSE, this); //NOTE: slower limit is not needed on EDISON since we can not go that fast.
         
         
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
@@ -151,7 +151,7 @@ public class PureJavaI2CStage extends PronghornStage {
               throw new RuntimeException("expected data to be high for start");
           }
 
-      config.lastTime = startTime = System.nanoTime();
+      config.debugI2CRateLastTime = startTime = System.nanoTime();
       startTime = System.nanoTime();
     }
 

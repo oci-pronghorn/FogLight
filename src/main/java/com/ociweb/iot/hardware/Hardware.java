@@ -15,7 +15,10 @@ public abstract class Hardware {
     private static final HardConnection[] EMPTY = new HardConnection[0];
     
     public boolean configI2C;       //Humidity, LCD need I2C address so..
-    public HardConnection[] encoderInputs; //Rotary Encoder
+    public long debugI2CRateLastTime;
+    
+    public HardConnection[] multiBitInputs; //Rotary Encoder, and similar
+    public HardConnection[] multiBitOutputs;//Some output that takes more than 1 bit
     
     public HardConnection[] digitalInputs; //Button, Motion
     public HardConnection[] digitalOutputs;//Relay Buzzer
@@ -23,8 +26,7 @@ public abstract class Hardware {
     public HardConnection[] analogInputs;  //Light, UV, Moisture
     public HardConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     
-    public boolean publishTime;
-    public long lastTime;
+    private long timeTriggerRate;
     
     public GraphManager gm;
     
@@ -39,14 +41,13 @@ public abstract class Hardware {
         this(false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
     }
     
-    public Hardware(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
+    private Hardware(boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
             HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs) {
         
-        this.publishTime = publishTime;
         this.configI2C = configI2C;
-        this.encoderInputs = encoderInputs; //TODO: rename as multi digital
-        
-        
+        this.multiBitInputs = multiDigitalInput; 
+        //TODO: add multiBitOutputs and support for this new array
+                
         this.digitalInputs = digitalInputs;
         this.digitalOutputs = digitalOutputs;
         this.pwmOutputs = pwmOutputs;
@@ -102,26 +103,29 @@ public abstract class Hardware {
         if (t.isInput()) {
             assert(!t.isOutput());
             for(int con:connections) {
-                encoderInputs = growConnections(encoderInputs, new HardConnection(t,con));
+                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con));
             }
             
           System.out.println("connections "+Arrays.toString(connections));  
-          System.out.println("Encoder here "+Arrays.toString(encoderInputs));  
+          System.out.println("Encoder here "+Arrays.toString(multiBitInputs));  
             
         } else {
-            throw new UnsupportedOperationException("TODO: finish this implementation");
-//            assert(t.isOutput());
-//            for(int con:connections) {
-//                encoderOutputs = growConnections(encoderOutputs, new GroveConnect(t,con));
-//            }
+            assert(t.isOutput());
+            for(int con:connections) {
+                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con));
+            }
         }
         return this;
         
     }  
     
-    public Hardware useTime(int rate) {
-        this.publishTime = true; //TODO: add support for time rate.
+    public Hardware useTriggerRate(long rateInMS) {
+        timeTriggerRate = rateInMS;
         return this;
+    }
+    
+    public long getTriggerRate() {
+        return timeTriggerRate;
     }
     
     public Hardware useI2C() {
@@ -188,7 +192,7 @@ public abstract class Hardware {
         
             long now = System.nanoTime();
     
-            long duration = now-lastTime;
+            long duration = now-debugI2CRateLastTime;
             if (duration<PureJavaI2CStage.NS_PAUSE) {
                 System.err.println("calling I2C too fast");
             }
@@ -197,7 +201,7 @@ public abstract class Hardware {
             } else if (duration> 1_000_000 /*20_000_000*/) {
                 System.err.println("warning calling I2C too slow "+duration+". next is "+taskAtHand+":"+stepAtHand);
             }
-            lastTime = System.nanoTime();//use new time because we must avoid recording our log message in the duration time.
+            debugI2CRateLastTime = System.nanoTime();//use new time because we must avoid recording our log message in the duration time.
         }
     }
 

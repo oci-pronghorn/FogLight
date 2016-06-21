@@ -1,28 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
     
-   <template name="Time" id="10">
-     <uInt64 name="Value" id="11"/>
-   </template>  
+   <!-- each is connector then time then fields --> 
     
    <template name="DigitalSample" id="20">
      <uInt32 name="Connector" id="21"/>
+     <uInt64 name="Time" id="11"/>
      <uInt32 name="Value" id="22"/>
    </template>
        
    <template name="AnalogSample" id="30">
      <uInt32 name="Connector" id="31"/>
+     <uInt64 name="Time" id="11"/>
      <uInt32 name="Value" id="32"/>
      <uInt32 name="Average" id="33"/>
    </template>
    
    <template name="Encoder" id="70">
-     <uInt32 name="Connector" id="71">
-     	<copy/>
-     </uInt32>
+     <uInt32 name="Connector" id="71"/>
+     <uInt64 name="Time" id="11"/>     
      <int32 name="Value" id="72"/>>
      <int32 name="Delta" id="73"/>
-     <uInt32 name="Speed" id="74"/>     
+     <uInt32 name="Speed" id="74"/>
    </template>
     
 </templates>

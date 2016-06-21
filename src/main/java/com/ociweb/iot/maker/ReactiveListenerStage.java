@@ -63,45 +63,39 @@ public class ReactiveListenerStage extends PronghornStage {
         while (PipeReader.tryReadFragment(p)) {                
             
             int msgIdx = PipeReader.getMsgIdx(p);
-            switch (msgIdx) {   //Just 4 methods??  TODO: must remove specifc field times and use the general types here as well.
-                case GroveResponseSchema.MSG_TIME_10:                         
-                    if (listener instanceof TimeListener) {                 
-                    
-                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_TIME_10_FIELD_VALUE_11);
-                        //TODO: for multiple clock rates we need to add a second identifier for which one this event belongs to.
+            switch (msgIdx) {   
 
-                        ((TimeListener)listener).timeEvent(time);  
-                    
-                    }   
-                break;
                 case GroveResponseSchema.MSG_ANALOGSAMPLE_30:
                     if (listener instanceof AnalogListener) {
                         
-                        int average = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_AVERAGE_33);
                         int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31);
+                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11);
+                        int average = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_AVERAGE_33);
                         int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32);
                         
-                        ((AnalogListener)listener).analogEvent(connector, average, value);
+                        ((AnalogListener)listener).analogEvent(connector, time, average, value);
                         
                     }   
                 break;               
                 case GroveResponseSchema.MSG_DIGITALSAMPLE_20:
                     if (listener instanceof DigitalListener) {
                         int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21);
+                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_TIME_11);
                         int value = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22);
                             
-                        ((DigitalListener)listener).digitalEvent(connector, value);
+                        ((DigitalListener)listener).digitalEvent(connector, time, value);
                         
                     }   
                 break; 
                 case GroveResponseSchema.MSG_ENCODER_70:
                     if (listener instanceof RotaryListener) {    
                         int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_CONNECTOR_71);
+                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_TIME_11);
                         int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_VALUE_72);
                         int delta = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_DELTA_73);
                         int speed = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_SPEED_74);
                         
-                        ((RotaryListener)listener).rotaryEvent(connector, value, delta, speed);
+                        ((RotaryListener)listener).rotaryEvent(connector, time, value, delta, speed);
                                             
                     }   
                 break;

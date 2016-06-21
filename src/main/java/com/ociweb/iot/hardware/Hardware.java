@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -41,7 +42,7 @@ public abstract class Hardware {
         this(false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
     }
     
-    private Hardware(boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
+    protected Hardware(boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
             HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs) {
         
         this.configI2C = configI2C;
@@ -70,7 +71,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-        HardConnection gc = new HardConnection(t,connection);
+        HardConnection gc = new HardConnection(t,connection,ConnectionType.Grove);
         if (t.isInput()) {
             assert(!t.isOutput());
             analogInputs = growConnections(analogInputs, gc);
@@ -86,7 +87,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
-        HardConnection gc = new HardConnection(t,connection);
+        HardConnection gc = new HardConnection(t,connection,ConnectionType.Grove);
         if (t.isInput()) {
             assert(!t.isOutput());
             digitalInputs = growConnections(digitalInputs, gc);
@@ -103,7 +104,7 @@ public abstract class Hardware {
         if (t.isInput()) {
             assert(!t.isOutput());
             for(int con:connections) {
-                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con));
+                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.Grove));
             }
             
           System.out.println("connections "+Arrays.toString(connections));  
@@ -112,7 +113,7 @@ public abstract class Hardware {
         } else {
             assert(t.isOutput());
             for(int con:connections) {
-                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con));
+                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.Grove));
             }
         }
         return this;

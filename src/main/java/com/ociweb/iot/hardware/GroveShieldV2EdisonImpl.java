@@ -1,5 +1,6 @@
 package com.ociweb.iot.hardware;
 
+import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
@@ -207,7 +208,7 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         findDup(result,pos,analogInputs, true);
         int j = analogInputs.length;
         while (--j>=0) {
-            result[pos++] = new HardConnection(analogInputs[j].twig,EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection]);
+            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection],ConnectionType.Grove);
         }
         
         if (configI2C) {

@@ -46,6 +46,7 @@ public class GrovePiImpl extends Hardware {
 		this.readData = new ArrayList<byte[]>();
 	}
 
+<<<<<<< HEAD
 	public GrovePiImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
 			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
 		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
@@ -59,6 +60,8 @@ public class GrovePiImpl extends Hardware {
 		
 	}
 
+=======
+>>>>>>> branch 'master' of https://github.com/oci-pronghorn/PronghornIoT.git
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);
@@ -230,6 +233,7 @@ public class GrovePiImpl extends Hardware {
 		}     
 	}
 
+<<<<<<< HEAD
 //	public HardConnection[] buildUsedLines() {
 //
 //		
@@ -267,6 +271,44 @@ public class GrovePiImpl extends Hardware {
 //
 //		return result;
 //	}
+=======
+	public HardConnection[] buildUsedLines() {
+
+		HardConnection[] result = new HardConnection[digitalInputs.length+
+		                                         multiBitInputs.length+
+		                                         digitalOutputs.length+
+		                                         pwmOutputs.length+
+		                                         analogInputs.length+
+		                                         (configI2C?2:0)];
+
+		int pos = 0;
+		System.arraycopy(digitalInputs, 0, result, pos, digitalInputs.length);
+		pos+=digitalInputs.length;
+
+		if (0!=(multiBitInputs.length&0x1)) {
+			throw new UnsupportedOperationException("Rotary encoder requires two neighboring digital inputs.");
+		}
+		findDup(result,pos,multiBitInputs, false);
+		System.arraycopy(multiBitInputs, 0, result, pos, multiBitInputs.length);
+		pos+=multiBitInputs.length;
+
+		findDup(result,pos,digitalOutputs, false);
+		System.arraycopy(digitalOutputs, 0, result, pos, digitalOutputs.length);
+		pos+=digitalOutputs.length;
+
+		findDup(result,pos,pwmOutputs, false);
+		System.arraycopy(pwmOutputs, 0, result, pos, pwmOutputs.length);
+		pos+=pwmOutputs.length;
+
+		if (configI2C) {
+			findDup(result,pos,GrovePiConstants.i2cPins, false);
+			System.arraycopy(GrovePiConstants.i2cPins, 0, result, pos, GrovePiConstants.i2cPins.length);
+			pos+=GrovePiConstants.i2cPins.length;
+		}
+
+		return result;
+	}
+>>>>>>> branch 'master' of https://github.com/oci-pronghorn/PronghornIoT.git
 
 
 

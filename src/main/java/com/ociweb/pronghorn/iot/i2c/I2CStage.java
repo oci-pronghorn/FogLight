@@ -3,6 +3,7 @@ package com.ociweb.pronghorn.iot.i2c;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -33,11 +34,13 @@ public class I2CStage extends PronghornStage {
     private int    bytesToSendPosition;
     private int    bytesToSendMask;
     private int    bytesToSendReleaseSize;
+    public Hardware config;
     
-    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] requests) {
+    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] requests, Hardware config) {
         super(gm, requests, NONE);
 
         this.requests = requests;
+        this.config = config;
         
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, NS_PAUSE, this);
         GraphManager.addNota(gm, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
@@ -55,7 +58,10 @@ public class I2CStage extends PronghornStage {
         
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         
-
+            config.beginPinConfiguration();
+            config.configurePinsForI2C();
+            config.endPinConfiguration();
+       
         //Figure out which backing to use.
         //TODO: This should probably be chosen by the creator of this stage instead.
         try {

@@ -177,9 +177,11 @@ public class IOTDeviceRuntime {
         long rate = config.getTriggerRate();
         if (rate>0) {
             stage.setTimeEventSchedule(rate);
+            long customRate =   (rate*1_000_000)/4;// in ns and 4x faster than clock trigger
+            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, customRate,stage);
+        } else {
+            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
         }
-        
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
 
     public void start() {
@@ -220,7 +222,7 @@ public class IOTDeviceRuntime {
                 if (usePureJava) {
                     i2cStage = new PureJavaI2CStage(gm, i2cPipes, config);
                 } else {
-                    i2cStage = new I2CStage(gm, i2cPipes);
+                    i2cStage = new I2CStage(gm, i2cPipes, config);
                 }
                                 
                 GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,

@@ -118,7 +118,7 @@ public class GrovePiTestApp {
 
             //Pipe that data.
             ByteArrayProducerStage prodStage = new ByteArrayProducerStage(gm, rawData, chunkSizes, i2cToBusPipe);
-            I2CStage i2cStage = new I2CStage(gm, new Pipe[]{i2cToBusPipe});
+            I2CStage i2cStage = new I2CStage(gm, new Pipe[]{i2cToBusPipe},config);
         }
     }
 }

@@ -183,7 +183,9 @@ public class EdisonGPIO {
     
     //is only supported at 18/19,  Note this disables use of A4 and A5
     public static void configI2C() {
-    
+    	boolean runJava = false;
+    	
+    	if (runJava) {
         gpioPinMux.setDirectionLow(18);
         gpioPinMux.setDirectionLow(19);
         
@@ -210,7 +212,23 @@ public class EdisonGPIO {
         //NOTE: for Arduino breakout board and Edison only i2c-6  is supported 
         
       //  Path i2cDevice = Paths.get("/sys/class/i2c-dev/i2c-6");
-        
+    	}
+    	else {
+            gpioPinMux.setDirectionHigh(18);//GPIO_PIN_MUX
+            gpioPinMux.setDirectionHigh(19);  
+            gpioLinuxPins.setDirectionIn(18);//GPIO_PINS
+            gpioLinuxPins.setDirectionIn(19);
+            gpioOutputEnablePins.setDirectionLow(18);//OUTPUT_ENABLE
+            gpioOutputEnablePins.setDirectionLow(19);
+            gpioPullupEnablePins.setDirectionIn(18);//PULL_UP_ENABLE
+            gpioPullupEnablePins.setDirectionIn(19);
+            gpioPinModes.setDebugCurrentPinmuxMode1(19);//GPIO_PIN_MODES
+            gpioPinModes.setDebugCurrentPinmuxMode1(18);
+     	   
+     	   
+            gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick//enable us to be master of the bus not just an observer
+            gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
+        }
         System.out.println("I2C enabled for out");
                
     }

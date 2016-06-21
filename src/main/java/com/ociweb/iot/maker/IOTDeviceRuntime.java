@@ -222,7 +222,7 @@ public class IOTDeviceRuntime {
                 if (usePureJava) {
                     i2cStage = new PureJavaI2CStage(gm, i2cPipes, config);
                 } else {
-                    i2cStage = new I2CStage(gm, i2cPipes);
+                    i2cStage = new I2CStage(gm, i2cPipes, config);
                 }
                                 
                 GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,

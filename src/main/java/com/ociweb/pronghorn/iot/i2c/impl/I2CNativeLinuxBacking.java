@@ -50,8 +50,8 @@ public class I2CNativeLinuxBacking implements I2CBacking {
     }
 
     public I2CNativeLinuxBacking() {
-        String device = "/dev/i2c-6";//"/sys/class/i2c-dev/i2c-6";//"/dev/i2c-6";
-     //   String device = "/dev/i2c-1"; //this dievice is for the pi.
+      //  String device = "/dev/i2c-6";//"/sys/class/i2c-dev/i2c-6";//"/dev/i2c-6";
+        String device = "/dev/i2c-1"; //this device is for the pi.
         
         //Get the I2C file.
         i2cFile = c.open(device, UnixIoctlLib.O_RDWR);

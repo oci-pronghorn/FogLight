@@ -70,7 +70,7 @@ public class JFFISupportStage extends PronghornStage {
 	protected void writeData(byte[] message){
 		this.writer = getWriter();
 		System.out.println("WriteData is called");
-		while (tryWriteFragment(writePipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+		//while (tryWriteFragment(writePipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 			DataOutputBlobWriter.openField(writer);
 			try {
 				writer.write(message);
@@ -81,7 +81,7 @@ public class JFFISupportStage extends PronghornStage {
 
 			DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 			publishWrites(writePipe);
-		}
+		//}
 		
 	}
 	

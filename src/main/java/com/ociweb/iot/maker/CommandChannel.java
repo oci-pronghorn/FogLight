@@ -9,7 +9,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 
-public class RequestAdapter {
+public class CommandChannel {
 
     private Pipe<GroveRequestSchema> output;
     private Pipe<I2CCommandSchema> i2cOutput;
@@ -17,7 +17,7 @@ public class RequestAdapter {
     private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
     private int runningI2CCommandCount;
     
-    protected RequestAdapter(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput) {
+    protected CommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput) {
        this.output = output;
        this.i2cOutput = i2cOutput;       
       

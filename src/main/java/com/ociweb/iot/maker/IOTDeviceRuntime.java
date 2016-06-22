@@ -93,7 +93,7 @@ public class IOTDeviceRuntime {
     }
     
     
-    public RequestAdapter requestAdapterInstance() {
+    public CommandChannel newCommandChannel() {
                
         Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
         collectedRequestPipes.add(pipe);
@@ -104,7 +104,7 @@ public class IOTDeviceRuntime {
             collectedI2CRequestPipes.add(i2cPayloadPipe);
         }               
         
-        return new RequestAdapter(pipe, i2cPayloadPipe);
+        return new CommandChannel(pipe, i2cPayloadPipe);
         
     }
     

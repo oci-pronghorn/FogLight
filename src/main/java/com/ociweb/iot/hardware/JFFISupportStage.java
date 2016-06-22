@@ -69,14 +69,12 @@ public class JFFISupportStage extends PronghornStage {
 	
 	protected void writeData(byte[] message){
 		this.writer = getWriter();
+		System.out.println("WriteData is called");
 		while (tryWriteFragment(writePipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 			DataOutputBlobWriter.openField(writer);
 			try {
-				for (int i = 0; i < message.length; i++) {
-					System.out.print(message[i] + " ");
-				}
-				System.out.println(" put on the Pipe");
 				writer.write(message);
+				System.out.println("Support stage sends message");
 			} catch (IOException e) {
 				logger.error(e.getMessage(), e);
 			}
@@ -84,7 +82,9 @@ public class JFFISupportStage extends PronghornStage {
 			DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 			publishWrites(writePipe);
 		}
+		
 	}
+	
 	protected List<byte[]> readData(){
 		this.reader = getReader();
 		this.dataFromPipe.clear();
@@ -96,7 +96,7 @@ public class JFFISupportStage extends PronghornStage {
 			if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
 				reader.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				try {
-					int bytesRemaining = reader.bytesRemaining(reader);
+					int bytesRemaining = DataInputBlobReader.bytesRemaining(reader);
 					byte packet[] = new byte[bytesRemaining];
 					for (int i = 0; i < packet.length; i++) {
 						packet[i]=reader.readByte();

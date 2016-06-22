@@ -226,13 +226,14 @@ public class IOTDeviceRuntime {
                 }
                                 
                 GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
-                        new SendDeviceOutputStage(gm, 
+                        new SendDeviceOutputStage(gm, //TODO: only do if is instance of Edison Config
                                 collectedRequestPipes.toArray(new Pipe[s]), config)
                 );
                 
             } else {            
                 GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
-                        new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config)
+                        new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config) //TODO: only do if is instance of Edison Config
+                        
                 );
             }
         }
@@ -245,8 +246,7 @@ public class IOTDeviceRuntime {
         
       
         //Do not modfy the sleep of this object it is decided inernally by the config and devices plugged in.
-        new ReadDeviceInputStage(gm,responsePipe,config);
-    
+        new ReadDeviceInputStage(gm,responsePipe,config); //TODO: only do if is instance of Edison Config
           
     }
 

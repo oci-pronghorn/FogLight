@@ -1,0 +1,9 @@
+<archetype>
+  <id>PronghornIoT-Archetype</id>
+  <sources>
+    <source>src/main/java/IoTApp.java</source>
+  </sources>
+  <testSources>
+    <source>src/test/java/AppTest.java</source>
+  </testSources>
+</archetype>

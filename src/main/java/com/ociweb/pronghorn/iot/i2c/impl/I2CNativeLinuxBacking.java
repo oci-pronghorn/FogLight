@@ -86,7 +86,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
 
     @Override public void write(byte address, byte... message) {
         
-        System.out.println("write to address:"+ Integer.toHexString(address));
+        //System.out.println("write to address:"+ Integer.toHexString(address));
         
         //Check if we need to load the address into memory.
         if (ensureI2CDevice(address)) {            

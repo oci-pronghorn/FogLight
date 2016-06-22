@@ -67,7 +67,6 @@ public class JFFIStage extends PronghornStage {
 		}
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
 		super.startup();
-		System.out.println("JFFI Stage setup successful");
 	}
 
 	
@@ -106,8 +105,7 @@ public class JFFIStage extends PronghornStage {
 					for (int i = 0; i < data.length; i++) {
 						data[i]=reader.readByte();
 					}
-					this.i2c.write(addr, data);
-					System.out.println("JFFI Stage writes");
+					JFFIStage.i2c.write(addr, data);
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -127,17 +125,26 @@ public class JFFIStage extends PronghornStage {
 		
 		if(readBytes>0){
 			byte[] readData = i2c.read(addr, readBytes);
-			System.out.println("i2c Read");
-			while (tryWriteFragment(toHardware, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+			byte[] temp = new byte[readData.length+1];
+			temp[0] = readBytes;
+			for (int i = 1; i < temp.length; i++) {  //TODO: Sorry this is so ugly
+				temp[i] = readData[i-1];
+				System.out.print(temp[i] + " ");
+			}
+			System.out.println("");
+			//System.out.println("i2c Read");
+			if (tryWriteFragment(toHardware, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 				DataOutputBlobWriter.openField(writer);
 				try {
-					writer.write(readData);
+					writer.write(temp);
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
 
 				DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				publishWrites(toHardware);
+			}else{
+				System.out.println("unable to write fragment");
 			}
 		}
 	}

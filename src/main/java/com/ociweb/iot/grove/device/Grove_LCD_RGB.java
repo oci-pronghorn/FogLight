@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ociweb.iot.maker.RequestAdapter;
+import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
@@ -216,7 +216,7 @@ public class Grove_LCD_RGB {
      *         {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}.
      * </pre>
      */
-    public static boolean commandForTextAndColor(RequestAdapter target, String text, int r, int g, int b) {
+    public static boolean commandForTextAndColor(CommandChannel target, String text, int r, int g, int b) {
         
         if (!target.i2cIsReady()) {
             return false;
@@ -230,7 +230,7 @@ public class Grove_LCD_RGB {
         return true;
     }
 
-    private static void showRGBColor(RequestAdapter target, int r, int g, int b) {
+    private static void showRGBColor(CommandChannel target, int r, int g, int b) {
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 0, 0);
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 1, 0);
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 0x08, 0xaa);
@@ -239,7 +239,7 @@ public class Grove_LCD_RGB {
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 2, b);
     }
 
-    private static void showTwoLineText(RequestAdapter target, String text) {
+    private static void showTwoLineText(CommandChannel target, String text) {
         //clear display
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
         //display on - no cursor
@@ -271,7 +271,7 @@ public class Grove_LCD_RGB {
         }
     }
     
-    private static void writeSingleByteToRegister(RequestAdapter target, int address, int register, int value) {
+    private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
         try {
             DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
             do {

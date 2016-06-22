@@ -1,4 +1,4 @@
-package com.ociweb.device.testApps;
+package com.ociweb.iot.hardware;
 
 import static com.ociweb.pronghorn.pipe.PipeWriter.publishWrites;
 import static com.ociweb.pronghorn.pipe.PipeWriter.tryWriteFragment;
@@ -28,7 +28,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 
 
-public class JFFITestStage extends PronghornStage {
+public class JFFIStage extends PronghornStage {
 
 	private final Pipe<RawDataSchema> toHardware;
 	private final Pipe<RawDataSchema> fromHardware;
@@ -37,12 +37,12 @@ public class JFFITestStage extends PronghornStage {
 
 	private DataInputBlobReader<RawDataSchema> reader;
 
-	private static final Logger logger = LoggerFactory.getLogger(JFFITestStage.class);
+	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
 
-	private static I2CNativeLinuxBacking i2c;
+	//private static I2CNativeLinuxBacking i2c;
 
-	public JFFITestStage(GraphManager graphManager, Pipe<RawDataSchema> fromHardware, Pipe<RawDataSchema> toHardware) {
-		super(graphManager, NONE, toHardware);
+	public JFFIStage(GraphManager graphManager, Pipe<RawDataSchema> fromHardware, Pipe<RawDataSchema> toHardware) {
+		super(graphManager, fromHardware, toHardware);
 
 		////////
 		//STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
@@ -51,7 +51,7 @@ public class JFFITestStage extends PronghornStage {
 		this.fromHardware = fromHardware;
 		this.writer = null;
 		this.reader = null;
-		this.i2c = null;
+		//this.i2c = new I2CNativeLinuxBacking();
 
 	}
 
@@ -70,12 +70,7 @@ public class JFFITestStage extends PronghornStage {
 		System.out.println("JFFI Stage setup successful");
 	}
 
-	private I2CNativeLinuxBacking getI2C(){
-		if(i2c == null){
-			this.i2c = new I2CNativeLinuxBacking();
-		}
-		return this.i2c;
-	}
+	
 	private DataOutputBlobWriter<RawDataSchema> getWriter(){
     	//assert Pipe.isInit(toHardware);
 		if(null == writer){
@@ -95,7 +90,6 @@ public class JFFITestStage extends PronghornStage {
 		byte addr = 0x00;
 		byte readBytes = 0x00;
 		byte data[] = {};
-		I2CNativeLinuxBacking i2c = getI2C();
 		DataOutputBlobWriter<RawDataSchema> writer = getWriter();
 		DataInputBlobReader<RawDataSchema> reader = getReader();
 		while (PipeReader.tryReadFragment(fromHardware)) {		
@@ -116,8 +110,13 @@ public class JFFITestStage extends PronghornStage {
 					logger.error(e.getMessage(), e);
 				}
 			}
-
-			i2c.write(addr, data);
+			//this.i2c.write(addr, data);
+			System.out.print("Writing to I2C: ");
+			for (int i = 0; i < data.length; i++) {
+				System.out.print(data[i] + " ");
+			}
+			System.out.println("");
+			
 
 			try {
 				reader.close();
@@ -129,13 +128,13 @@ public class JFFITestStage extends PronghornStage {
 		} 
 		
 		if(readBytes>0){
-			byte[] readData = i2c.read(addr, readBytes);
+			//byte[] readData = i2c.read(addr, readBytes);
+			System.out.println("i2c Read");
+			byte[] readData = {0x01, 0x01};
 			while (tryWriteFragment(toHardware, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 				DataOutputBlobWriter.openField(writer);
 				try {
-					for (int i = 0; i < readData.length; i++) {
-						writer.writeByte(readData[i]);
-					}
+					writer.write(readData);
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -144,7 +143,6 @@ public class JFFITestStage extends PronghornStage {
 				publishWrites(toHardware);
 			}
 		}
-		System.out.println("JFFI Stage run successful");
 	}
 
 	@Override

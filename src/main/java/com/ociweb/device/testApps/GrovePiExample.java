@@ -25,39 +25,26 @@ public class GrovePiExample {
 
 		System.out.println("#### Writing data ####");
 		System.out.println("");
-		pinMode(14,0); //set A0 to input
-		pinMode(3,0);  //set 3 to output
-		pinMode(2,0);
-		byte[] encoderDis = {0x01, 0x11, 0x00, 0x00, 0x00};
-		i2c.write(Grove_ADDR, encoderDis);
-		try {
-			Thread.sleep(250);
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+		
+		pinMode(6,0);  //set 3 to output
+		
+		while(true){
+			digitalWrite(6, 1);
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			digitalWrite(6, 0);
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		byte[] encoderEn = {0x01, 0x10, 0x00, 0x00, 0x00};
-		pinMode(2, 0);
-		pinMode(3, 0);
-		i2c.write(Grove_ADDR, encoderEn);
-		int response = 0;
-		while (true) {
-			
-			
-			response = encoderRead();
-
-//			try{
-//				Thread.sleep(250);
-//			} catch (Exception e) {
-//				logger.error(e.getMessage(), e);
-//			}
-			// Sleep for a bit.
-			//			try {
-			//				Thread.sleep(250);
-			//			} catch (Exception e) {
-			//				logger.error(e.getMessage(), e);
-			//			}
-
-		}
+		
 	}
 
 	static void digitalWrite(int pin, int val){

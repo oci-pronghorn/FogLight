@@ -107,89 +107,73 @@
 
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>make-grovepi</id>
-                        <configuration>
-                            <finalName>PronghornIoT-GrovePi</finalName>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <archive>
-                                <manifest>
-                                    <mainClass>com.ociweb.device.testApps.GrovePiExample</mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                        </configuration>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>make-edison</id>
-                        <configuration>
-                            <finalName>PronghornIoT-Edison</finalName>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <archive>
-                                <manifest>
-                                    <mainClass>com.ociweb.device.testApps.NunchuckExampleApp</mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                        </configuration>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+        
 
-            <!-- Overwrite resources from dependencies, specifically libjffi for RPis. -->
-            <!-- TODO: There must be an easier way to do this (probably with an assembler). -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.6</version>
-                <executions>
-                    <execution>
-                        <id>repack-edison</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <unzip src="${project.basedir}/target/PronghornIoT-Edison.jar" dest="${project.basedir}/target/tmp"/>
-                                <copy file="${project.basedir}/src/main/resources/jni/i386-Linux/libjffi-1.2.so"
-                                      tofile="${project.basedir}/target/tmp/jni/i386-Linux/libjffi-1.2.so" overwrite="true"/>
-                                <zip basedir="${project.basedir}/target/tmp" destfile="${project.basedir}/target/PronghornIoT-Edison.jar"/>
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>repack-grovepi</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <unzip src="${project.basedir}/target/PronghornIoT-GrovePi.jar" dest="${project.basedir}/target/tmp"/>
-                                <copy file="${project.basedir}/src/main/resources/jni/arm-Linux/libjffi-1.2.so"
-                                      tofile="${project.basedir}/target/tmp/jni/arm-Linux/libjffi-1.2.so" overwrite="true"/>
-                                <zip basedir="${project.basedir}/target/tmp" destfile="${project.basedir}/target/PronghornIoT-GrovePi.jar"/>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>2.4.3</version>
+            <executions>
+                <execution>
+                    <id>piExample</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <finalName>PronghornIoT-GrovePi</finalName>
+                        <filters>
+                            <filter>
+                                <artifact>*jnr-ffi:jnr-ffi*</artifact>
+                                <excludes>
+                                    <exclude>**/jni/**</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                        
+                          <transformers>
+			                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+			                  <manifestEntries>
+			                    <Main-Class>com.ociweb.device.testApps.GrovePiExample</Main-Class>			                 
+			                  </manifestEntries>
+			                </transformer>
+			              </transformers>
+                            
+                    </configuration>
+                </execution>
+                
+                 <execution>
+                    <id>edExample</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <finalName>PronghornIoT-Edison</finalName>
+                        <filters>
+                            <filter>
+                                <artifact>*jnr-ffi:jnr-ffi*</artifact>
+                                <excludes>
+                                    <exclude>**/jni/**</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                        
+                          <transformers>
+			                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+			                  <manifestEntries>
+			                    <Main-Class>com.ociweb.device.testApps.NunchuckExampleApp</Main-Class>			                 
+			                  </manifestEntries>
+			                </transformer>
+			              </transformers>
+                            
+                    </configuration>
+                </execution>
+                
+            </executions>
+        </plugin>
+     
+
         </plugins>
     </build>
 

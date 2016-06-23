@@ -214,20 +214,22 @@ public class EdisonGPIO {
       //  Path i2cDevice = Paths.get("/sys/class/i2c-dev/i2c-6");
     	}
     	else {
-            gpioPinMux.setDirectionHigh(18);//GPIO_PIN_MUX
-            gpioPinMux.setDirectionHigh(19);  
+    		//TRI_STATE_ALL low before all changes
+    		//Set up parameters:I2C
+            gpioPinMux.setDirectionLow(18);//GPIO_PIN_MUX
+            gpioPinMux.setDirectionLow(19);//echo low > /sys/class/gpio/gpio205/direction  
+            //Set as input
             gpioLinuxPins.setDirectionIn(18);//GPIO_PINS
-            gpioLinuxPins.setDirectionIn(19);
-            gpioOutputEnablePins.setDirectionLow(18);//OUTPUT_ENABLE
-            gpioOutputEnablePins.setDirectionLow(19);
+            gpioLinuxPins.setDirectionIn(19);//echo in > /sys/class/gpio/gpio165/direction
+            //Disable output
+            gpioOutputEnablePins.setDirectionLow(18);//OUTPUT_DISABLE
+            gpioOutputEnablePins.setDirectionLow(19);//echo low > /sys/class/gpio/gpio237/direction 
+            //Enable pull-up
             gpioPullupEnablePins.setDirectionIn(18);//PULL_UP_ENABLE
-            gpioPullupEnablePins.setDirectionIn(19);
+            gpioPullupEnablePins.setDirectionIn(19);//echo in > /sys/class/gpio/gpio213/direction
+            //I2C-6
             gpioPinModes.setDebugCurrentPinmuxMode1(19);//GPIO_PIN_MODES
-            gpioPinModes.setDebugCurrentPinmuxMode1(18);
-     	   
-     	   
-            gpioOutputEnablePins.setDirectionHigh(19); //Must be set to allow values to sick//enable us to be master of the bus not just an observer
-            gpioOutputEnablePins.setDirectionHigh(18); //Must be set to allow values to sick
+            gpioPinModes.setDebugCurrentPinmuxMode1(18);//echo mode1 > /sys/kernel/debug/gpio_debug/gpio27/current_pinmux 
         }
         System.out.println("I2C enabled for out");
                

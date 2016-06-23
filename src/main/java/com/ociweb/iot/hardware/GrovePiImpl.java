@@ -142,41 +142,37 @@ public class GrovePiImpl extends Hardware {
 	}
 
 	public int digitalRead(int connector) { 
-		int temp = 0;
-		if(connector>1000){ //for grove add 1000 to pin numbers
-			connector -= 1000;
-			byte readCommand[] = {0x04, 0x05, 0x00, 0x01, 0x01, (byte)connector, 0x00, 0x00};
-			jffiSupportStage.writeData(readCommand);
-			readData.addAll(jffiSupportStage.readData());
-			byte temp2[] = readData.get(0);
-			temp = temp2[0];
-		}else{
-			//TODO: add standard GPIO support
-			temp = 0;
-		}
-		return temp;
+		byte[] message = {0x04, 0x05, 0x01, 0x01, 0x01, (byte) connector, 0x00, 0x00};
+		jffiSupportStage.writeData(message);
+		byte[] data = {};
+		
+			data = jffiSupportStage.readData();
+			assert(data.length <= 1) : "digitalRead reads a multi-byte value";
+		
+		return data[0];
 	}
 
 	//TODO: Since there's no ADC built into the Pi, we can only read HI or LO.
 	public int analogRead(int connector) {
-		//return GrovePiPinManager.digitalRead(connector);
-		return 0; //TODO: add JFFI support
+		byte[] message = {0x04, 0x05, 0x03, 0x01, 0x03, (byte) connector, 0x00, 0x00};
+		jffiSupportStage.writeData(message);
+		byte[] data = {};
+		
+			data = jffiSupportStage.readData();
+		return data[1]*256 + (int)data[2]&0xFF;
 	}
 	
 
     @Override
     public void analogWrite(int connector, int value) {
-       
-        //TODO: needed for pi
-        // GrovePiPinManager.analogWrite(connector,value);
-        
+    	byte[] message = {0x04, 0x05, 0x00, 0x01, 0x04, (byte) connector, (byte) value, 0x00};
+		jffiSupportStage.writeData(message);
     }
 
 	//Now using the JFFI stage
 	public void digitalWrite(int connector, int value) {
 		byte[] message = {0x04, 0x05, 0x00, 0x01, 0x02, (byte) connector, (byte) value, 0x00};
 		jffiSupportStage.writeData(message);
-		System.out.println("Digital Write is called");
 	}
 
 	//TODO: Is it right to config them as outputs before writing?

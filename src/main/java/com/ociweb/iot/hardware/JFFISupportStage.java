@@ -26,15 +26,15 @@ public class JFFISupportStage extends PronghornStage {
 
 	private DataOutputBlobWriter<RawDataSchema> writer;
 	private DataInputBlobReader<RawDataSchema> reader;
-	
+
 	private Pipe<RawDataSchema> readPipe;
 	private Pipe<RawDataSchema> writePipe;
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(JFFISupportStage.class);
-	
+
 	private List<byte[]> dataFromPipe;
 	private JFFIStage jffiStage;
-	
+
 	public JFFISupportStage(GraphManager graphManager, Pipe<RawDataSchema> readPipe, Pipe<RawDataSchema> writePipe) {
 		super(graphManager, writePipe, readPipe);
 
@@ -46,7 +46,7 @@ public class JFFISupportStage extends PronghornStage {
 		this.writer = null;
 		this.reader = null;
 		this.dataFromPipe = new ArrayList<byte[]>();
-		
+
 	}
 	@Override
 	public void startup() {
@@ -59,23 +59,18 @@ public class JFFISupportStage extends PronghornStage {
 		}
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
 		super.startup();
-		System.out.println("JFFI Support Stage setup successful");
 	}
-	
+
 	@Override
 	public void run() {
-		
+
 	}
-	
-	protected void writeData(byte[] message){
+
+	protected synchronized void writeData(byte[] message){
 		this.writer = getWriter();
-		while (tryWriteFragment(writePipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+		if (tryWriteFragment(writePipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 			DataOutputBlobWriter.openField(writer);
 			try {
-				for (int i = 0; i < message.length; i++) {
-					System.out.print(message[i] + " ");
-				}
-				System.out.println(" put on the Pipe");
 				writer.write(message);
 			} catch (IOException e) {
 				logger.error(e.getMessage(), e);
@@ -83,53 +78,62 @@ public class JFFISupportStage extends PronghornStage {
 
 			DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 			publishWrites(writePipe);
+		}else{
+			System.out.println("unable to write fragment");
 		}
+
 	}
-	protected List<byte[]> readData(){
+
+	protected synchronized byte[] readData(){
 		this.reader = getReader();
-		this.dataFromPipe.clear();
-		while (PipeReader.tryReadFragment(readPipe)) {		
+		//this.dataFromPipe.clear();
+		byte[] data = {};
+		while(data.length==0){ //TODO: Nathan fix me 
+			while (PipeReader.tryReadFragment(readPipe)) {		
+				System.out.println("I'm stuck in readData()"); 
+				assert(PipeReader.isNewMessage(readPipe)) : "This test should only have one simple message made up of one fragment";
+				int msgIdx = PipeReader.getMsgIdx(readPipe);
 
-			assert(PipeReader.isNewMessage(readPipe)) : "This test should only have one simple message made up of one fragment";
-			int msgIdx = PipeReader.getMsgIdx(readPipe);
-			
-			if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
-				reader.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-				try {
-					int bytesRemaining = reader.bytesRemaining(reader);
-					byte packet[] = new byte[bytesRemaining];
-					for (int i = 0; i < packet.length; i++) {
-						packet[i]=reader.readByte();
+				if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
+					reader.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+					try {
+						data = new byte[reader.readByte()]; //TODO: Nathan take out the trash
+						for (int i = 0; i < data.length; i++) {
+							data[i]=reader.readByte(); 
+						}
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
 					}
-					this.dataFromPipe.add(packet);
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
+					try {
+						reader.close();
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
+					}
+				}else{
+					assert(msgIdx == -1);
+					requestShutdown();
 				}
-			}
+				//dataFromPipe.add(data);
 
-			try {
-				reader.close();
-			} catch (IOException e) {
-				logger.error(e.getMessage(), e);
-			}
-
-			PipeReader.releaseReadLock(readPipe);
+				PipeReader.releaseReadLock(readPipe);
+			} 
 		}
-		return dataFromPipe; 
+		System.out.println("I've escaped!");
+		return data; 
 	}
-		
-	
-private DataOutputBlobWriter<RawDataSchema> getWriter(){
-	//assert Pipe.isInit(toHardware);
-	if(null == writer){
-		this.writer = new DataOutputBlobWriter<RawDataSchema>(writePipe);
+
+
+	private DataOutputBlobWriter<RawDataSchema> getWriter(){
+		//assert Pipe.isInit(toHardware);
+		if(null == writer){
+			this.writer = new DataOutputBlobWriter<RawDataSchema>(writePipe);
+		}
+		return writer;
 	}
-	return writer;
-}
-private DataInputBlobReader<RawDataSchema> getReader(){
-	if(null == reader){
-		this.reader = new DataInputBlobReader<RawDataSchema>(readPipe);
+	private DataInputBlobReader<RawDataSchema> getReader(){
+		if(null == reader){
+			this.reader = new DataInputBlobReader<RawDataSchema>(readPipe);
+		}
+		return reader;
 	}
-	return reader;
-}
 }

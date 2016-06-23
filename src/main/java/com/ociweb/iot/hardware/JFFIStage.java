@@ -39,10 +39,10 @@ public class JFFIStage extends PronghornStage {
 
 	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
 
-	//private static I2CNativeLinuxBacking i2c;
+	private static I2CNativeLinuxBacking i2c;
 
-	public JFFIStage(GraphManager graphManager, Pipe<RawDataSchema> fromHardware, Pipe<RawDataSchema> toHardware) {
-		super(graphManager, fromHardware, toHardware);
+	public JFFIStage(GraphManager graphManager, Pipe<RawDataSchema> toHardware, Pipe<RawDataSchema> fromHardware) {
+		super(graphManager, toHardware, fromHardware);
 
 		////////
 		//STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
@@ -51,7 +51,7 @@ public class JFFIStage extends PronghornStage {
 		this.fromHardware = fromHardware;
 		this.writer = null;
 		this.reader = null;
-		//this.i2c = new I2CNativeLinuxBacking();
+		this.i2c = new I2CNativeLinuxBacking();
 
 	}
 
@@ -67,7 +67,6 @@ public class JFFIStage extends PronghornStage {
 		}
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
 		super.startup();
-		System.out.println("JFFI Stage setup successful");
 	}
 
 	
@@ -101,46 +100,51 @@ public class JFFIStage extends PronghornStage {
 				reader.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				try {
 					addr = reader.readByte();
-					data = new byte[reader.readByte()];
+					data = new byte[reader.readByte()]; //TODO: Nathan take out the trash
 					readBytes = reader.readByte();
 					for (int i = 0; i < data.length; i++) {
 						data[i]=reader.readByte();
 					}
+					JFFIStage.i2c.write(addr, data);
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
+				try {
+					reader.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}else{
+				assert(msgIdx == -1);
+				requestShutdown();
 			}
-			//this.i2c.write(addr, data);
-			System.out.print("Writing to I2C: ");
-			for (int i = 0; i < data.length; i++) {
-				System.out.print(data[i] + " ");
-			}
-			System.out.println("");
 			
-
-			try {
-				reader.close();
-			} catch (IOException e) {
-				logger.error(e.getMessage(), e);
-			}
 
 			PipeReader.releaseReadLock(fromHardware);
 		} 
 		
 		if(readBytes>0){
-			//byte[] readData = i2c.read(addr, readBytes);
-			System.out.println("i2c Read");
-			byte[] readData = {0x01, 0x01};
-			while (tryWriteFragment(toHardware, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+			byte[] readData = i2c.read(addr, readBytes);
+			byte[] temp = new byte[readData.length+1]; //TODO: Nathan take out the trash
+			temp[0] = readBytes;
+			for (int i = 1; i < temp.length; i++) {  
+				temp[i] = readData[i-1];
+				//System.out.print(temp[i] + " ");
+			}
+			//System.out.println("");
+			//System.out.println("i2c Read");
+			if (tryWriteFragment(toHardware, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 				DataOutputBlobWriter.openField(writer);
 				try {
-					writer.write(readData);
+					writer.write(temp);
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
 
 				DataOutputBlobWriter.closeHighLevelField(writer, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				publishWrites(toHardware);
+			}else{
+				System.out.println("unable to write fragment");
 			}
 		}
 	}

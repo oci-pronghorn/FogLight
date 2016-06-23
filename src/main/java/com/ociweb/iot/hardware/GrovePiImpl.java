@@ -32,6 +32,8 @@ public class GrovePiImpl extends Hardware {
 	private JFFISupportStage jffiSupportStage;
 	private JFFIStage jffiStage;
 	
+	private final int SLEEP_RATE_NS = 20000000;
+	
 	private List<byte[]> readData;
 
 	private static final Logger logger = LoggerFactory.getLogger(GrovePiImpl.class);
@@ -55,6 +57,8 @@ public class GrovePiImpl extends Hardware {
 		Pipe<RawDataSchema> fromJffi = new Pipe(fromJffiConfig);
 		this.jffiSupportStage= new JFFISupportStage(gm, fromJffi, toJffi);
 		this.jffiStage = new JFFIStage(gm, toJffi, fromJffi);
+		GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,jffiStage);
+		GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,jffiSupportStage);
 		this.readData = new ArrayList<byte[]>();
 		
 	}
@@ -91,7 +95,7 @@ public class GrovePiImpl extends Hardware {
 
 	public void configurePinsForI2C() {
 //		GrovePiGPIO.configI2C();
-		System.out.println("No config needed");
+		System.out.println("No config needed1");
 	}
 
 	public void i2cDataIn() {
@@ -148,6 +152,7 @@ public class GrovePiImpl extends Hardware {
 		
 			data = jffiSupportStage.readData();
 			assert(data.length <= 1) : "digitalRead reads a multi-byte value";
+			
 		
 		return data[0];
 	}

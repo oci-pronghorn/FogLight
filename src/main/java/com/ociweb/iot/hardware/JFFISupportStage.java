@@ -90,7 +90,7 @@ public class JFFISupportStage extends PronghornStage {
 		byte[] data = {};
 		while(data.length==0){ //TODO: Nathan fix me 
 			while (PipeReader.tryReadFragment(readPipe)) {		
-				System.out.println("I'm stuck in readData()"); 
+				//System.out.println("I'm stuck in readData()"); 
 				assert(PipeReader.isNewMessage(readPipe)) : "This test should only have one simple message made up of one fragment";
 				int msgIdx = PipeReader.getMsgIdx(readPipe);
 
@@ -118,7 +118,7 @@ public class JFFISupportStage extends PronghornStage {
 				PipeReader.releaseReadLock(readPipe);
 			} 
 		}
-		System.out.println("I've escaped!");
+		//System.out.println("I've escaped!");
 		return data; 
 	}
 

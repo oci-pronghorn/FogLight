@@ -159,7 +159,9 @@ public class GrovePiImpl extends Hardware {
 		byte[] data = {};
 		
 			data = jffiSupportStage.readData();
-		return data[1]*256 + (int)data[2]&0xFF;
+			assert(data.length == 3) : "analogRead did not return an int.";
+			
+		return data[1]*256 + ((int)data[2]&0xFF);
 	}
 	
 

@@ -2,12 +2,8 @@ package com.ociweb.device.testApps;
 
 import java.util.concurrent.TimeUnit;
 
-import com.ociweb.iot.grove.device.lcdrgb.LCDRGBBacklightAPI;
-import com.ociweb.iot.grove.device.lcdrgb.LCDRGBBacklightSchema;
-import com.ociweb.iot.grove.device.lcdrgb.LCDRGBContentAPI;
 import com.ociweb.iot.hardware.GroveShieldV2EdisonImpl;
 import com.ociweb.iot.hardware.GroveShieldV2MockImpl;
-import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CSimulatedLineMonitorStage;
@@ -32,10 +28,7 @@ public class GroveShieldTestApp {
     
     
     private static final PipeConfig<I2CCommandSchema> requestI2CConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 128);
-    private static final PipeConfig<LCDRGBBacklightSchema> backlightPipeConfig = new PipeConfig<LCDRGBBacklightSchema>(LCDRGBBacklightSchema.instance, 100);
 
-    private static LCDRGBBacklightAPI backlightAPI;
-    private static LCDRGBContentAPI contentAPI;
 
     //TODO: Need an easy way to build this up, perhaps a fluent API.        
     public static final Hardware config = getConfig();
@@ -100,24 +93,6 @@ public class GroveShieldTestApp {
            // scheduler.playNice = false;
             scheduler.startup();
 //
-            if (null!=backlightAPI) {
-
-                //TODO: call backs are done by lambdas of Java 8.
-                //      there should be no reason for developer to use while or sleep !!!
-
-                backlightAPI.blockingSetRGB(0xFF, 0x00, 0x00);
-                backlightAPI.blockingSetRGB(0x00, 0xFF, 0x00);
-                backlightAPI.blockingSetRGB(0x00, 0x00, 0xFF);
-
-                contentAPI.blockingSetText("hello world");
-
-//                try {
-//                    Thread.sleep(60_000);
-//                } catch (InterruptedException e) {
-//                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
-//                }
-            }
 
             GraphManager.blockUntilStageBeginsShutdown(gm, stageToWatch);                
 
@@ -152,7 +127,6 @@ public class GroveShieldTestApp {
         
             System.out.println("startup i2c ... ");
             
-            Pipe<LCDRGBBacklightSchema> backlightApiPipe = new Pipe<LCDRGBBacklightSchema>(backlightPipeConfig);
             
             Pipe<I2CCommandSchema> i2cToBusPipeForRGB = new Pipe<I2CCommandSchema>(requestI2CConfig);
             Pipe<I2CCommandSchema> i2cToBusPipeForLCD = new Pipe<I2CCommandSchema>(requestI2CConfig);

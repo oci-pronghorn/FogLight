@@ -4,15 +4,28 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.GoSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class SchemaValidation {
 
+    @Test
+    public void superviorSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/GoSchema.xml", GoSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(GoSchema.instance));
+    }
     
+    @Test
+    public void acknowledgeSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/AcknowledgeSchema.xml", AcknowledgeSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(AcknowledgeSchema.instance));
+    }
+        
     @Test
     public void groveResponseFROMTest() {
         assertTrue(FROMValidation.testForMatchingFROMs("/GroveResponse.xml", GroveResponseSchema.instance));

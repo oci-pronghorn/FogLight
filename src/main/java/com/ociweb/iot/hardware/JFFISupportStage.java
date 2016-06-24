@@ -88,9 +88,9 @@ public class JFFISupportStage extends PronghornStage {
 		this.reader = getReader();
 		//this.dataFromPipe.clear();
 		byte[] data = {};
-		while(data.length==0){ //TODO: Nathan fix me I'm locking up the read i2c pipe
+		while(data.length==0){ //TODO: Nathan fix me 
 			while (PipeReader.tryReadFragment(readPipe)) {		
-
+				//System.out.println("I'm stuck in readData()"); 
 				assert(PipeReader.isNewMessage(readPipe)) : "This test should only have one simple message made up of one fragment";
 				int msgIdx = PipeReader.getMsgIdx(readPipe);
 
@@ -99,7 +99,7 @@ public class JFFISupportStage extends PronghornStage {
 					try {
 						data = new byte[reader.readByte()]; //TODO: Nathan take out the trash
 						for (int i = 0; i < data.length; i++) {
-							data[i]=reader.readByte();
+							data[i]=reader.readByte(); 
 						}
 					} catch (IOException e) {
 						logger.error(e.getMessage(), e);
@@ -118,6 +118,7 @@ public class JFFISupportStage extends PronghornStage {
 				PipeReader.releaseReadLock(readPipe);
 			} 
 		}
+		//System.out.println("I've escaped!");
 		return data; 
 	}
 

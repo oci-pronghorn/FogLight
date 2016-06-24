@@ -229,6 +229,29 @@ public class Grove_LCD_RGB {
         }
         return true;
     }
+    public static boolean commandForColor(CommandChannel target, int r, int g, int b) {
+        
+        if (!target.i2cIsReady()) {
+            return false;
+        }
+        
+        showRGBColor(target, r, g, b);
+        while (!target.i2cFlushBatch()) {
+            //WARNING: this is now a blocking call, should NEVER happen because we checked up front.
+        }
+        return true;
+    }
+    public static boolean commandForText(CommandChannel target, String text) {
+        
+        if (!target.i2cIsReady()) {
+            return false;
+        }
+        showTwoLineText(target, text);
+        while (!target.i2cFlushBatch()) {
+            //WARNING: this is now a blocking call, should NEVER happen because we checked up front.
+        }
+        return true;
+    }
 
     private static void showRGBColor(CommandChannel target, int r, int g, int b) {
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 0, 0);

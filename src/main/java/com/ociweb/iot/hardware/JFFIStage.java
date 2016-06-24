@@ -125,13 +125,13 @@ public class JFFIStage extends PronghornStage {
 		
 		if(readBytes>0){
 			byte[] readData = i2c.read(addr, readBytes);
-			byte[] temp = new byte[readData.length+1];
+			byte[] temp = new byte[readData.length+1]; //TODO: Nathan take out the trash
 			temp[0] = readBytes;
-			for (int i = 1; i < temp.length; i++) {  //TODO: Sorry this is so ugly
+			for (int i = 1; i < temp.length; i++) {  
 				temp[i] = readData[i-1];
-				System.out.print(temp[i] + " ");
+				//System.out.print(temp[i] + " ");
 			}
-			System.out.println("");
+			//System.out.println("");
 			//System.out.println("i2c Read");
 			if (tryWriteFragment(toHardware, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
 				DataOutputBlobWriter.openField(writer);

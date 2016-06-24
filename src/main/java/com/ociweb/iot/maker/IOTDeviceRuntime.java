@@ -23,6 +23,7 @@ import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 
 public class IOTDeviceRuntime {
@@ -36,9 +37,10 @@ public class IOTDeviceRuntime {
      */
     private static final Logger logger = LoggerFactory.getLogger(IOTDeviceRuntime.class);
     
-    protected static Hardware config;
+    protected Hardware hardware;
     
-    private static GraphManager gm = new GraphManager();
+    private StageScheduler scheduler;
+    private GraphManager gm = new GraphManager();
     
     private List<Pipe<GroveRequestSchema>> collectedRequestPipes = new ArrayList<Pipe<GroveRequestSchema>>();
     private List<Pipe<I2CCommandSchema>> collectedI2CRequestPipes = new ArrayList<Pipe<I2CCommandSchema>>();
@@ -66,7 +68,7 @@ public class IOTDeviceRuntime {
     
     
     public Hardware getHarware() {
-        if (null==config) {
+        if (null==hardware) {
 
             String osversion  =System.getProperty("os.version");
  
@@ -84,14 +86,14 @@ public class IOTDeviceRuntime {
             }
             
             if (isEdison) {
-                config = new GroveShieldV2EdisonImpl();
+                hardware = new GroveShieldV2EdisonImpl();
             } else if (isPi) {
-                config = new GrovePiImpl(gm);
+                hardware = new GrovePiImpl(gm);
             }
             
         }
         
-        return config;
+        return hardware;
     }
     
     
@@ -101,7 +103,7 @@ public class IOTDeviceRuntime {
         collectedRequestPipes.add(pipe);
         Pipe<I2CCommandSchema> i2cPayloadPipe = null;
         
-        if (config.configI2C) {
+        if (hardware.configI2C) {
             i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
             collectedI2CRequestPipes.add(i2cPayloadPipe);
         }               
@@ -176,7 +178,7 @@ public class IOTDeviceRuntime {
         }
         
         //if we have a time event turn it on.
-        long rate = config.getTriggerRate();
+        long rate = hardware.getTriggerRate();
         if (rate>0) {
             stage.setTimeEventSchedule(rate);
             long customRate =   (rate*1_000_000)/4;// in ns and 4x faster than clock trigger
@@ -186,19 +188,20 @@ public class IOTDeviceRuntime {
         }
     }
 
+        
     public void start() {
-       config.coldSetup(); 
+       hardware.coldSetup(); 
         
        buildGraph(); 
         
         //NOTE: need to consider different schedulers in the future.
-       ThreadPerStageScheduler scheduler = new ThreadPerStageScheduler(gm);
+       scheduler = new ThreadPerStageScheduler(gm);
        scheduler.startup();
        
        Runtime.getRuntime().addShutdownHook(new Thread() {
            public void run() {
              scheduler.shutdown();
-             scheduler.awaitTermination(60, TimeUnit.MINUTES);
+             scheduler.awaitTermination(30, TimeUnit.MINUTES);
            }
        });
        
@@ -210,7 +213,7 @@ public class IOTDeviceRuntime {
         //all the request pipes are passed into this single stage for modification of the hardware
         int s = collectedRequestPipes.size();   
         if (s>0) {
-            if (config.configI2C) {
+            if (hardware.configI2C) {
                 //second pipe allows for zero copy use of this data.
                 
                 ///TODO: send payload to i2c stage
@@ -222,19 +225,19 @@ public class IOTDeviceRuntime {
                 
                 PronghornStage i2cStage;
                 if (usePureJava) {
-                    i2cStage = new PureJavaI2CStage(gm, i2cPipes, config);
+                    i2cStage = new PureJavaI2CStage(gm, i2cPipes, hardware);
                 } else {
-                    i2cStage = new I2CStage(gm, i2cPipes, config);
+                    i2cStage = new I2CStage(gm, i2cPipes, hardware);
                 }
                                 
                 GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
                         new SendDeviceOutputStage(gm, //TODO: only do if is instance of Edison Config
-                                collectedRequestPipes.toArray(new Pipe[s]), config)
+                                collectedRequestPipes.toArray(new Pipe[s]), hardware)
                 );
                 
             } else {            
                 GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
-                        new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), config) //TODO: only do if is instance of Edison Config
+                        new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), hardware) //TODO: only do if is instance of Edison Config
                         
                 );
             }
@@ -248,11 +251,25 @@ public class IOTDeviceRuntime {
         
       
         //Do not modfy the sleep of this object it is decided inernally by the config and devices plugged in.
-        new ReadDeviceInputStage(gm,responsePipe,config); //TODO: only do if is instance of Edison Config
+        new ReadDeviceInputStage(gm,responsePipe,hardware); //TODO: only do if is instance of Edison Config
           
     }
 
+    public void shutdownDevice() {
+        //clean shutdown providing time for the pipe to empty
+        scheduler.shutdown();
+        scheduler.awaitTermination(10, TimeUnit.SECONDS); //timeout error if this does not exit cleanly withing this time.
+        //all the software has now stopped so now shutdown the hardware.
+        hardware.shutdown();
+    }
 
+    public void shutdownDevice(int timeoutInSeconds) {
+        //clean shutdown providing time for the pipe to empty
+        scheduler.shutdown();
+        scheduler.awaitTermination(timeoutInSeconds, TimeUnit.SECONDS); //timeout error if this does not exit cleanly withing this time.
+        //all the software has now stopped so now shutdown the hardware.
+        hardware.shutdown();
+    }
 
 
 

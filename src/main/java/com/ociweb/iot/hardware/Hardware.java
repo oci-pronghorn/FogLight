@@ -206,6 +206,10 @@ public abstract class Hardware {
         }
     }
 
+    public void shutdown() {
+        // TODO The caller would like to stop the operating system cold, need platform specific call?
+    }
+
 	
 
 	

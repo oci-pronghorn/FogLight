@@ -72,11 +72,11 @@ public class I2CJFFIStage extends PronghornStage {
 		this.fromCommandChannel = inPipes[0];
 		this.goPipe = inPipes[1];
 
-		this.writeListener = new DataOutputBlobWriter(toListener);
-		this.writeAck = new DataOutputBlobWriter(ackPipe);
-		this.readCommandChannel = new DataInputBlobReader(fromCommandChannel);
-		this.readGo = new DataInputBlobReader(goPipe);
-		this.i2c = new I2CNativeLinuxBacking();
+		this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
+		this.writeAck = new DataOutputBlobWriter<RawDataSchema>(ackPipe);
+		this.readCommandChannel = new DataInputBlobReader<RawDataSchema>(fromCommandChannel);
+		this.readGo = new DataInputBlobReader<RawDataSchema>(goPipe);
+		I2CJFFIStage.i2c = new I2CNativeLinuxBacking((byte)1); //TODO: get device spec from Hardware
 		this.hardware = hardware;
 
 		this.goCount = 0;
@@ -179,7 +179,7 @@ public class I2CJFFIStage extends PronghornStage {
 				goCount--;
 			}
 		} 
-		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there "go" inputs?
+		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there intermittent inputs?
 			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
 				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
 					DataOutputBlobWriter.openField(writeListener);

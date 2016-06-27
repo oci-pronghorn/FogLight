@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -24,16 +25,24 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
+import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.stage.PronghornStage;
+import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+
 
 public class AnalogDigitalOutputStage extends PronghornStage {
 	private final Pipe<RawDataSchema> fromCommandChannel;
-	private final Pipe<RawDataSchema> goPipe; //TODO: Change the Schema
-	private final Pipe<RawDataSchema> ackPipe;
-	private final Pipe<RawDataSchema> outPipe;
+	private final Pipe<RawDataSchema> goPipe; 
+	private final Pipe<AcknowledgeSchema> ackPipe;
+	private final Pipe<AcknowledgeSchema> outPipe; //might need to change to 
 	private final Pipe<RawDataSchema>[] inPipes;
 	
 	
-	private DataOutputBlobWriter<RawDataSchema> writeAck;
+	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
 	private DataInputBlobReader<RawDataSchema> readCommandChannel;
 	private DataInputBlobReader<RawDataSchema> readGo;
 	
@@ -47,7 +56,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
 
 	
-	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes, Pipe<RawDataSchema> outPipe,Hardware hardware) {
+	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes, Pipe<AcknowledgeSchema> outPipe,Hardware hardware) {
 		super(graphManager, inPipes, outPipe); 
 		
 		////////
@@ -82,8 +91,16 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
 		super.startup();
 		// need to change to make the Edison PIN to startup correctly
+		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
+			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForDigitalInput(hardware.digitalOutputs[i].connection);
+		}
+		for (int i = 0; i < hardware.analogOu.length; i++) {
+			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogInput(hardware.analogInputs[i].connection);
+		}
+
 		hardware.beginPinConfiguration();
 		hardware.endPinConfiguration();
+		
 	}
 
 	@Override
@@ -110,9 +127,15 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 				requestShutdown();
 			}
 
-
 			PipeReader.releaseReadLock(goPipe);
 		} 
+	while (goCount > 0){
+		if(PipeReader.tryReadFragment(fromCommandChannel)) {
+			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
+			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
+			
+			if (RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx)
+	}
 		
 }
 }

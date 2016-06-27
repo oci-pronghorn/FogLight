@@ -33,53 +33,50 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-
 public class AnalogDigitalOutputStage extends PronghornStage {
 	private final Pipe<RawDataSchema> fromCommandChannel;
-	private final Pipe<RawDataSchema> goPipe; 
+	private final Pipe<RawDataSchema> goPipe;
 	private final Pipe<AcknowledgeSchema> ackPipe;
-	private final Pipe<AcknowledgeSchema> outPipe; //might need to change to 
+	private final Pipe<AcknowledgeSchema> outPipe; // might need to change to
 	private final Pipe<RawDataSchema>[] inPipes;
-	
-	
+
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
 	private DataInputBlobReader<RawDataSchema> readCommandChannel;
 	private DataInputBlobReader<RawDataSchema> readGo;
-	
+
 	private Hardware hardware;
 	private int goCount;
-	private byte addr;
+	private int connection;
 	private byte packageSize;
-	private byte[] data;
+	private int data;
 	private byte[][] connections;
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
 
-	
-	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes, Pipe<AcknowledgeSchema> outPipe,Hardware hardware) {
-		super(graphManager, inPipes, outPipe); 
-		
+	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes,
+			Pipe<AcknowledgeSchema> outPipe, Hardware hardware) {
+		super(graphManager, inPipes, outPipe);
+
 		////////
-		//STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
+		// STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
-		
+
 		this.inPipes = inPipes;
-		this.outPipe= outPipe;
+		this.outPipe = outPipe;
 		this.hardware = hardware;
 		assert (inPipes.length == 2);
 		ackPipe = outPipe;
 		this.fromCommandChannel = inPipes[0];
-		this.goPipe = inPipes[1];	
-		
+		this.goPipe = inPipes[1];
+
 		this.writeAck = new DataOutputBlobWriter(ackPipe);
 		this.readCommandChannel = new DataInputBlobReader(fromCommandChannel);
 		this.readGo = new DataInputBlobReader(goPipe);
-		this.addr = 0x00;
+		this.connection = 0;
 		this.goCount = 0;
-		this.data= new byte [0];
+		this.data = 0;
 	}
-	
-	
+
 	@Override
 	public void startup() {
 
@@ -89,17 +86,16 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			throw new RuntimeException(t);
 		}
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
-		super.startup();
-		// need to change to make the Edison PIN to startup correctly
+
 		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
 			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForDigitalInput(hardware.digitalOutputs[i].connection);
 		}
-		for (int i = 0; i < hardware.analogOu.length; i++) {
-			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogInput(hardware.analogInputs[i].connection);
+		for (int i = 0; i < hardware.pwmOutputs.length; i++) {
+			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogInput(hardware.pwmOutputs[i].connection);
 		}
-
-		hardware.beginPinConfiguration();
-		hardware.endPinConfiguration();
+		// need to change to make the Edison PIN to startup correctly
+//		hardware.beginPinConfiguration();
+//		hardware.endPinConfiguration();
 		
 	}
 
@@ -133,9 +129,71 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		if(PipeReader.tryReadFragment(fromCommandChannel)) {
 			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
+			if (RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
+				readCommandChannel.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+				try {
+					for (int i = 0; i < hardware.digitalOutputs.length; i++) {
+					if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)){
+					connection = readCommandChannel.readInt(); 
+					data       = readCommandChannel.readInt(); 
+					try {
+						hardware.digitalWrite(connection, data);
+					} 
+					catch (IOException e) {
+						logger.error(e.getMessage(), e);
+							}
+						}
+				}
+					for (int i = 0; i < hardware.pwmOutputs.length; i++) {
+					if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)){	
+					connection = readCommandChannel.readInt(); 
+					data       = readCommandChannel.readInt(); 
+					try {
+						hardware.digitalWrite(connection, data);
+						}
+					catch (IOException e) {
+						logger.error(e.getMessage(), e);
+							}
+						}
+				}
+			}
+			}
+				else{
+					assert(msgIdx == -1);
+					requestShutdown();
+				}
+			if (tryWriteFragment(ackPipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Use acknowledgeSchema
+				DataOutputBlobWriter.openField(writeAck);
+				try {
+					writeAck.write(1);
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
+				}
+
+				DataOutputBlobWriter.closeHighLevelField(writeAck, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+				publishWrites(ackPipe);
+			}else{
+				System.out.println("unable to write fragment");
+			}
 			
-			if (RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx)
+			goCount--;
+		}
 	}
-		
-}
-}
+
+	
+	@Override
+	public void shutdown() {
+		//if batching was used this will publish any waiting fragments
+		//RingBuffer.publishAllWrites(output);
+
+		try{
+
+			///////
+			//PUT YOUR LOGIC HERE TO CLOSE CONNECTIONS FROM THE DATABASE OR OTHER SOURCE OF INFORMATION
+			//////
+
+		} catch (Throwable t) {
+			throw new RuntimeException(t);
+		}
+	}
+	}

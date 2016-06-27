@@ -2,13 +2,8 @@ package com.ociweb.iot.hardware;
 
 import static com.ociweb.pronghorn.pipe.PipeWriter.publishWrites;
 import static com.ociweb.pronghorn.pipe.PipeWriter.tryWriteFragment;
-import static com.ociweb.pronghorn.pipe.PipeWriter.writeASCII;
-import static com.ociweb.pronghorn.pipe.PipeWriter.writeDecimal;
-import static com.ociweb.pronghorn.pipe.PipeWriter.writeLong;
-import static com.ociweb.pronghorn.pipe.PipeWriter.writeUTF8;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,40 +11,35 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
+import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
+import com.ociweb.pronghorn.iot.schema.GoSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
-import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 
-
 public class I2CJFFIStage extends PronghornStage {
 
 	private final Pipe<RawDataSchema> fromCommandChannel;
 	private final Pipe<RawDataSchema> toListener;
-	private final Pipe<RawDataSchema> goPipe; //TODO: Change the Schema
-	private final Pipe<RawDataSchema> ackPipe;
-	private final Pipe<RawDataSchema>[] outPipes;
-	private final Pipe<RawDataSchema>[] inPipes;
+	private final Pipe<GoSchema> goPipe; //TODO: Change the Schema
+	private final Pipe<AcknowledgeSchema> ackPipe;
+	
 
 	private DataOutputBlobWriter<RawDataSchema> writeListener;
-	private DataOutputBlobWriter<RawDataSchema> writeAck;
+	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
 	private DataInputBlobReader<RawDataSchema> readCommandChannel;
-	private DataInputBlobReader<RawDataSchema> readGo;
+	private DataInputBlobReader<GoSchema> readGo;
 
 	private Hardware hardware;
 	private int goCount;
 	private byte addr;
-	private byte packageSize;
 	private byte[] data;
-	private byte[][] listenerPacket;
-	private byte[][] connections;
 	
 
 
@@ -57,36 +47,28 @@ public class I2CJFFIStage extends PronghornStage {
 
 	private static I2CNativeLinuxBacking i2c;
 
-	public I2CJFFIStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes, Pipe<RawDataSchema>[] outPipes, Hardware hardware) {
-		super(graphManager, inPipes, outPipes); 
+	public I2CJFFIStage(GraphManager graphManager, Pipe<GoSchema> goPipe, Pipe<RawDataSchema> fromCommandChannel, 
+			Pipe<AcknowledgeSchema> ackPipe, Pipe<RawDataSchema> toListener, Hardware hardware) {
+		super(graphManager, join(goPipe, fromCommandChannel), join(ackPipe, toListener)); 
 
 		////////
 		//STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
-		this.inPipes = inPipes;
-		this.outPipes = outPipes;
-		assert(inPipes.length == 2);
-		assert(outPipes.length ==2);
-		this.toListener = outPipes[0];
-		this.ackPipe = outPipes[1];
-		this.fromCommandChannel = inPipes[0];
-		this.goPipe = inPipes[1];
+		this.toListener = toListener;
+		this.ackPipe = ackPipe;
+		this.fromCommandChannel = fromCommandChannel;
+		this.goPipe = goPipe;
 
 		this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
-		this.writeAck = new DataOutputBlobWriter<RawDataSchema>(ackPipe);
+		this.writeAck = new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
 		this.readCommandChannel = new DataInputBlobReader<RawDataSchema>(fromCommandChannel);
-		this.readGo = new DataInputBlobReader<RawDataSchema>(goPipe);
+		this.readGo = new DataInputBlobReader<GoSchema>(goPipe);
 		I2CJFFIStage.i2c = new I2CNativeLinuxBacking((byte)1); //TODO: get device spec from Hardware
 		this.hardware = hardware;
 
 		this.goCount = 0;
-		this.packageSize = 0;
 		this.data = new byte[0]; 
 		this.addr = 0;
-		
-		
-
-
 	}
 
 
@@ -105,7 +87,7 @@ public class I2CJFFIStage extends PronghornStage {
 
 
 	@Override
-	public void run() { //message: {address, package size, bytes to be read, package[]}
+	public void run() { 
 		goCount = 0;
 		while (PipeReader.tryReadFragment(goPipe)) {		
 			assert(PipeReader.isNewMessage(goPipe)) : "This test should only have one simple message made up of one fragment";

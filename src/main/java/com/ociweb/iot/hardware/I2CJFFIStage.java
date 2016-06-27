@@ -13,6 +13,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
@@ -42,11 +43,21 @@ public class I2CJFFIStage extends PronghornStage {
 	private DataInputBlobReader<RawDataSchema> readCommandChannel;
 	private DataInputBlobReader<RawDataSchema> readGo;
 
+	private Hardware hardware;
+	private int goCount;
+	private byte addr;
+	private byte packageSize;
+	private byte[] data;
+	private byte[][] listenerPacket;
+	private byte[][] connections;
+	
+
+
 	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
 
 	private static I2CNativeLinuxBacking i2c;
 
-	public I2CJFFIStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes, Pipe<RawDataSchema>[] outPipes) {
+	public I2CJFFIStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes, Pipe<RawDataSchema>[] outPipes, Hardware hardware) {
 		super(graphManager, inPipes, outPipes); 
 
 		////////
@@ -60,12 +71,21 @@ public class I2CJFFIStage extends PronghornStage {
 		this.ackPipe = outPipes[1];
 		this.fromCommandChannel = inPipes[0];
 		this.goPipe = inPipes[1];
-		
+
 		this.writeListener = new DataOutputBlobWriter(toListener);
 		this.writeAck = new DataOutputBlobWriter(ackPipe);
 		this.readCommandChannel = new DataInputBlobReader(fromCommandChannel);
 		this.readGo = new DataInputBlobReader(goPipe);
 		this.i2c = new I2CNativeLinuxBacking();
+		this.hardware = hardware;
+
+		this.goCount = 0;
+		this.packageSize = 0;
+		this.data = new byte[0]; //TODO: Nathan take out the trash
+		this.addr = 0;
+		
+		
+
 
 	}
 
@@ -83,48 +103,23 @@ public class I2CJFFIStage extends PronghornStage {
 		super.startup();
 	}
 
-	
-	private DataOutputBlobWriter<RawDataSchema> getWriter(){
-    	//assert Pipe.isInit(writeListener);
-		if(null == writeListener){
-    		this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
-    	}
-    	return writeListener;
-    }
-	private DataInputBlobReader<RawDataSchema> getReader(){
-    	if(null == readCommandChannel){
-    		this.readCommandChannel = new DataInputBlobReader<RawDataSchema>(fromCommandChannel);
-    	}
-    	return readCommandChannel;
-    }
 
 	@Override
 	public void run() { //message: {address, package size, bytes to be read, package[]}
-		byte addr = 0x00;
-		byte readBytes = 0x00;
-		byte data[] = {};
-		DataOutputBlobWriter<RawDataSchema> writeListener = getWriter();
-		DataInputBlobReader<RawDataSchema> readCommandChannel = getReader();
-		while (PipeReader.tryReadFragment(fromCommandChannel)) {		
+		goCount = 0;
+		while (PipeReader.tryReadFragment(goPipe)) {		
+			assert(PipeReader.isNewMessage(goPipe)) : "This test should only have one simple message made up of one fragment";
+			int msgIdx = PipeReader.getMsgIdx(goPipe);
 
-			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
-			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
-			
 			if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
-				readCommandChannel.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+				readGo.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				try {
-					addr = readCommandChannel.readByte();
-					data = new byte[readCommandChannel.readByte()]; //TODO: Nathan take out the trash
-					readBytes = readCommandChannel.readByte();
-					for (int i = 0; i < data.length; i++) {
-						data[i]=readCommandChannel.readByte();
-					}
-					I2CJFFIStage.i2c.write(addr, data);
+					this.goCount += readGo.readByte();
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
 				try {
-					readCommandChannel.close();
+					readGo.close();
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -132,36 +127,80 @@ public class I2CJFFIStage extends PronghornStage {
 				assert(msgIdx == -1);
 				requestShutdown();
 			}
-			
 
-			PipeReader.releaseReadLock(fromCommandChannel);
+
+			PipeReader.releaseReadLock(goPipe);
 		} 
-		
-		if(readBytes>0){
-			byte[] readData = i2c.read(addr, readBytes);
-			byte[] temp = new byte[readData.length+1]; //TODO: Nathan take out the trash
-			temp[0] = readBytes;
-			for (int i = 1; i < temp.length; i++) {  
-				temp[i] = readData[i-1];
-				//System.out.print(temp[i] + " ");
-			}
-			//System.out.println("");
-			//System.out.println("i2c Read");
-			if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
-				DataOutputBlobWriter.openField(writeListener);
-				try {
-					writeListener.write(temp);
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
+
+		while (goCount>0) {
+			if(PipeReader.tryReadFragment(fromCommandChannel)) {
+				assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
+				int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
+
+				if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
+					readCommandChannel.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+					try {
+						data = new byte[readCommandChannel.readByte()]; //TODO: Nathan take out the trash
+						for (int i = 0; i < data.length; i++) {
+							data[i]=readCommandChannel.readByte();
+						}
+						I2CJFFIStage.i2c.write(addr, data);
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
+					}
+					try {
+						readCommandChannel.close();
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
+					}
+				}else{
+					assert(msgIdx == -1);
+					requestShutdown();
 				}
 
-				DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-				publishWrites(toListener);
-			}else{
-				System.out.println("unable to write fragment");
+
+				PipeReader.releaseReadLock(fromCommandChannel);
+				
+				if (tryWriteFragment(ackPipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+					DataOutputBlobWriter.openField(writeAck);
+					try {
+						writeAck.write(1);
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
+					}
+
+					DataOutputBlobWriter.closeHighLevelField(writeAck, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+					publishWrites(ackPipe);
+				}else{
+					System.out.println("unable to write fragment");
+				}
+				
+				goCount--;
 			}
+		} 
+		for (int i = 0; i < this.hardware.digitalInputs.length; i++) {
+			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
+				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+					DataOutputBlobWriter.openField(writeListener);
+					try {
+						byte[] tempData = new byte[1];
+								i2c.read(connection.connection, numBytes);
+						writeListener.write(temp);
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
+					}
+
+					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+					publishWrites(toListener);
+				}else{
+					System.out.println("unable to write fragment");
+				}
+			}	
 		}
+		
 	}
+	
+	
 
 	@Override
 	public void shutdown() {

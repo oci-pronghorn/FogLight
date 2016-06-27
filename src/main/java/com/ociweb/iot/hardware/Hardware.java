@@ -71,7 +71,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-        HardConnection gc = new HardConnection(t,connection,ConnectionType.Grove);
+        HardConnection gc = new HardConnection(t,connection,ConnectionType.GrovePi);
         if (t.isInput()) {
             assert(!t.isOutput());
             analogInputs = growConnections(analogInputs, gc);
@@ -87,7 +87,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
-        HardConnection gc = new HardConnection(t,connection,ConnectionType.Grove);
+        HardConnection gc = new HardConnection(t,connection,ConnectionType.GrovePi);
         if (t.isInput()) {
             assert(!t.isOutput());
             digitalInputs = growConnections(digitalInputs, gc);
@@ -104,7 +104,7 @@ public abstract class Hardware {
         if (t.isInput()) {
             assert(!t.isOutput());
             for(int con:connections) {
-                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.Grove));
+                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.GrovePi));
             }
             
           System.out.println("connections "+Arrays.toString(connections));  
@@ -113,7 +113,7 @@ public abstract class Hardware {
         } else {
             assert(t.isOutput());
             for(int con:connections) {
-                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.Grove));
+                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.GrovePi));
             }
         }
         return this;

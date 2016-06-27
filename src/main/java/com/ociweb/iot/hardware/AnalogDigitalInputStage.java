@@ -46,8 +46,8 @@ public class AnalogDigitalInputStage extends PronghornStage{
 
 	}
 	public void startup() {
-		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
-			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForDigitalInput(hardware.digitalOutputs[i].connection);
+		for (int i = 0; i < hardware.digitalInputs.length; i++) {
+			if(hardware.digitalInputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForDigitalInput(hardware.digitalInputs[i].connection);
 		}
 		for (int i = 0; i < hardware.analogInputs.length; i++) {
 			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogInput(hardware.analogInputs[i].connection);
@@ -56,12 +56,12 @@ public class AnalogDigitalInputStage extends PronghornStage{
 	}
 	@Override
 	public void run() {
-		for (int i = 0; i < this.hardware.digitalOutputs.length; i++) {
-			if(this.hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)){
+		for (int i = 0; i < this.hardware.digitalInputs.length; i++) {
+			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.Direct)){
 				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
 					DataOutputBlobWriter.openField(writeListener);
 					try {
-						writeListener.write(hardware.digitalRead(hardware.digitalOutputs[i].connection)); //TODO: Use some other Schema to pass connection
+						writeListener.write(hardware.digitalRead(hardware.digitalInputs[i].connection)); //TODO: Use some other Schema to pass connection
 					} catch (IOException e) {
 						logger.error(e.getMessage(), e);
 					}

@@ -140,6 +140,7 @@ public class I2CJFFIStage extends PronghornStage {
 				if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
 					readCommandChannel.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 					try {
+						addr = readCommandChannel.readByte(); //TODO: Use I2CCommandSchema
 						data = new byte[readCommandChannel.readByte()]; //TODO: Nathan take out the trash
 						for (int i = 0; i < data.length; i++) {
 							data[i]=readCommandChannel.readByte();
@@ -161,7 +162,7 @@ public class I2CJFFIStage extends PronghornStage {
 
 				PipeReader.releaseReadLock(fromCommandChannel);
 				
-				if (tryWriteFragment(ackPipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+				if (tryWriteFragment(ackPipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Use acknowledgeSchema
 					DataOutputBlobWriter.openField(writeAck);
 					try {
 						writeAck.write(1);
@@ -178,17 +179,18 @@ public class I2CJFFIStage extends PronghornStage {
 				goCount--;
 			}
 		} 
-		for (int i = 0; i < this.hardware.digitalInputs.length; i++) {
+		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there "go" inputs?
 			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
 				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
 					DataOutputBlobWriter.openField(writeListener);
 					try {
 						byte[] tempData = {};
-						i2c.write(address, message);
+						byte[] message = {0x01, 0x01, hardware.digitalInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
+						i2c.write((byte) 0x04, message);
 						while(tempData.length == 0){ //TODO: Blocking call
 								i2c.read(hardware.digitalInputs[i].connection, 1);
 						}
-						writeListener.write(tempData);
+						writeListener.write(tempData); //TODO: Use some other Schema
 					} catch (IOException e) {
 						logger.error(e.getMessage(), e);
 					}
@@ -200,6 +202,30 @@ public class I2CJFFIStage extends PronghornStage {
 				}
 			}	
 		}
+		for (int i = 0; i < this.hardware.analogInputs.length; i++) {
+			if(this.hardware.analogInputs[i].type.equals(ConnectionType.GrovePi)){
+				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
+					DataOutputBlobWriter.openField(writeListener);
+					try {
+						byte[] tempData = {};
+						byte[] message = {0x01, 0x03, hardware.analogInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
+						i2c.write((byte) 0x04, message);
+						while(tempData.length == 0){ //TODO: Blocking call
+								i2c.read(hardware.digitalInputs[i].connection, 1);
+						}
+						writeListener.write(tempData); //TODO: Use some other Schema
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
+					}
+
+					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+					publishWrites(toListener);
+				}else{
+					System.out.println("unable to write fragment");
+				}
+			}	
+		}
+		
 		
 	}
 	

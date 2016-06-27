@@ -81,7 +81,7 @@ public class I2CJFFIStage extends PronghornStage {
 
 		this.goCount = 0;
 		this.packageSize = 0;
-		this.data = new byte[0]; //TODO: Nathan take out the trash
+		this.data = new byte[0]; 
 		this.addr = 0;
 		
 		
@@ -180,12 +180,15 @@ public class I2CJFFIStage extends PronghornStage {
 		} 
 		for (int i = 0; i < this.hardware.digitalInputs.length; i++) {
 			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
-				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
 					DataOutputBlobWriter.openField(writeListener);
 					try {
-						byte[] tempData = new byte[1];
-								i2c.read(connection.connection, numBytes);
-						writeListener.write(temp);
+						byte[] tempData = {};
+						i2c.write(address, message);
+						while(tempData.length == 0){ //TODO: Blocking call
+								i2c.read(hardware.digitalInputs[i].connection, 1);
+						}
+						writeListener.write(tempData);
 					} catch (IOException e) {
 						logger.error(e.getMessage(), e);
 					}

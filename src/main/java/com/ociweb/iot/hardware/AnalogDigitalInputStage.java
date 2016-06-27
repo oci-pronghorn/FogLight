@@ -57,7 +57,7 @@ public class AnalogDigitalInputStage extends PronghornStage{
 	@Override
 	public void run() {
 		for (int i = 0; i < this.hardware.digitalInputs.length; i++) {
-			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
+			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.Direct)){
 				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
 					DataOutputBlobWriter.openField(writeListener);
 					try {
@@ -74,7 +74,7 @@ public class AnalogDigitalInputStage extends PronghornStage{
 			}	
 		}
 		for (int i = 0; i < this.hardware.digitalInputs.length; i++) {
-			if(this.hardware.analogInputs[i].type.equals(ConnectionType.GrovePi)){
+			if(this.hardware.analogInputs[i].type.equals(ConnectionType.Direct)){
 				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
 					DataOutputBlobWriter.openField(writeListener);
 					try {

@@ -140,6 +140,12 @@ public class GroveV3EdisonImpl extends Hardware {
         EdisonGPIO.gpioOutputEnablePins.setValueHigh(13);
     }
 
+    public boolean isDevicePi(){
+    	return false;
+    }
+    public boolean isDeviceEdison(){
+    	return true;
+    }
     public void configurePinsForDigitalInput(byte connection) {
         EdisonGPIO.configDigitalInput(connection); //config for readBit
     }

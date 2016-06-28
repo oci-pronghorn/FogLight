@@ -78,6 +78,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}
+		hardware.beginPinConfiguration();
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
 		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
 			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))hardware.configurePinsForDigitalOutput(hardware.digitalOutputs[i].connection);
@@ -86,7 +87,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogOutput(hardware.pwmOutputs[i].connection);
 		}
 		// need to change to make the Edison PIN to startup correctly
-//		hardware.beginPinConfiguration();
+
 //		hardware.endPinConfiguration();
 		
 	}

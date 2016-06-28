@@ -33,11 +33,11 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class AnalogDigitalOutputStage extends PronghornStage {
+public class EdisonAnalogDigitalOutputStage extends PronghornStage {
 	private final Pipe<RawDataSchema> fromCommandChannel;
 	private final Pipe<RawDataSchema> goPipe;
 	private final Pipe<AcknowledgeSchema> ackPipe;
-	private final Pipe<AcknowledgeSchema> outPipe; // might need to change to
+	private final Pipe<AcknowledgeSchema> outPipe; // Pipe type used ack as shown in TrafficCopStage
 	private final Pipe<RawDataSchema>[] inPipes;
 
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
@@ -48,19 +48,18 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 	private int goCount;
 	private int connection;
 	private byte packageSize;
-	private int data;
-	private byte[][] connections;
+	private int value;
+	private int connections;
 
-	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
+	private static final Logger logger = LoggerFactory.getLogger(EdisonAnalogDigitalOutputStage.class);
 
-	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes,
+	public EdisonAnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes,
 			Pipe<AcknowledgeSchema> outPipe, Hardware hardware) {
+	
 		super(graphManager, inPipes, outPipe);
-
 		////////
 		// STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
-
 		this.inPipes = inPipes;
 		this.outPipe = outPipe;
 		this.hardware = hardware;
@@ -71,10 +70,10 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 
 		this.writeAck = new DataOutputBlobWriter(ackPipe);
 		this.readCommandChannel = new DataInputBlobReader(fromCommandChannel);
-		this.readGo = new DataInputBlobReader(goPipe);
+		this.readGo =   new DataInputBlobReader(goPipe);
 		this.connection = 0;
 		this.goCount = 0;
-		this.data = 0;
+		this.value = 0;
 	}
 
 	@Override
@@ -86,12 +85,11 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			throw new RuntimeException(t);
 		}
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
-
 		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
-			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForDigitalInput(hardware.digitalOutputs[i].connection);
+			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))hardware.configurePinsForDigitalOutput(hardware.digitalOutputs[i].connection);
 		}
 		for (int i = 0; i < hardware.pwmOutputs.length; i++) {
-			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogInput(hardware.pwmOutputs[i].connection);
+			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogOutput(hardware.pwmOutputs[i].connection);
 		}
 		// need to change to make the Edison PIN to startup correctly
 //		hardware.beginPinConfiguration();
@@ -131,34 +129,35 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
 			if (RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
 				readCommandChannel.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-				try {
 					for (int i = 0; i < hardware.digitalOutputs.length; i++) {
 					if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)){
-					connection = readCommandChannel.readInt(); 
-					data       = readCommandChannel.readInt(); 
 					try {
-						hardware.digitalWrite(connection, data);
+						connection = readCommandChannel.readInt();
+					} catch (IOException e1) {
+						e1.printStackTrace();
 					} 
-					catch (IOException e) {
-						logger.error(e.getMessage(), e);
-							}
+					hardware.digitalWrite(connection, value);
 						}
 				}
 					for (int i = 0; i < hardware.pwmOutputs.length; i++) {
 					if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)){	
-					connection = readCommandChannel.readInt(); 
-					data       = readCommandChannel.readInt(); 
 					try {
-						hardware.digitalWrite(connection, data);
+						connection = readCommandChannel.readInt();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} 
+					try {
+						value       = readCommandChannel.readInt();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} 
+					hardware.digitalWrite(connection, value);
 						}
-					catch (IOException e) {
-						logger.error(e.getMessage(), e);
-							}
-						}
-				}
+					}
 			}
-			}
-				else{
+			else{
 					assert(msgIdx == -1);
 					requestShutdown();
 				}
@@ -178,6 +177,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			
 			goCount--;
 		}
+	}
 	}
 
 	

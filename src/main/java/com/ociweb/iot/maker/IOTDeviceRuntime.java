@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.GrovePiImpl;
 import com.ociweb.iot.hardware.GroveShieldV2EdisonImpl;
+import com.ociweb.iot.hardware.GroveV2PiImpl;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
@@ -86,9 +87,11 @@ public class IOTDeviceRuntime {
             }
             
             if (isEdison) {
-                hardware = new GroveShieldV2EdisonImpl();
+                //hardware = new GroveShieldV2EdisonImpl();
+                hardware = new GroveV3EdisonImpl();
             } else if (isPi) {
-                hardware = new GrovePiImpl(gm);
+                //hardware = new GrovePiImpl(gm);
+                hardware = new GroveV2PiImpl(gm);
             }
             
         }

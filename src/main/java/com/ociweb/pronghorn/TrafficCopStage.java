@@ -18,10 +18,10 @@ public class TrafficCopStage extends PronghornStage {
     private Pipe<GoSchema>[] goOut;
     private int ackExpectedOn = -1;   
     
-    public TrafficCopStage(GraphManager graphManager, Pipe<GoSchema> primaryIn, Pipe<AcknowledgeSchema>[] ackIn,  Pipe<GoSchema>[] goOut) {
+    public TrafficCopStage(GraphManager graphManager, Pipe<GoSchema>[] primaryIn, Pipe<AcknowledgeSchema>[] ackIn,  Pipe<GoSchema>[] goOut) {
         super(graphManager, join(ackIn, primaryIn), goOut);
     
-        this.primaryIn = primaryIn;
+        this.primaryIn = primaryIn[0];
         this.ackIn = ackIn;
         this.goOut = goOut;
         

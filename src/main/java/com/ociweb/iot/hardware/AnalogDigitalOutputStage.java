@@ -35,14 +35,14 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class AnalogDigitalOutputStage extends PronghornStage {
 	private final Pipe<RawDataSchema> fromCommandChannel;
-	private final Pipe<RawDataSchema> goPipe;
+	private final Pipe<GoSchema> goPipe;
 	private final Pipe<AcknowledgeSchema> ackPipe;
 //	private final Pipe<AcknowledgeSchema> outPipe; // Pipe type used ack as shown in TrafficCopStage
 //	private final Pipe<RawDataSchema>[] inPipes;
 
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
 	private DataInputBlobReader<RawDataSchema> readCommandChannel;
-	private DataInputBlobReader<RawDataSchema> readGo;
+	private DataInputBlobReader<GoSchema> readGo;
 
 	private Hardware hardware;
 	private int goCount;
@@ -51,7 +51,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 
 	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
 
-	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema> fromCommandChannel,Pipe<RawDataSchema> goPipe,
+	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema> fromCommandChannel,Pipe<GoSchema> goPipe,
 			Pipe<AcknowledgeSchema> ackPipe, Hardware hardware) {
 	
 		super(graphManager, join(goPipe, fromCommandChannel),ackPipe);

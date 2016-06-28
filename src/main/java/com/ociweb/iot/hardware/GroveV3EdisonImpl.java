@@ -1,9 +1,13 @@
 package com.ociweb.iot.hardware;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
@@ -12,28 +16,92 @@ import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.iot.hardware.AnalogDigitalOutputStage;
 import com.ociweb.iot.hardware.Hardware;
 
 public class GroveV3EdisonImpl extends Hardware {
 	
+	
+	private final I2CJFFIStage i2cJFFIStage;
 	private final AnalogDigitalInputStage adInputStage;
 	private final AnalogDigitalOutputStage adOutputStage;
 	private final TrafficCopStage trafficCopStage;
-	private final Pipe<GoSchema>[] goPipes;
-	private final Pipe<AcknowledgeSchema> ackPipes;
+	
+	private final Pipe<RawDataSchema> ccToAdOut;
+	private final Pipe<RawDataSchema> ccToTraffic;
+	private final Pipe<RawDataSchema> ccToI2C;
+	
+	private final Pipe<GoSchema>[] goPipes; //AdOut, I2C, AdIn
+	private final Pipe<AcknowledgeSchema>[] ackPipes; //AdOut, I2C
 	private final Pipe<RawDataSchema> I2CToListener;
 	private final Pipe<RawDataSchema> adInToListener;
 	
+	
     private HardConnection[] usedLines;
     
-    public GroveShieldV2EdisonImpl() {
+    public GroveV3EdisonImpl(GraphManager gm) {
         super();
+        PipeConfig<RawDataSchema> ccToAdOutConfig = 	new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<RawDataSchema> ccToTrafficConfig = 	new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<RawDataSchema> ccToI2CConfig = 		new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<GoSchema> goPipesConfig = 			new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
+		PipeConfig<AcknowledgeSchema> ackPipesConfig =  new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
+		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
+		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
+		
+		Pipe<RawDataSchema> ccToAdOut = new Pipe<RawDataSchema>(ccToAdOutConfig);
+		Pipe<RawDataSchema> ccToTraffic = new Pipe<RawDataSchema>(ccToTrafficConfig);
+		Pipe<RawDataSchema>[] ccToTrafficJoiner = (Pipe<RawDataSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
+        ccToTrafficJoiner[0] = ccToTraffic;
+		Pipe<RawDataSchema> ccToI2C = new Pipe<RawDataSchema>(ccToI2CConfig);
+		Pipe<GoSchema> goPipe = new Pipe<GoSchema>(goPipesConfig);
+		int length = 3;
+		Pipe<GoSchema>[] goPipes = (Pipe<GoSchema>[]) Array.newInstance(goPipe.getClass(), length);
+		Pipe<AcknowledgeSchema> ackPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
+		length = 2; 
+		Pipe<AcknowledgeSchema>[] ackPipes = (Pipe<AcknowledgeSchema>[]) Array.newInstance(ackPipe.getClass(), length);
+		Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
+		Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
+		
+		this.i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], ccToI2C, ackPipes[1], I2CToListener, this);
+		this.adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this);
+		this.adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, goPipes[0], ackPipes[0], this);
+		this.trafficCopStage = new TrafficCopStage(gm, ccToTrafficJoiner, ackPipes, goPipes);
     }
+    public public GroveV3EdisonImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
+			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
+		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
+		PipeConfig<RawDataSchema> ccToAdOutConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<RawDataSchema> ccToTrafficConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<RawDataSchema> ccToI2CConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
+		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
+		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
+		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
+		
+		Pipe<RawDataSchema> ccToAdOut = new Pipe<RawDataSchema>(ccToAdOutConfig);
+		Pipe<RawDataSchema> ccToTraffic = new Pipe<RawDataSchema>(ccToTrafficConfig);
+		Pipe<RawDataSchema>[] ccToTrafficJoiner = (Pipe<RawDataSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
+        ccToTrafficJoiner[0] = ccToTraffic;
+		Pipe<RawDataSchema> ccToI2C = new Pipe<RawDataSchema>(ccToI2CConfig);
+		Pipe<GoSchema> goPipe = new Pipe<GoSchema>(goPipesConfig);
+		int length = 3;
+		Pipe<GoSchema>[] goPipes = (Pipe<GoSchema>[]) Array.newInstance(goPipe.getClass(), length);
+		Pipe<AcknowledgeSchema> ackPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
+		length = 2; 
+		Pipe<AcknowledgeSchema>[] ackPipes = (Pipe<AcknowledgeSchema>[]) Array.newInstance(ackPipe.getClass(), length);
+		Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
+		Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
+		
+		this.i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], ccToI2C, ackPipes[1], I2CToListener, this);
+		this.adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this);
+		this.adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, goPipes[0], ackPipes[0], this);
+		this.trafficCopStage = new TrafficCopStage(gm, ccToTrafficJoiner, ackPipes, goPipes);
+
+	}
 
     public void coldSetup() {
         usedLines = buildUsedLines();
@@ -229,7 +297,7 @@ public class GroveV3EdisonImpl extends Hardware {
         findDup(result,pos,analogInputs, true);
         int j = analogInputs.length;
         while (--j>=0) {
-            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection],ConnectionType.Grove);
+            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection],ConnectionType.Direct);
         }
         
         if (configI2C) {

@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
+import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -163,6 +164,8 @@ public abstract class Hardware {
     public abstract void configurePinsForAnalogOutput(byte connection); //Platform specific
     
     public abstract void configurePinsForI2C();
+    
+    public abstract CommandChannel getCommandChannel();
     
     public int maxAnalogMovingAverage() {
         return MAX_MOVING_AVERAGE_SUPPORTED;

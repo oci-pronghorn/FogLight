@@ -42,7 +42,7 @@ public class GroveV2PiImpl extends Hardware {
 
 	public GroveV2PiImpl(GraphManager gm) {
 		PipeConfig<RawDataSchema> ccToAdOutConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		PipeConfig<RawDataSchema> ccToTrafficConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<GoSchema> ccToTrafficConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
 		PipeConfig<RawDataSchema> ccToI2CConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
 		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
@@ -50,8 +50,8 @@ public class GroveV2PiImpl extends Hardware {
 		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
 		
 		Pipe<RawDataSchema> ccToAdOut = new Pipe<RawDataSchema>(ccToAdOutConfig);
-		Pipe<RawDataSchema> ccToTraffic = new Pipe<RawDataSchema>(ccToTrafficConfig);
-		Pipe<RawDataSchema>[] ccToTrafficJoiner = (Pipe<RawDataSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
+		Pipe<GoSchema> ccToTraffic = new Pipe<GoSchema>(ccToTrafficConfig);
+		Pipe<GoSchema>[] ccToTrafficJoiner = (Pipe<GoSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
         ccToTrafficJoiner[0] = ccToTraffic;
 		Pipe<RawDataSchema> ccToI2C = new Pipe<RawDataSchema>(ccToI2CConfig);
 		Pipe<GoSchema> goPipe = new Pipe<GoSchema>(goPipesConfig);
@@ -73,7 +73,7 @@ public class GroveV2PiImpl extends Hardware {
 			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
 		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
 		PipeConfig<RawDataSchema> ccToAdOutConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		PipeConfig<RawDataSchema> ccToTrafficConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<GoSchema> ccToTrafficConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
 		PipeConfig<RawDataSchema> ccToI2CConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
 		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
@@ -81,8 +81,8 @@ public class GroveV2PiImpl extends Hardware {
 		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
 		
 		Pipe<RawDataSchema> ccToAdOut = new Pipe<RawDataSchema>(ccToAdOutConfig);
-		Pipe<RawDataSchema> ccToTraffic = new Pipe<RawDataSchema>(ccToTrafficConfig);
-		Pipe<RawDataSchema>[] ccToTrafficJoiner = (Pipe<RawDataSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
+		Pipe<GoSchema> ccToTraffic = new Pipe<GoSchema>(ccToTrafficConfig);
+		Pipe<GoSchema>[] ccToTrafficJoiner = (Pipe<GoSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
         ccToTrafficJoiner[0] = ccToTraffic;
 		Pipe<RawDataSchema> ccToI2C = new Pipe<RawDataSchema>(ccToI2CConfig);
 		Pipe<GoSchema> goPipe = new Pipe<GoSchema>(goPipesConfig);
@@ -184,40 +184,24 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	public int digitalRead(int connector) { 
-		byte[] message = {0x04, 0x05, 0x01, 0x01, 0x01, (byte) connector, 0x00, 0x00};
-		jffiSupportStage.writeData(message);
-		byte[] data = {};
-
-		data = jffiSupportStage.readData();
-		assert(data.length <= 1) : "digitalRead reads a multi-byte value";
-
-
-		return data[0];
+		System.out.println("GPIO not currently supported on Pi");
+		return 0;
 	}
 
 	//TODO: Since there's no ADC built into the Pi, we can only read HI or LO.
 	public int analogRead(int connector) {
-		byte[] message = {0x04, 0x05, 0x03, 0x01, 0x03, (byte) connector, 0x00, 0x00};
-		jffiSupportStage.writeData(message);
-		byte[] data = {};
-
-		data = jffiSupportStage.readData();
-		assert(data.length == 3) : "analogRead did not return an int.";
-
-		return data[1]*256 + ((int)data[2]&0xFF);
+		throw new UnsupportedOperationException();
 	}
 
 
 	@Override
 	public void analogWrite(int connector, int value) {
-		byte[] message = {0x04, 0x05, 0x00, 0x01, 0x04, (byte) connector, (byte) value, 0x00};
-		jffiSupportStage.writeData(message);
+		throw new UnsupportedOperationException();
 	}
 
 	//Now using the JFFI stage
 	public void digitalWrite(int connector, int value) {
-		byte[] message = {0x04, 0x05, 0x00, 0x01, 0x02, (byte) connector, (byte) value, 0x00};
-		jffiSupportStage.writeData(message);
+		System.out.println("GPIO not currently supported on Pi");
 	}
 
 	//TODO: Is it right to config them as outputs before writing?

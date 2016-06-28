@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.iot.hardware.GrovePiImpl;
 import com.ociweb.iot.hardware.GroveShieldV2EdisonImpl;
 import com.ociweb.iot.hardware.GroveV2PiImpl;
+import com.ociweb.iot.hardware.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
@@ -68,7 +69,7 @@ public class IOTDeviceRuntime {
     
     
     
-    public Hardware getHarware() {
+    public Hardware getHardware() {
         if (null==hardware) {
 
             String osversion  =System.getProperty("os.version");
@@ -88,7 +89,7 @@ public class IOTDeviceRuntime {
             
             if (isEdison) {
                 //hardware = new GroveShieldV2EdisonImpl();
-                hardware = new GroveV3EdisonImpl();
+                hardware = new GroveV3EdisonImpl(gm);
             } else if (isPi) {
                 //hardware = new GrovePiImpl(gm);
                 hardware = new GroveV2PiImpl(gm);
@@ -102,16 +103,17 @@ public class IOTDeviceRuntime {
     
     public CommandChannel newCommandChannel() {
                
-        Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
-        collectedRequestPipes.add(pipe);
-        Pipe<I2CCommandSchema> i2cPayloadPipe = null;
-        
-        if (hardware.configI2C) {
-            i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
-            collectedI2CRequestPipes.add(i2cPayloadPipe);
-        }               
-        
-        return new CommandChannel(pipe, i2cPayloadPipe);
+//        Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
+//        collectedRequestPipes.add(pipe);
+//        Pipe<I2CCommandSchema> i2cPayloadPipe = null;
+//        
+//        if (hardware.configI2C) {
+//            i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
+//            collectedI2CRequestPipes.add(i2cPayloadPipe);
+//        }               
+        hardware = getHardware();
+    	
+        return hardware.getCommandChannel();
         
     }
     

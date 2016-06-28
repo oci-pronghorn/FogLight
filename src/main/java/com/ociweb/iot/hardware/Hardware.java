@@ -153,7 +153,6 @@ public abstract class Hardware {
        lock.unlock();
     }
     
-    public abstract boolean isDevicePi();
     public abstract int digitalRead(int connector); //Platform specific
     public abstract int analogRead(int connector); //Platform specific
     public abstract void digitalWrite(int connector, int value); //Platform specific

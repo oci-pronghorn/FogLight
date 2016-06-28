@@ -13,6 +13,7 @@ import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -25,7 +26,7 @@ import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 
 public class I2CJFFIStage extends PronghornStage {
 
-	private final Pipe<RawDataSchema> fromCommandChannel;
+	private final Pipe<I2CCommandSchema> fromCommandChannel;
 	private final Pipe<RawDataSchema> toListener;
 	private final Pipe<GoSchema> goPipe; //TODO: Change the Schema
 	private final Pipe<AcknowledgeSchema> ackPipe;
@@ -33,7 +34,7 @@ public class I2CJFFIStage extends PronghornStage {
 
 	private DataOutputBlobWriter<RawDataSchema> writeListener;
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
-	private DataInputBlobReader<RawDataSchema> readCommandChannel;
+	private DataInputBlobReader<I2CCommandSchema> readCommandChannel;
 	private DataInputBlobReader<GoSchema> readGo;
 
 	private Hardware hardware;
@@ -47,21 +48,21 @@ public class I2CJFFIStage extends PronghornStage {
 
 	private static I2CNativeLinuxBacking i2c;
 
-	public I2CJFFIStage(GraphManager graphManager, Pipe<GoSchema> goPipe, Pipe<RawDataSchema> fromCommandChannel, 
+	public I2CJFFIStage(GraphManager graphManager, Pipe<GoSchema> goPipe, Pipe<I2CCommandSchema> i2cPayloadPipe, 
 			Pipe<AcknowledgeSchema> ackPipe, Pipe<RawDataSchema> toListener, Hardware hardware) {
-		super(graphManager, join(goPipe, fromCommandChannel), join(ackPipe, toListener)); 
+		super(graphManager, join(goPipe, i2cPayloadPipe), join(ackPipe, toListener)); 
 
 		////////
 		//STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
 		this.toListener = toListener;
 		this.ackPipe = ackPipe;
-		this.fromCommandChannel = fromCommandChannel;
+		this.fromCommandChannel = i2cPayloadPipe;
 		this.goPipe = goPipe;
 
 		this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
 		this.writeAck = new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
-		this.readCommandChannel = new DataInputBlobReader<RawDataSchema>(fromCommandChannel);
+		this.readCommandChannel = new DataInputBlobReader<I2CCommandSchema>(i2cPayloadPipe);
 		this.readGo = new DataInputBlobReader<GoSchema>(goPipe);
 		I2CJFFIStage.i2c = new I2CNativeLinuxBacking((byte)1); //TODO: get device spec from Hardware
 		this.hardware = hardware;

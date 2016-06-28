@@ -12,6 +12,8 @@ import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
@@ -20,90 +22,53 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveV2PiImpl extends Hardware {
 
-
-	private final I2CJFFIStage i2cJFFIStage;
-	private final AnalogDigitalInputStage adInputStage;
-	private final AnalogDigitalOutputStage adOutputStage;
-	private final TrafficCopStage trafficCopStage;
-	
-	private final Pipe<RawDataSchema> ccToAdOut;
-	private final Pipe<RawDataSchema> ccToTraffic;
-	private final Pipe<RawDataSchema> ccToI2C;
-	private final Pipe<GoSchema>[] goPipes; //AdOut, I2C, AdIn
-	private final Pipe<AcknowledgeSchema>[] ackPipes; //AdOut, I2C
-	private final Pipe<RawDataSchema> I2CToListener;
-	private final Pipe<RawDataSchema> adInToListener;
-
 	private final int SLEEP_RATE_NS = 20000000;
-
-	private List<byte[]> readData;
 
 	private static final Logger logger = LoggerFactory.getLogger(GrovePiImpl.class);
 
-	public GroveV2PiImpl(GraphManager gm) {
-		PipeConfig<RawDataSchema> ccToAdOutConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		PipeConfig<GoSchema> ccToTrafficConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
-		PipeConfig<RawDataSchema> ccToI2CConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+	public GroveV2PiImpl(GraphManager gm, Pipe<GroveRequestSchema> ccToAdOut, Pipe<GoSchema> orderPipe, Pipe<I2CCommandSchema> i2cPayloadPipe) {
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
 		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
 		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
 		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
 		
-		Pipe<RawDataSchema> ccToAdOut = new Pipe<RawDataSchema>(ccToAdOutConfig);
-		Pipe<GoSchema> ccToTraffic = new Pipe<GoSchema>(ccToTrafficConfig);
-		Pipe<GoSchema>[] ccToTrafficJoiner = (Pipe<GoSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
-        ccToTrafficJoiner[0] = ccToTraffic;
-		Pipe<RawDataSchema> ccToI2C = new Pipe<RawDataSchema>(ccToI2CConfig);
-		Pipe<GoSchema> goPipe = new Pipe<GoSchema>(goPipesConfig);
-		int length = 3;
-		Pipe<GoSchema>[] goPipes = (Pipe<GoSchema>[]) Array.newInstance(goPipe.getClass(), length);
+		Pipe<GoSchema>[] ccToTrafficJoiner = (Pipe<GoSchema>[]) Array.newInstance(orderPipe.getClass(), 1);
+        ccToTrafficJoiner[0] = orderPipe;
+		Pipe<GoSchema>[] goPipes = (Pipe<GoSchema>[]) Array.newInstance(orderPipe.getClass(), 3);
 		Pipe<AcknowledgeSchema> ackPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-		length = 2; 
-		Pipe<AcknowledgeSchema>[] ackPipes = (Pipe<AcknowledgeSchema>[]) Array.newInstance(ackPipe.getClass(), length);
+		Pipe<AcknowledgeSchema>[] ackPipes = (Pipe<AcknowledgeSchema>[]) Array.newInstance(ackPipe.getClass(), 2);
 		Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
 		Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
 		
-		this.i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], ccToI2C, ackPipes[1], I2CToListener, this);
-		this.adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this);
-		this.adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, goPipes[0], ackPipes[0], this);
-		this.trafficCopStage = new TrafficCopStage(gm, ccToTrafficJoiner, ackPipes, goPipes);
+		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], i2cPayloadPipe, ackPipes[1], I2CToListener, this);
+		AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this);
+		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, goPipes[0], ackPipes[0], this);
+		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, ccToTrafficJoiner, ackPipes, goPipes);
 	}
 
-	public GroveV2PiImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
-			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
-		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
-		PipeConfig<RawDataSchema> ccToAdOutConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		PipeConfig<GoSchema> ccToTrafficConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
-		PipeConfig<RawDataSchema> ccToI2CConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
-		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
-		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
-		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
-		
-		Pipe<RawDataSchema> ccToAdOut = new Pipe<RawDataSchema>(ccToAdOutConfig);
-		Pipe<GoSchema> ccToTraffic = new Pipe<GoSchema>(ccToTrafficConfig);
-		Pipe<GoSchema>[] ccToTrafficJoiner = (Pipe<GoSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
-        ccToTrafficJoiner[0] = ccToTraffic;
-		Pipe<RawDataSchema> ccToI2C = new Pipe<RawDataSchema>(ccToI2CConfig);
-		Pipe<GoSchema> goPipe = new Pipe<GoSchema>(goPipesConfig);
-		int length = 3;
-		Pipe<GoSchema>[] goPipes = (Pipe<GoSchema>[]) Array.newInstance(goPipe.getClass(), length);
-		Pipe<AcknowledgeSchema> ackPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-		length = 2; 
-		Pipe<AcknowledgeSchema>[] ackPipes = (Pipe<AcknowledgeSchema>[]) Array.newInstance(ackPipe.getClass(), length);
-		Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
-		Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
-		
-		this.i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], ccToI2C, ackPipes[1], I2CToListener, this);
-		this.adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this);
-		this.adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, goPipes[0], ackPipes[0], this);
-		this.trafficCopStage = new TrafficCopStage(gm, ccToTrafficJoiner, ackPipes, goPipes);
+//	public GroveV2PiImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
+//			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
+//		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
+//		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
+//		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
+//		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
+//		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
+//		
+//		Pipe<GoSchema>[] ccToTrafficJoiner = (Pipe<GoSchema>[]) Array.newInstance(orderPipe.getClass(), 1);
+//        ccToTrafficJoiner[0] = orderPipe;
+//		Pipe<GoSchema>[] goPipes = (Pipe<GoSchema>[]) Array.newInstance(orderPipe.getClass(), 3);
+//		Pipe<AcknowledgeSchema> ackPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
+//		Pipe<AcknowledgeSchema>[] ackPipes = (Pipe<AcknowledgeSchema>[]) Array.newInstance(ackPipe.getClass(), 2);
+//		Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
+//		Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
+//		
+//		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], i2cPayloadPipe, ackPipes[1], I2CToListener, this);
+//		AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this);
+//		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, goPipes[0], ackPipes[0], this);
+//		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, ccToTrafficJoiner, ackPipes, goPipes);
+//
+//	}
 
-	}
-
-	public boolean isDevicePi(){
-		return true; 
-	}
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);

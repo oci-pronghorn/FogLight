@@ -27,6 +27,7 @@ import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -34,14 +35,14 @@ import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class AnalogDigitalOutputStage extends PronghornStage {
-	private final Pipe<RawDataSchema> fromCommandChannel;
+	private final Pipe<GroveRequestSchema> fromCommandChannel;
 	private final Pipe<GoSchema> goPipe;
 	private final Pipe<AcknowledgeSchema> ackPipe;
 //	private final Pipe<AcknowledgeSchema> outPipe; // Pipe type used ack as shown in TrafficCopStage
 //	private final Pipe<RawDataSchema>[] inPipes;
 
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
-	private DataInputBlobReader<RawDataSchema> readCommandChannel;
+	private DataInputBlobReader<GroveRequestSchema> readCommandChannel;
 	private DataInputBlobReader<GoSchema> readGo;
 
 	private Hardware hardware;
@@ -51,21 +52,21 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 
 	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
 
-	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema> fromCommandChannel,Pipe<GoSchema> goPipe,
+	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<GroveRequestSchema> ccToAdOut,Pipe<GoSchema> goPipe,
 			Pipe<AcknowledgeSchema> ackPipe, Hardware hardware) {
 	
-		super(graphManager, join(goPipe, fromCommandChannel),ackPipe);
+		super(graphManager, join(goPipe, ccToAdOut),ackPipe);
 		////////
 		// STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
 
 		this.hardware = hardware;
 		this.ackPipe = ackPipe;
-		this.fromCommandChannel = fromCommandChannel;
+		this.fromCommandChannel = ccToAdOut;
 		this.goPipe = goPipe;
 
 		this.writeAck =           new DataOutputBlobWriter(ackPipe);
-		this.readCommandChannel = new DataInputBlobReader(fromCommandChannel);
+		this.readCommandChannel = new DataInputBlobReader(ccToAdOut);
 		this.readGo =             new DataInputBlobReader(goPipe);
 		this.connection = 0;
 		this.goCount = 0;

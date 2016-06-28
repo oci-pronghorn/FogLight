@@ -33,12 +33,12 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class EdisonAnalogDigitalOutputStage extends PronghornStage {
+public class AnalogDigitalOutputStage extends PronghornStage {
 	private final Pipe<RawDataSchema> fromCommandChannel;
 	private final Pipe<RawDataSchema> goPipe;
 	private final Pipe<AcknowledgeSchema> ackPipe;
-	private final Pipe<AcknowledgeSchema> outPipe; // Pipe type used ack as shown in TrafficCopStage
-	private final Pipe<RawDataSchema>[] inPipes;
+//	private final Pipe<AcknowledgeSchema> outPipe; // Pipe type used ack as shown in TrafficCopStage
+//	private final Pipe<RawDataSchema>[] inPipes;
 
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
 	private DataInputBlobReader<RawDataSchema> readCommandChannel;
@@ -47,30 +47,26 @@ public class EdisonAnalogDigitalOutputStage extends PronghornStage {
 	private Hardware hardware;
 	private int goCount;
 	private int connection;
-	private byte packageSize;
 	private int value;
-	private int connections;
 
-	private static final Logger logger = LoggerFactory.getLogger(EdisonAnalogDigitalOutputStage.class);
+	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
 
-	public EdisonAnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema>[] inPipes,
-			Pipe<AcknowledgeSchema> outPipe, Hardware hardware) {
+	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<RawDataSchema> fromCommandChannel,Pipe<RawDataSchema> goPipe,
+			Pipe<AcknowledgeSchema> ackPipe, Hardware hardware) {
 	
-		super(graphManager, inPipes, outPipe);
+		super(graphManager, join(goPipe, fromCommandChannel),ackPipe);
 		////////
 		// STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
-		this.inPipes = inPipes;
-		this.outPipe = outPipe;
-		this.hardware = hardware;
-		assert (inPipes.length == 2);
-		ackPipe = outPipe;
-		this.fromCommandChannel = inPipes[0];
-		this.goPipe = inPipes[1];
 
-		this.writeAck = new DataOutputBlobWriter(ackPipe);
+		this.hardware = hardware;
+		this.ackPipe = ackPipe;
+		this.fromCommandChannel = fromCommandChannel;
+		this.goPipe = goPipe;
+
+		this.writeAck =           new DataOutputBlobWriter(ackPipe);
 		this.readCommandChannel = new DataInputBlobReader(fromCommandChannel);
-		this.readGo =   new DataInputBlobReader(goPipe);
+		this.readGo =             new DataInputBlobReader(goPipe);
 		this.connection = 0;
 		this.goCount = 0;
 		this.value = 0;
@@ -78,9 +74,7 @@ public class EdisonAnalogDigitalOutputStage extends PronghornStage {
 
 	@Override
 	public void startup() {
-
 		try{
-
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}

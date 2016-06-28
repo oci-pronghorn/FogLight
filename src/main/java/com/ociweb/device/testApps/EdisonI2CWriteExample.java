@@ -15,7 +15,7 @@ public class EdisonI2CWriteExample {
 	private static final Logger logger = LoggerFactory.getLogger(EdisonI2CWriteExample.class);
 
 	// Create a connection to the native Linux I2C lines.
-	private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking();
+	private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking((byte)6);
 
 	// Address of board.
 	public static final byte Grove_ADDR = 0x04;

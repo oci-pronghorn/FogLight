@@ -153,6 +153,7 @@ public abstract class Hardware {
        lock.unlock();
     }
     
+    public abstract boolean isDevicePi();
     public abstract int digitalRead(int connector); //Platform specific
     public abstract int analogRead(int connector); //Platform specific
     public abstract void digitalWrite(int connector, int value); //Platform specific
@@ -164,8 +165,6 @@ public abstract class Hardware {
     public abstract void configurePinsForAnalogOutput(byte connection); //Platform specific
     
     public abstract void configurePinsForI2C();
-    
-    public abstract CommandChannel getCommandChannel();
     
     public int maxAnalogMovingAverage() {
         return MAX_MOVING_AVERAGE_SUPPORTED;

@@ -61,6 +61,7 @@ public class IOTDeviceRuntime {
     private int SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
     
     
+    
     public IOTDeviceRuntime() {
         
         
@@ -102,18 +103,22 @@ public class IOTDeviceRuntime {
     
     
     public CommandChannel newCommandChannel() {
-               
-//        Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
-//        collectedRequestPipes.add(pipe);
-//        Pipe<I2CCommandSchema> i2cPayloadPipe = null;
-//        
-//        if (hardware.configI2C) {
-//            i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
-//            collectedI2CRequestPipes.add(i2cPayloadPipe);
-//        }               
-        hardware = getHardware();
-    	
-        return hardware.getCommandChannel();
+             
+    	this.hardware = getHardware();
+    	Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
+        collectedRequestPipes.add(pipe);
+        Pipe<I2CCommandSchema> i2cPayloadPipe = null;
+        
+        if (hardware.configI2C) {
+            i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
+            collectedI2CRequestPipes.add(i2cPayloadPipe);
+        } 
+    	if(hardware.isDevicePi()){
+    		return new PiCommandChannel(pipe, i2cPayloadPipe);
+    	}else{
+    		return new EdisonCommandChannel(pipe, i2cPayloadPipe);
+    	}
+              
         
     }
     

@@ -101,7 +101,9 @@ public class GroveV2PiImpl extends Hardware {
 
 	}
 
-
+	public boolean isDevicePi(){
+		return true; 
+	}
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);

@@ -1,7 +1,10 @@
 package com.ociweb.iot.hardware;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +24,14 @@ import com.ociweb.iot.hardware.Hardware;
 
 public class GroveV3EdisonImpl extends Hardware {
 	
+	private final I2CJFFIStage i2cJFFIStage;
 	private final AnalogDigitalInputStage adInputStage;
 	private final AnalogDigitalOutputStage adOutputStage;
 	private final TrafficCopStage trafficCopStage;
+	
+	private final Pipe<RawDataSchema> ccToAdOut;
+	private final Pipe<RawDataSchema> ccToTraffic;
+	private final Pipe<RawDataSchema> ccToI2C;
 	private final Pipe<GoSchema>[] goPipes;
 	private final Pipe<AcknowledgeSchema> ackPipes;
 	private final Pipe<RawDataSchema> I2CToListener;
@@ -229,7 +237,7 @@ public class GroveV3EdisonImpl extends Hardware {
         findDup(result,pos,analogInputs, true);
         int j = analogInputs.length;
         while (--j>=0) {
-            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection],ConnectionType.Grove);
+            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection],ConnectionType.Direct);
         }
         
         if (configI2C) {

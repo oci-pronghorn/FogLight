@@ -106,7 +106,6 @@ public class GroveV3EdisonImpl extends Hardware {
     public void coldSetup() {
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
-        
         setToKnownStateFromColdStart();  
         
     }

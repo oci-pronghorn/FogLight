@@ -54,10 +54,10 @@ public class PiCommandChannel extends CommandChannel{
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {            
-			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) { //TODO: this needs to be generic 
+			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_1)) { //TODO: this needs to be generic 
 
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, value);
+				byte[] message = {0x04, 0x05, 0x01, 0x02, (byte) connector, (byte) value, 0x00};
+				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2, message);
 
 				PipeWriter.publishWrites(output);
 

@@ -61,6 +61,12 @@ public class IOTDeviceRuntime {
     private PipeConfig<GroveResponseSchema> responsePipeConfig2x = responsePipeConfig.grow2x();
     
     private PipeConfig<GoSchema> orderPipeConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
+    private Pipe<GroveRequestSchema> ccToAdOut = new Pipe<GroveRequestSchema>(requestPipeConfig );
+    private Pipe<GoSchema> orderPipe = new Pipe<GoSchema>(orderPipeConfig);
+    private Pipe<I2CCommandSchema> i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
+    
+    private boolean isEdison = false;
+    private boolean isPi = false;
     
     private int SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
     
@@ -72,28 +78,33 @@ public class IOTDeviceRuntime {
     }
 
     public Hardware getHardware(){
-    	if(hardware==null){
-    		System.out.println("hardware is null!");
+    	if(this.hardware==null){
+    		String osversion  =System.getProperty("os.version");
+       	 
+            this.isEdison = ( osversion.toLowerCase().indexOf("edison") != -1 );
+            this.isPi     = ( osversion.toLowerCase().indexOf(";ppraspbian") != -1); //does not work on Pi
+            
+            if(!isEdison){
+            	isPi = true; //for testing on the Pi for now
+            	System.out.println("Device detection for Pi does not work. Defaulting to Pi Hardware for now");
+            }
+            
+            if (!isEdison && !isPi) {
+                logger.error("Unable to detect hardware : {}",osversion);
+                System.exit(0);
+            }
+            if(isPi){
+            	this.hardware = new GroveV3EdisonImpl(gm, ccToAdOut, orderPipe, i2cPayloadPipe);
+            }else if(isEdison){
+            	this.hardware = new GroveV2PiImpl(gm, ccToAdOut, orderPipe, i2cPayloadPipe);
+            }
     	}
-    	return hardware;
+    	return this.hardware;
     }
     
     public CommandChannel newCommandChannel() { //Maybe this should all be in the same method as hardware
              
-    	String osversion  =System.getProperty("os.version");
-    	 
-        boolean isEdison = ( osversion.toLowerCase().indexOf("edison") != -1 );
-        boolean isPi     = ( osversion.toLowerCase().indexOf("raspbian") != -1); //does not work on Pi
-        
-        if(!isEdison){
-        	isPi = true; //for testing on the Pi for now
-        	System.out.println("Device detection for Pi does not work. Defaulting to Pi Hardware for now");
-        }
-        
-        if (!isEdison && !isPi) {
-            logger.error("Unable to detect hardware : {}",osversion);
-            System.exit(0);
-        }
+    	
         
         
       //TODO: Add support for multiple command channels
@@ -106,16 +117,14 @@ public class IOTDeviceRuntime {
 //        } 
         
         
-        Pipe<GroveRequestSchema> ccToAdOut = new Pipe<GroveRequestSchema>(requestPipeConfig );
-        Pipe<GoSchema> orderPipe = new Pipe<GoSchema>(orderPipeConfig);
-        Pipe<I2CCommandSchema> i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
-       
+        
+       hardware = getHardware();
         
     	if(isPi){
-    		hardware = new GroveV3EdisonImpl(gm, ccToAdOut, orderPipe, i2cPayloadPipe);
+    		
     		return new PiCommandChannel(ccToAdOut, i2cPayloadPipe);
     	}else{
-    		hardware = new GroveV2PiImpl(gm, ccToAdOut, orderPipe, i2cPayloadPipe);
+    		
     		return new EdisonCommandChannel(ccToAdOut, i2cPayloadPipe);
     	}
          

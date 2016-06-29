@@ -248,6 +248,12 @@ public class GroveShieldV2MockImpl extends Hardware {
 		
 	}
 
+	@Override
+	public byte getI2CConnector() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 
 
 

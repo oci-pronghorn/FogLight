@@ -40,6 +40,7 @@ public class I2CJFFIStage extends PronghornStage {
 
 	private Hardware hardware;
 	private int goCount;
+	private int ackCount;
 	private byte addr;
 	private byte[] data;
 
@@ -63,19 +64,18 @@ public class I2CJFFIStage extends PronghornStage {
 		this.hardware = hardware;
 
 		//this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
-		
-		
+
+
 	}
 
 
 	@Override
 	public void startup() {
 		try{
-			this.writeAck = new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
 			this.readCommandChannel = new DataInputBlobReader<I2CCommandSchema>(fromCommandChannel);
-			this.readGo = new DataInputBlobReader<GoSchema>(goPipe);
-			I2CJFFIStage.i2c = new I2CNativeLinuxBacking((byte)1); //TODO: get device spec from Hardware
+			I2CJFFIStage.i2c = new I2CNativeLinuxBacking(hardware.getI2CConnector()); //TODO: get device spec from Hardware
 			this.goCount = 0;
+			this.ackCount = 0;
 			this.data = new byte[0]; 
 			this.addr = 0;
 
@@ -89,26 +89,31 @@ public class I2CJFFIStage extends PronghornStage {
 
 	@Override
 	public void run() { 
-		goCount = 0;
 		while (PipeReader.tryReadFragment(goPipe)) {		
 			assert(PipeReader.isNewMessage(goPipe)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(goPipe);
 
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
+				assert(goCount>=0);
 				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
+				ackCount = goCount;
+				System.out.println("Received Go Command "+goCount);
+				assert(goCount>0);
 			}else{
+				
 				assert(msgIdx == -1);
 				requestShutdown();
 			}
+			
 
 
 			PipeReader.releaseReadLock(goPipe);
 		} 
-		int temp = goCount;
 		while (goCount>0 && PipeReader.tryReadFragment(fromCommandChannel)) {
+			goCount--;
 			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
-
+			System.out.println("Inside the while");
 			if(I2CCommandSchema.MSG_COMMAND_1 == msgIdx){
 				readCommandChannel.openHighLevelAPIField(I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
 				try {
@@ -118,79 +123,85 @@ public class I2CJFFIStage extends PronghornStage {
 						data[i]=readCommandChannel.readByte();
 					}
 					I2CJFFIStage.i2c.write(addr, data);
-					System.out.println("I2C send to GrovePi");
+					System.out.println("writing to I2C bus");
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
+					System.out.println("I failed");
 				}
 				try {
 					readCommandChannel.close();
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
+					System.out.println("I failed to close");
 				}
 			}else{
+				System.out.println("Wrong Message index "+msgIdx);
 				assert(msgIdx == -1);
 				requestShutdown();
 			}
 
-
 			PipeReader.releaseReadLock(fromCommandChannel);
-
 			
-
-			goCount--;
-		} 
-		if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) { //TODO: Use acknowledgeSchema
-			PipeWriter.writeInt(ackPipe, AcknowledgeSchema.MSG_DONE_10, temp-goCount);
-			publishWrites(ackPipe);
-		}else{
-			System.out.println("unable to write fragment");
+			if(goCount==0){
+				if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) {
+					PipeWriter.writeInt(ackPipe, AcknowledgeSchema.MSG_DONE_10, 0);
+					publishWrites(ackPipe);
+					ackCount = goCount;
+					System.out.println("Send Acknowledgement");
+				}else{
+					System.out.println("unable to write fragment");
+				}
+			}
+			
 		}
-//		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there intermittent inputs?
-//			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
-//				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
-//					DataOutputBlobWriter.openField(writeListener);
-//					try {
-//						byte[] tempData = {};
-//						byte[] message = {0x01, 0x01, hardware.digitalInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
-//						i2c.write((byte) 0x04, message);
-//						while(tempData.length == 0){ //TODO: Blocking call
-//							i2c.read(hardware.digitalInputs[i].connection, 1);
-//						}
-//						writeListener.write(tempData); //TODO: Use some other Schema
-//					} catch (IOException e) {
-//						logger.error(e.getMessage(), e);
-//					}
-//
-//					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-//					publishWrites(toListener);
-//				}else{
-//					System.out.println("unable to write fragment");
-//				}
-//			}	
-//		}
-//		for (int i = 0; i < this.hardware.analogInputs.length; i++) {
-//			if(this.hardware.analogInputs[i].type.equals(ConnectionType.GrovePi)){
-//				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
-//					DataOutputBlobWriter.openField(writeListener);
-//					try {
-//						byte[] tempData = {};
-//						byte[] message = {0x01, 0x03, hardware.analogInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
-//						i2c.write((byte) 0x04, message);
-//						while(tempData.length == 0){ //TODO: Blocking call
-//							i2c.read(hardware.digitalInputs[i].connection, 1);
-//						}
-//						writeListener.write(tempData); //TODO: Use some other Schema
-//					} catch (IOException e) {
-//						logger.error(e.getMessage(), e);
-//					}
-//
-//					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-//					publishWrites(toListener);
-//				}else{
-//					System.out.println("unable to write fragment");
-//				}
-//			}	
-//		}
+		
+
+		//		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there intermittent inputs?
+		//			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
+		//				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
+		//					DataOutputBlobWriter.openField(writeListener);
+		//					try {
+		//						byte[] tempData = {};
+		//						byte[] message = {0x01, 0x01, hardware.digitalInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
+		//						i2c.write((byte) 0x04, message);
+		//						while(tempData.length == 0){ //TODO: Blocking call
+		//							i2c.read(hardware.digitalInputs[i].connection, 1);
+		//						}
+		//						writeListener.write(tempData); //TODO: Use some other Schema
+		//					} catch (IOException e) {
+		//						logger.error(e.getMessage(), e);
+		//					}
+		//
+		//					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+		//					publishWrites(toListener);
+		//				}else{
+		//					System.out.println("unable to write fragment");
+		//				}
+		//			}	
+		//		}
+		//		for (int i = 0; i < this.hardware.analogInputs.length; i++) {
+		//			if(this.hardware.analogInputs[i].type.equals(ConnectionType.GrovePi)){
+		//				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
+		//					DataOutputBlobWriter.openField(writeListener);
+		//					try {
+		//						byte[] tempData = {};
+		//						byte[] message = {0x01, 0x03, hardware.analogInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
+		//						i2c.write((byte) 0x04, message);
+		//						while(tempData.length == 0){ //TODO: Blocking call
+		//							i2c.read(hardware.digitalInputs[i].connection, 1);
+		//						}
+		//						writeListener.write(tempData); //TODO: Use some other Schema
+		//					} catch (IOException e) {
+		//						logger.error(e.getMessage(), e);
+		//					}
+		//
+		//					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+		//					publishWrites(toListener);
+		//				}else{
+		//					System.out.println("unable to write fragment");
+		//				}
+		//			}	
+		//		}
 
 
 	}

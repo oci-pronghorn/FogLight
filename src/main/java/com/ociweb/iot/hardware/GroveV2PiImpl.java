@@ -72,6 +72,9 @@ public class GroveV2PiImpl extends Hardware {
 //
 //	}
 
+	public byte getI2CConnector(){
+		return 1;
+	}
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);

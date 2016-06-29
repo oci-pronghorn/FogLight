@@ -220,4 +220,10 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         return result;
     }
 
+	@Override
+	public byte getI2CConnector() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

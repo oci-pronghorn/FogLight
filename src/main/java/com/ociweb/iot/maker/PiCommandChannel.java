@@ -74,6 +74,7 @@ public class PiCommandChannel extends CommandChannel{
 			if(PipeWriter.tryWriteFragment(goPipe, GoSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
 					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, i2cIndex);
+					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 					System.out.println("CommandChannel sends digitalWrite i2c go");
 
 					PipeWriter.publishWrites(goPipe);

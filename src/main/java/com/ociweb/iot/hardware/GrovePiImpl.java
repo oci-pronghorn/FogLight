@@ -310,6 +310,12 @@ public class GrovePiImpl extends Hardware {
 		return result;
 	}
 
+	@Override
+	public byte getI2CConnector() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 
 
 

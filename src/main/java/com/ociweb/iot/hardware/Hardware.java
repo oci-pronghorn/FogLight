@@ -186,6 +186,7 @@ public abstract class Hardware {
     
     public abstract void coldSetup();
     public abstract void cleanup();
+    public abstract byte getI2CConnector();
 
     static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
@@ -210,6 +211,7 @@ public abstract class Hardware {
     public void shutdown() {
         // TODO The caller would like to stop the operating system cold, need platform specific call?
     }
+
 
 	
 

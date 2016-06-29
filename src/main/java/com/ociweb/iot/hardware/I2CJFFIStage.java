@@ -30,7 +30,7 @@ public class I2CJFFIStage extends PronghornStage {
 	private final Pipe<RawDataSchema> toListener;
 	private final Pipe<GoSchema> goPipe; //TODO: Change the Schema
 	private final Pipe<AcknowledgeSchema> ackPipe;
-	
+
 
 	private DataOutputBlobWriter<RawDataSchema> writeListener;
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
@@ -41,7 +41,7 @@ public class I2CJFFIStage extends PronghornStage {
 	private int goCount;
 	private byte addr;
 	private byte[] data;
-	
+
 
 
 	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
@@ -94,8 +94,8 @@ public class I2CJFFIStage extends PronghornStage {
 			assert(PipeReader.isNewMessage(goPipe)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(goPipe);
 
-			if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
-				readGo.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+			if(GoSchema.MSG_RELEASE_20== msgIdx){
+				readGo.openHighLevelAPIField(GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
 				try {
 					this.goCount += readGo.readByte();
 				} catch (IOException e) {
@@ -115,52 +115,50 @@ public class I2CJFFIStage extends PronghornStage {
 			PipeReader.releaseReadLock(goPipe);
 		} 
 
-		while (goCount>0) {
-			if(PipeReader.tryReadFragment(fromCommandChannel)) {
-				assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
-				int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
+		while (goCount>0 && PipeReader.tryReadFragment(fromCommandChannel)) {
+			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
+			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
 
-				if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
-					readCommandChannel.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-					try {
-						addr = readCommandChannel.readByte(); //TODO: Use I2CCommandSchema
-						data = new byte[readCommandChannel.readByte()]; //TODO: Nathan take out the trash
-						for (int i = 0; i < data.length; i++) {
-							data[i]=readCommandChannel.readByte();
-						}
-						I2CJFFIStage.i2c.write(addr, data);
-					} catch (IOException e) {
-						logger.error(e.getMessage(), e);
+			if(I2CCommandSchema.MSG_COMMAND_1 == msgIdx){
+				readCommandChannel.openHighLevelAPIField(I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
+				try {
+					addr = readCommandChannel.readByte(); 
+					data = new byte[readCommandChannel.readByte()]; //TODO: Nathan take out the trash ReadByteArray method?
+					for (int i = 0; i < data.length; i++) {
+						data[i]=readCommandChannel.readByte();
 					}
-					try {
-						readCommandChannel.close();
-					} catch (IOException e) {
-						logger.error(e.getMessage(), e);
-					}
-				}else{
-					assert(msgIdx == -1);
-					requestShutdown();
+					I2CJFFIStage.i2c.write(addr, data);
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
 				}
-
-
-				PipeReader.releaseReadLock(fromCommandChannel);
-				
-				if (tryWriteFragment(ackPipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Use acknowledgeSchema
-					DataOutputBlobWriter.openField(writeAck);
-					try {
-						writeAck.write(1);
-					} catch (IOException e) {
-						logger.error(e.getMessage(), e);
-					}
-
-					DataOutputBlobWriter.closeHighLevelField(writeAck, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-					publishWrites(ackPipe);
-				}else{
-					System.out.println("unable to write fragment");
+				try {
+					readCommandChannel.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
 				}
-				
-				goCount--;
+			}else{
+				assert(msgIdx == -1);
+				requestShutdown();
 			}
+
+
+			PipeReader.releaseReadLock(fromCommandChannel);
+
+			if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) { //TODO: Use acknowledgeSchema
+				DataOutputBlobWriter.openField(writeAck);;
+				try {
+					writeAck.write(1);
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
+				}
+
+				DataOutputBlobWriter.closeHighLevelField(writeAck, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+				publishWrites(ackPipe);
+			}else{
+				System.out.println("unable to write fragment");
+			}
+
+			goCount--;
 		} 
 		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there intermittent inputs?
 			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
@@ -171,7 +169,7 @@ public class I2CJFFIStage extends PronghornStage {
 						byte[] message = {0x01, 0x01, hardware.digitalInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
 						i2c.write((byte) 0x04, message);
 						while(tempData.length == 0){ //TODO: Blocking call
-								i2c.read(hardware.digitalInputs[i].connection, 1);
+							i2c.read(hardware.digitalInputs[i].connection, 1);
 						}
 						writeListener.write(tempData); //TODO: Use some other Schema
 					} catch (IOException e) {
@@ -194,7 +192,7 @@ public class I2CJFFIStage extends PronghornStage {
 						byte[] message = {0x01, 0x03, hardware.analogInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
 						i2c.write((byte) 0x04, message);
 						while(tempData.length == 0){ //TODO: Blocking call
-								i2c.read(hardware.digitalInputs[i].connection, 1);
+							i2c.read(hardware.digitalInputs[i].connection, 1);
 						}
 						writeListener.write(tempData); //TODO: Use some other Schema
 					} catch (IOException e) {
@@ -208,11 +206,11 @@ public class I2CJFFIStage extends PronghornStage {
 				}
 			}	
 		}
-		
-		
+
+
 	}
-	
-	
+
+
 
 	@Override
 	public void shutdown() {

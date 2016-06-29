@@ -93,9 +93,9 @@ public class IOTDeviceRuntime {
                 logger.error("Unable to detect hardware : {}",osversion);
                 System.exit(0);
             }
-            if(isPi){
+            if(isEdison){
             	this.hardware = new GroveV3EdisonImpl(gm, ccToAdOut, orderPipe, i2cPayloadPipe);
-            }else if(isEdison){
+            }else if(isPi){
             	this.hardware = new GroveV2PiImpl(gm, ccToAdOut, orderPipe, i2cPayloadPipe);
             }
     	}

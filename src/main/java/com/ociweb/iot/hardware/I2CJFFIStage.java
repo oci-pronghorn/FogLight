@@ -27,12 +27,12 @@ import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 public class I2CJFFIStage extends PronghornStage {
 
 	private final Pipe<I2CCommandSchema> fromCommandChannel;
-	private final Pipe<RawDataSchema> toListener;
+	//private final Pipe<RawDataSchema> toListener;
 	private final Pipe<GoSchema> goPipe; //TODO: Change the Schema
 	private final Pipe<AcknowledgeSchema> ackPipe;
 
 
-	private DataOutputBlobWriter<RawDataSchema> writeListener;
+	//private DataOutputBlobWriter<RawDataSchema> writeListener;
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
 	private DataInputBlobReader<I2CCommandSchema> readCommandChannel;
 	private DataInputBlobReader<GoSchema> readGo;
@@ -49,18 +49,18 @@ public class I2CJFFIStage extends PronghornStage {
 	private static I2CNativeLinuxBacking i2c;
 
 	public I2CJFFIStage(GraphManager graphManager, Pipe<GoSchema> goPipe, Pipe<I2CCommandSchema> i2cPayloadPipe, 
-			Pipe<AcknowledgeSchema> ackPipe, Pipe<RawDataSchema> toListener, Hardware hardware) {
-		super(graphManager, join(goPipe, i2cPayloadPipe), join(ackPipe, toListener)); 
+			Pipe<AcknowledgeSchema> ackPipe, Hardware hardware) { //add an I2CListenerPipe
+		super(graphManager, join(goPipe, i2cPayloadPipe), join(ackPipe)); //add here
 
 		////////
 		//STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
-		this.toListener = toListener;
+		//this.toListener = toListener;
 		this.ackPipe = ackPipe;
 		this.fromCommandChannel = i2cPayloadPipe;
 		this.goPipe = goPipe;
 
-		this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
+		//this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
 		this.writeAck = new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
 		this.readCommandChannel = new DataInputBlobReader<I2CCommandSchema>(i2cPayloadPipe);
 		this.readGo = new DataInputBlobReader<GoSchema>(goPipe);
@@ -160,52 +160,52 @@ public class I2CJFFIStage extends PronghornStage {
 
 			goCount--;
 		} 
-		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there intermittent inputs?
-			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
-				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
-					DataOutputBlobWriter.openField(writeListener);
-					try {
-						byte[] tempData = {};
-						byte[] message = {0x01, 0x01, hardware.digitalInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
-						i2c.write((byte) 0x04, message);
-						while(tempData.length == 0){ //TODO: Blocking call
-							i2c.read(hardware.digitalInputs[i].connection, 1);
-						}
-						writeListener.write(tempData); //TODO: Use some other Schema
-					} catch (IOException e) {
-						logger.error(e.getMessage(), e);
-					}
-
-					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-					publishWrites(toListener);
-				}else{
-					System.out.println("unable to write fragment");
-				}
-			}	
-		}
-		for (int i = 0; i < this.hardware.analogInputs.length; i++) {
-			if(this.hardware.analogInputs[i].type.equals(ConnectionType.GrovePi)){
-				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
-					DataOutputBlobWriter.openField(writeListener);
-					try {
-						byte[] tempData = {};
-						byte[] message = {0x01, 0x03, hardware.analogInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
-						i2c.write((byte) 0x04, message);
-						while(tempData.length == 0){ //TODO: Blocking call
-							i2c.read(hardware.digitalInputs[i].connection, 1);
-						}
-						writeListener.write(tempData); //TODO: Use some other Schema
-					} catch (IOException e) {
-						logger.error(e.getMessage(), e);
-					}
-
-					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-					publishWrites(toListener);
-				}else{
-					System.out.println("unable to write fragment");
-				}
-			}	
-		}
+//		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there intermittent inputs?
+//			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
+//				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
+//					DataOutputBlobWriter.openField(writeListener);
+//					try {
+//						byte[] tempData = {};
+//						byte[] message = {0x01, 0x01, hardware.digitalInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
+//						i2c.write((byte) 0x04, message);
+//						while(tempData.length == 0){ //TODO: Blocking call
+//							i2c.read(hardware.digitalInputs[i].connection, 1);
+//						}
+//						writeListener.write(tempData); //TODO: Use some other Schema
+//					} catch (IOException e) {
+//						logger.error(e.getMessage(), e);
+//					}
+//
+//					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+//					publishWrites(toListener);
+//				}else{
+//					System.out.println("unable to write fragment");
+//				}
+//			}	
+//		}
+//		for (int i = 0; i < this.hardware.analogInputs.length; i++) {
+//			if(this.hardware.analogInputs[i].type.equals(ConnectionType.GrovePi)){
+//				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?
+//					DataOutputBlobWriter.openField(writeListener);
+//					try {
+//						byte[] tempData = {};
+//						byte[] message = {0x01, 0x03, hardware.analogInputs[i].connection, 0x00, 0x00};//TODO: This is GrovePi specific. Should it be in hardware?
+//						i2c.write((byte) 0x04, message);
+//						while(tempData.length == 0){ //TODO: Blocking call
+//							i2c.read(hardware.digitalInputs[i].connection, 1);
+//						}
+//						writeListener.write(tempData); //TODO: Use some other Schema
+//					} catch (IOException e) {
+//						logger.error(e.getMessage(), e);
+//					}
+//
+//					DataOutputBlobWriter.closeHighLevelField(writeListener, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+//					publishWrites(toListener);
+//				}else{
+//					System.out.println("unable to write fragment");
+//				}
+//			}	
+//		}
 
 
 	}

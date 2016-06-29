@@ -44,7 +44,7 @@ public class GroveV3EdisonImpl extends Hardware {
 		Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
 		Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
 		
-		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], i2cPayloadPipe, ackPipes[1], I2CToListener, this);
+		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], i2cPayloadPipe, ackPipes[1], this); //TODO: add i2cListener pipe
 		AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this);
 		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, goPipes[0], ackPipes[0], this);
 		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, ccToTrafficJoiner, ackPipes, goPipes);

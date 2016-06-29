@@ -36,16 +36,16 @@ public class GroveV2PiImpl extends Hardware {
 		
 		Pipe<GoSchema> adGoPipe = new Pipe<GoSchema>(goPipesConfig);
 		Pipe<GoSchema> i2cGoPipe = new Pipe<GoSchema>(goPipesConfig);
-		Pipe<GoSchema> listenerGoPipe = new Pipe<GoSchema>(goPipesConfig);
+		//Pipe<GoSchema> listenerGoPipe = new Pipe<GoSchema>(goPipesConfig);
 		Pipe<AcknowledgeSchema> i2cAckPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
 		Pipe<AcknowledgeSchema> adAckPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-		Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
-		Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
+		//Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
+		//Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
 		
-		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, i2cGoPipe, i2cPayloadPipe, i2cAckPipe, I2CToListener, this);
-		AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
+		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, i2cGoPipe, i2cPayloadPipe, i2cAckPipe, this);
+		//AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
 		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, adGoPipe, adAckPipe, this);
-		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, PronghornStage.join(orderPipe), PronghornStage.join(i2cAckPipe, adAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe, listenerGoPipe));
+		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, PronghornStage.join(orderPipe), PronghornStage.join(i2cAckPipe, adAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
 	}
 
 //	public GroveV2PiImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,

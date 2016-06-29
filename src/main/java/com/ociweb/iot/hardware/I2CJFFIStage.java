@@ -59,17 +59,11 @@ public class I2CJFFIStage extends PronghornStage {
 		this.ackPipe = ackPipe;
 		this.fromCommandChannel = i2cPayloadPipe;
 		this.goPipe = goPipe;
-
-		//this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
-		this.writeAck = new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
-		this.readCommandChannel = new DataInputBlobReader<I2CCommandSchema>(i2cPayloadPipe);
-		this.readGo = new DataInputBlobReader<GoSchema>(goPipe);
-		I2CJFFIStage.i2c = new I2CNativeLinuxBacking((byte)1); //TODO: get device spec from Hardware
 		this.hardware = hardware;
 
-		this.goCount = 0;
-		this.data = new byte[0]; 
-		this.addr = 0;
+		//this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
+		
+		
 	}
 
 
@@ -77,7 +71,13 @@ public class I2CJFFIStage extends PronghornStage {
 	public void startup() {
 
 		try{
-
+			this.writeAck = new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
+			this.readCommandChannel = new DataInputBlobReader<I2CCommandSchema>(fromCommandChannel);
+			this.readGo = new DataInputBlobReader<GoSchema>(goPipe);
+			I2CJFFIStage.i2c = new I2CNativeLinuxBacking((byte)1); //TODO: get device spec from Hardware
+			this.goCount = 0;
+			this.data = new byte[0]; 
+			this.addr = 0;
 
 		} catch (Throwable t) {
 			throw new RuntimeException(t);

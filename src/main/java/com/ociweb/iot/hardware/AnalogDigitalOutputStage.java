@@ -97,25 +97,14 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			int msgIdx = PipeReader.getMsgIdx(goPipe);
 			
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
-				readGo.openHighLevelAPIField(GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
-				try {
-					this.goCount += readGo.readByte();
-					System.out.println("go count up to "+goCount);
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
-				}
-				try {
-					readGo.close();
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
-				}
+				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
 			}else{
 				assert(msgIdx == -1);
 				requestShutdown();
 			}
 			PipeReader.releaseReadLock(goPipe);
 		} 
-		
+		int temp =goCount;
 	while (goCount > 0 && PipeReader.tryReadFragment(fromCommandChannel)){
 			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
@@ -131,6 +120,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 						e1.printStackTrace();
 					} 
 					hardware.digitalWrite(connector, value);
+					System.out.println("digitalWrite sent to Ed PinManager");
 						}
 				}
 					for (int i = 0; i < hardware.pwmOutputs.length; i++) {
@@ -141,8 +131,14 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 					} catch (IOException e2) {
 						e2.printStackTrace();
 					} 
-					hardware.digitalWrite(connector, value);
+					hardware.analogWrite(connector, value);
+					System.out.println("analogWrite sent to Ed PinManager");
 						}
+					}
+					try {
+						readCommandChannel.close();
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
 					}
 			}
 			else{
@@ -150,25 +146,17 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 					requestShutdown();
 				}
 			PipeReader.releaseReadLock(fromCommandChannel);
-			
-			if (tryWriteFragment(ackPipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Use acknowledgeSchema
-				DataOutputBlobWriter.openField(writeAck);
-				try {
-					writeAck.write(1);
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
-				}
-
-				DataOutputBlobWriter.closeHighLevelField(writeAck, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+			goCount--;
+			}
+			if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) { //TODO: Use acknowledgeSchema
+				PipeWriter.writeInt(ackPipe, AcknowledgeSchema.MSG_DONE_10, temp-goCount);
 				publishWrites(ackPipe);
 			}else{
 				System.out.println("unable to write fragment");
 			}
-			
-			goCount--;
 	
 	}
-	}
+
 
 	
 	@Override

@@ -33,9 +33,9 @@ public class GroveV3EdisonImpl extends Hardware {
     
     public GroveV3EdisonImpl(GraphManager gm, Pipe<GroveRequestSchema> ccToAdOut, Pipe<GoSchema> orderPipe, Pipe<I2CCommandSchema> i2cPayloadPipe) {
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
-		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
-		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
-		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
+		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);
+		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
 		
 		//Pipe<GoSchema>[] ccToTrafficJoiner = (Pipe<GoSchema>[]) Array.newInstance(orderPipe.getClass(), 1);
         //ccToTrafficJoiner[0] = orderPipe;

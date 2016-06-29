@@ -58,7 +58,7 @@ public class EdisonCommandChannel extends CommandChannel{
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			boolean msg;
-			if (PipeWriter.tryWriteFragment(i2cOutput, GroveRequestSchema.MSG_DIGITALSET_110)) { //TODO: this needs to be generic 
+			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) { //TODO: this needs to be generic 
 
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, value);

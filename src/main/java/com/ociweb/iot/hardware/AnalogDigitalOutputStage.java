@@ -70,7 +70,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		try{
 			this.writeAck =           new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
 			this.readCommandChannel = new DataInputBlobReader<GroveRequestSchema>(fromCommandChannel);
-			this.readGo =             new DataInputBlobReader(goPipe);
+			this.readGo = 			  new DataInputBlobReader<GoSchema>(goPipe);
 			this.connector = 0;
 			this.goCount = 0;
 			this.value = 0;
@@ -96,10 +96,11 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			assert(PipeReader.isNewMessage(goPipe)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(goPipe);
 			
-			if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
-				readGo.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+			if(GoSchema.MSG_RELEASE_20== msgIdx){
+				readGo.openHighLevelAPIField(GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
 				try {
 					this.goCount += readGo.readByte();
+					System.out.println("go count up to "+goCount);
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -112,7 +113,6 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 				assert(msgIdx == -1);
 				requestShutdown();
 			}
-
 			PipeReader.releaseReadLock(goPipe);
 		} 
 		

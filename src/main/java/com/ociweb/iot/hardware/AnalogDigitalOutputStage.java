@@ -60,28 +60,26 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		////////
 		// STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
-
 		this.hardware = hardware;
 		this.ackPipe = ackPipe;
 		this.fromCommandChannel = ccToAdOut;
 		this.goPipe = goPipe;
 
-		this.writeAck =           new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
-		this.readCommandChannel = new DataInputBlobReader<GroveRequestSchema>(ccToAdOut);
-		this.readGo =             new DataInputBlobReader(goPipe);
-		this.connector = 0;
-		this.goCount = 0;
-		this.value = 0;
 	}
 
 	@Override
 	public void startup() {
 		try{
+			this.writeAck =           new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
+			this.readCommandChannel = new DataInputBlobReader<GroveRequestSchema>(fromCommandChannel);
+			this.readGo =             new DataInputBlobReader(goPipe);
+			this.connector = 0;
+			this.goCount = 0;
+			this.value = 0;
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}
 		super.startup();
-		hardware.beginPinConfiguration();
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
 		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
 			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))hardware.configurePinsForDigitalOutput(hardware.digitalOutputs[i].connection);
@@ -90,9 +88,6 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogOutput(hardware.pwmOutputs[i].connection);
 		}
 		// need to change to make the Edison PIN to startup correctly
-
-	   hardware.endPinConfiguration();
-		
 	}
 
 	@Override

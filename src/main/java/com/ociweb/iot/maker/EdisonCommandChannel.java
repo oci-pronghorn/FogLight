@@ -60,9 +60,10 @@ public class EdisonCommandChannel extends CommandChannel{
 
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, value);
-
+				
 				PipeWriter.publishWrites(output);
-
+				
+			if (PipeWriter.tryWriteFragment(goPipe,GoSchema.MSG_GO_10 ))
 				return true;
 			} else {
 				return false;

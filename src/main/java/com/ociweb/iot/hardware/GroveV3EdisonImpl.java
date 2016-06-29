@@ -58,7 +58,7 @@ public class GroveV3EdisonImpl extends Hardware {
     
 
     
-    public void coldSetupOutput() {
+    public void coldSetup() {
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
         setToKnownStateFromColdStart();  
@@ -68,20 +68,15 @@ public class GroveV3EdisonImpl extends Hardware {
 		for (int i = 0; i < hardware.pwmOutputs.length; i++) {
 			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configPWM(hardware.pwmOutputs[i].connection); //config for pwm
 		}
-		
-    }
-    public void coldSetupInput() {
-        usedLines = buildUsedLines();
-        EdisonGPIO.ensureAllLinuxDevices(usedLines);
-        setToKnownStateFromColdStart();  
 		for (int i = 0; i < hardware.digitalInputs.length; i++) {
 			if(hardware.digitalInputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalInput(hardware.digitalInputs[i].connection); //config for readBit
 		}
 		for (int i = 0; i < hardware.analogInputs.length; i++) {
 			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configAnalogInput(hardware.analogInputs[i].connection); //config for readInt
 		}
-		
+		EdisonGPIO.configI2C();
     }
+   
     
 //    public void coldSetupI2C() {
 //        usedLines = buildUsedLines();
@@ -127,10 +122,6 @@ public class GroveV3EdisonImpl extends Hardware {
 
 
 
-    
-    public void configurePinsForI2C() {
-        EdisonGPIO.configI2C();
-    }
     
     public void i2cDataIn() {
         EdisonGPIO.configI2CDataIn();

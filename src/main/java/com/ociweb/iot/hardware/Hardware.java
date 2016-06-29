@@ -159,8 +159,6 @@ public abstract class Hardware {
     public abstract void analogWrite(int connector, int value); //Platform specific
     
     
-    public abstract void configurePinsForI2C();
-    
     public int maxAnalogMovingAverage() {
         return MAX_MOVING_AVERAGE_SUPPORTED;
     }
@@ -180,8 +178,7 @@ public abstract class Hardware {
     public abstract boolean i2cReadClockBool();
     public abstract boolean i2cReadDataBool();
     
-    public abstract void coldSetupInput();
-    public abstract void coldSetupOutput();
+    public abstract void coldSetup();
     public abstract void cleanup();
     public abstract byte getI2CConnector();
 

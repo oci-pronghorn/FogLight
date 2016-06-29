@@ -52,22 +52,22 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         EdisonGPIO.gpioOutputEnablePins.setValueHigh(13);
     }
 
-    public void configurePinsForDigitalInput(byte connection) {
-        EdisonGPIO.configDigitalInput(connection); //config for readBit
-    }
-
-    public void configurePinsForAnalogInput(byte connection) {
-        EdisonGPIO.configAnalogInput(connection);  //config for readInt
-    }
-    
-    public void configurePinsForDigitalOutput(byte connection){
-    	EdisonGPIO.configDigitalOutput(connection); //config for writeBit
-    }   
-
-    @Override
-    public void configurePinsForAnalogOutput(byte connection) {
-        EdisonGPIO.configPWM(connection); //config for pwm
-    }
+//    public void configurePinsForDigitalInput(byte connection) {
+//        EdisonGPIO.configDigitalInput(connection); //config for readBit
+//    }
+//
+//    public void configurePinsForAnalogInput(byte connection) {
+//        EdisonGPIO.configAnalogInput(connection);  //config for readInt
+//    }
+//    
+//    public void configurePinsForDigitalOutput(byte connection){
+//    	EdisonGPIO.configDigitalOutput(connection); //config for writeBit
+//    }   
+//
+//    @Override
+//    public void configurePinsForAnalogOutput(byte connection) {
+//        EdisonGPIO.configPWM(connection); //config for pwm
+//    }
 
 
     

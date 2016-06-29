@@ -213,8 +213,7 @@ public class IOTDeviceRuntime {
 
         
     public void start() {
-       hardware.coldSetupInput();
-       hardware.coldSetupOutput();
+       hardware.coldSetup();
         
        buildGraph(); 
         

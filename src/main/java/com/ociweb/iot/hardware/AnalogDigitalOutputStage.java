@@ -43,7 +43,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 	private DataInputBlobReader<GroveRequestSchema> readCommandChannel;
 	private DataInputBlobReader<GoSchema> readGo;
 
-	private final Hardware hardware;
+	private Hardware hardware;
 	private int goCount;
 	private int connector;//should be passed in first
 	private int value;
@@ -74,7 +74,6 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			this.connector = 0;
 			this.goCount = 0;
 			this.value = 0;
-			hardware.coldSetupOutput();
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}

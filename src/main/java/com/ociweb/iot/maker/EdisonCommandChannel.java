@@ -17,6 +17,7 @@ public class EdisonCommandChannel extends CommandChannel{
 	private AtomicBoolean aBool = new AtomicBoolean(false);    
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
+	private final byte adIndex = (byte)0;
 
 	protected EdisonCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,Pipe<GoSchema> goPipe) {
 			super(output, i2cOutput, goPipe);
@@ -70,8 +71,8 @@ public class EdisonCommandChannel extends CommandChannel{
 				
 			if(PipeWriter.tryWriteFragment(goPipe, GoSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte) 0);
-					
+					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, adIndex);
+					System.out.println("The Edison CommandChannel sends the WriteByte to Go");					
 
 					PipeWriter.publishWrites(goPipe);
 				return msg;

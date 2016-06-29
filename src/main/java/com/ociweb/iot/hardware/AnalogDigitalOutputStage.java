@@ -66,6 +66,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 	
 	@Override
 	public void startup() {
+		
 		try{
 			this.writeAck =           new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
 			this.readCommandChannel = new DataInputBlobReader<GroveRequestSchema>(fromCommandChannel);

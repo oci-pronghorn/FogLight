@@ -208,7 +208,7 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         findDup(result,pos,analogInputs, true);
         int j = analogInputs.length;
         while (--j>=0) {
-            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection],ConnectionType.GrovePi);
+            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection],ConnectionType.Direct);
         }
         
         if (configI2C) {

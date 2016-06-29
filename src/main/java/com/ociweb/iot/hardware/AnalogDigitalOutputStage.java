@@ -53,7 +53,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 
 	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
 
-	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<GoSchema> goPipe,Pipe<GroveRequestSchema> ccToAdOut,
+	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<GroveRequestSchema> ccToAdOut,Pipe<GoSchema> goPipe,
 			Pipe<AcknowledgeSchema> ackPipe, Hardware hardware) {
 	
 		super(graphManager, join(goPipe, ccToAdOut),ackPipe);
@@ -122,8 +122,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			PipeReader.releaseReadLock(goPipe);
 		} 
 		
-	while (goCount > 0){
-		if(PipeReader.tryReadFragment(fromCommandChannel)) {
+	while (goCount > 0 && PipeReader.tryReadFragment(fromCommandChannel)){
 			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
 			
@@ -145,18 +144,19 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 					try {
 						connector = readCommandChannel.readInt();
 						value       = readCommandChannel.readInt();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+					} catch (IOException e2) {
+						e2.printStackTrace();
 					} 
 					hardware.digitalWrite(connector, value);
 						}
 					}
 			}
 			else{
-					assert(msgIdx == -1);
+					assert(msgIdx == -1): "The message is not -1 but it will still shut down";
 					requestShutdown();
 				}
+			PipeReader.releaseReadLock(fromCommandChannel);
+			
 			if (tryWriteFragment(ackPipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Use acknowledgeSchema
 				DataOutputBlobWriter.openField(writeAck);
 				try {
@@ -172,7 +172,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			}
 			
 			goCount--;
-		}
+	
 	}
 	}
 

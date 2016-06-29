@@ -35,6 +35,7 @@ import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class AnalogDigitalOutputStage extends PronghornStage {
+	
 	private final Pipe<GroveRequestSchema> fromCommandChannel;
 	private final Pipe<GoSchema> goPipe;
 	private final Pipe<AcknowledgeSchema> ackPipe;
@@ -47,7 +48,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 
 	private Hardware hardware;
 	private int goCount;
-	private int connection;
+	private int connector;//should be passed in first
 	private int value;
 
 	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
@@ -65,10 +66,10 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		this.fromCommandChannel = ccToAdOut;
 		this.goPipe = goPipe;
 
-		this.writeAck =           new DataOutputBlobWriter(ackPipe);
-		this.readCommandChannel = new DataInputBlobReader(ccToAdOut);
+		this.writeAck =           new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
+		this.readCommandChannel = new DataInputBlobReader<GroveRequestSchema>(ccToAdOut);
 		this.readGo =             new DataInputBlobReader(goPipe);
-		this.connection = 0;
+		this.connector = 0;
 		this.goCount = 0;
 		this.value = 0;
 	}
@@ -79,6 +80,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}
+		super.startup();
 		hardware.beginPinConfiguration();
 		//call the super.startup() last to keep schedulers from getting too eager and starting early
 		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
@@ -89,7 +91,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		}
 		// need to change to make the Edison PIN to startup correctly
 
-//		hardware.endPinConfiguration();
+	   hardware.endPinConfiguration();
 		
 	}
 
@@ -99,7 +101,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		while (PipeReader.tryReadFragment(goPipe)) {		
 			assert(PipeReader.isNewMessage(goPipe)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(goPipe);
-
+			
 			if(RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
 				readGo.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				try {
@@ -119,44 +121,42 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 
 			PipeReader.releaseReadLock(goPipe);
 		} 
-	while (goCount > 0){
-		if(PipeReader.tryReadFragment(fromCommandChannel)) {
+		
+	while (goCount > 0 && PipeReader.tryReadFragment(fromCommandChannel)){
 			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
+			
 			if (RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
 				readCommandChannel.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 					for (int i = 0; i < hardware.digitalOutputs.length; i++) {
 					if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)){
 					try {
-						connection = readCommandChannel.readInt();
+						connector = readCommandChannel.readInt();
+						value = 	readCommandChannel.readInt();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					} 
-					hardware.digitalWrite(connection, value);
+					hardware.digitalWrite(connector, value);
 						}
 				}
 					for (int i = 0; i < hardware.pwmOutputs.length; i++) {
 					if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)){	
 					try {
-						connection = readCommandChannel.readInt();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} 
-					try {
+						connector = readCommandChannel.readInt();
 						value       = readCommandChannel.readInt();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+					} catch (IOException e2) {
+						e2.printStackTrace();
 					} 
-					hardware.digitalWrite(connection, value);
+					hardware.digitalWrite(connector, value);
 						}
 					}
 			}
 			else{
-					assert(msgIdx == -1);
+					assert(msgIdx == -1): "The message is not -1 but it will still shut down";
 					requestShutdown();
 				}
+			PipeReader.releaseReadLock(fromCommandChannel);
+			
 			if (tryWriteFragment(ackPipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Use acknowledgeSchema
 				DataOutputBlobWriter.openField(writeAck);
 				try {
@@ -172,7 +172,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			}
 			
 			goCount--;
-		}
+	
 	}
 	}
 

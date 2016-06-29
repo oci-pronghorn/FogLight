@@ -15,7 +15,7 @@ public class GrovePiExample {
 	private static final Logger logger = LoggerFactory.getLogger(GrovePiExample.class);
 
 	// Create a connection to the native Linux I2C lines.
-	private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking();
+	private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking((byte) 1);
 
 	// Address of board.
 	public static final byte Grove_ADDR = 0x04;

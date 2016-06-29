@@ -29,7 +29,7 @@ public class NunchuckExampleApp {
     private static final Logger logger = LoggerFactory.getLogger(NunchuckExampleApp.class);
 
     // Create a connection to the native Linux I2C lines.
-    private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking();
+    private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking((byte) 1);
 
     // Address of the nunchuck.
     public static final byte NUNCHUCK_ADDR = 0x04;

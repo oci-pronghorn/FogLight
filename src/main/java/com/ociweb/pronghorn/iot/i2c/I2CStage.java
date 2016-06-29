@@ -65,7 +65,7 @@ public class I2CStage extends PronghornStage {
         //Figure out which backing to use.
         //TODO: This should probably be chosen by the creator of this stage instead.
         try {
-            backing = new I2CNativeLinuxBacking();
+            backing = new I2CNativeLinuxBacking((byte) 1);
             logger.info("Successfully initialized native Linux I2C backing.");
         } catch (Exception e) {
             e.printStackTrace();

@@ -39,9 +39,6 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 	private final Pipe<GroveRequestSchema> fromCommandChannel;
 	private final Pipe<GoSchema> goPipe;
 	private final Pipe<AcknowledgeSchema> ackPipe;
-//	private final Pipe<AcknowledgeSchema> outPipe; // Pipe type used ack as shown in TrafficCopStage
-//	private final Pipe<RawDataSchema>[] inPipes;
-
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
 	private DataInputBlobReader<GroveRequestSchema> readCommandChannel;
 	private DataInputBlobReader<GoSchema> readGo;
@@ -64,9 +61,9 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		this.ackPipe = ackPipe;
 		this.fromCommandChannel = ccToAdOut;
 		this.goPipe = goPipe;
-
 	}
-
+	
+	
 	@Override
 	public void startup() {
 		try{
@@ -79,8 +76,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}
-		super.startup();
-		//call the super.startup() last to keep schedulers from getting too eager and starting early
+		
 		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
 			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))hardware.configurePinsForDigitalOutput(hardware.digitalOutputs[i].connection);
 		}
@@ -88,6 +84,8 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogOutput(hardware.pwmOutputs[i].connection);
 		}
 		// need to change to make the Edison PIN to startup correctly
+		super.startup();
+		//call the super.startup() last to keep schedulers from getting too eager and starting early
 	}
 
 	@Override

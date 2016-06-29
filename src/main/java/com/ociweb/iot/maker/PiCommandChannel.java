@@ -65,7 +65,7 @@ public class PiCommandChannel extends CommandChannel{
 				byte[] message = {0x04, 0x05, 0x01, 0x02, (byte) connector, (byte) value, 0x00};
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2, message);
 				System.out.println("CommandChannel sends digitalWrite i2c message");
-				PipeWriter.publishWrites(output);
+				PipeWriter.publishWrites(i2cOutput);
 				msg = true;
 			}else{
 				msg = false;

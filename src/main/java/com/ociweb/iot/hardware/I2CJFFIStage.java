@@ -18,6 +18,7 @@ import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -69,7 +70,6 @@ public class I2CJFFIStage extends PronghornStage {
 
 	@Override
 	public void startup() {
-
 		try{
 			this.writeAck = new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
 			this.readCommandChannel = new DataInputBlobReader<I2CCommandSchema>(fromCommandChannel);
@@ -95,18 +95,7 @@ public class I2CJFFIStage extends PronghornStage {
 			int msgIdx = PipeReader.getMsgIdx(goPipe);
 
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
-				readGo.openHighLevelAPIField(GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
-				try {
-					this.goCount += readGo.readByte();
-					System.out.println("go count up to "+goCount);
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
-				}
-				try {
-					readGo.close();
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
-				}
+				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
 			}else{
 				assert(msgIdx == -1);
 				requestShutdown();
@@ -115,7 +104,7 @@ public class I2CJFFIStage extends PronghornStage {
 
 			PipeReader.releaseReadLock(goPipe);
 		} 
-
+		int temp = goCount;
 		while (goCount>0 && PipeReader.tryReadFragment(fromCommandChannel)) {
 			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
@@ -146,23 +135,16 @@ public class I2CJFFIStage extends PronghornStage {
 
 			PipeReader.releaseReadLock(fromCommandChannel);
 
-			if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) { //TODO: Use acknowledgeSchema
-				DataOutputBlobWriter.openField(writeAck);;
-				try {
-					writeAck.write(1);
-					System.out.println("I2C Acknowledge sent");
-				} catch (IOException e) {
-					logger.error(e.getMessage(), e);
-				}
-
-				DataOutputBlobWriter.closeHighLevelField(writeAck, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-				publishWrites(ackPipe);
-			}else{
-				System.out.println("unable to write fragment");
-			}
+			
 
 			goCount--;
 		} 
+		if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) { //TODO: Use acknowledgeSchema
+			PipeWriter.writeInt(ackPipe, AcknowledgeSchema.MSG_DONE_10, temp-goCount);
+			publishWrites(ackPipe);
+		}else{
+			System.out.println("unable to write fragment");
+		}
 //		for (int i = 0; i < this.hardware.digitalInputs.length; i++) { //TODO: This polls every attached input, are there intermittent inputs?
 //			if(this.hardware.digitalInputs[i].type.equals(ConnectionType.GrovePi)){
 //				if (tryWriteFragment(toListener, RawDataSchema.MSG_CHUNKEDSTREAM_1)) { //TODO: Do we want to open and close pipe writer for every poll?

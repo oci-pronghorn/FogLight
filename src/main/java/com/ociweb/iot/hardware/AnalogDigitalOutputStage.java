@@ -43,7 +43,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 	private DataInputBlobReader<GroveRequestSchema> readCommandChannel;
 	private DataInputBlobReader<GoSchema> readGo;
 
-	private Hardware hardware;
+	private final Hardware hardware;
 	private int goCount;
 	private int connector;//should be passed in first
 	private int value;
@@ -74,15 +74,9 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			this.connector = 0;
 			this.goCount = 0;
 			this.value = 0;
+			hardware.coldSetupOutput();
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
-		}
-		
-		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
-			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))hardware.configurePinsForDigitalOutput(hardware.digitalOutputs[i].connection);
-		}
-		for (int i = 0; i < hardware.pwmOutputs.length; i++) {
-			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogOutput(hardware.pwmOutputs[i].connection);
 		}
 		// need to change to make the Edison PIN to startup correctly
 		super.startup();
@@ -109,20 +103,13 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
 			
-			if (RawDataSchema.MSG_CHUNKEDSTREAM_1 == msgIdx){
-				readCommandChannel.openHighLevelAPIField(RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-					for (int i = 0; i < hardware.digitalOutputs.length; i++) {
-					if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct)){
-					try {
-						connector = readCommandChannel.readInt();
-						value = 	readCommandChannel.readInt();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					} 
-					hardware.digitalWrite(connector, value);
-					System.out.println("digitalWrite sent to Ed PinManager");
+			if (GroveRequestSchema.MSG_DIGITALSET_110 == msgIdx){
+				connector = PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111);
+				value = 	PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112); 
+				hardware.digitalWrite(connector, value);
+				System.out.println("digitalWrite sent to Ed PinManager");
 						}
-				}
+			else if (GroveRequestSchema.MSG_ANALOGSET_140 == msgIdx){
 					for (int i = 0; i < hardware.pwmOutputs.length; i++) {
 					if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)){	
 					try {
@@ -135,11 +122,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 					System.out.println("analogWrite sent to Ed PinManager");
 						}
 					}
-					try {
-						readCommandChannel.close();
-					} catch (IOException e) {
-						logger.error(e.getMessage(), e);
-					}
+
 			}
 			else{
 					assert(msgIdx == -1): "The message is not -1 but it will still shut down";

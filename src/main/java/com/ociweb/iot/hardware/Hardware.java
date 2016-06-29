@@ -158,10 +158,6 @@ public abstract class Hardware {
     public abstract void digitalWrite(int connector, int value); //Platform specific
     public abstract void analogWrite(int connector, int value); //Platform specific
     
-    public abstract void configurePinsForDigitalOutput(byte connection); //Platform specific
-    public abstract void configurePinsForDigitalInput(byte connection); //Platform specific
-    public abstract void configurePinsForAnalogInput(byte connection); //Platform specific
-    public abstract void configurePinsForAnalogOutput(byte connection); //Platform specific
     
     public abstract void configurePinsForI2C();
     
@@ -184,7 +180,8 @@ public abstract class Hardware {
     public abstract boolean i2cReadClockBool();
     public abstract boolean i2cReadDataBool();
     
-    public abstract void coldSetup();
+    public abstract void coldSetupInput();
+    public abstract void coldSetupOutput();
     public abstract void cleanup();
     public abstract byte getI2CConnector();
 

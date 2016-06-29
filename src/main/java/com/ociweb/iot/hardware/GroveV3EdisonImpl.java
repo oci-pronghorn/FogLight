@@ -30,6 +30,7 @@ public class GroveV3EdisonImpl extends Hardware {
 	
 	
     private HardConnection[] usedLines;
+    private Hardware hardware;
     
     public GroveV3EdisonImpl(GraphManager gm, Pipe<GroveRequestSchema> ccToAdOut, Pipe<GoSchema> orderPipe, Pipe<I2CCommandSchema> i2cPayloadPipe) {
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
@@ -54,13 +55,46 @@ public class GroveV3EdisonImpl extends Hardware {
 		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, PronghornStage.join(orderPipe), PronghornStage.join(i2cAckPipe, adAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
 		System.out.println("the Edison pipe setup stage is completed");
    }
-    public void coldSetup() {
+    
+
+    
+    public void coldSetupOutput() {
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
         setToKnownStateFromColdStart();  
-        
+		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
+			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(hardware.digitalOutputs[i].connection);//config for writeBit
+		}
+		for (int i = 0; i < hardware.pwmOutputs.length; i++) {
+			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configPWM(hardware.pwmOutputs[i].connection); //config for pwm
+		}
+		
+    }
+    public void coldSetupInput() {
+        usedLines = buildUsedLines();
+        EdisonGPIO.ensureAllLinuxDevices(usedLines);
+        setToKnownStateFromColdStart();  
+		for (int i = 0; i < hardware.digitalInputs.length; i++) {
+			if(hardware.digitalInputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalInput(hardware.digitalInputs[i].connection); //config for readBit
+		}
+		for (int i = 0; i < hardware.analogInputs.length; i++) {
+			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configAnalogInput(hardware.analogInputs[i].connection); //config for readInt
+		}
+		
     }
     
+//    public void coldSetupI2C() {
+//        usedLines = buildUsedLines();
+//        EdisonGPIO.ensureAllLinuxDevices(usedLines);
+//        setToKnownStateFromColdStart();  
+//		for (int i = 0; i < hardware.i2c; i++) {
+//			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))hardware.configurePinsForDigitalOutput(hardware.digitalOutputs[i].connection);
+//		}
+//		for (int i = 0; i < hardware.pwmOutputs.length; i++) {
+//			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogOutput(hardware.pwmOutputs[i].connection);
+//		}
+//		
+//    }
 
     //only used in startup
     private void pause() {
@@ -90,22 +124,7 @@ public class GroveV3EdisonImpl extends Hardware {
         EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(13);
         EdisonGPIO.gpioOutputEnablePins.setValueHigh(13);
     }
-    public void configurePinsForDigitalInput(byte connection) {
-        EdisonGPIO.configDigitalInput(connection); //config for readBit
-    }
 
-    public void configurePinsForAnalogInput(byte connection) {
-        EdisonGPIO.configAnalogInput(connection);  //config for readInt
-    }
-    
-    public void configurePinsForDigitalOutput(byte connection){
-    	EdisonGPIO.configDigitalOutput(connection); //config for writeBit
-    }   
-
-    @Override
-    public void configurePinsForAnalogOutput(byte connection) {
-        EdisonGPIO.configPWM(connection); //config for pwm
-    }
 
 
     
@@ -257,5 +276,11 @@ public class GroveV3EdisonImpl extends Hardware {
     
         return result;
     }
+    
+	@Override
+	public byte getI2CConnector() {
+		// TODO Auto-generated method stub
+		return 6;
+	}
 
 }

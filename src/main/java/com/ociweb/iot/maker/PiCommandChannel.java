@@ -2,6 +2,7 @@ package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.ociweb.pronghorn.iot.schema.GoSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -13,14 +14,16 @@ public class PiCommandChannel extends CommandChannel{
 
 	private Pipe<GroveRequestSchema> output;
 	private Pipe<I2CCommandSchema> i2cOutput;
+	private Pipe<GoSchema> goPipe;
 	private AtomicBoolean aBool = new AtomicBoolean(false);    
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
 
-	protected PiCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput) {
-		super(output, i2cOutput);
+	protected PiCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<GoSchema> goPipe) {
+		super(output, i2cOutput, goPipe);
 		this.output = output;
-		this.i2cOutput = i2cOutput;       
+		this.i2cOutput = i2cOutput;  
+		this.goPipe = goPipe;
 
 	}
 
@@ -58,9 +61,16 @@ public class PiCommandChannel extends CommandChannel{
 
 				byte[] message = {0x04, 0x05, 0x01, 0x02, (byte) connector, (byte) value, 0x00};
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2, message);
+				System.out.println("CommandChannel sends digitalWrite i2c message");
 
 				PipeWriter.publishWrites(output);
+				
+			if(PipeWriter.tryWriteFragment(goPipe, GoSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
+					PipeWriter.writeBytes(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, );
+					System.out.println("CommandChannel sends digitalWrite i2c message");
+
+					PipeWriter.publishWrites(output);
 				return true;
 			} else {
 				return false;

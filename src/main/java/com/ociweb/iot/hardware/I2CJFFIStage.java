@@ -98,6 +98,7 @@ public class I2CJFFIStage extends PronghornStage {
 				readGo.openHighLevelAPIField(GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
 				try {
 					this.goCount += readGo.readByte();
+					System.out.println("go count up to "+goCount);
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -128,6 +129,7 @@ public class I2CJFFIStage extends PronghornStage {
 						data[i]=readCommandChannel.readByte();
 					}
 					I2CJFFIStage.i2c.write(addr, data);
+					System.out.println("I2C send to GrovePi");
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -148,6 +150,7 @@ public class I2CJFFIStage extends PronghornStage {
 				DataOutputBlobWriter.openField(writeAck);;
 				try {
 					writeAck.write(1);
+					System.out.println("I2C Acknowledge sent");
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 				}

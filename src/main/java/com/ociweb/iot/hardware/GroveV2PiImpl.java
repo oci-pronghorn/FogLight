@@ -46,6 +46,7 @@ public class GroveV2PiImpl extends Hardware {
 		//AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
 		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, adGoPipe, adAckPipe, this);
 		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, PronghornStage.join(orderPipe), PronghornStage.join(i2cAckPipe, adAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
+		System.out.println("GrovePi Stage setup successful");
 	}
 
 //	public GroveV2PiImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,

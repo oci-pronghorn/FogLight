@@ -125,10 +125,10 @@ public class IOTDeviceRuntime {
         
     	if(isPi){
     		
-    		return new PiCommandChannel(ccToAdOut, i2cPayloadPipe);
+    		return new PiCommandChannel(ccToAdOut, i2cPayloadPipe, orderPipe);
     	}else{
     		
-    		return new EdisonCommandChannel(ccToAdOut, i2cPayloadPipe);
+    		return new EdisonCommandChannel(ccToAdOut, i2cPayloadPipe, orderPipe);
     	}
          
     	

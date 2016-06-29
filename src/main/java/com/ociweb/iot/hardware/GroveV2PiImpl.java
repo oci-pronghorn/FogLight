@@ -25,7 +25,7 @@ public class GroveV2PiImpl extends Hardware {
 
 	private final int SLEEP_RATE_NS = 20000000;
 
-	private static final Logger logger = LoggerFactory.getLogger(GrovePiImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
 
 	public GroveV2PiImpl(GraphManager gm, Pipe<GroveRequestSchema> ccToAdOut, Pipe<GoSchema> orderPipe, Pipe<I2CCommandSchema> i2cPayloadPipe) {
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
@@ -82,31 +82,6 @@ public class GroveV2PiImpl extends Hardware {
 
 	public void cleanup() {
 		//GrovePiGPIO.removeAllLinuxDevices(usedLines);
-	}
-
-	public void configurePinsForDigitalInput(byte connection) {
-		//GrovePiGPIO.configDigitalInput(connection); //readBit
-		System.out.println("No config needed");
-	}
-
-	public void configurePinsForDigitalOutput(byte connection) {
-		//GrovePiGPIO.configDigitalOutput(connection);//writeBit
-		System.out.println("No config needed");
-	}
-
-	public void configurePinsForAnalogInput(byte connection) {
-		System.out.println("No config needed");
-	}
-
-	@Override
-	public void configurePinsForAnalogOutput(byte connection) {
-		System.out.println("No config needed");
-
-	}
-
-	public void configurePinsForI2C() {
-		//			GrovePiGPIO.configI2C();
-		System.out.println("No config needed1");
 	}
 
 	public void i2cDataIn() {

@@ -104,7 +104,7 @@ public class ReadDeviceInputStage extends PronghornStage {
         
         i = config.analogInputs.length;
         while (--i>=0) {
-            config.configurePinsForAnalogInput(config.analogInputs[i].connection);
+            //config.configurePinsForAnalogInput(config.analogInputs[i].connection);
                         
             int idx = Util.reverseBits(sliceCount++);
             scriptConn[idx] = config.analogInputs[i].connection;
@@ -117,7 +117,7 @@ public class ReadDeviceInputStage extends PronghornStage {
             
         i = config.digitalInputs.length;
         while (--i>=0) {
-            config.configurePinsForDigitalInput(config.digitalInputs[i].connection);
+            //config.configurePinsForDigitalInput(config.digitalInputs[i].connection);
             IODevice twig = config.digitalInputs[i].twig;
             
             if (twig == GroveTwig.Button) {                    
@@ -138,7 +138,7 @@ public class ReadDeviceInputStage extends PronghornStage {
         
         i = config.multiBitInputs.length;
         while (--i>=0) {
-            config.configurePinsForDigitalInput(config.multiBitInputs[i].connection);
+            //config.configurePinsForDigitalInput(config.multiBitInputs[i].connection);
             if (0!=(i&0x1)) {
                 if ((config.multiBitInputs[i].connection!=(1+config.multiBitInputs[i-1].connection)) ) {
                     throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");                    

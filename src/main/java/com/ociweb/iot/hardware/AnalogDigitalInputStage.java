@@ -47,12 +47,7 @@ public class AnalogDigitalInputStage extends PronghornStage{
 
 	}
 	public void startup() {
-		for (int i = 0; i < hardware.digitalInputs.length; i++) {
-			if(hardware.digitalInputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForDigitalInput(hardware.digitalInputs[i].connection);
-		}
-		for (int i = 0; i < hardware.analogInputs.length; i++) {
-			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) hardware.configurePinsForAnalogInput(hardware.analogInputs[i].connection);
-		}
+		
 
 	}
 	@Override

@@ -191,39 +191,6 @@ public class GroveShieldV2MockImpl extends Hardware {
         clockMode = OUT;
     }
     
-    
-    @Override
-    public void configurePinsForDigitalInput(byte connection) {
-        // TODO Auto-generated method stub
-
-    }
-    
-    @Override
-	public void configurePinsForDigitalOutput(byte connection) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-    @Override
-    public void configurePinsForAnalogInput(byte connection) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void configurePinsForAnalogOutput(byte connection) {
-        // TODO Auto-generated method stub
-        
-    }
-        
-    @Override
-    public void configurePinsForI2C() {
-        // TODO Auto-generated method stub
-
-    }
-
-    
     @Override
     public void coldSetup() {
         // TODO Auto-generated method stub

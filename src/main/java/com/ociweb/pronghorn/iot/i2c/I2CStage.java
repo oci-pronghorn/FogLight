@@ -58,9 +58,9 @@ public class I2CStage extends PronghornStage {
         
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         
-            config.beginPinConfiguration();
-            config.configurePinsForI2C();
-            config.endPinConfiguration();
+//            config.beginPinConfiguration();
+//            config.configurePinsForI2C();
+//            config.endPinConfiguration();
        
         //Figure out which backing to use.
         //TODO: This should probably be chosen by the creator of this stage instead.

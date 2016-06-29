@@ -7,8 +7,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.GrovePiImpl;
-import com.ociweb.iot.hardware.GroveShieldV2EdisonImpl;
+
 import com.ociweb.iot.hardware.GroveV2PiImpl;
 import com.ociweb.iot.hardware.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.Hardware;

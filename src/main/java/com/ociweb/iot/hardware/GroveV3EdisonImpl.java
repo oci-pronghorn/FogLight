@@ -52,39 +52,8 @@ public class GroveV3EdisonImpl extends Hardware {
 		//AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this); //
 		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut,adGoPipe, adAckPipe, this);
 		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, PronghornStage.join(orderPipe), PronghornStage.join(i2cAckPipe, adAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
-	}
-//    public public GroveV3EdisonImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
-//			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
-//		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
-//		PipeConfig<RawDataSchema> ccToAdOutConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-//		PipeConfig<RawDataSchema> ccToTrafficConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-//		PipeConfig<RawDataSchema> ccToI2CConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-//		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
-//		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);;
-//		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
-//		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);;
-//		
-//		Pipe<RawDataSchema> ccToAdOut = new Pipe<RawDataSchema>(ccToAdOutConfig);
-//		Pipe<RawDataSchema> ccToTraffic = new Pipe<RawDataSchema>(ccToTrafficConfig);
-//		Pipe<RawDataSchema>[] ccToTrafficJoiner = (Pipe<RawDataSchema>[]) Array.newInstance(ccToTrafficConfig.getClass(), 1);
-//        ccToTrafficJoiner[0] = ccToTraffic;
-//		Pipe<RawDataSchema> ccToI2C = new Pipe<RawDataSchema>(ccToI2CConfig);
-//		Pipe<GoSchema> goPipe = new Pipe<GoSchema>(goPipesConfig);
-//		int length = 3;
-//		Pipe<GoSchema>[] goPipes = (Pipe<GoSchema>[]) Array.newInstance(goPipe.getClass(), length);
-//		Pipe<AcknowledgeSchema> ackPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-//		length = 2; 
-//		Pipe<AcknowledgeSchema>[] ackPipes = (Pipe<AcknowledgeSchema>[]) Array.newInstance(ackPipe.getClass(), length);
-//		Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
-//		Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
-//		
-//		this.i2cJFFIStage = new I2CJFFIStage(gm, goPipes[1], ccToI2C, ackPipes[1], I2CToListener, this);
-//		this.adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this);
-//		this.adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut, goPipes[0], ackPipes[0], this);
-//		this.trafficCopStage = new TrafficCopStage(gm, ccToTrafficJoiner, ackPipes, goPipes);
-//
-//	}
-
+		System.out.println("the Edison pipe setup stage is completed");
+   }
     public void coldSetup() {
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);

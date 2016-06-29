@@ -1,7 +1,7 @@
 package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.ociweb.pronghorn.iot.schema.GoSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -13,14 +13,16 @@ public class EdisonCommandChannel extends CommandChannel{
 
 	private Pipe<GroveRequestSchema> output;
 	private Pipe<I2CCommandSchema> i2cOutput;
+	private Pipe<GoSchema> goPipe;
 	private AtomicBoolean aBool = new AtomicBoolean(false);    
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
 
-	protected EdisonCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput) {
-		super(output, i2cOutput);
-		this.output = output;
-		this.i2cOutput = i2cOutput;       
+	protected EdisonCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,Pipe<GoSchema> goPipe) {
+			super(output, i2cOutput, goPipe);
+	 		this.output = output;
+			this.i2cOutput = i2cOutput;       
+			this.goPipe = goPipe;
 
 	}
 

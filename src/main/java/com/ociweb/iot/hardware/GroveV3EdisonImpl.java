@@ -61,6 +61,7 @@ public class GroveV3EdisonImpl extends Hardware {
     public void coldSetup() {
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
+        hardware.beginPinConfiguration(); //TODO:Uncertain stay above/below setToKnownStateFromColdStart,Will trial and error
         setToKnownStateFromColdStart();  
 		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
 			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(hardware.digitalOutputs[i].connection);//config for writeBit
@@ -75,6 +76,7 @@ public class GroveV3EdisonImpl extends Hardware {
 			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configAnalogInput(hardware.analogInputs[i].connection); //config for readInt
 		}
 		EdisonGPIO.configI2C();
+		hardware.endPinConfiguration();
     }
    
     
@@ -119,8 +121,6 @@ public class GroveV3EdisonImpl extends Hardware {
         EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(13);
         EdisonGPIO.gpioOutputEnablePins.setValueHigh(13);
     }
-
-
 
     
     public void i2cDataIn() {

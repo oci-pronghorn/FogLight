@@ -30,9 +30,11 @@ public class GroveV2PiImpl extends Hardware {
 
 	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
 	
+	private GraphManager gm;
+	
 
-	public GroveV2PiImpl() {
-		
+	public GroveV2PiImpl(GraphManager gm) {
+		this.gm = gm;
 	}
 
 //	public GroveV2PiImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
@@ -61,10 +63,10 @@ public class GroveV2PiImpl extends Hardware {
 		//Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
 		//Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
 		
-		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, i2cGoPipe, i2cPipes, i2cAckPipe, this);
-		//AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
-		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(gm, requestPipes, adGoPipe, adAckPipe, this);
-		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, orderPipes, PronghornStage.join(adAckPipe, i2cAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
+		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(this.gm, i2cGoPipe, i2cPipes, i2cAckPipe, this);
+		//AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(this.gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
+		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(this.gm, requestPipes, adGoPipe, adAckPipe, this);
+		TrafficCopStage trafficCopStage = new TrafficCopStage(this.gm, orderPipes, PronghornStage.join(adAckPipe, i2cAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
 		System.out.println("GrovePi Stage setup successful");
 		
 	}

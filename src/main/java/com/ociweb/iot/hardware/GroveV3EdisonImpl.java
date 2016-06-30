@@ -14,6 +14,7 @@ import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
 import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.PiCommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GoSchema;
@@ -32,33 +33,43 @@ public class GroveV3EdisonImpl extends Hardware {
 	
 	
     private HardConnection[] usedLines;
+    private GraphManager gm;
+    public GroveV3EdisonImpl(GraphManager gm) {
+    	this.gm = gm;
+   }
     
-    public GroveV3EdisonImpl() {
+
+    @Override
+	public void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes, 
+			Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
+		
+		if(i2cPipes == null){
+			throw new UnsupportedOperationException("Pi must have I2C enabled to work. Add c.useI2C(); to specifyConnections method.");
+		}
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
 		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);
 		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
 		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
 		
-		//Pipe<GoSchema>[] ccToTrafficJoiner = (Pipe<GoSchema>[]) Array.newInstance(orderPipe.getClass(), 1);
-        //ccToTrafficJoiner[0] = orderPipe;
+		
 		Pipe<GoSchema> adGoPipe = new Pipe<GoSchema>(goPipesConfig);
 		Pipe<GoSchema> i2cGoPipe = new Pipe<GoSchema>(goPipesConfig);
-		//Pipe<GoSchema>[] goPipes = (Pipe<GoSchema>[]) Array.newInstance(orderPipe.getClass(), 3);
+		//Pipe<GoSchema> listenerGoPipe = new Pipe<GoSchema>(goPipesConfig);
 		Pipe<AcknowledgeSchema> i2cAckPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
 		Pipe<AcknowledgeSchema> adAckPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-		//Pipe<AcknowledgeSchema>[] ackPipes = (Pipe<AcknowledgeSchema>[]) Array.newInstance(ackPipe.getClass(), 2);
 		//Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
 		//Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
 		
-		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, i2cGoPipe, i2cPayloadPipe, i2cAckPipe, this); //TODO: add i2cListener pipe
-		//AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(gm, adInToListener, goPipes[2], this); //
-		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(gm, ccToAdOut,adGoPipe, adAckPipe, this);
-		TrafficCopStage trafficCopStage = new TrafficCopStage(gm, PronghornStage.join(orderPipe), PronghornStage.join(i2cAckPipe, adAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
-		System.out.println("the Edison pipe setup stage is completed");
-   }
-    
-
-    
+		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(this.gm, i2cGoPipe, i2cPipes, i2cAckPipe, this);
+		//AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(this.gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
+		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(this.gm, requestPipes, adGoPipe, adAckPipe, this);
+		TrafficCopStage trafficCopStage = new TrafficCopStage(this.gm, orderPipes, PronghornStage.join(adAckPipe, i2cAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
+		System.out.println("GrovePi Stage setup successful");
+		
+	}
+    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<GoSchema> orderPipe) {
+		return new PiCommandChannel(pipe, i2cPayloadPipe, orderPipe);
+	}
     public void coldSetup() {
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
@@ -272,26 +283,8 @@ public class GroveV3EdisonImpl extends Hardware {
     
 	@Override
 	public byte getI2CConnector() {
-		// TODO Auto-generated method stub
 		return 6;
 	}
 
-
-
-	@Override
-	public void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes,
-			Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-
-	@Override
-	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe,
-			Pipe<GoSchema> orderPipe) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 }

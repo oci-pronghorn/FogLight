@@ -171,7 +171,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			 Pipe.confirmLowLevelRead(fromCommandChannels [pipeIdx], Pipe.sizeOf(fromCommandChannels [pipeIdx], msgIdx));
 			 PipeReader.releaseReadLock(fromCommandChannels [pipeIdx]);
 				
-			 if(goCount==0){
+			 if(goCount==0 && ackCount!=0){
 					if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) {
 						PipeWriter.writeInt(ackPipe, AcknowledgeSchema.MSG_DONE_10, 0);
 						publishWrites(ackPipe);

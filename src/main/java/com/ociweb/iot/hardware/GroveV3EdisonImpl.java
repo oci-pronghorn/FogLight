@@ -65,6 +65,7 @@ public class GroveV3EdisonImpl extends Hardware {
         setToKnownStateFromColdStart();  
 		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
 			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(hardware.digitalOutputs[i].connection);//config for writeBit
+			System.out.println("configured output "+hardware.digitalOutputs[i].twig+" on connection "+hardware.digitalOutputs[i].connection);
 		}
 		for (int i = 0; i < hardware.pwmOutputs.length; i++) {
 			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configPWM(hardware.pwmOutputs[i].connection); //config for pwm
@@ -76,7 +77,7 @@ public class GroveV3EdisonImpl extends Hardware {
 			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configAnalogInput(hardware.analogInputs[i].connection); //config for readInt
 		}
 		EdisonGPIO.configI2C();
-		hardware.endPinConfiguration();
+		hardware.endPinConfiguration();//Tri State set high to end configuration
     }
    
     

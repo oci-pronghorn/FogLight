@@ -74,6 +74,7 @@ public class I2CJFFIStage extends PronghornStage {
 	public void startup() {
 		try{
 			this.readCommandChannels = new DataInputBlobReader[fromCommandChannels.length];
+			System.out.println(fromCommandChannels.length+" Channels into I2CJFFI");
 			for (int i = 0; i < readCommandChannels.length; i++) {
 				this.readCommandChannels[i] = new DataInputBlobReader<I2CCommandSchema>(this.fromCommandChannels[i]);
 			}
@@ -101,10 +102,10 @@ public class I2CJFFIStage extends PronghornStage {
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
 				assert(goCount>=0);
 				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
-				pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11)-1;
-				System.out.println(pipeIdx);
+				pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11);
+				System.out.print("PipeIdx: "+pipeIdx+" ");
 				ackCount = goCount;
-				System.out.println("Received Go Command "+goCount);
+				System.out.println("Suck a dick "+goCount);
 				assert(goCount>0);
 			}else{
 				assert(msgIdx == -1);
@@ -122,7 +123,7 @@ public class I2CJFFIStage extends PronghornStage {
 				readCommandChannels[pipeIdx].openHighLevelAPIField(I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
 				try {
 					addr = readCommandChannels[pipeIdx].readByte(); 
-					data = new byte[readCommandChannels[pipeIdx].readByte()]; //TODO: Nathan take out the trash ReadByteArray method?
+					data = new byte[readCommandChannels[pipeIdx].readByte()]; //TODO: Nathan take out the trash. ReadByteArray method?
 					for (int i = 0; i < data.length; i++) {
 						data[i]=readCommandChannels[pipeIdx].readByte();
 					}

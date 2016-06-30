@@ -18,15 +18,16 @@ public class PiCommandChannel extends CommandChannel{
 	private AtomicBoolean aBool = new AtomicBoolean(false);    
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
-	private final byte i2cIndex = 1;
-	private final byte adIndex = 0;
+	private byte channelIdx;
+	
 
-	public PiCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<GoSchema> goPipe) { 
+	public PiCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<GoSchema> goPipe, byte commandIndex) { 
 			//TODO:Was this protected for security reasons? I'm making it in hardware now.
 		super(output, i2cOutput, goPipe);
 		this.output = output;
 		this.i2cOutput = i2cOutput;  
 		this.goPipe = goPipe;
+		this.channelIdx = commandIndex;
 
 	}
 
@@ -74,7 +75,7 @@ public class PiCommandChannel extends CommandChannel{
 				
 			if(PipeWriter.tryWriteFragment(goPipe, GoSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, i2cIndex);
+					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, channelIdx);
 					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 					System.out.println("CommandChannel sends digitalWrite i2c go");
 

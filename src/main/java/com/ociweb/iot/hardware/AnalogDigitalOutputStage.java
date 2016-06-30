@@ -34,15 +34,13 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class AnalogDigitalOutputStage extends PronghornStage {
 	
-//	private final Pipe<GroveRequestSchema> []fromCommandChannel;
-	private final Pipe<GroveRequestSchema> fromCommandChannel;
+//	private final Pipe<GroveRequestSchema> []fromCommandChannels [pipeIdx];
+	private final Pipe<GroveRequestSchema>[] fromCommandChannels;
 	private final Pipe<GoSchema> goPipe;
 	private final Pipe<AcknowledgeSchema> ackPipe;
-	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
-	private DataInputBlobReader<GroveRequestSchema> readCommandChannel;
-	private DataInputBlobReader<GoSchema> readGo;
 
 	private Hardware hardware;
+	private int pipeIdx;
 	private int goCount;
 	private int ackCount;
 	private int connector;//should be passed in first
@@ -57,16 +55,16 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 
 	private static final Logger logger = LoggerFactory.getLogger(AnalogDigitalOutputStage.class);
 
-	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<GroveRequestSchema> ccToAdOut,Pipe<GoSchema> goPipe,
+	public AnalogDigitalOutputStage(GraphManager graphManager, Pipe<GroveRequestSchema>[] ccToAdOut,Pipe<GoSchema> goPipe,
 			Pipe<AcknowledgeSchema> ackPipe, Hardware hardware) {
 	
-		super(graphManager, join(goPipe, ccToAdOut),ackPipe);
+		super(graphManager, join(join(goPipe), ccToAdOut),ackPipe);
 		////////
 		// STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
 		this.hardware = hardware;
 		this.ackPipe = ackPipe;
-		this.fromCommandChannel = ccToAdOut;
+		this.fromCommandChannels = ccToAdOut;
 		this.goPipe = goPipe;
 	}
 	
@@ -75,10 +73,10 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 	public void startup() {
 		
 		try{
-			this.readCommandChannel = new DataInputBlobReader<GroveRequestSchema>(fromCommandChannel);
 			this.connector = 0;
 			this.goCount = 0;
 			this.ackCount= 0;
+			this.pipeIdx = 0;
 			this.value = 0;
 //			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 //			 int j = hardware.maxAnalogMovingAverage()-1;
@@ -111,6 +109,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
 				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
+				pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11);
 				ackCount = goCount;
 				System.out.println("Received Go Command "+goCount);
 			}else{
@@ -119,18 +118,18 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			}
 			PipeReader.releaseReadLock(goPipe);
 		} 
-	while (goCount > 0 && PipeReader.tryReadFragment(fromCommandChannel)){//might need to add: &&!blocker.isBlocked(Pipe.peekInt(fromCommandChannel, 1))
-			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
-			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
+	while (goCount > 0 && PipeReader.tryReadFragment(fromCommandChannels [pipeIdx])){//might need to add: &&!blocker.isBlocked(Pipe.peekInt(fromCommandChannel, 1))
+			assert(PipeReader.isNewMessage(fromCommandChannels [pipeIdx])) : "This test should only have one simple message made up of one fragment";
+			int msgIdx = PipeReader.getMsgIdx(fromCommandChannels [pipeIdx]);
 			switch(msgIdx){
 			
 			case GroveRequestSchema.MSG_DIGITALSET_110:
 			{
-				connector = PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111);
+				connector = PipeReader.readInt(fromCommandChannels [pipeIdx],GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111);
 				if (blocker.isBlocked(connector)) {
                     throw new UnsupportedOperationException();
                 }
-				value = 	PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112); 
+				value = 	PipeReader.readInt(fromCommandChannels [pipeIdx],GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112); 
 				hardware.digitalWrite(connector, value);
 				System.out.println("digitalWrite sent to Ed PinManager");
 				break;
@@ -138,14 +137,14 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 		 
 			case GroveRequestSchema.MSG_BLOCK_220:
             {
-            	connector = PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111);
+            	connector = PipeReader.readInt(fromCommandChannels [pipeIdx],GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111);
             	if (blocker.isBlocked(connector)) {
                     throw new UnsupportedOperationException();
                 }
-            	duration = 	PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113); 
+            	duration = 	PipeReader.readInt(fromCommandChannels [pipeIdx],GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113); 
             	blocker.until(connector, now + (long)duration);
-            	 Pipe.confirmLowLevelRead(fromCommandChannel, Pipe.sizeOf(fromCommandChannel, msgIdx));
-            	 PipeReader.releaseReadLock(fromCommandChannel);
+            	 Pipe.confirmLowLevelRead(fromCommandChannels [pipeIdx], Pipe.sizeOf(fromCommandChannels [pipeIdx], msgIdx));
+            	 PipeReader.releaseReadLock(fromCommandChannels [pipeIdx]);
 				//hardware.analogWrite(connector, value);
 				System.out.println("analogWrite sent to Ed PinManager");
 				break;//return;//TODO: it would be nice to remove this return
@@ -153,11 +152,11 @@ public class AnalogDigitalOutputStage extends PronghornStage {
             //break;
 			case GroveRequestSchema.MSG_ANALOGSET_140:
             { 
-            	connector = PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141);
+            	connector = PipeReader.readInt(fromCommandChannels [pipeIdx],GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141);
                 if (blocker.isBlocked(connector)) {
                     throw new UnsupportedOperationException();
                 }
-                value =		PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142);
+                value =		PipeReader.readInt(fromCommandChannels [pipeIdx],GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142);
                 hardware.analogWrite(connector, value);
                 break; 
             }   
@@ -169,8 +168,8 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 				requestShutdown();
 			}
 	}
-			 Pipe.confirmLowLevelRead(fromCommandChannel, Pipe.sizeOf(fromCommandChannel, msgIdx));
-			 PipeReader.releaseReadLock(fromCommandChannel);
+			 Pipe.confirmLowLevelRead(fromCommandChannels [pipeIdx], Pipe.sizeOf(fromCommandChannels [pipeIdx], msgIdx));
+			 PipeReader.releaseReadLock(fromCommandChannels [pipeIdx]);
 				
 			 if(goCount==0){
 					if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) {

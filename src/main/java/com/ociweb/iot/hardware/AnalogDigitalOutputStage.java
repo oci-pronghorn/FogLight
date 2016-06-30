@@ -109,7 +109,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
 				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
-				pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11);
+				//pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11);
 				ackCount = goCount;
 				System.out.println("Received Go Command "+goCount);
 			}else{

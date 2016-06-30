@@ -57,6 +57,7 @@ public class TrafficCopStage extends PronghornStage {
                     //send the release count message
                     if (PipeWriter.tryWriteFragment(releasePipe, GoSchema.MSG_RELEASE_20)) {                
                         PipeWriter.writeInt(releasePipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22, PipeReader.readInt(primaryIn, GoSchema.MSG_GO_10_FIELD_COUNT_12));
+                        System.out.println("Cop writing to JFFI");
                         PipeWriter.publishWrites(releasePipe);
                     } else {
                         throw new UnsupportedOperationException("The outgoing pipe "+releasePipe+" must be bigger to hold release request");

@@ -74,7 +74,7 @@ public class I2CJFFIStage extends PronghornStage {
 	public void startup() {
 		try{
 			this.readCommandChannels = new DataInputBlobReader[fromCommandChannels.length];
-			System.out.println(fromCommandChannels.length+" Channels into I2CJFFI");
+			System.out.println(fromCommandChannels.length+" Channels into I2CJFFIStage");
 			for (int i = 0; i < readCommandChannels.length; i++) {
 				this.readCommandChannels[i] = new DataInputBlobReader<I2CCommandSchema>(this.fromCommandChannels[i]);
 			}
@@ -95,6 +95,7 @@ public class I2CJFFIStage extends PronghornStage {
 
 	@Override
 	public void run() { 
+		System.out.println("You are actually working");
 		while (PipeReader.tryReadFragment(goPipe)) {		
 			assert(PipeReader.isNewMessage(goPipe)) : "This test should only have one simple message made up of one fragment";
 			int msgIdx = PipeReader.getMsgIdx(goPipe);
@@ -102,10 +103,10 @@ public class I2CJFFIStage extends PronghornStage {
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
 				assert(goCount>=0);
 				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
-				pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11);
-				System.out.print("PipeIdx: "+pipeIdx+" ");
+				//pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11);
+				pipeIdx = 0;
 				ackCount = goCount;
-				System.out.println("Suck a dick "+goCount);
+				System.out.println("GoCount "+goCount);
 				assert(goCount>0);
 			}else{
 				assert(msgIdx == -1);

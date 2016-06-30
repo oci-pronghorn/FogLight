@@ -27,7 +27,7 @@ public class PiCommandChannel extends CommandChannel{
 		this.output = output;
 		this.i2cOutput = i2cOutput;  
 		this.goPipe = goPipe;
-		this.channelIdx = commandIndex;
+		this.channelIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital
 
 	}
 

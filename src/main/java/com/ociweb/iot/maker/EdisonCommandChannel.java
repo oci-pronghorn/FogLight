@@ -71,7 +71,8 @@ public class EdisonCommandChannel extends CommandChannel{
 				
 			if(PipeWriter.tryWriteFragment(goPipe, GoSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, adIndex);
+					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 					System.out.println("The Edison CommandChannel sends the WriteByte to Go");					
 
 					PipeWriter.publishWrites(goPipe);

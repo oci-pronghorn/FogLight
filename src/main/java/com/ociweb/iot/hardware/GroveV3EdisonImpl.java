@@ -41,7 +41,7 @@ public class GroveV3EdisonImpl extends Hardware {
 
     @Override
 	public void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes, 
-			Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
+		Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
 		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);
 		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
@@ -67,10 +67,12 @@ public class GroveV3EdisonImpl extends Hardware {
 		return new EdisonCommandChannel(pipe, i2cPayloadPipe, orderPipe);
 	}
     public void coldSetup() {
+    	System.out.println("ColdSetup: Edison Pin Configuration setup!");
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
-        setToKnownStateFromColdStart();  
         beginPinConfiguration(); //TODO:Uncertain stay above/below setToKnownStateFromColdStart,Will trial and error
+        setToKnownStateFromColdStart();  
+        
 		for (int i = 0; i < super.digitalOutputs.length; i++) {
 			if(super.digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(super.digitalOutputs[i].connection);//config for writeBit
 			System.out.println("configured output "+super.digitalOutputs[i].twig+" on connection "+super.digitalOutputs[i].connection);

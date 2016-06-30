@@ -41,6 +41,7 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 
 	private Hardware hardware;
 	private int goCount;
+	private int ackCount;
 	private int connector;//should be passed in first
 	private int value;
 	private int duration;
@@ -71,19 +72,18 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 	public void startup() {
 		
 		try{
-			this.writeAck =           new DataOutputBlobWriter<AcknowledgeSchema>(ackPipe);
 			this.readCommandChannel = new DataInputBlobReader<GroveRequestSchema>(fromCommandChannel);
-			this.readGo = 			  new DataInputBlobReader<GoSchema>(goPipe);
 			this.connector = 0;
 			this.goCount = 0;
+			this.ackCount= 0;
 			this.value = 0;
-			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-			 int j = hardware.maxAnalogMovingAverage()-1;
-		        movingAverageHistory = new int[j][]; 
-		        while (--j>=0) {
-		            movingAverageHistory[j] = new int[activeSize];            
-		        }
-		        lastPublished = new int[activeSize];
+//			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+//			 int j = hardware.maxAnalogMovingAverage()-1;
+//		        movingAverageHistory = new int[j][]; 
+//		        while (--j>=0) {
+//		            movingAverageHistory[j] = new int[activeSize];            
+//		        }
+//		        lastPublished = new int[activeSize];
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}
@@ -108,6 +108,8 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 			
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
 				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
+				ackCount = goCount;
+				System.out.println("Received Go Command "+goCount);
 			}else{
 				assert(msgIdx == -1);
 				requestShutdown();
@@ -154,7 +156,8 @@ public class AnalogDigitalOutputStage extends PronghornStage {
                 value =		PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142);
                 hardware.analogWrite(connector, value);  
             }   
-            break;   
+            break; 
+			case 
 	}
 			 Pipe.confirmLowLevelRead(fromCommandChannel, Pipe.sizeOf(fromCommandChannel, msgIdx));
 	            Pipe.releaseReadLock(fromCommandChannel);

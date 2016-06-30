@@ -30,7 +30,6 @@ public class GroveV3EdisonImpl extends Hardware {
 	
 	
     private HardConnection[] usedLines;
-    private Hardware hardware;
     
     public GroveV3EdisonImpl(GraphManager gm, Pipe<GroveRequestSchema> ccToAdOut, Pipe<GoSchema> orderPipe, Pipe<I2CCommandSchema> i2cPayloadPipe) {
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
@@ -61,23 +60,23 @@ public class GroveV3EdisonImpl extends Hardware {
     public void coldSetup() {
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
-        hardware.beginPinConfiguration(); //TODO:Uncertain stay above/below setToKnownStateFromColdStart,Will trial and error
         setToKnownStateFromColdStart();  
-		for (int i = 0; i < hardware.digitalOutputs.length; i++) {
-			if(hardware.digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(hardware.digitalOutputs[i].connection);//config for writeBit
-			System.out.println("configured output "+hardware.digitalOutputs[i].twig+" on connection "+hardware.digitalOutputs[i].connection);
+        beginPinConfiguration(); //TODO:Uncertain stay above/below setToKnownStateFromColdStart,Will trial and error
+		for (int i = 0; i < super.digitalOutputs.length; i++) {
+			if(super.digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(super.digitalOutputs[i].connection);//config for writeBit
+			System.out.println("configured output "+super.digitalOutputs[i].twig+" on connection "+super.digitalOutputs[i].connection);
 		}
-		for (int i = 0; i < hardware.pwmOutputs.length; i++) {
-			if(hardware.pwmOutputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configPWM(hardware.pwmOutputs[i].connection); //config for pwm
+		for (int i = 0; i < super.pwmOutputs.length; i++) {
+			if(super.pwmOutputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configPWM(super.pwmOutputs[i].connection); //config for pwm
 		}
-		for (int i = 0; i < hardware.digitalInputs.length; i++) {
-			if(hardware.digitalInputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalInput(hardware.digitalInputs[i].connection); //config for readBit
+		for (int i = 0; i < super.digitalInputs.length; i++) {
+			if(super.digitalInputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalInput(super.digitalInputs[i].connection); //config for readBit
 		}
-		for (int i = 0; i < hardware.analogInputs.length; i++) {
-			if(hardware.analogInputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configAnalogInput(hardware.analogInputs[i].connection); //config for readInt
+		for (int i = 0; i < super.analogInputs.length; i++) {
+			if(super.analogInputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configAnalogInput(super.analogInputs[i].connection); //config for readInt
 		}
 		EdisonGPIO.configI2C();
-		hardware.endPinConfiguration();//Tri State set high to end configuration
+		endPinConfiguration();//Tri State set high to end configuration
     }
    
     

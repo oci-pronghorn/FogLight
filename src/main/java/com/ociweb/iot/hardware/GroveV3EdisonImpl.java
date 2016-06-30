@@ -13,10 +13,12 @@ import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
+import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GoSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -272,6 +274,24 @@ public class GroveV3EdisonImpl extends Hardware {
 	public byte getI2CConnector() {
 		// TODO Auto-generated method stub
 		return 6;
+	}
+
+
+
+	@Override
+	public void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes,
+			Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe,
+			Pipe<GoSchema> orderPipe) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

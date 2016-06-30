@@ -1,5 +1,8 @@
 package com.ociweb.iot.hardware;
 
+import static com.ociweb.pronghorn.pipe.PipeWriter.publishWrites;
+import static com.ociweb.pronghorn.pipe.PipeWriter.tryWriteFragment;
+
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -130,8 +133,9 @@ public class AnalogDigitalOutputStage extends PronghornStage {
 				value = 	PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112); 
 				hardware.digitalWrite(connector, value);
 				System.out.println("digitalWrite sent to Ed PinManager");
+				break;
 			}
-		    break;
+		 
 			case GroveRequestSchema.MSG_BLOCK_220:
             {
             	connector = PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111);
@@ -141,10 +145,10 @@ public class AnalogDigitalOutputStage extends PronghornStage {
             	duration = 	PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113); 
             	blocker.until(connector, now + (long)duration);
             	 Pipe.confirmLowLevelRead(fromCommandChannel, Pipe.sizeOf(fromCommandChannel, msgIdx));
-                 Pipe.releaseReadLock(fromCommandChannel);
+            	 PipeReader.releaseReadLock(fromCommandChannel);
 				//hardware.analogWrite(connector, value);
 				System.out.println("analogWrite sent to Ed PinManager");
-				return;//TODO: it would be nice to remove this return
+				break;//return;//TODO: it would be nice to remove this return
 			}
             //break;
 			case GroveRequestSchema.MSG_ANALOGSET_140:
@@ -154,13 +158,31 @@ public class AnalogDigitalOutputStage extends PronghornStage {
                     throw new UnsupportedOperationException();
                 }
                 value =		PipeReader.readInt(fromCommandChannel,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142);
-                hardware.analogWrite(connector, value);  
+                hardware.analogWrite(connector, value);
+                break; 
             }   
-            break; 
-			case 
+          
+			default:
+			{
+				System.out.println("Wrong Message index "+msgIdx);
+				assert(msgIdx == -1);
+				requestShutdown();
+			}
 	}
 			 Pipe.confirmLowLevelRead(fromCommandChannel, Pipe.sizeOf(fromCommandChannel, msgIdx));
-	            Pipe.releaseReadLock(fromCommandChannel);
+			 PipeReader.releaseReadLock(fromCommandChannel);
+				
+			 if(goCount==0){
+					if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) {
+						PipeWriter.writeInt(ackPipe, AcknowledgeSchema.MSG_DONE_10, 0);
+						publishWrites(ackPipe);
+						ackCount = goCount;
+						System.out.println("Send Acknowledgement");
+					}else{
+						System.out.println("unable to write fragment");
+					}
+				}
+				
 	}
 	}
 	

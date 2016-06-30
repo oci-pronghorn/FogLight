@@ -101,7 +101,8 @@ public class I2CJFFIStage extends PronghornStage {
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
 				assert(goCount>=0);
 				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
-				pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11);
+				pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11)-1;
+				System.out.println(pipeIdx);
 				ackCount = goCount;
 				System.out.println("Received Go Command "+goCount);
 				assert(goCount>0);

@@ -21,7 +21,8 @@ public class PiCommandChannel extends CommandChannel{
 	private final byte i2cIndex = 1;
 	private final byte adIndex = 0;
 
-	protected PiCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<GoSchema> goPipe) {
+	public PiCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<GoSchema> goPipe) { 
+			//TODO:Was this protected for security reasons? I'm making it in hardware now.
 		super(output, i2cOutput, goPipe);
 		this.output = output;
 		this.i2cOutput = i2cOutput;  

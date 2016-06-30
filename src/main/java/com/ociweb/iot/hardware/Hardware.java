@@ -7,6 +7,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
+import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class Hardware {
@@ -181,6 +186,10 @@ public abstract class Hardware {
     public abstract void coldSetup();
     public abstract void cleanup();
     public abstract byte getI2CConnector();
+    public abstract void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes, 
+    		Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes);
+    public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, 
+    		Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<GoSchema> orderPipe);
 
     static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
@@ -206,6 +215,7 @@ public abstract class Hardware {
         // TODO The caller would like to stop the operating system cold, need platform specific call?
     }
 
+	
 
 	
 

@@ -14,7 +14,7 @@ import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.PiCommandChannel;
+import com.ociweb.iot.maker.EdisonCommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GoSchema;
@@ -42,10 +42,6 @@ public class GroveV3EdisonImpl extends Hardware {
     @Override
 	public void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes, 
 			Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
-		
-		if(i2cPipes == null){
-			throw new UnsupportedOperationException("Pi must have I2C enabled to work. Add c.useI2C(); to specifyConnections method.");
-		}
 		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
 		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);
 		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
@@ -68,7 +64,7 @@ public class GroveV3EdisonImpl extends Hardware {
 		
 	}
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<GoSchema> orderPipe) {
-		return new PiCommandChannel(pipe, i2cPayloadPipe, orderPipe);
+		return new EdisonCommandChannel(pipe, i2cPayloadPipe, orderPipe);
 	}
     public void coldSetup() {
         usedLines = buildUsedLines();

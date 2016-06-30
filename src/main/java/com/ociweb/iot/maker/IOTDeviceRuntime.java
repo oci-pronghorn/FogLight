@@ -96,9 +96,9 @@ public class IOTDeviceRuntime {
             }
 
             if(isPi){
-            	this.hardware = new GroveV2PiImpl(gm, ccToAdOut, orderPipe, i2cPayloadPipe);
+            	this.hardware = new GroveV2PiImpl();
             }else if(isEdison){
-            	this.hardware = new GroveV3EdisonImpl(gm, ccToAdOut, orderPipe, i2cPayloadPipe);
+            	this.hardware = new GroveV3EdisonImpl();
             }else{
             	//MockHardware
             }

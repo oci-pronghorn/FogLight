@@ -29,8 +29,9 @@ public class GroveV2PiImpl extends Hardware {
 	private final int SLEEP_RATE_NS = 20000000;
 
 	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
+	
 
-	public GroveV2PiImpl(GraphManager gm, Pipe<GroveRequestSchema> ccToAdOut, Pipe<GoSchema> orderPipe, Pipe<I2CCommandSchema> i2cPayloadPipe) {
+	public GroveV2PiImpl() {
 		
 	}
 

@@ -19,7 +19,7 @@ public class EdisonCommandChannel extends CommandChannel{
 	private int runningI2CCommandCount;
 	private final byte adIndex = (byte)0;
 
-	protected EdisonCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,Pipe<GoSchema> goPipe) {
+	public EdisonCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,Pipe<GoSchema> goPipe) {
 			super(output, i2cOutput, goPipe);
 	 		this.output = output;
 			this.i2cOutput = i2cOutput;       

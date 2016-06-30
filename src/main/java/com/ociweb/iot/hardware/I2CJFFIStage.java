@@ -27,7 +27,7 @@ import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 
 public class I2CJFFIStage extends PronghornStage {
 
-	private final Pipe<I2CCommandSchema> fromCommandChannel;
+	private final Pipe<I2CCommandSchema>[] fromCommandChannels;
 	//private final Pipe<RawDataSchema> toListener;
 	private final Pipe<GoSchema> goPipe; //TODO: Change the Schema
 	private final Pipe<AcknowledgeSchema> ackPipe;
@@ -35,12 +35,13 @@ public class I2CJFFIStage extends PronghornStage {
 
 	//private DataOutputBlobWriter<RawDataSchema> writeListener;
 	private DataOutputBlobWriter<AcknowledgeSchema> writeAck;
-	private DataInputBlobReader<I2CCommandSchema> readCommandChannel;
+	private DataInputBlobReader<I2CCommandSchema>[] readCommandChannels;
 	private DataInputBlobReader<GoSchema> readGo;
 
 	private Hardware hardware;
 	private int goCount;
 	private int ackCount;
+	private int pipeIdx;
 	private byte addr;
 	private byte[] data;
 
@@ -50,16 +51,16 @@ public class I2CJFFIStage extends PronghornStage {
 
 	private static I2CNativeLinuxBacking i2c;
 
-	public I2CJFFIStage(GraphManager graphManager, Pipe<GoSchema> goPipe, Pipe<I2CCommandSchema> i2cPayloadPipe, 
+	public I2CJFFIStage(GraphManager graphManager, Pipe<GoSchema> goPipe, Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
 			Pipe<AcknowledgeSchema> ackPipe, Hardware hardware) { //add an I2CListenerPipe
-		super(graphManager, join(goPipe, i2cPayloadPipe), join(ackPipe)); //add here
+		super(graphManager, join(join(goPipe), i2cPayloadPipes), join(ackPipe)); //TODO: does double join work? feels weird.
 
 		////////
 		//STORE OTHER FIELDS THAT WILL BE REQUIRED IN STARTUP
 		////////
 		//this.toListener = toListener;
 		this.ackPipe = ackPipe;
-		this.fromCommandChannel = i2cPayloadPipe;
+		this.fromCommandChannels = i2cPayloadPipes;
 		this.goPipe = goPipe;
 		this.hardware = hardware;
 
@@ -72,10 +73,14 @@ public class I2CJFFIStage extends PronghornStage {
 	@Override
 	public void startup() {
 		try{
-			this.readCommandChannel = new DataInputBlobReader<I2CCommandSchema>(fromCommandChannel);
-			I2CJFFIStage.i2c = new I2CNativeLinuxBacking(hardware.getI2CConnector()); //TODO: get device spec from Hardware
+			this.readCommandChannels = new DataInputBlobReader[fromCommandChannels.length];
+			for (int i = 0; i < readCommandChannels.length; i++) {
+				this.readCommandChannels[i] = new DataInputBlobReader<I2CCommandSchema>(this.fromCommandChannels[i]);
+			}
+			I2CJFFIStage.i2c = new I2CNativeLinuxBacking(hardware.getI2CConnector()); 
 			this.goCount = 0;
 			this.ackCount = 0;
+			this.pipeIdx = 0;
 			this.data = new byte[0]; 
 			this.addr = 0;
 
@@ -96,31 +101,29 @@ public class I2CJFFIStage extends PronghornStage {
 			if(GoSchema.MSG_RELEASE_20== msgIdx){
 				assert(goCount>=0);
 				goCount += PipeReader.readInt(goPipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22);
+				pipeIdx = PipeReader.readInt(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11);
 				ackCount = goCount;
 				System.out.println("Received Go Command "+goCount);
 				assert(goCount>0);
 			}else{
-				
 				assert(msgIdx == -1);
 				requestShutdown();
 			}
-			
-
-
 			PipeReader.releaseReadLock(goPipe);
 		} 
-		while (goCount>0 && PipeReader.tryReadFragment(fromCommandChannel)) {
+		
+		while (goCount>0 && PipeReader.tryReadFragment(fromCommandChannels[pipeIdx])) {
 			goCount--;
-			assert(PipeReader.isNewMessage(fromCommandChannel)) : "This test should only have one simple message made up of one fragment";
-			int msgIdx = PipeReader.getMsgIdx(fromCommandChannel);
+			assert(PipeReader.isNewMessage(fromCommandChannels[pipeIdx])) : "This test should only have one simple message made up of one fragment";
+			int msgIdx = PipeReader.getMsgIdx(fromCommandChannels[pipeIdx]);
 			System.out.println("Inside the while");
 			if(I2CCommandSchema.MSG_COMMAND_1 == msgIdx){
-				readCommandChannel.openHighLevelAPIField(I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
+				readCommandChannels[pipeIdx].openHighLevelAPIField(I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
 				try {
-					addr = readCommandChannel.readByte(); 
-					data = new byte[readCommandChannel.readByte()]; //TODO: Nathan take out the trash ReadByteArray method?
+					addr = readCommandChannels[pipeIdx].readByte(); 
+					data = new byte[readCommandChannels[pipeIdx].readByte()]; //TODO: Nathan take out the trash ReadByteArray method?
 					for (int i = 0; i < data.length; i++) {
-						data[i]=readCommandChannel.readByte();
+						data[i]=readCommandChannels[pipeIdx].readByte();
 					}
 					I2CJFFIStage.i2c.write(addr, data);
 					System.out.println("writing to I2C bus");
@@ -129,7 +132,7 @@ public class I2CJFFIStage extends PronghornStage {
 					System.out.println("I failed");
 				}
 				try {
-					readCommandChannel.close();
+					readCommandChannels[pipeIdx].close();
 				} catch (IOException e) {
 					logger.error(e.getMessage(), e);
 					System.out.println("I failed to close");
@@ -140,9 +143,11 @@ public class I2CJFFIStage extends PronghornStage {
 				requestShutdown();
 			}
 
-			PipeReader.releaseReadLock(fromCommandChannel);
+			PipeReader.releaseReadLock(fromCommandChannels[pipeIdx]);
 			
-			if(goCount==0){
+			
+			
+			if(goCount==0 && ackCount!=0){
 				if (tryWriteFragment(ackPipe, AcknowledgeSchema.MSG_DONE_10)) {
 					PipeWriter.writeInt(ackPipe, AcknowledgeSchema.MSG_DONE_10, 0);
 					publishWrites(ackPipe);

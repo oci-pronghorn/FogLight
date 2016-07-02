@@ -20,7 +20,10 @@ public class GroveResponseSchema extends MessageSchema {
     public static final int MSG_DIGITALSAMPLE_20 = 0x00000000;
     public static final int MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21 = 0x00000001;
     public static final int MSG_DIGITALSAMPLE_20_FIELD_TIME_11 = 0x00800002;
-    public static final int MSG_DIGITALSAMPLE_20_FIELD_VALUE_22 = 0x00000004;
+    public static final int MSG_DIGITALSAMPLE_20_FIELD_VALUE_22 = 0x00000004;  
+    
+    //TODO: add duration that this was in the previous state, cheap to compute and very helpful data, may want to add to all field types, time since last update as a general feature !!!
+    
     public static final int MSG_ANALOGSAMPLE_30 = 0x00000005;
     public static final int MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31 = 0x00000001;
     public static final int MSG_ANALOGSAMPLE_30_FIELD_TIME_11 = 0x00800002;

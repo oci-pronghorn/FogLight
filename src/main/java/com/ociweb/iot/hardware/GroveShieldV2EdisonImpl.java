@@ -20,6 +20,8 @@ public class GroveShieldV2EdisonImpl extends Hardware {
         
         setToKnownStateFromColdStart();  
         
+        
+        
     }
     
 

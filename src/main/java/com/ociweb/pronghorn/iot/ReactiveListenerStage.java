@@ -20,6 +20,7 @@ public class ReactiveListenerStage extends PronghornStage {
     
     private long                      timeTrigger;
     private long                      timeRate;
+               
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes) {
         
@@ -120,7 +121,7 @@ public class ReactiveListenerStage extends PronghornStage {
                         int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21);
                         long time = PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_TIME_11);
                         int value = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22);
-                            
+                                                    
                         ((DigitalListener)listener).digitalEvent(connector, time, value);
                         
                     }   

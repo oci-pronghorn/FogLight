@@ -5,7 +5,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
+import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
+import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class Hardware {
@@ -71,7 +77,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-        HardConnection gc = new HardConnection(t,connection,ConnectionType.Grove);
+        HardConnection gc = new HardConnection(t,connection,ConnectionType.GrovePi);
         if (t.isInput()) {
             assert(!t.isOutput());
             analogInputs = growConnections(analogInputs, gc);
@@ -87,7 +93,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
-        HardConnection gc = new HardConnection(t,connection,ConnectionType.Grove);
+        HardConnection gc = new HardConnection(t,connection,ConnectionType.GrovePi);
         if (t.isInput()) {
             assert(!t.isOutput());
             digitalInputs = growConnections(digitalInputs, gc);
@@ -104,7 +110,7 @@ public abstract class Hardware {
         if (t.isInput()) {
             assert(!t.isOutput());
             for(int con:connections) {
-                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.Grove));
+                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.GrovePi));
             }
             
           System.out.println("connections "+Arrays.toString(connections));  
@@ -113,7 +119,7 @@ public abstract class Hardware {
         } else {
             assert(t.isOutput());
             for(int con:connections) {
-                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.Grove));
+                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.GrovePi));
             }
         }
         return this;
@@ -157,12 +163,6 @@ public abstract class Hardware {
     public abstract void digitalWrite(int connector, int value); //Platform specific
     public abstract void analogWrite(int connector, int value); //Platform specific
     
-    public abstract void configurePinsForDigitalOutput(byte connection); //Platform specific
-    public abstract void configurePinsForDigitalInput(byte connection); //Platform specific
-    public abstract void configurePinsForAnalogInput(byte connection); //Platform specific
-    public abstract void configurePinsForAnalogOutput(byte connection); //Platform specific
-    
-    public abstract void configurePinsForI2C();
     
     public int maxAnalogMovingAverage() {
         return MAX_MOVING_AVERAGE_SUPPORTED;
@@ -185,6 +185,11 @@ public abstract class Hardware {
     
     public abstract void coldSetup();
     public abstract void cleanup();
+    public abstract byte getI2CConnector();
+    public abstract void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes, 
+    		Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes);
+    public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, 
+    		Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<GoSchema> orderPipe);
 
     static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
@@ -209,6 +214,8 @@ public abstract class Hardware {
     public void shutdown() {
         // TODO The caller would like to stop the operating system cold, need platform specific call?
     }
+
+	
 
 	
 

@@ -19,7 +19,7 @@ public class I2CExampleApp {
     private static final Logger logger = LoggerFactory.getLogger(I2CExampleApp.class);
 
     // Create a connection to the native Linux I2C lines.
-    private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking();
+    private static final I2CNativeLinuxBacking i2c = new I2CNativeLinuxBacking((byte) 1);
 
     // Helper to make writing to the LCD less tedious.
     private static void writeCommandsToGroveLCD(byte... commands) {

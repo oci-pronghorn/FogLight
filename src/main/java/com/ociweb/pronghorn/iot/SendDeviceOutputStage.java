@@ -59,17 +59,17 @@ public class SendDeviceOutputStage extends PronghornStage {
         config.beginPinConfiguration();
         
         
-        int i = config.digitalOutputs.length;
-        while(--i >= 0){
-        	config.configurePinsForDigitalOutput(config.digitalOutputs[i].connection);
-        	System.out.println("configured output "+config.digitalOutputs[i].twig+" on connection "+config.digitalOutputs[i].connection);
-        }
+//        int i = config.digitalOutputs.length;
+//        while(--i >= 0){
+//        	config.configurePinsForDigitalOutput(config.digitalOutputs[i].connection);
+//        	System.out.println("configured output "+config.digitalOutputs[i].twig+" on connection "+config.digitalOutputs[i].connection);
+//        }
     	
     	
-       i = config.pwmOutputs.length;
-       while (--i>=0) {
-            config.configurePinsForAnalogOutput(config.pwmOutputs[i].connection);
-       }        
+//       i = config.pwmOutputs.length;
+//       while (--i>=0) {
+////            config.configurePinsForAnalogOutput(config.pwmOutputs[i].connection);
+//       }        
     
        config.endPinConfiguration();
 

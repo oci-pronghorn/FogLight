@@ -58,14 +58,14 @@ public class I2CStage extends PronghornStage {
         
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         
-            config.beginPinConfiguration();
-            config.configurePinsForI2C();
-            config.endPinConfiguration();
+//            config.beginPinConfiguration();
+//            config.configurePinsForI2C();
+//            config.endPinConfiguration();
        
         //Figure out which backing to use.
         //TODO: This should probably be chosen by the creator of this stage instead.
         try {
-            backing = new I2CNativeLinuxBacking();
+            backing = new I2CNativeLinuxBacking((byte) 1);
             logger.info("Successfully initialized native Linux I2C backing.");
         } catch (Exception e) {
             e.printStackTrace();

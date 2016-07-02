@@ -51,7 +51,7 @@ public class JFFIStage extends PronghornStage {
 		this.fromHardware = fromHardware;
 		this.writer = null;
 		this.reader = null;
-		this.i2c = new I2CNativeLinuxBacking();
+		this.i2c = new I2CNativeLinuxBacking((byte)6);
 
 	}
 

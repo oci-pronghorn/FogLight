@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -116,7 +117,7 @@ public class PureJavaI2CStage extends PronghornStage {
         
         if (config.configI2C) {
            config.beginPinConfiguration();
-           config.configurePinsForI2C();
+           EdisonGPIO.configI2C();
            config.endPinConfiguration();
            config.i2cClockOut();
            config.i2cDataOut();

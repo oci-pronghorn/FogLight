@@ -107,8 +107,9 @@ public class GrovePiConstants {
     };
     
     public static final HardConnection[] i2cPins = new HardConnection[] {
-    new HardConnection(GroveTwig.I2C,0,ConnectionType.Grove),
-    new HardConnection(GroveTwig.I2C,1,ConnectionType.Grove)};
+    new HardConnection(GroveTwig.I2C,0,ConnectionType.Direct),
+    new HardConnection(GroveTwig.I2C,1,ConnectionType.Direct)
+    };
     
     public final static int DATA_RAW_VOLTAGE = 0;
     public final static int CLOCK_RAW_VOLTAGE = 1;

@@ -7,19 +7,22 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.GrovePiImpl;
-import com.ociweb.iot.hardware.GroveShieldV2EdisonImpl;
+
+import com.ociweb.iot.hardware.GroveV2PiImpl;
+import com.ociweb.iot.hardware.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.SendDeviceOutputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
+import com.ociweb.pronghorn.iot.schema.GoSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -44,19 +47,30 @@ public class IOTDeviceRuntime {
     
     private List<Pipe<GroveRequestSchema>> collectedRequestPipes = new ArrayList<Pipe<GroveRequestSchema>>();
     private List<Pipe<I2CCommandSchema>> collectedI2CRequestPipes = new ArrayList<Pipe<I2CCommandSchema>>();
+    private List<Pipe<GoSchema>> collectedOrderPipes = new ArrayList<Pipe<GoSchema>>();
     
     private List<Pipe<GroveResponseSchema>> collectedResponsePipes = new ArrayList<Pipe<GroveResponseSchema>>();
     
     
     private PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 128);
     private PipeConfig<I2CCommandSchema> requestI2CPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 1024); //count should never be larger than requestPipeConfig
+    private PipeConfig<GoSchema> goPipeConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024); //TODO: This pipe is big. Can be made smaller?
     
     private PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 64,1024);
     
     private PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);
     private PipeConfig<GroveResponseSchema> responsePipeConfig2x = responsePipeConfig.grow2x();
     
+    private PipeConfig<GoSchema> orderPipeConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
+    private Pipe<GroveRequestSchema> ccToAdOut = new Pipe<GroveRequestSchema>(requestPipeConfig );
+    private Pipe<GoSchema> orderPipe = new Pipe<GoSchema>(orderPipeConfig);
+    private Pipe<I2CCommandSchema> i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
+    
+    private boolean isEdison = false;
+    private boolean isPi = false;
+    
     private int SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
+    
     
     
     public IOTDeviceRuntime() {
@@ -64,19 +78,15 @@ public class IOTDeviceRuntime {
         
     }
 
-    
-    
-    
-    public Hardware getHarware() {
-        if (null==hardware) {
-
-            String osversion  =System.getProperty("os.version");
- 
-            boolean isEdison = ( osversion.toLowerCase().indexOf("edison") != -1 );
-            boolean isPi     = ( osversion.toLowerCase().indexOf("raspbian") != -1); //does not work on Pi
+    public Hardware getHardware(){
+    	if(this.hardware==null){
+    		String osversion  =System.getProperty("os.version");
+       	 
+            this.isEdison = ( osversion.toLowerCase().indexOf("edison") != -1 );
+            this.isPi     = ( osversion.toLowerCase().indexOf(";ppraspbian") != -1);
             
             if(!isEdison){
-            	isPi = true; //for testing on the Pi for now
+            	isPi = true; //TODO: Find a way to detect Pi properly
             	System.out.println("Device detection for Pi does not work. Defaulting to Pi Hardware for now");
             }
             
@@ -84,32 +94,32 @@ public class IOTDeviceRuntime {
                 logger.error("Unable to detect hardware : {}",osversion);
                 System.exit(0);
             }
-            
-            if (isEdison) {
-                hardware = new GroveShieldV2EdisonImpl();
-            } else if (isPi) {
-                hardware = new GrovePiImpl(gm);
+
+            if(isPi){
+            	this.hardware = new GroveV2PiImpl(gm);
+            }else if(isEdison){
+            	this.hardware = new GroveV3EdisonImpl(gm);
+            }else{
+            	//MockHardware
             }
-            
-        }
-        
-        return hardware;
+    	}
+    	return this.hardware;
     }
     
-    
-    public CommandChannel newCommandChannel() {
-               
-        Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
+    public CommandChannel newCommandChannel() { //Maybe this should all be in the same method as hardware
+         
+    	Pipe<GroveRequestSchema> pipe = new Pipe<GroveRequestSchema>(requestPipeConfig );
         collectedRequestPipes.add(pipe);
         Pipe<I2CCommandSchema> i2cPayloadPipe = null;
-        
         if (hardware.configI2C) {
             i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
             collectedI2CRequestPipes.add(i2cPayloadPipe);
-        }               
-        
-        return new CommandChannel(pipe, i2cPayloadPipe);
-        
+        } 
+        Pipe<GoSchema> orderPipe = new Pipe<GoSchema>(goPipeConfig);
+        collectedOrderPipes.add(orderPipe);
+         
+        return this.hardware.newCommandChannel(pipe, i2cPayloadPipe, orderPipe);
+    	
     }
     
     public void addRESTSignature(int i, String string) {
@@ -190,7 +200,7 @@ public class IOTDeviceRuntime {
 
         
     public void start() {
-       hardware.coldSetup(); 
+       hardware.coldSetup();
         
        buildGraph(); 
         
@@ -211,36 +221,12 @@ public class IOTDeviceRuntime {
     private void buildGraph() {
 
         //all the request pipes are passed into this single stage for modification of the hardware
-        int s = collectedRequestPipes.size();   
+        int s = collectedI2CRequestPipes.size();
+        Pipe<I2CCommandSchema>[] i2cPipes;
         if (s>0) {
-            if (hardware.configI2C) {
-                //second pipe allows for zero copy use of this data.
-                
-                ///TODO: send payload to i2c stage
-                //  also send trigger pipe
-                
-                Pipe<I2CCommandSchema>[] i2cPipes = collectedI2CRequestPipes.toArray(new Pipe[s]);
-                
-                boolean usePureJava = false; //TODO: urgent, make this work when we turn this off.
-                
-                PronghornStage i2cStage;
-                if (usePureJava) {
-                    i2cStage = new PureJavaI2CStage(gm, i2cPipes, hardware);
-                } else {
-                    i2cStage = new I2CStage(gm, i2cPipes, hardware);
-                }
-                                
-                GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
-                        new SendDeviceOutputStage(gm, //TODO: only do if is instance of Edison Config
-                                collectedRequestPipes.toArray(new Pipe[s]), hardware)
-                );
-                
-            } else {            
-                GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
-                        new SendDeviceOutputStage(gm, collectedRequestPipes.toArray(new Pipe[s]), hardware) //TODO: only do if is instance of Edison Config
-                        
-                );
-            }
+        	i2cPipes = collectedI2CRequestPipes.toArray(new Pipe[s]);    
+        }else{
+        	i2cPipes = null;
         }
         //all the registered listers are managed here.
         s = collectedResponsePipes.size();           
@@ -249,9 +235,14 @@ public class IOTDeviceRuntime {
                 new SplitterStage<>(gm, responsePipe, collectedResponsePipes.toArray(new Pipe[s]))
                 );
         
+        Pipe<GroveRequestSchema>[] requestPipes = collectedRequestPipes.toArray(new Pipe[collectedI2CRequestPipes.size()]);
+        Pipe<GoSchema>[] orderPipes = collectedOrderPipes.toArray(new Pipe[collectedOrderPipes.size()]);
+        Pipe<GroveResponseSchema>[] responsePipes = collectedResponsePipes.toArray(new Pipe[collectedResponsePipes.size()]);
+        
+        hardware.buildStages(requestPipes, i2cPipes, responsePipes, orderPipes);
+        
       
         //Do not modfy the sleep of this object it is decided inernally by the config and devices plugged in.
-        new ReadDeviceInputStage(gm,responsePipe,hardware); //TODO: only do if is instance of Edison Config
           
     }
 

@@ -1,10 +1,13 @@
 package com.ociweb.pronghorn;
 
+import java.lang.reflect.Array;
+
 import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
 import com.ociweb.pronghorn.iot.schema.GoSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -18,10 +21,11 @@ public class TrafficCopStage extends PronghornStage {
     private Pipe<GoSchema>[] goOut;
     private int ackExpectedOn = -1;   
     
-    public TrafficCopStage(GraphManager graphManager, Pipe<GoSchema> primaryIn, Pipe<AcknowledgeSchema>[] ackIn,  Pipe<GoSchema>[] goOut) {
-        super(graphManager, join(ackIn, primaryIn), goOut);
+    public TrafficCopStage(GraphManager graphManager, Pipe<GoSchema>[] primaryIn, Pipe<AcknowledgeSchema>[] ackIn,  Pipe<GoSchema>[] goOut) {
+    	super(graphManager, join(ackIn, primaryIn), goOut);
+    	
     
-        this.primaryIn = primaryIn;
+        this.primaryIn = primaryIn[0];
         this.ackIn = ackIn;
         this.goOut = goOut;
         
@@ -53,6 +57,7 @@ public class TrafficCopStage extends PronghornStage {
                     //send the release count message
                     if (PipeWriter.tryWriteFragment(releasePipe, GoSchema.MSG_RELEASE_20)) {                
                         PipeWriter.writeInt(releasePipe, GoSchema.MSG_RELEASE_20_FIELD_COUNT_22, PipeReader.readInt(primaryIn, GoSchema.MSG_GO_10_FIELD_COUNT_12));
+                        System.out.println("Cop writing to JFFI");
                         PipeWriter.publishWrites(releasePipe);
                     } else {
                         throw new UnsupportedOperationException("The outgoing pipe "+releasePipe+" must be bigger to hold release request");

@@ -1,5 +1,9 @@
 package com.ociweb.iot.maker;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -241,9 +245,44 @@ public class IOTDeviceRuntime {
         
         hardware.buildStages(requestPipes, i2cPipes, responsePipes, orderPipes);
         
+        exportGraphDotFile();
+        
       
         //Do not modfy the sleep of this object it is decided inernally by the config and devices plugged in.
           
+    }
+
+    /**
+     * Export file so GraphVis can be used to view the internal graph.
+     * 
+     * To view this file install:     sudo apt-get install graphviz
+     * 
+     */
+    private void exportGraphDotFile() {
+        FileOutputStream fost;
+        try {
+            fost = new FileOutputStream("deviceGraph.dot");
+            PrintWriter pw = new PrintWriter(fost);
+            gm.writeAsDOT(gm, pw);
+            pw.close();
+        } catch (IOException e) {
+            new RuntimeException(e);
+        }
+        
+        //to produce the png we must call
+        //  dot -Tpng -O deviceGraph.dot        
+//        Process result;
+//        try {
+//            result = Runtime.getRuntime().exec("dot -Tpng -O deviceGraph.dot");
+//            if (0==result.exitValue()) {
+//                System.out.println("Built deviceGraph.dot.png to view the runtime graph.");
+//            }
+//        } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+        
+        
     }
 
     public void shutdownDevice() {

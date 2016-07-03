@@ -167,9 +167,11 @@
 	            <option>-keep public class ${package}.IoTApp {
 			    public static void main(java.lang.String[]);
 			}</option>
-				
+				<option>-keep class jnr.ffi.** { *; }</option>
+				<option>-keep class com.kenai.jffi.** { *; }</option>
 	            <option>-dontobfuscate</option>
 				<option>-ignorewarnings</option>
+				<option>-optimizations code/allocation/</option>
 	          </options>
 	          <obfuscate>false</obfuscate>
 	          <libs>

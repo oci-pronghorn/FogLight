@@ -1,41 +1,25 @@
 package com.ociweb.iot.hardware;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.EdisonCommandChannel;
-import com.ociweb.pronghorn.TrafficCopStage;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.pipe.PipeConfig;
-import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.iot.hardware.Hardware;
 
 public class GroveV3EdisonImpl extends Hardware {
 	
 	
 	
     private HardConnection[] usedLines;
-    private GraphManager gm;
+    
     public GroveV3EdisonImpl(GraphManager gm) {
-    	this.gm = gm;
+    	super(gm);
    }
     
 

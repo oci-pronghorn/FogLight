@@ -76,23 +76,33 @@ public abstract class AbstractOutputStage extends PronghornStage {
 	@Override
     public void run() {
 	          
-	    int a = activeCounts.length;
-	    while (--a >= 0) {
-	        //send any acks that are outstanding
-	        if (0==activeCounts[a]) {
-	            if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
-	                publishWrites(ackPipe[a]);
-	                activeCounts[a] = -1;
-	              }
-	        }
-	        //pull all known the values into the active counts array
-	        if (-1==activeCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
-	            readNextCount(a);                   
-            }
-	        
-	        //set the hardware for this many messages.
-	        processMessagesForPipe(a);	        
-	    } 	    
+	    boolean foundWork;
+	    do {
+	        foundWork = false;
+    	    int a = activeCounts.length;
+    	    while (--a >= 0) {
+    	        //pull all known the values into the active counts array
+    	        if (-1==activeCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
+    	            readNextCount(a); 
+    	            foundWork = true;
+                }
+    	        
+    	        //set the hardware for this many messages.
+    	        int startCount = activeCounts[a];
+    	        processMessagesForPipe(a);	        
+    	        foundWork |= (activeCounts[a]!=startCount);//work was done if progress was made
+    	        
+    	        //send any acks that are outstanding
+    	        if (0==activeCounts[a]) {
+    	            if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
+    	                publishWrites(ackPipe[a]);
+    	                activeCounts[a] = -1;
+    	                foundWork = true;
+    	            }
+    	        }
+    	    } 	
+    	    //only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
+	    } while (foundWork);
 	}
 
     protected abstract void processMessagesForPipe(int a);

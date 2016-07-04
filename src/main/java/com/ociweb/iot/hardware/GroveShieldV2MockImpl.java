@@ -10,6 +10,7 @@ import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveShieldV2MockImpl extends Hardware {
     
@@ -30,8 +31,8 @@ public class GroveShieldV2MockImpl extends Hardware {
     
     ThreadLocalRandom r = ThreadLocalRandom.current();
     
-    public GroveShieldV2MockImpl() {
-        super();
+    public GroveShieldV2MockImpl(GraphManager gm) {
+        super(gm);
     }    
     
     public void addOptionalI2CBusSimulationPipe(Pipe<I2CBusSchema> pipe) {

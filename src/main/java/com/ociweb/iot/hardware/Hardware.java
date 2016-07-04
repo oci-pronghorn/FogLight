@@ -43,7 +43,7 @@ public abstract class Hardware {
     
     private long timeTriggerRate;
     
-    public GraphManager gm;
+    public final GraphManager gm;
     
     protected final PipeConfig<TrafficReleaseSchema> releasePipesConfig          = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 64);
     protected final PipeConfig<TrafficOrderSchema> orderPipesConfig          = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, 64);
@@ -60,11 +60,12 @@ public abstract class Hardware {
     
     private ReentrantLock lock = new ReentrantLock();
     
-    public Hardware() {
-        this(false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+    public Hardware(GraphManager gm) {
+        this(gm, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+        
     }
     
-    protected Hardware(boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
+    protected Hardware(GraphManager gm, boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
             HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs) {
         
         this.configI2C = configI2C;
@@ -75,6 +76,7 @@ public abstract class Hardware {
         this.digitalOutputs = digitalOutputs;
         this.pwmOutputs = pwmOutputs;
         this.analogInputs = analogInputs;
+        this.gm = gm;
     }
 
     /////
@@ -265,7 +267,7 @@ public abstract class Hardware {
             
             Pipe<TrafficReleaseSchema>[] goOut = new Pipe[]{pinGoPipe, i2cGoPipe};
             Pipe<TrafficAckSchema>[] ackIn = new Pipe[]{pinAckPipe, i2cAckPipe};
-            TrafficCopStage trafficCopStage = new TrafficCopStage(this.gm, orderPipes[t], ackIn, goOut);
+            TrafficCopStage trafficCopStage = new TrafficCopStage(gm, orderPipes[t], ackIn, goOut);
             
         }
         
@@ -291,7 +293,7 @@ public abstract class Hardware {
     
     /**
      * This default implementation assumes that the hardware has direct support for control of digital and analog outputs.
-     * For other hardware (eg the Pi) this method should be overridden.
+     * For other hardware (eg the Pi) this method may be overridden to do something different.
      * 
      * @param requestPipes
      * @param masterPINgoOut

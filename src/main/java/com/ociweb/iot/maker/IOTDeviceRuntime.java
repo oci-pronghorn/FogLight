@@ -274,21 +274,22 @@ public class IOTDeviceRuntime {
             gm.writeAsDOT(gm, pw);
             pw.close();
         } catch (IOException e) {
-            new RuntimeException(e);
+            e.printStackTrace();
         }
         
         //to produce the png we must call
         //  dot -Tpng -O deviceGraph.dot        
-//        Process result;
-//        try {
-//            result = Runtime.getRuntime().exec("dot -Tpng -O deviceGraph.dot");
-//            if (0==result.exitValue()) {
-//                System.out.println("Built deviceGraph.dot.png to view the runtime graph.");
-//            }
-//        } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
+        Process result;
+        try {
+            result = Runtime.getRuntime().exec("dot -Tpng -O deviceGraph.dot");
+            
+            if (0==result.waitFor()) {
+                System.out.println("Built deviceGraph.dot.png to view the runtime graph.");
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         
         
     }

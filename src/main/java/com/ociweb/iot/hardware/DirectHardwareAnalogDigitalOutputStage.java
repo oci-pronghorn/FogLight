@@ -39,6 +39,8 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractOutputStage 
 	}
 	
 	  protected void processMessagesForPipe(int a) {
+	      
+	      
 	        while (hasReleaseCountRemaining(a) 
 	                && (Pipe.hasContentToRead(fromCommandChannels[activePipe]) && !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) )
 	                && PipeReader.tryReadFragment(fromCommandChannels[activePipe]) ){

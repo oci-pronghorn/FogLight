@@ -23,12 +23,11 @@ public class GroveV2PiImpl extends Hardware {
 
 	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
 	
-	private GraphManager gm;
 	private byte commandIndex = -1;
 	
 
 	public GroveV2PiImpl(GraphManager gm) {
-		this.gm = gm;
+		super(gm);
 	}
 
 

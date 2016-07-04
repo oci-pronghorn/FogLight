@@ -5,10 +5,5 @@
      <uInt32 name="PipeIdx" id="11"/>
      <uInt32 name="Count" id="12"/>
   </template>
-  
-  <template name="Release" id="20">
-     <uInt32 name="Count" id="22"/>
-  </template>  
-
-  
+    
 </templates>

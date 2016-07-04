@@ -6,12 +6,17 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
-import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class Hardware {
@@ -20,6 +25,9 @@ public abstract class Hardware {
     public static final int MAX_MOVING_AVERAGE_SUPPORTED = 101;
     
     private static final HardConnection[] EMPTY = new HardConnection[0];
+
+    private final int SLEEP_RATE_NS = 20000000;
+
     
     public boolean configI2C;       //Humidity, LCD need I2C address so..
     public long debugI2CRateLastTime;
@@ -36,6 +44,14 @@ public abstract class Hardware {
     private long timeTriggerRate;
     
     public GraphManager gm;
+    
+    protected final PipeConfig<TrafficReleaseSchema> releasePipesConfig          = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 64);
+    protected final PipeConfig<TrafficOrderSchema> orderPipesConfig          = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, 64);
+    protected final PipeConfig<TrafficAckSchema> ackPipesConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 64);
+    protected final PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+    protected final PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+    
+    
     
     //TODO: ma per field with max defined here., 
     //TODO: publish with or with out ma??
@@ -186,10 +202,10 @@ public abstract class Hardware {
     public abstract void coldSetup();
     public abstract void cleanup();
     public abstract byte getI2CConnector();
-    public abstract void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes, 
-    		Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes);
+        
+    
     public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, 
-    		Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<GoSchema> orderPipe);
+    		Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe);
 
     static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
@@ -217,7 +233,73 @@ public abstract class Hardware {
 
 	
 
-	
+    public final void buildStages(Pipe<GroveRequestSchema>[] requestPipes, 
+                                  Pipe<I2CCommandSchema>[] i2cPipes, 
+                                  Pipe<GroveResponseSchema>[] responsePipes,        
+                                  Pipe<TrafficOrderSchema>[] orderPipes) {
+            
+        
+        assert(orderPipes.length == i2cPipes.length);
+        assert(orderPipes.length == requestPipes.length);
+        
+        
+        int t = orderPipes.length;
+        
+        Pipe<TrafficReleaseSchema>[]          masterI2CgoOut = new Pipe[t];
+        Pipe<TrafficAckSchema>[] masterI2CackIn = new Pipe[t]; 
+        
+        Pipe<TrafficReleaseSchema>[]          masterPINgoOut = new Pipe[t];
+        Pipe<TrafficAckSchema>[] masterPINackIn = new Pipe[t]; 
+        
+        while (--t>=0) {
+            
+            Pipe<TrafficReleaseSchema> i2cGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
+            Pipe<TrafficReleaseSchema> pinGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
+            Pipe<TrafficAckSchema> i2cAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
+            Pipe<TrafficAckSchema> pinAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
+        
+            masterI2CgoOut[t] = i2cGoPipe;
+            masterI2CackIn[t] = i2cAckPipe;
+            masterPINgoOut[t] = pinGoPipe;
+            masterPINackIn[t] = pinAckPipe;            
+            
+            Pipe<TrafficReleaseSchema>[] goOut = new Pipe[]{pinGoPipe, i2cGoPipe};
+            Pipe<TrafficAckSchema>[] ackIn = new Pipe[]{pinAckPipe, i2cAckPipe};
+            TrafficCopStage trafficCopStage = new TrafficCopStage(this.gm, orderPipes[t], ackIn, goOut);
+            
+        }
+        
+        createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
+        
+        createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn);
+        
+                
+        
+//        AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(this.gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
+        
+        
+        
+    }
+
+    protected void createI2COutputInputStage(Pipe<I2CCommandSchema>[] i2cPipes,
+            Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn) {
+        //NOTE: if this throws we should use the Java one here instead.
+        I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, this);
+        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, i2cJFFIStage);
+    }
+
+    
+    /**
+     * This default implementation assumes that the hardware has direct support for control of digital and analog outputs.
+     * For other hardware (eg the Pi) this method should be overridden.
+     * 
+     * @param requestPipes
+     * @param masterPINgoOut
+     * @param masterPINackIn
+     */
+    protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
+        DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
+    }
 
 	
 

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
-import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -21,16 +21,16 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class AnalogDigitalInputStage extends PronghornStage{
 	//TODO: Change the Schema
 	private final Pipe<RawDataSchema> toListener;
-	private final Pipe<GoSchema> goPipe;
+	private final Pipe<TrafficOrderSchema> goPipe;
 
 	private DataOutputBlobWriter<RawDataSchema> writeListener;
-	private DataInputBlobReader<GoSchema> readGo;
+	private DataInputBlobReader<TrafficOrderSchema> readGo;
 
 	private Hardware hardware;
 
 	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
 
-	public AnalogDigitalInputStage(GraphManager graphManager, Pipe<RawDataSchema> toListener, Pipe<GoSchema> goPipe, Hardware hardware) {
+	public AnalogDigitalInputStage(GraphManager graphManager, Pipe<RawDataSchema> toListener, Pipe<TrafficOrderSchema> goPipe, Hardware hardware) {
 		super(graphManager, toListener, goPipe); 
 
 		////////
@@ -41,7 +41,7 @@ public class AnalogDigitalInputStage extends PronghornStage{
 		this.goPipe = goPipe;
 
 		this.writeListener = new DataOutputBlobWriter<RawDataSchema>(toListener);
-		this.readGo = new DataInputBlobReader<GoSchema>(goPipe);
+		this.readGo = new DataInputBlobReader<TrafficOrderSchema>(goPipe);
 		this.hardware = hardware;
 
 

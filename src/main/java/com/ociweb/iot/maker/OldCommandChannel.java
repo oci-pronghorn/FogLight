@@ -131,18 +131,19 @@ public class OldCommandChannel {
     }
  
     public boolean i2cFlushBatch() {        
-        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-        try {
-            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_I2CWRITE_400) ) { 
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_I2CWRITE_400_FIELD_MESSAGECOUNT_410, runningI2CCommandCount);
-                PipeWriter.publishWrites(output);
-                runningI2CCommandCount = 0;                
-                return true;
-            }
-           return false;            
-        } finally {
-            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-        }
+//        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+//        try {
+//            if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_I2CWRITE_400) ) { 
+//                PipeWriter.writeInt(output, GroveRequestSchema.MSG_I2CWRITE_400_FIELD_MESSAGECOUNT_410, runningI2CCommandCount);
+//                PipeWriter.publishWrites(output);
+//                runningI2CCommandCount = 0;                
+//                return true;
+//            }
+//           return false;            
+//        } finally {
+//            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+//        }
+        return false;
     }
     
     

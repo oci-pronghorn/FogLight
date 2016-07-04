@@ -1,6 +1,5 @@
 package com.ociweb.iot.maker;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,23 +10,17 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import com.ociweb.iot.hardware.GroveV2PiImpl;
 import com.ociweb.iot.hardware.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
-import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
-import com.ociweb.pronghorn.iot.SendDeviceOutputStage;
-import com.ociweb.pronghorn.iot.i2c.I2CStage;
-import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
-import com.ociweb.pronghorn.iot.schema.GoSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
-import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
@@ -51,23 +44,27 @@ public class IOTDeviceRuntime {
     
     private List<Pipe<GroveRequestSchema>> collectedRequestPipes = new ArrayList<Pipe<GroveRequestSchema>>();
     private List<Pipe<I2CCommandSchema>> collectedI2CRequestPipes = new ArrayList<Pipe<I2CCommandSchema>>();
-    private List<Pipe<GoSchema>> collectedOrderPipes = new ArrayList<Pipe<GoSchema>>();
+    private List<Pipe<TrafficOrderSchema>> collectedOrderPipes = new ArrayList<Pipe<TrafficOrderSchema>>();
     
     private List<Pipe<GroveResponseSchema>> collectedResponsePipes = new ArrayList<Pipe<GroveResponseSchema>>();
+    private List<Pipe<RawDataSchema>> collectedI2CResponsePipes = new ArrayList<Pipe<RawDataSchema>>();
     
     
     private PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 128);
     private PipeConfig<I2CCommandSchema> requestI2CPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 32, 1024); //count should never be larger than requestPipeConfig
-    private PipeConfig<GoSchema> goPipeConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024); //TODO: This pipe is big. Can be made smaller?
+    private PipeConfig<TrafficOrderSchema> goPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, 64, 1024); //TODO: This pipe is big. Can be made smaller?
     
     private PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 64,1024);
+    
+    private PipeConfig<RawDataSchema> reponseI2CConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+    
     
     private PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);
     private PipeConfig<GroveResponseSchema> responsePipeConfig2x = responsePipeConfig.grow2x();
     
-    private PipeConfig<GoSchema> orderPipeConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
+    private PipeConfig<TrafficOrderSchema> orderPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, 64, 1024);
     private Pipe<GroveRequestSchema> ccToAdOut = new Pipe<GroveRequestSchema>(requestPipeConfig );
-    private Pipe<GoSchema> orderPipe = new Pipe<GoSchema>(orderPipeConfig);
+    private Pipe<TrafficOrderSchema> orderPipe = new Pipe<TrafficOrderSchema>(orderPipeConfig);
     private Pipe<I2CCommandSchema> i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
     
     private boolean isEdison = false;
@@ -119,10 +116,10 @@ public class IOTDeviceRuntime {
             i2cPayloadPipe = new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig);
             collectedI2CRequestPipes.add(i2cPayloadPipe);
         } 
-        Pipe<GoSchema> orderPipe = new Pipe<GoSchema>(goPipeConfig);
+        Pipe<TrafficOrderSchema> orderPipe = new Pipe<TrafficOrderSchema>(goPipeConfig);
         collectedOrderPipes.add(orderPipe);
          
-        return this.hardware.newCommandChannel(pipe, i2cPayloadPipe, orderPipe);
+        return this.hardware.newCommandChannel(pipe, i2cPayloadPipe, orderPipe); //TODO: need to find out why this is in two different classes.
     	
     }
     
@@ -168,6 +165,17 @@ public class IOTDeviceRuntime {
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
+    
+    public void addI2CListener(I2CListener listener) {
+        
+        Pipe<RawDataSchema> pipe = new Pipe<RawDataSchema>(reponseI2CConfig);
+        collectedI2CResponsePipes.add(pipe);
+        
+        //TODO: need a way to configure reactive lister stage??
+       // ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
+       // GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
+    }
+    
     
     public void registerListener(Object listener) {
         
@@ -239,8 +247,8 @@ public class IOTDeviceRuntime {
                 new SplitterStage<>(gm, responsePipe, collectedResponsePipes.toArray(new Pipe[s]))
                 );
         
-        Pipe<GroveRequestSchema>[] requestPipes = collectedRequestPipes.toArray(new Pipe[collectedI2CRequestPipes.size()]);
-        Pipe<GoSchema>[] orderPipes = collectedOrderPipes.toArray(new Pipe[collectedOrderPipes.size()]);
+        Pipe<GroveRequestSchema>[] requestPipes   = collectedRequestPipes.toArray(new Pipe[collectedI2CRequestPipes.size()]);
+        Pipe<TrafficOrderSchema>[] orderPipes     = collectedOrderPipes.toArray(new Pipe[collectedOrderPipes.size()]);
         Pipe<GroveResponseSchema>[] responsePipes = collectedResponsePipes.toArray(new Pipe[collectedResponsePipes.size()]);
         
         hardware.buildStages(requestPipes, i2cPipes, responsePipes, orderPipes);

@@ -9,6 +9,7 @@ import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -16,6 +17,7 @@ public class ReactiveListenerStage extends PronghornStage {
 
     private final Object              listener;
     private Pipe<GroveResponseSchema> groveResponsePipe;
+    private Pipe<RawDataSchema>       i2cResponsePipe;
     private Pipe<?>                   restResponsePipes;
     
     private long                      timeTrigger;
@@ -29,6 +31,14 @@ public class ReactiveListenerStage extends PronghornStage {
         this.groveResponsePipe = groveResponsePipes;    
                 
     }
+    
+//    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes, Pipe<RawDataSchema> i2cResponsePipe) {
+//        
+//        super(graphManager, i2cResponsePipe, NONE);
+//        this.listener = listener;
+//        this.i2cResponsePipe = i2cResponsePipe;    
+//                
+//    }
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes, Pipe restResponsePipes) {
         

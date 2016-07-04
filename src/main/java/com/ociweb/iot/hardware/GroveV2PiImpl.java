@@ -1,10 +1,5 @@
 package com.ociweb.iot.hardware;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,8 +7,8 @@ import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.PiCommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
-import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
-import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -26,8 +21,6 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveV2PiImpl extends Hardware {
 
-	private final int SLEEP_RATE_NS = 20000000;
-
 	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
 	
 	private GraphManager gm;
@@ -38,47 +31,12 @@ public class GroveV2PiImpl extends Hardware {
 		this.gm = gm;
 	}
 
-//	public GroveV2PiImpl(boolean publishTime, boolean configI2C, HardConnection[] encoderInputs,
-//			HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs, GraphManager gm) {
-//		super(publishTime, configI2C, encoderInputs, digitalInputs, digitalOutputs, pwmOutputs, analogInputs);
-//	}
+
 
 	@Override
-	public void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes, 
-			Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
-		
-		if(i2cPipes == null){
-			throw new UnsupportedOperationException("Pi must have I2C enabled to work. Add c.useI2C(); to specifyConnections method.");
-		}
-		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
-		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);
-		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		
-		
-		Pipe<GoSchema> adGoPipe = new Pipe<GoSchema>(goPipesConfig);
-		Pipe<GoSchema> i2cGoPipe = new Pipe<GoSchema>(goPipesConfig);
-		//Pipe<GoSchema> listenerGoPipe = new Pipe<GoSchema>(goPipesConfig);
-		Pipe<AcknowledgeSchema> i2cAckPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-		Pipe<AcknowledgeSchema> adAckPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-		//Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
-		//Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
-		
-		GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS , 
-				new I2CJFFIStage(this.gm, i2cGoPipe, i2cPipes, i2cAckPipe, this));
-		GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS , 
-				new AnalogDigitalOutputStage(this.gm, requestPipes, adGoPipe, adAckPipe, this));
-		GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS , 
-				new TrafficCopStage(this.gm, orderPipes, PronghornStage.join(adAckPipe, i2cAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe)));
-		//GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS , new AnalogDigitalInputStage(this.gm, adInToListener, listenerGoPipe, this));
-		System.out.println("GrovePi Stage setup successful");
-		
-	}
-
-	@Override
-	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<GoSchema> orderPipe) {
+	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe) {
 		this.commandIndex++;
-		return new PiCommandChannel(pipe, i2cPayloadPipe, orderPipe, commandIndex);	
+		return new PiCommandChannel(gm, pipe, i2cPayloadPipe, orderPipe, commandIndex);	
 	}
 	
 	public byte getI2CConnector(){

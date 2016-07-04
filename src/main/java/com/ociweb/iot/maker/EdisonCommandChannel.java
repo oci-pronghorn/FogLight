@@ -1,26 +1,27 @@
 package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class EdisonCommandChannel extends CommandChannel{
 
 	private Pipe<GroveRequestSchema> output;
 	private Pipe<I2CCommandSchema> i2cOutput;
-	private Pipe<GoSchema> goPipe;
+	private Pipe<TrafficOrderSchema> goPipe;
 	private AtomicBoolean aBool = new AtomicBoolean(false);    
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
 	private final byte adIndex = (byte)0;
 
-	public EdisonCommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,Pipe<GoSchema> goPipe) {
-			super(output, i2cOutput, goPipe);
+	public EdisonCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,Pipe<TrafficOrderSchema> goPipe) {
+			super(gm, output, i2cOutput, goPipe);
 	 		this.output = output;
 			this.i2cOutput = i2cOutput;       
 			this.goPipe = goPipe;
@@ -69,10 +70,10 @@ public class EdisonCommandChannel extends CommandChannel{
 				msg = false;
 			}
 				
-			if(PipeWriter.tryWriteFragment(goPipe, GoSchema.MSG_GO_10)) { //TODO: this needs to be generic 
+			if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
-					PipeWriter.writeByte(goPipe, GoSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
+					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 					System.out.println("The Edison CommandChannel sends the WriteByte to Go");					
 
 					PipeWriter.publishWrites(goPipe);
@@ -147,18 +148,19 @@ public class EdisonCommandChannel extends CommandChannel{
 	}
 
 	public boolean i2cFlushBatch() {        
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {
-			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_I2CWRITE_400) ) { 
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_I2CWRITE_400_FIELD_MESSAGECOUNT_410, runningI2CCommandCount);
-				PipeWriter.publishWrites(output);
-				runningI2CCommandCount = 0;                
-				return true;
-			}
-			return false;            
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
+//		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+//		try {
+//			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_I2CWRITE_400) ) { 
+//				PipeWriter.writeInt(output, GroveRequestSchema.MSG_I2CWRITE_400_FIELD_MESSAGECOUNT_410, runningI2CCommandCount);
+//				PipeWriter.publishWrites(output);
+//				runningI2CCommandCount = 0;                
+//				return true;
+//			}
+//			return false;            
+//		} finally {
+//			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+//		}
+	    return false;
 	}
 
 

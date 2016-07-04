@@ -16,8 +16,8 @@ import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.EdisonCommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
-import com.ociweb.pronghorn.iot.schema.AcknowledgeSchema;
-import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -39,32 +39,11 @@ public class GroveV3EdisonImpl extends Hardware {
    }
     
 
-    @Override
-	public void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes, 
-		Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
-		PipeConfig<GoSchema> goPipesConfig = new PipeConfig<GoSchema>(GoSchema.instance, 64, 1024);
-		PipeConfig<AcknowledgeSchema> ackPipesConfig = new PipeConfig<AcknowledgeSchema>(AcknowledgeSchema.instance, 64, 1024);
-		PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-		
-		
-		Pipe<GoSchema> adGoPipe = new Pipe<GoSchema>(goPipesConfig);
-		Pipe<GoSchema> i2cGoPipe = new Pipe<GoSchema>(goPipesConfig);
-		//Pipe<GoSchema> listenerGoPipe = new Pipe<GoSchema>(goPipesConfig);
-		Pipe<AcknowledgeSchema> i2cAckPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-		Pipe<AcknowledgeSchema> adAckPipe = new Pipe<AcknowledgeSchema>(ackPipesConfig);
-		//Pipe<RawDataSchema> I2CToListener = new Pipe<RawDataSchema>(I2CToListenerConfig);
-		//Pipe<RawDataSchema> adInToListener = new Pipe<RawDataSchema>(adInToListenerConfig);
-		
-		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(this.gm, i2cGoPipe, i2cPipes, i2cAckPipe, this);
-		//AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(this.gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
-		AnalogDigitalOutputStage adOutputStage = new AnalogDigitalOutputStage(this.gm, requestPipes, adGoPipe, adAckPipe, this);
-		TrafficCopStage trafficCopStage = new TrafficCopStage(this.gm, orderPipes, PronghornStage.join(adAckPipe, i2cAckPipe), PronghornStage.join(adGoPipe, i2cGoPipe));
-		System.out.println("the Edison pipe setup stage is completed");
-		
-	}
-    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<GoSchema> orderPipe) {
-		return new EdisonCommandChannel(pipe, i2cPayloadPipe, orderPipe);
+  
+    
+    
+    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe) {
+		return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, orderPipe);
 	}
     public void coldSetup() {
     	System.out.println("ColdSetup: Edison Pin Configuration setup!");

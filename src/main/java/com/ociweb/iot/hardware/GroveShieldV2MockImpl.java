@@ -3,7 +3,7 @@ package com.ociweb.iot.hardware;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
@@ -226,16 +226,10 @@ public class GroveShieldV2MockImpl extends Hardware {
 		return 0;
 	}
 
-	@Override
-	public void buildStages(Pipe<GroveRequestSchema>[] requestPipes, Pipe<I2CCommandSchema>[] i2cPipes,
-			Pipe<GroveResponseSchema>[] responsePipes, Pipe<GoSchema>[] orderPipes) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe,
-			Pipe<GoSchema> orderPipe) {
+			Pipe<TrafficOrderSchema> orderPipe) {
 		// TODO Auto-generated method stub
 		return null;
 	}

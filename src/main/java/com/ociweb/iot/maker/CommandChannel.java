@@ -1,29 +1,22 @@
 package com.ociweb.iot.maker;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.ociweb.pronghorn.iot.schema.GoSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.stage.PronghornStage;
+import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class CommandChannel {
-
-    private Pipe<GroveRequestSchema> output;
-    private Pipe<I2CCommandSchema> i2cOutput;
-    private Pipe<GoSchema> goPipe;
-    private AtomicBoolean aBool = new AtomicBoolean(false);    
-    private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
-    private int runningI2CCommandCount;
+ 
+    protected final CommandStage privateStage;
     
-    protected CommandChannel(Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<GoSchema> goPipe) {
-       this.output = output;
-       this.i2cOutput = i2cOutput;  
-       this.goPipe = goPipe;
+    
+    protected CommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<TrafficOrderSchema> goPipe) {
       
+        privateStage = new CommandStage(gm, output, i2cOutput, goPipe);
     }
 
     
@@ -36,4 +29,18 @@ public abstract class CommandChannel {
     public abstract boolean i2cFlushBatch();
 
 
+    private class CommandStage extends PronghornStage {
+
+        protected CommandStage(GraphManager graphManager, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<TrafficOrderSchema> goPipe) {
+            super(graphManager, NONE, join(output, i2cOutput, goPipe));
+            //never schedule
+            GraphManager.addNota(graphManager, GraphManager.UNSCHEDULED, GraphManager.UNSCHEDULED, this);
+        }
+
+        @Override
+        public void run() {
+            //never scheduled
+        }
+        
+    }
 }

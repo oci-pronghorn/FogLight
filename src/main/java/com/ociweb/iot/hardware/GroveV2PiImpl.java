@@ -9,6 +9,7 @@ import com.ociweb.iot.maker.PiCommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -29,7 +30,6 @@ public class GroveV2PiImpl extends Hardware {
 	public GroveV2PiImpl(GraphManager gm) {
 		super(gm);
 	}
-
 
 
 	@Override

@@ -24,7 +24,7 @@ public abstract class CommandChannel {
     public abstract boolean digitalSetValue(int connector, int value);
     public abstract boolean analogSetValue(int connector, int value);
     public abstract boolean i2cIsReady();
-    public abstract DataOutputBlobWriter<RawDataSchema> i2cCommandOpen();
+    public abstract DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress);
     public abstract void i2cCommandClose();
     public abstract boolean i2cFlushBatch();
 

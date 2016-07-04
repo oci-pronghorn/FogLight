@@ -298,7 +298,7 @@ public class Grove_LCD_RGB {
         try {
             DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
             do {
-            i2cPayloadWriter = target.i2cCommandOpen();
+            i2cPayloadWriter = target.i2cCommandOpen(address);
             } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enought for the known messages to ensure this never happens  TODO: check this figure.
             i2cPayloadWriter.writeByte(address);
             i2cPayloadWriter.writeByte(register);

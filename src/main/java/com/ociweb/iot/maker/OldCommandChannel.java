@@ -101,14 +101,15 @@ public class OldCommandChannel {
         //TODO: need to set this as a constant driven from the known i2c devices and the final methods
         int maxCommands = 16;
         
-        return PipeWriter.hasRoomForWrite(output) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_1)*maxCommands);
+        return PipeWriter.hasRoomForWrite(output) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
         
     }
    
-    public DataOutputBlobWriter<RawDataSchema> i2cCommandOpen() {       
+    public DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress) {       
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
-            if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_1)) {
+            if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
                 DataOutputBlobWriter.openField(i2cWriter);
                 return i2cWriter;
             } else {
@@ -123,7 +124,7 @@ public class OldCommandChannel {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             runningI2CCommandCount++;
-            DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
+            DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             PipeWriter.publishWrites(i2cOutput);
         } finally {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      

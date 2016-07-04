@@ -87,6 +87,9 @@ public abstract class AbstractOutputStage extends PronghornStage {
     	            foundWork = true;
                 }
     	        
+    	        //must clear these before calling processMessages
+                connectionBlocker.releaseBlocks(System.currentTimeMillis());
+                
     	        //set the hardware for this many messages.
     	        int startCount = activeCounts[a];
     	        processMessagesForPipe(a);	        

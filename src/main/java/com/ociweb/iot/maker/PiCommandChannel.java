@@ -36,37 +36,58 @@ public class PiCommandChannel extends CommandChannel{
 	public boolean digitalBlock(int connector, int duration) { //TODO: Make this work for Pi I2C
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-
 		try {            
-			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCK_220)) {
 
-				System.out.println("write duration of "+duration);
-				//TODO: how to detect the wrong ones??
+		    boolean msg;
+			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCK_10)) {
 
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111, connector);
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113, duration);
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, connector);
+				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13, duration);
 
-				PipeWriter.publishWrites(output);
+				PipeWriter.publishWrites(i2cOutput);
 
-				return true;
+				msg = true;
 			} else {
-				return false;
+			    msg = false;
 			}
-
+		
+            if(msg && PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { 
+    
+                PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, channelIdx);
+                PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
+                System.out.println("CommandChannel sends digitalWrite i2c go");
+    
+                PipeWriter.publishWrites(goPipe);
+                return true;
+            } else {
+                return false; ///TODO: error this is very bad.
+            }
+        
 		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+		    assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
+        
 	}
+	
+	
+	//Build templates like this once that can be populated and sent without redefining the part that is always the same.
+	private final byte[] digitalMessageTemplate = {0x04, 0x05, 0x01, 0x02, -1, -1, 0x00};
 
 	public boolean digitalSetValue(int connector, int value) {
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			boolean msg;
-			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_1)) { //TODO: this needs to be generic 
+			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
 
-				byte[] message = {0x04, 0x05, 0x01, 0x02, (byte) connector, (byte) value, 0x00};
-				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2, message);
+				digitalMessageTemplate[4] = (byte)connector;
+				digitalMessageTemplate[5] = (byte)value;
+				
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, digitalMessageTemplate[0]); //hack for now
+                
+				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
+								
+				
 				System.out.println("CommandChannel sends digitalWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
 				msg = true;
@@ -74,14 +95,14 @@ public class PiCommandChannel extends CommandChannel{
 				msg = false;
 			}
 				
-			if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
+			if(msg && PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { 
 
 					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, channelIdx);
 					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 					System.out.println("CommandChannel sends digitalWrite i2c go");
 
 					PipeWriter.publishWrites(goPipe);
-				return msg;
+				return true;
 			} else {
 				return false;
 			}
@@ -122,14 +143,15 @@ public class PiCommandChannel extends CommandChannel{
 		//TODO: need to set this as a constant driven from the known i2c devices and the final methods
 		int maxCommands = 16;
 
-		return PipeWriter.hasRoomForWrite(output) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_1)*maxCommands);
+		return PipeWriter.hasRoomForWrite(output) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
 
 	}
 
-	public DataOutputBlobWriter<RawDataSchema> i2cCommandOpen() {       
+	public DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress) {       
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_1)) {
+			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
 				DataOutputBlobWriter.openField(i2cWriter);
 				return i2cWriter;
 			} else {
@@ -144,7 +166,7 @@ public class PiCommandChannel extends CommandChannel{
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			runningI2CCommandCount++;
-			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
+			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
 			PipeWriter.publishWrites(i2cOutput);
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      

@@ -105,7 +105,8 @@ public class I2CStage extends PronghornStage {
             //Process ID.
             bytesToSendReleaseSize = Pipe.sizeOf(request, msgId);
             switch (msgId) {
-                case I2CCommandSchema.MSG_COMMAND_1:
+                case I2CCommandSchema.MSG_COMMAND_7:
+                    int addr = Pipe.takeValue(request);
                     int meta = Pipe.takeRingByteMetaData(request);
                     int len = Pipe.takeRingByteLen(request);
 
@@ -118,14 +119,7 @@ public class I2CStage extends PronghornStage {
 
                     break;
 
-                case I2CCommandSchema.MSG_SETDELAY_10:
-                    int offset = Pipe.takeValue(request);
 
-                    cyclesToWaitLookup[offset] = 1 + (Pipe.takeValue(request) / NS_PAUSE);
-                    Pipe.confirmLowLevelRead(request, bytesToSendReleaseSize);
-                    Pipe.releaseReads(request);
-
-                    break;
             }
 
             if (bytesToSendRemaining > 0) {

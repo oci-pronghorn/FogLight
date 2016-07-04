@@ -38,8 +38,11 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 
     protected void processMessagesForPipe(int a) {
+        
+        
         while (hasReleaseCountRemaining(a) 
-          //TODO: add block      && (Pipe.hasContentToRead(fromCommandChannels[activePipe]) && !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) )
+                && Pipe.hasContentToRead(fromCommandChannels[activePipe])
+                && !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) //peek next address and check that it is not blocking for some time                
                 && PipeReader.tryReadFragment(fromCommandChannels[activePipe]) ){
   
             long now = System.currentTimeMillis();
@@ -50,14 +53,19 @@ public class I2CJFFIStage extends AbstractOutputStage {
             int msgIdx = PipeReader.getMsgIdx(fromCommandChannels [activePipe]);
            
             switch(msgIdx){
-                case I2CCommandSchema.MSG_COMMAND_1:
-                  
-                    byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
-                    int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
-                    int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
-                    int mask = PipeReader.readBytesMask(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2);
+                case I2CCommandSchema.MSG_COMMAND_7:
+                {
+                    int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12);
                     
-                    byte cmdAddr = backing[mask&pos++];
+                    byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+                    int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+                    int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+                    int mask = PipeReader.readBytesMask(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+                    
+                    byte cmdAddr = backing[mask&pos++]; //TODO: will remove redundant information soon
+                    assert(addr==cmdAddr);
+                    assert(!connectionBlocker.isBlocked(cmdAddr)): "expected command to not be blocked";
+                    
                     int payloadSize = backing[mask&pos++];//TODO: this is a VERY bad idea since payload can only be 127 bytes and we know they are often longer!!
                     //the above size is also not needed
                     int expectedPayloadSize = len-2;
@@ -66,22 +74,40 @@ public class I2CJFFIStage extends AbstractOutputStage {
                     Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, expectedPayloadSize);
                                    
                     I2CJFFIStage.i2c.write(cmdAddr, buffer);
-                                   
-                    
+                }                                      
                 break;
                 
-                case I2CCommandSchema.MSG_SETDELAY_10:
-                    
-                    //TODO: read these values and add break.
-                    int addr=0;
-                    long duration=0;
-                    
+                case I2CCommandSchema.MSG_BLOCK_10:
+                {  
+                    int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12);
+                    long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13);
+                    System.out.println("adding block for "+addr+" for "+duration);
                     connectionBlocker.until(addr, System.currentTimeMillis() + duration);
-                    
+                }   
                 break;    
-                //TODO: add the combined atomic operations.
-                //TODO: also need to add i2c requests to super class
                 
+                case I2CCommandSchema.MSG_COMMANDANDBLOCK_11:
+                {
+                    byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
+                    int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
+                    int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
+                    int mask = PipeReader.readBytesMask(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
+                    
+                    byte cmdAddr = backing[mask&pos++]; //TODO: this will eventually be in its own field
+                    int payloadSize = backing[mask&pos++];//TODO: this is a VERY bad idea since payload can only be 127 bytes and we know they are often longer!!
+                    //the above size is also not needed
+                    int expectedPayloadSize = len-2;
+                    assert(payloadSize == expectedPayloadSize);
+                    byte[] buffer = new byte[expectedPayloadSize];
+                    Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, expectedPayloadSize);
+                                   
+                    I2CJFFIStage.i2c.write(cmdAddr, buffer);
+                    
+                    long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_DURATION_13);
+                    
+                    connectionBlocker.until(cmdAddr, System.currentTimeMillis() + duration);
+                }   
+                break;
                 
                 default:
                     

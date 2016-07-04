@@ -248,10 +248,10 @@ public abstract class Hardware {
         int t = orderPipes.length;
         
         Pipe<TrafficReleaseSchema>[]          masterI2CgoOut = new Pipe[t];
-        Pipe<TrafficAckSchema>[] masterI2CackIn = new Pipe[t]; 
+        Pipe<TrafficAckSchema>[]              masterI2CackIn = new Pipe[t]; 
         
         Pipe<TrafficReleaseSchema>[]          masterPINgoOut = new Pipe[t];
-        Pipe<TrafficAckSchema>[] masterPINackIn = new Pipe[t]; 
+        Pipe<TrafficAckSchema>[]              masterPINackIn = new Pipe[t]; 
         
         while (--t>=0) {
             
@@ -290,15 +290,8 @@ public abstract class Hardware {
         GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, i2cJFFIStage);
     }
 
-    
-    /**
-     * This default implementation assumes that the hardware has direct support for control of digital and analog outputs.
-     * For other hardware (eg the Pi) this method may be overridden to do something different.
-     * 
-     * @param requestPipes
-     * @param masterPINgoOut
-     * @param masterPINackIn
-     */
+
+    //TODO: if the PI need to set pins directly wihout using grove this method should be overriden
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
         DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
     }

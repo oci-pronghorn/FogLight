@@ -160,9 +160,10 @@ public class I2CCommandStage extends PronghornStage {
     private int sendCommand(byte[] source, int offset, int length) {
         
 
-        if (PipeWriter.tryWriteFragment(output, I2CCommandSchema.MSG_COMMAND_1)) {
+        if (PipeWriter.tryWriteFragment(output, I2CCommandSchema.MSG_COMMAND_7)) {
             
-            PipeWriter.writeBytes(output, I2CCommandSchema.MSG_COMMAND_1_FIELD_BYTEARRAY_2, source, offset, length, 0x7FFF_FFFF);
+            PipeWriter.writeInt(output, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, source[offset]);
+            PipeWriter.writeBytes(output, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, source, offset, length, 0x7FFF_FFFF);
             PipeWriter.publishWrites(output);
             return offset+=length;
         }        
@@ -172,14 +173,6 @@ public class I2CCommandStage extends PronghornStage {
     private boolean sendDelay(int offset, int delay) {
         
 
-        if (PipeWriter.tryWriteFragment(output, I2CCommandSchema.MSG_SETDELAY_10)) {
-            
-            PipeWriter.writeInt(output, I2CCommandSchema.MSG_SETDELAY_10_FIELD_BEFOREBYTEOFFSET_12, offset);
-            PipeWriter.writeInt(output, I2CCommandSchema.MSG_SETDELAY_10_FIELD_DELAYINNANOSECONDS_13, delay);
-                    
-            PipeWriter.publishWrites(output);
-            return true;
-        }    
         return false;
     }
     

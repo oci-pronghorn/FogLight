@@ -95,7 +95,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-        HardConnection gc = new HardConnection(t,connection,ConnectionType.GrovePi);
+    	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.GrovePi);
         if (t.isInput()) {
             assert(!t.isOutput());
             analogInputs = growConnections(analogInputs, gc);
@@ -111,7 +111,8 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
-        HardConnection gc = new HardConnection(t,connection,ConnectionType.GrovePi);
+    	
+        HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.GrovePi);
         if (t.isInput()) {
             assert(!t.isOutput());
             digitalInputs = growConnections(digitalInputs, gc);

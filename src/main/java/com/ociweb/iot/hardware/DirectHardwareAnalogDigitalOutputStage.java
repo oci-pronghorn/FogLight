@@ -72,10 +72,12 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractOutputStage 
 	                    
 	                case GroveRequestSchema.MSG_BLOCK_220:
 	                    
+	                	
+	                
 	                    connectionBlocker.until(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111),
-	                            now + PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113));
+	                            now + (long)PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113));
 	                    
-	                    return;
+	                    break;
 	                    
 	                case GroveRequestSchema.MSG_ANALOGSET_140:
 	                    

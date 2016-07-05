@@ -2,6 +2,7 @@ package com.ociweb.pronghorn.iot;
 
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.RestListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
@@ -16,39 +17,17 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class ReactiveListenerStage extends PronghornStage {
 
     private final Object              listener;
-    private Pipe<GroveResponseSchema> groveResponsePipe;
-    private Pipe<RawDataSchema>       i2cResponsePipe;
-    private Pipe<?>                   restResponsePipes;
+    private final Pipe<?>[]           pipes;
     
     private long                      timeTrigger;
     private long                      timeRate;
                
     
-    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes) {
+    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?> ... pipes) {
         
-        super(graphManager, groveResponsePipes, NONE);
+        super(graphManager, pipes, NONE);
         this.listener = listener;
-        this.groveResponsePipe = groveResponsePipes;    
-                
-    }
-    
-//    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes, Pipe<RawDataSchema> i2cResponsePipe) {
-//        
-//        super(graphManager, i2cResponsePipe, NONE);
-//        this.listener = listener;
-//        this.i2cResponsePipe = i2cResponsePipe;    
-//                
-//    }
-    
-    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<GroveResponseSchema> groveResponsePipes, Pipe restResponsePipes) {
-        
-        super(graphManager, new Pipe[]{groveResponsePipes, restResponsePipes}, NONE);
-        this.listener = listener;
-        this.groveResponsePipe = groveResponsePipes;    
-        assert(null!=restResponsePipes);
-        this.restResponsePipes = restResponsePipes;
-        assert(listener instanceof RestListener);
-        
+        this.pipes = pipes;                
     }
 
     public void setTimeEventSchedule(long rate) {
@@ -72,11 +51,32 @@ public class ReactiveListenerStage extends PronghornStage {
     public void run() {
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
-        consumeResponseMessage(listener, groveResponsePipe);
-        consumeRestMessage(listener, restResponsePipes);
+        
+        int p = pipes.length;
+        while (--p >= 0) {
+            //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
+            Pipe<?> localPipe = pipes[p];
+
+            if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
+                consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
+            } else
+            if (Pipe.isForSchema(localPipe, RawDataSchema.instance)) { //TODO: i2c needs its own schema
+                
+                consumeI2CMessage(listener, (Pipe<RawDataSchema>) localPipe);
+            }
+//            if (Pipe.isForSchema(localPipe, RestSomethingSchema.instance)) {
+//                
+//                consumeRestMessage(listener, restResponsePipes);
+//            }
+            else {
+                //error
+            }
+        }
+        
         processTimeEvents(listener);
         
     }
+
 
     private void processTimeEvents(Object listener) {
         //if we do have a clock schedule
@@ -105,6 +105,40 @@ public class ReactiveListenerStage extends PronghornStage {
                 PipeReader.releaseReadLock(p);
             }
             
+        }
+    }
+    
+
+    private void consumeI2CMessage(Object listener, Pipe<RawDataSchema> p) {
+        while (PipeReader.tryReadFragment(p)) {                
+                    
+                    int msgIdx = PipeReader.getMsgIdx(p);
+                    switch (msgIdx) {   
+                        case RawDataSchema.MSG_CHUNKEDSTREAM_1:
+                            if (listener instanceof I2CListener) {
+                                
+                                byte[] backing = PipeReader.readBytesBackingArray(p, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+                                int position = PipeReader.readBytesPosition(p, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+                                int length = PipeReader.readBytesLength(p, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+                                int mask = PipeReader.readBytesMask(p, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+                                byte addr = backing[mask&position];//hack to get addr for now, new schema will have this split out.
+                                
+                                ((I2CListener)listener).i2cEvent(addr, backing, position, length, mask);
+                               
+                            }
+                            break;
+                        case -1:
+                            
+                            requestShutdown();
+                            PipeReader.releaseReadLock(p);
+                            return;
+                           
+                        default:
+                            throw new UnsupportedOperationException("Unknown id: "+msgIdx);
+                        
+                    }
+                    //done reading message off pipe
+                    PipeReader.releaseReadLock(p);
         }
     }
 

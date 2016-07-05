@@ -171,9 +171,8 @@ public class IOTDeviceRuntime {
         Pipe<RawDataSchema> pipe = new Pipe<RawDataSchema>(reponseI2CConfig);
         collectedI2CResponsePipes.add(pipe);
         
-        //TODO: need a way to configure reactive lister stage??
-       // ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
-       // GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
+        ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
+        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
     

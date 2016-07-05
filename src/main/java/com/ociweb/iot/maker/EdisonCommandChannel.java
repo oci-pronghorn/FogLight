@@ -32,8 +32,8 @@ public class EdisonCommandChannel extends CommandChannel{
 	public boolean digitalBlock(int connector, int duration) {
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-
-		try {            
+		try {
+			boolean msg;
 			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCK_220)) {
 
 				System.out.println("write duration of "+duration);
@@ -43,9 +43,21 @@ public class EdisonCommandChannel extends CommandChannel{
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113, duration);
 
 				PipeWriter.publishWrites(output);
+				
+				msg=true;
+			}else{
+				msg=false;
+			}
+			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-				return true;
-			} else {
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
+				System.out.println("The Edison CommandChannel sends the writeBlock to Go");					
+
+				PipeWriter.publishWrites(goPipe);
+			return true;
+			
+			}else {
 				return false;
 			}
 
@@ -63,14 +75,14 @@ public class EdisonCommandChannel extends CommandChannel{
 
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, value);
-				System.out.println("CommandChannel sends digitalWrite i2c message");
+				System.out.println("Edison CommandChannel sends digitalWrite message ");
 				PipeWriter.publishWrites(output);
 				msg = true;
 			}else{
 				msg = false;
 			}
 				
-			if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
+			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
 					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
 					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
@@ -91,24 +103,67 @@ public class EdisonCommandChannel extends CommandChannel{
 	public boolean analogSetValue(int connector, int value) {
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {            
+		try {        
+			boolean msg;
 			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_ANALOGSET_140)) {
 
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, connector);
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);
-
+				System.out.println("Edison CommandChannel sends analogWrite message ");
 				PipeWriter.publishWrites(output);
-
-				return true;
+				msg = true;
 			} else {
-				return false;
+				msg = false;
 			}
+			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
+				System.out.println("The Edison CommandChannel sends the AnalogWrite to Go");					
+
+				PipeWriter.publishWrites(goPipe);
+			return msg;
+		} else {
+			return false;
+		}
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
 	}
 
+	public boolean analogBlock(int connector, int value, int duration) {
+
+		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+		try {        
+			boolean msg;
+			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240)) {
+
+				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_CONNECTOR_141,connector);
+				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_VALUE_142,    value);
+				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_DURATION_113, duration);
+				System.out.println("Edison CommandChannel sends analogBlock message ");
+				PipeWriter.publishWrites(output);
+				msg = true;
+			} else {
+				msg = false;
+			}
+			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
+
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
+				System.out.println("The Edison CommandChannel sends the AnalogBlock to Go");					
+
+				PipeWriter.publishWrites(goPipe);
+			return msg;
+		} else {
+			return false;
+		}
+		} finally {
+			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+		}
+	}
+	
+	
 	public boolean i2cIsReady() {
 		if (null==i2cWriter) {
 			i2cWriter = new DataOutputBlobWriter(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.

@@ -71,16 +71,17 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractOutputStage 
 	                    break;                      
 	                    
 	                case GroveRequestSchema.MSG_BLOCK_220:
-	                    
-	                	
-	                
+	                    System.out.println("Read the MSG_BLOCK from the grove request pipe");
+	                	System.out.println("the  connector is: "+PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111));
+	                	System.out.println("the duration is : "+(long)PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113));
 	                    connectionBlocker.until(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111),
-	                            now + (long)PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113));
+	                            now + PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113));
+	                    
 	                    
 	                    break;
 	                    
 	                case GroveRequestSchema.MSG_ANALOGSET_140:
-	                    
+	                    System.out.println("Reading the Analog message from the pipe");
 	                    hardware.analogWrite(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141), 
 	                            PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142));
 	                    break;

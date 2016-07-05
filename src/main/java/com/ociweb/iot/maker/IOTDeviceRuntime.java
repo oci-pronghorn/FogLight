@@ -252,7 +252,7 @@ public class IOTDeviceRuntime {
         
         hardware.buildStages(requestPipes, i2cPipes, responsePipes, orderPipes);
         
-        exportGraphDotFile();
+//        exportGraphDotFile();
         
       
         //Do not modfy the sleep of this object it is decided inernally by the config and devices plugged in.

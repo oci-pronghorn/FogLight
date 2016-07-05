@@ -39,11 +39,13 @@ public class TrafficCopStage extends PronghornStage {
     @Override
     public void run() {
         do {
+        	
             ////////////////////////////////////////////////
             //check first if we are waiting for an ack back
             ////////////////////////////////////////////////
             if (ackExpectedOn>=0) {            
                 if (!PipeReader.tryReadFragment(ackIn[ackExpectedOn])) {
+                	
                     return;//we are still waiting for requested operation to complete
                 } else {
                     PipeReader.releasePendingReadLock(ackIn[ackExpectedOn]);
@@ -56,6 +58,7 @@ public class TrafficCopStage extends PronghornStage {
             if (!PipeReader.tryReadFragment(primaryIn)) {
                 return;//there is nothing new to send
             } else { 
+            	
                 if (TrafficOrderSchema.MSG_GO_10 == PipeReader.getMsgIdx(primaryIn)) {
                     //read which pipe should be used, set it as expecting to send an ack and get the Pipe object
                     Pipe<TrafficReleaseSchema> releasePipe = goOut[ackExpectedOn = PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11)];

@@ -6,7 +6,10 @@ import java.util.List;
 
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
+import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 
 /**
@@ -293,16 +296,38 @@ public class Grove_LCD_RGB {
 
         }
     }
+//    private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
+//        //try {
+//        	Pipe<I2CCommandSchema> i2cPayloadWriter;
+//            do {
+//            i2cPayloadWriter = target.i2cCommandOpen(address);
+//            } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
+//            byte[] message = {(byte) address, 2, (byte) register, (byte) value};
+////            i2cPayloadWriter.writeByte(address);
+////            i2cPayloadWriter.writeByte(2); //length TODO: redundant
+////            i2cPayloadWriter.writeByte(register);
+////            i2cPayloadWriter.writeByte(value);
+//            PipeWriter.writeBytes(i2cPayloadWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, message);
+//            target.i2cCommandClose();
+////        } catch (IOException e) {
+////           throw new RuntimeException(e);
+////        }
+//    }
     
     private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
         try {
             DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
             do {
             i2cPayloadWriter = target.i2cCommandOpen(address);
-            } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enought for the known messages to ensure this never happens  TODO: check this figure.
-            i2cPayloadWriter.writeByte(address);
-            i2cPayloadWriter.writeByte(register);
-            i2cPayloadWriter.writeByte(value);
+            } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
+            byte[] message = {(byte) register, (byte) value};
+            System.out.println(Grove_LCD_RGB.LCD_ADDRESS << 1);
+            System.out.println(address);
+//            i2cPayloadWriter.writeByte(address);
+//            i2cPayloadWriter.writeByte(2); //length TODO: redundant
+//            i2cPayloadWriter.writeByte(register);
+//            i2cPayloadWriter.writeByte(value);
+            i2cPayloadWriter.write(message);
             target.i2cCommandClose();
         } catch (IOException e) {
            throw new RuntimeException(e);

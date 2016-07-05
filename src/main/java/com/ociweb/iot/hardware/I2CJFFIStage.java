@@ -52,33 +52,37 @@ public class I2CJFFIStage extends AbstractOutputStage {
             assert(PipeReader.isNewMessage(fromCommandChannels [activePipe])) : "This test should only have one simple message made up of one fragment";
             int msgIdx = PipeReader.getMsgIdx(fromCommandChannels [activePipe]);
            
+           
             switch(msgIdx){
                 case I2CCommandSchema.MSG_COMMAND_7:
                 {
+                	System.out.println("I go to command");
                     int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12);
+                    System.out.println("Read address of "+addr);
                     
                     byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
                     int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
                     int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
                     int mask = PipeReader.readBytesMask(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
                     
-                    byte cmdAddr = backing[mask&pos++]; //TODO: will remove redundant information soon
-                    assert(addr==cmdAddr);
-                    assert(!connectionBlocker.isBlocked(cmdAddr)): "expected command to not be blocked";
+                    assert(!connectionBlocker.isBlocked(addr)): "expected command to not be blocked";
+
                     
-                    int payloadSize = backing[mask&pos++];//TODO: this is a VERY bad idea since payload can only be 127 bytes and we know they are often longer!!
-                    //the above size is also not needed
-                    int expectedPayloadSize = len-2;
-                    assert(payloadSize == expectedPayloadSize);
-                    byte[] buffer = new byte[expectedPayloadSize];
-                    Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, expectedPayloadSize);
-                                   
-                    I2CJFFIStage.i2c.write(cmdAddr, buffer);
+                    byte[] buffer = new byte[len];
+                    Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, len);
+                    
+                    System.out.print("Sent ");
+                    for (int i = 0; i < buffer.length; i++) {
+						System.out.print(buffer[i]+", ");
+					}
+                    System.out.println(" To "+addr);
+                    I2CJFFIStage.i2c.write((byte) addr, buffer);
                 }                                      
                 break;
                 
                 case I2CCommandSchema.MSG_BLOCK_10:
                 {  
+                	System.out.println("I go to block");
                     int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12);
                     long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13);
                     System.out.println("adding block for "+addr+" for "+duration);
@@ -88,6 +92,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
                 
                 case I2CCommandSchema.MSG_COMMANDANDBLOCK_11:
                 {
+                	System.out.println("I go to commandAndBlock");
                     byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
                     int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
                     int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
@@ -101,6 +106,11 @@ public class I2CJFFIStage extends AbstractOutputStage {
                     byte[] buffer = new byte[expectedPayloadSize];
                     Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, expectedPayloadSize);
                                    
+                    System.out.print("Sent ");
+                    for (int i = 0; i < buffer.length; i++) {
+						System.out.print(buffer[i]+", ");
+					}
+                    System.out.println(" To "+cmdAddr);
                     I2CJFFIStage.i2c.write(cmdAddr, buffer);
                     
                     long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_DURATION_13);

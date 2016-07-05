@@ -9,6 +9,7 @@ import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
@@ -57,6 +58,12 @@ public class SchemaValidation {
     public void groveI2CCommandSchemaFROMTest() {
         assertTrue(FROMValidation.testForMatchingFROMs("/I2CCommandSchema.xml", I2CCommandSchema.instance));
         assertTrue(FROMValidation.testForMatchingLocators(I2CCommandSchema.instance));
+    } 
+    
+    @Test
+    public void groveI2CResponseSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/I2CResponseSchema.xml", I2CResponseSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(I2CResponseSchema.instance));
     } 
     
     

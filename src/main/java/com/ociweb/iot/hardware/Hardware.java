@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.google.common.base.Splitter;
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
@@ -17,6 +18,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class Hardware {
@@ -50,7 +52,7 @@ public abstract class Hardware {
     protected final PipeConfig<TrafficAckSchema> ackPipesConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 64);
     protected final PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
     protected final PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-    
+    protected final PipeConfig<GroveResponseSchema> groveResponseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64, 1024);
     
     
     //TODO: ma per field with max defined here., 
@@ -276,9 +278,9 @@ public abstract class Hardware {
         
         createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn);
         
-                
-        
-//        AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(this.gm, adInToListener, listenerGoPipe, this); //TODO: Probably needs an ack Pipe
+        Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig); 
+        new SplitterStage<>(gm, masterResponsePipe, responsePipes);
+        AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(this.gm, masterResponsePipe, this); //TODO: Probably needs an ack Pipe
         
         
         

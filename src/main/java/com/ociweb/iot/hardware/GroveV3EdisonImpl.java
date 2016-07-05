@@ -159,7 +159,7 @@ public class GroveV3EdisonImpl extends Hardware {
         
        if (!xx) { 
            // works with this method 
-           EdisonPinManager.writePWMPeriod(connector, 1_000_000); //no smaller
+           EdisonPinManager.writePWMPeriod(connector, 4096); //no smaller
            xx = true;
        }
        

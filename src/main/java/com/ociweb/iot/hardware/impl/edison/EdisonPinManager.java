@@ -367,8 +367,8 @@ public class EdisonPinManager {
     
 
     public static void writePWMPeriod(int idx, int periodInNS) {
-        if (periodInNS<1_000_000) {
-            logger.warn("Unable to set PWM period ns, only values 1,000,000 or larger are supported. Passed in {} ",periodInNS);
+        if (periodInNS<=4096) {
+            logger.warn("Unable to set PWM period ns, only values 4096 or larger are supported. Passed in {} ",periodInNS);
             return;// do not change
         }
         

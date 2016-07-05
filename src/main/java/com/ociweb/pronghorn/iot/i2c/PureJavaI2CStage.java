@@ -3,7 +3,8 @@ package com.ociweb.pronghorn.iot.i2c;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.I2CLowLevelContoller;
+import com.ociweb.iot.hardware.I2CLowLevelEdisonController;
 import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -13,6 +14,8 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class PureJavaI2CStage extends PronghornStage {
 
     private static final Logger logger = LoggerFactory.getLogger(PureJavaI2CStage.class);
+    
+    private static final I2CLowLevelContoller i2cController = new I2CLowLevelEdisonController(); //TODO: needs to be injected
     
     private int taskAtHand;
     private int stepAtHand;
@@ -37,8 +40,6 @@ public class PureJavaI2CStage extends PronghornStage {
     private static final int TASK_MASTER_STOP  = 5;
     private static final int TASK_DELAY        = 7;
 
-
-    public final Hardware config;
     
     private final Pipe<I2CCommandSchema>[] request;
     private final Pipe<I2CCommandSchema> response;
@@ -62,12 +63,11 @@ public class PureJavaI2CStage extends PronghornStage {
     //NOTE: these devices are I2C and do not show any lower bounds for speed.
     public static final int NS_PAUSE = (1_000_000_000)/(800_000); //slower cycles is less power consumption.
     
-    public PureJavaI2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] request, Pipe[] response, Hardware config) {
+    public PureJavaI2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] request, Pipe[] response) {
         super(gm, request, response);
         
         this.request = request;
         this.response = null;
-        this.config = config;
         
         this.pipeIdx = request.length;
 
@@ -81,12 +81,11 @@ public class PureJavaI2CStage extends PronghornStage {
         
     }
     
-    public PureJavaI2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] request, Hardware config) {
+    public PureJavaI2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] request) {
         super(gm, request, NONE);
         
         this.request = request;
         this.response = null;
-        this.config = config;
         
         this.pipeIdx = request.length;
 
@@ -115,44 +114,40 @@ public class PureJavaI2CStage extends PronghornStage {
 
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         
-        if (config.configI2C) {
-           config.beginPinConfiguration();
-           EdisonGPIO.configI2C();
-           config.endPinConfiguration();
-           config.i2cClockOut();
-           config.i2cDataOut();
+           i2cController.setup();           
+           
+           i2cController.i2cClockOut();
+           i2cController.i2cDataOut();
            boolean temp = false;
            int i;
            i = 1100;
            while (--i>=0) { //force hot spot to optimize this call
-               temp |= config.i2cReadClockBool();
-               config.i2cSetClockHigh();//done last
+               temp |= i2cController.i2cReadClockBool();
+               i2cController.i2cSetClockHigh();//done last
            }
            pause();
            i = 1100;
            while (--i>=0) { //force hot spot to optimize this call
-               temp |= config.i2cReadAck();
-               temp |= config.i2cReadDataBool();
-               config.i2cSetDataHigh();//done last
+               temp |= i2cController.i2cReadAck();
+               temp |= i2cController.i2cReadDataBool();
+               i2cController.i2cSetDataHigh();//done last
            }
            if (!temp) {
                throw new UnsupportedOperationException();
            }
            pause();
-           
-        } else {
-            System.out.println("warning, i2s stage used but not turned on");
-        }
+
         //starting in the known state where both are high
 
-          if (0==config.i2cReadClock() ) {
+          if (0==i2cController.i2cReadClock() ) {
               throw new RuntimeException("expected clock to be high for start");
           }        
-          if (0==config.i2cReadData() ) {
+          if (0==i2cController.i2cReadData() ) {
               throw new RuntimeException("expected data to be high for start");
           }
 
-      config.debugI2CRateLastTime = startTime = System.nanoTime();
+          i2cController.debugI2CRateLastTime(startTime = System.nanoTime());
+          
       startTime = System.nanoTime();
     }
 
@@ -184,7 +179,7 @@ public class PureJavaI2CStage extends PronghornStage {
         }
         
         //Must return after this point to ensure the clock speed is respected.
-        config.progressLog(taskAtHand, stepAtHand, byteToSend);
+        i2cController.progressLog(taskAtHand, stepAtHand, byteToSend);
 
     }
 
@@ -293,21 +288,21 @@ public class PureJavaI2CStage extends PronghornStage {
      
         switch (stepAtHand) {
             case 0:
-                config.i2cSetClockHigh();
+                i2cController.i2cSetClockHigh();
                 cycleTops++;
 
                 stepAtHand = 2;
                 break;
             case 2:
-                if (config.i2cReadClockBool()) {
-                    if ( config.i2cReadDataBool()) {
-                        config.i2cSetDataLow(); //lower data while clock is high
+                if (i2cController.i2cReadClockBool()) {
+                    if ( i2cController.i2cReadDataBool()) {
+                        i2cController.i2cSetDataLow(); //lower data while clock is high
                         stepAtHand = 4;
                     } else {
                         logger.error("unable to be master, data line should be high, will try again.");
         
-                        config.i2cDataOut(); //force the issue.
-                        config.i2cSetDataHigh(); //force the issue.
+                        i2cController.i2cDataOut(); //force the issue.
+                        i2cController.i2cSetDataHigh(); //force the issue.
 
                         taskAtHand = TASK_MASTER_START;
                         stepAtHand = 0;//so try again.
@@ -322,7 +317,7 @@ public class PureJavaI2CStage extends PronghornStage {
                 break;
             case 4:
                 lastBit = 0;//data is set low and may be helpful for first bit
-                config.i2cSetClockLow();
+                i2cController.i2cSetClockLow();
                 stepAtHand = 5;
                 break;//done
             case 5:
@@ -338,17 +333,17 @@ public class PureJavaI2CStage extends PronghornStage {
    
         switch (stepAtHand) {
             case 0:
-                config.i2cSetDataLow();
+                i2cController.i2cSetDataLow();
                 stepAtHand = 1;
                 break;
             case 1:
-                config.i2cSetClockHigh();
+                i2cController.i2cSetClockHigh();
                 cycleTops++;
                 stepAtHand = 3;
                 break;
             case 3:
-                if (config.i2cReadClockBool()) {
-                    config.i2cSetClockHigh();
+                if (i2cController.i2cReadClockBool()) {
+                    i2cController.i2cSetClockHigh();
                     //do not count as cycle top we just changed it above
                 } else {
                     logger.trace("clock stretching now.");
@@ -357,7 +352,7 @@ public class PureJavaI2CStage extends PronghornStage {
                 stepAtHand = 5;
                 break;
             case 5: //done
-                config.i2cSetDataHigh();
+                i2cController.i2cSetDataHigh();
                 stepAtHand = 0;
                 taskAtHand = TASK_NONE;
                 readRequest();
@@ -381,7 +376,7 @@ public class PureJavaI2CStage extends PronghornStage {
                   if (0==(1 & (byteToSend >> (--byteToSendPos)))) {
                       //System.out.println("0 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
                       if (0!=lastBit) {
-                        config.i2cSetDataLow();
+                          i2cController.i2cSetDataLow();
                         lastBit = 0;
                         stepAtHand = 2;
                         break;
@@ -389,7 +384,7 @@ public class PureJavaI2CStage extends PronghornStage {
                   } else {
                       //System.out.println("1 from pos "+byteToSendPos+" of "+Integer.toBinaryString(byteToSend));
                       if (1!=lastBit) {
-                        config.i2cSetDataHigh();
+                          i2cController.i2cSetDataHigh();
                         lastBit = 1;
                         stepAtHand = 2;
                         break;
@@ -397,13 +392,13 @@ public class PureJavaI2CStage extends PronghornStage {
                   } 
                   //fall through if the value is already what we need.
             case 2:
-                  config.i2cSetClockHigh();
+                i2cController.i2cSetClockHigh();
                   cycleTops++;
                   stepAtHand = 3;
                   break;
             case 3:
-                  if (config.i2cReadClockBool()) {
-                      config.i2cSetClockLow();
+                  if (i2cController.i2cReadClockBool()) {
+                      i2cController.i2cSetClockLow();
                       //jump to 4 when byteToEndPos is zero else jump to 0 
                       stepAtHand = 4 & ((byteToSendPos-1)>>31);
                   } else {
@@ -412,17 +407,17 @@ public class PureJavaI2CStage extends PronghornStage {
                   }
                   break;
             case 4:
-                config.i2cSetDataHigh(); //set high so the ack can make this low         
+                i2cController.i2cSetDataHigh(); //set high so the ack can make this low         
                 stepAtHand = 5;
                 break;
             case 5:                 
-                config.i2cSetClockHigh();
+                i2cController.i2cSetClockHigh();
                 cycleTops++;
                 stepAtHand = 7;
                 break;
             case 7:
-                if (config.i2cReadClockBool()) {
-                    config.i2cSetClockLow(); 
+                if (i2cController.i2cReadClockBool()) {
+                    i2cController.i2cSetClockLow(); 
                     stepAtHand = 9;
                 } else {
                     logger.error("clock stretching now.");
@@ -436,7 +431,7 @@ public class PureJavaI2CStage extends PronghornStage {
 //                    System.out.print(" sent 0x"+Integer.toHexString(byteToSend)+"  LEFT(1)"+Integer.toHexString(byteToSend>>1)+"  ");
 //                }  
                 
-                boolean ack = config.i2cReadAck();
+                boolean ack = i2cController.i2cReadAck();
 
                 lastBit = -1;
                 
@@ -481,15 +476,15 @@ public class PureJavaI2CStage extends PronghornStage {
         switch (stepAtHand) {
             case 0:
                   //wait for clock to be highwriteBytes
-                  while (0==config.i2cReadClock() ) {
+                  while (0==i2cController.i2cReadClock() ) {
                     //This is a spinning block dependent upon the other end of i2c
                   }//writeValue
                   //clock is now high
-                  bitFromBus = config.i2cReadData();                    
+                  bitFromBus = i2cController.i2cReadData();                    
                   stepAtHand = 1;
                   break;//pause
             case 1:
-                  config.i2cSetClockLow();
+                i2cController.i2cSetClockLow();
                 
                   stepAtHand = 0;
                   

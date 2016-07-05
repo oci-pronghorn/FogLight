@@ -35,15 +35,21 @@ public class GroveV3EdisonImpl extends Hardware {
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
         beginPinConfiguration(); //TODO:Uncertain stay above/below setToKnownStateFromColdStart,Will trial and error
         setToKnownStateFromColdStart();  
-//		EdisonGPIO.configDigitalOutput(5);//config for writeBit
-        System.out.println("The digital Output Length is: " +digitalOutputs.length);
-        System.out.println("The digital Output connection at 0 is: " +digitalOutputs[0].connection);
-		for (int i = 0; i < digitalOutputs.length; i++) {
-			if(digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(digitalOutputs[i].connection);//config for writeBit
-			System.out.println("configured output "+super.digitalOutputs[i].twig+" on connection "+super.digitalOutputs[i].connection);
-		}
-//		for (int i = 0; i < super.pwmOutputs.length; i++) {
-//			if(super.pwmOutputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configPWM(super.pwmOutputs[i].connection); //config for pwm
+		EdisonGPIO.configDigitalOutput(5);//config for writeBit
+//		EdisonGPIO.configDigitalOutput(6);//config for writeBit
+//        System.out.println("The digital Output Length is: " +digitalOutputs.length);
+//        System.out.println("The digital Output connection at 0 is: " +digitalOutputs[0].connection);
+//		for (int i = 0; i < digitalOutputs.length; i++) {
+//			if(digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(digitalOutputs[i].connection);//config for writeBit
+//			System.out.println("configured output "+super.digitalOutputs[i].twig+" on connection "+super.digitalOutputs[i].connection);
+//		}
+//      System.out.println("The Analog Output Length is: " +pwmOutputs.length);
+//      System.out.println("The Analog Output connection at 0 is: " +pwmOutputs[0].connection);
+//      System.out.println("The Analog Output Type is at 0 is " + pwmOutputs[0].type );
+//      System.out.println("The output type is: " +ConnectionType.Direct);
+//      System.out.println("The port used is:"+ (int)pwmOutputs[0].connection);
+//		for (int i = 0; i < pwmOutputs.length; i++) {
+//			if(pwmOutputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configPWM((int)pwmOutputs[i].connection); //config for pwm
 //		}
 //		for (int i = 0; i < super.digitalInputs.length; i++) {
 //			if(super.digitalInputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalInput(super.digitalInputs[i].connection); //config for readBit

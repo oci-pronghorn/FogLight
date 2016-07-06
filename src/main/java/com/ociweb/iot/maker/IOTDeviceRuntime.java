@@ -240,12 +240,7 @@ public class IOTDeviceRuntime {
         }else{
         	i2cPipes = null;
         }
-        //all the registered listers are managed here.
-        s = collectedResponsePipes.size();           
-        Pipe<GroveResponseSchema> responsePipe = new Pipe<GroveResponseSchema>(responsePipeConfig);
-        GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,
-                new SplitterStage<>(gm, responsePipe, collectedResponsePipes.toArray(new Pipe[s]))
-                );
+        //all the registered listers are managed here
         
         Pipe<GroveRequestSchema>[] requestPipes    = collectedRequestPipes.toArray(new Pipe[collectedI2CRequestPipes.size()]);
         Pipe<TrafficOrderSchema>[] orderPipes      = collectedOrderPipes.toArray(new Pipe[collectedOrderPipes.size()]);

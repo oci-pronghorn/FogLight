@@ -257,21 +257,21 @@ public class Grove_LCD_RGB {
     }
 
     private static void showRGBColor(CommandChannel target, int r, int g, int b) {
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 0, 0);
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 1, 0);
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 0x08, 0xaa);
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 4, r);
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 3, g);
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS << 1)), 2, b);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 0, 0);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 1, 0);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 0x08, 0xaa);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 4, r);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 3, g);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 2, b);
     }
 
     private static void showTwoLineText(CommandChannel target, String text) {
         //clear display
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
         //display on - no cursor
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));
         //two lines
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, LCD_TWO_LINES);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_TWO_LINES);
                   
         //Parse text.
         int count = 0;
@@ -284,7 +284,7 @@ public class Grove_LCD_RGB {
                 if (row == 2) break;
         
                 //Write a thing. TODO: What's the thing?
-                writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETDDRAMADDR, 0xc0);
+                writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
 
                 if (c == '\n') continue;
             }
@@ -292,27 +292,10 @@ public class Grove_LCD_RGB {
             count += 1;
         
             //Write chars.
-            writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS << 1)), LCD_SETCGRAMADDR, c);
+            writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, c);
 
         }
     }
-//    private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
-//        //try {
-//        	Pipe<I2CCommandSchema> i2cPayloadWriter;
-//            do {
-//            i2cPayloadWriter = target.i2cCommandOpen(address);
-//            } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
-//            byte[] message = {(byte) address, 2, (byte) register, (byte) value};
-////            i2cPayloadWriter.writeByte(address);
-////            i2cPayloadWriter.writeByte(2); //length TODO: redundant
-////            i2cPayloadWriter.writeByte(register);
-////            i2cPayloadWriter.writeByte(value);
-//            PipeWriter.writeBytes(i2cPayloadWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, message);
-//            target.i2cCommandClose();
-////        } catch (IOException e) {
-////           throw new RuntimeException(e);
-////        }
-//    }
     
     private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
         try {
@@ -321,7 +304,7 @@ public class Grove_LCD_RGB {
             i2cPayloadWriter = target.i2cCommandOpen(address);
             } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
             byte[] message = {(byte) register, (byte) value};
-            System.out.println(Grove_LCD_RGB.LCD_ADDRESS << 1);
+            System.out.println(Grove_LCD_RGB.LCD_ADDRESS);
             System.out.println(address);
 //            i2cPayloadWriter.writeByte(address);
 //            i2cPayloadWriter.writeByte(2); //length TODO: redundant

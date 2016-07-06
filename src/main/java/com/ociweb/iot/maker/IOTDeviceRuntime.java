@@ -169,7 +169,7 @@ public class IOTDeviceRuntime {
     
     public void addI2CListener(I2CListener listener) {
         
-        Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig);
+        Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
         collectedI2CResponsePipes.add(pipe);
         
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);

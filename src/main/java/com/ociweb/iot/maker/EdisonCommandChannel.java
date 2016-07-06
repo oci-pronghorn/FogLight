@@ -19,6 +19,7 @@ public class EdisonCommandChannel extends CommandChannel{
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
 	private final byte adIndex = (byte)0;
+	private final byte channelIdx = (byte)1;
 
 	public EdisonCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,Pipe<TrafficOrderSchema> goPipe) {
 			super(gm, output, i2cOutput, goPipe);
@@ -50,7 +51,7 @@ public class EdisonCommandChannel extends CommandChannel{
 			}
 			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, adIndex);
 				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 				System.out.println("The Edison CommandChannel sends the writeBlock to Go");					
 
@@ -84,7 +85,7 @@ public class EdisonCommandChannel extends CommandChannel{
 				
 			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, adIndex);
 					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 					System.out.println("The Edison CommandChannel sends the WriteByte to Go");					
 
@@ -117,7 +118,7 @@ public class EdisonCommandChannel extends CommandChannel{
 			}
 			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, adIndex);
 				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 				System.out.println("The Edison CommandChannel sends the AnalogWrite to Go");					
 
@@ -149,7 +150,7 @@ public class EdisonCommandChannel extends CommandChannel{
 			}
 			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
 
-				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, (byte)0);
+				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, adIndex);
 				PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
 				System.out.println("The Edison CommandChannel sends the AnalogBlock to Go");					
 
@@ -177,12 +178,17 @@ public class EdisonCommandChannel extends CommandChannel{
 
 	}
 
+
+		//TODO: need to set this as a constant driven from the known i2c devices and the final methods
+		
+
 	public DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress) {       
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
 			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
 				DataOutputBlobWriter.openField(i2cWriter);
+				System.out.println("sending address "+targetAddress);
 				return i2cWriter;
 			} else {
 				return null;//can not write try again later.
@@ -190,35 +196,46 @@ public class EdisonCommandChannel extends CommandChannel{
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
+		
 	}
-
+	
 	public void i2cCommandClose() {  
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			runningI2CCommandCount++;
 			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
 			PipeWriter.publishWrites(i2cOutput);
+			System.out.println("i2c Command Closed "+runningI2CCommandCount);
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
+		
 	}
+
+
 
 	public boolean i2cFlushBatch() {        
-//		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-//		try {
-//			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_I2CWRITE_400) ) { 
-//				PipeWriter.writeInt(output, GroveRequestSchema.MSG_I2CWRITE_400_FIELD_MESSAGECOUNT_410, runningI2CCommandCount);
-//				PipeWriter.publishWrites(output);
-//				runningI2CCommandCount = 0;                
-//				return true;
-//			}
-//			return false;            
-//		} finally {
-//			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-//		}
+		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+		try {
+			if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: Could the I2C Pipe be full so we send too many go commands?
+
+			PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, channelIdx);
+			PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) runningI2CCommandCount);
+			
+			System.out.println("CommandChannel sends standard i2c go");
+
+			PipeWriter.publishWrites(goPipe);
+			runningI2CCommandCount =0;
+			return true;
+		}else{
+			System.out.println("failed to send go");
+			
+		}         
+		} finally {
+			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+		}
 	    return false;
 	}
-
 
 	private boolean enterBlockOk() {
 		return aBool.compareAndSet(false, true);

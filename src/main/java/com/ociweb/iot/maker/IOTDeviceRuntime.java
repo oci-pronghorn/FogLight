@@ -176,6 +176,9 @@ public class IOTDeviceRuntime {
         GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS,stage);
     }
     
+    public void addTimeListener(TimeListener listener) {
+    	registerListener(listener);
+    }
     
     public void registerListener(Object listener) {
         
@@ -183,21 +186,8 @@ public class IOTDeviceRuntime {
         collectedResponsePipes.add(pipe);
         ReactiveListenerStage stage;
         
-        if (listener instanceof RestListener) {
-            
-            Pipe restPipe = null; //this holds rest requests detected from the webserver, these can come directly from router.
-            
-            //create new pipe
-            
-            //add pipe to collection for starting the server ??
-            
-            
-            stage = new ReactiveListenerStage(gm, listener, pipe, restPipe);
-            
-        } else {
-                
+      
             stage = new ReactiveListenerStage(gm, listener, pipe);
-        }
         
         //if we have a time event turn it on.
         long rate = hardware.getTriggerRate();

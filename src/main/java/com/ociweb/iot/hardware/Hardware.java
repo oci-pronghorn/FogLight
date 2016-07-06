@@ -8,6 +8,7 @@ import com.google.common.base.Splitter;
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
+import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
@@ -279,10 +280,12 @@ public abstract class Hardware {
         createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn);
         
         Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig); 
-        new SplitterStage<>(gm, masterResponsePipe, responsePipes);
-        AnalogDigitalInputStage adInputStage = new AnalogDigitalInputStage(this.gm, masterResponsePipe, this); //TODO: Probably needs an ack Pipe
         
+        SplitterStage responseSplitter = new SplitterStage<>(gm, masterResponsePipe, responsePipes);
+        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, responseSplitter);
         
+        //NOTE: rate is NOT set since stage sets and configs its own rate based on polling need.
+        ReadDeviceInputStage adInputStage = new ReadDeviceInputStage(this.gm, masterResponsePipe, this);        
         
     }
 

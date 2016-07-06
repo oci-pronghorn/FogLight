@@ -103,99 +103,6 @@ public class GroveShieldV2MockImpl extends Hardware {
         // TODO Auto-generated method stub
         
     }
-
-    @Override
-    public void i2cSetClockLow() {
-        if (clockMode != OUT) {
-            throw new UnsupportedOperationException();
-        }
-        if (clockValue!=LOW) {
-            clockValue = LOW;
-    
-            sendDataPoint();
-        }
-            
-    }
-
-    @Override
-    public void i2cSetClockHigh() {
-        if (clockMode != OUT) {
-            throw new UnsupportedOperationException();
-        }
-        if (clockValue!=HIGH) {
-            clockValue = HIGH;
-
-            sendDataPoint();
-        }
-            
-    }
-
-    @Override
-    public void i2cSetDataLow() {
-        if (dataMode != OUT) {
-            throw new UnsupportedOperationException();
-        }
-        if (dataValue!=LOW) {
-            dataValue = LOW;
-
-           sendDataPoint();
-        }
-           
-    }
-
-    @Override
-    public void i2cSetDataHigh() {
-        if (dataMode != OUT) {
-            throw new UnsupportedOperationException();
-        }
-        
-        if (dataValue!=HIGH) {
-            dataValue = HIGH;
-
-           sendDataPoint();
-        }
-           
-    }
-    
-    @Override
-    public int i2cReadData() {
-        return dataValue;
-    }
-
-    @Override
-    public int i2cReadClock() {
-        return clockValue;
-    }
-    
-    @Override
-    public boolean i2cReadClockBool() {
-        return clockValue!=0;
-    }
-    
-    @Override
-    public boolean i2cReadDataBool() {
-        return dataValue!=0;
-    }
-
-    @Override
-    public void i2cDataIn() {
-        dataMode = IN;
-    }
-
-    @Override
-    public void i2cDataOut() {
-       dataMode = OUT;
-    }
-
-    @Override
-    public void i2cClockIn() {
-        clockMode = IN;
-    }
-
-    @Override
-    public void i2cClockOut() {
-        clockMode = OUT;
-    }
     
     @Override
     public void coldSetup() {
@@ -207,11 +114,6 @@ public class GroveShieldV2MockImpl extends Hardware {
     public void cleanup() {
         // TODO Auto-generated method stub
 
-    }
-
-    @Override
-    public boolean i2cReadAck() {
-        return true;
     }
 
 	@Override

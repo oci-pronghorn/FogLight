@@ -21,9 +21,7 @@ public class GroveV3EdisonImpl extends Hardware {
     public GroveV3EdisonImpl(GraphManager gm) {
     	super(gm);
    }
-    
-
-  
+      
     
     
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe) {
@@ -104,36 +102,7 @@ public class GroveV3EdisonImpl extends Hardware {
         EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(13);
         EdisonGPIO.gpioOutputEnablePins.setValueHigh(13);
     }
-
-    
-    public void i2cDataIn() {
-        EdisonGPIO.configI2CDataIn();
-    }
-    
-    public void i2cDataOut() {
-        EdisonGPIO.configI2CDataOut();
-    }
-    
-    public void i2cClockIn() {
-        EdisonGPIO.configI2CClockIn();
-    }
-    
-    public void i2cClockOut() {
-        EdisonGPIO.configI2CClockOut();
-    }
-
-    public boolean i2cReadAck() {
-        return EdisonPinManager.analogRead(EdisonConstants.DATA_RAW_VOLTAGE) < EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
-
-    }
-    public boolean i2cReadDataBool() {
-        return EdisonPinManager.analogRead(EdisonConstants.DATA_RAW_VOLTAGE) > EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
-    }
-    
-    public boolean i2cReadClockBool() {
-        return EdisonPinManager.analogRead(EdisonConstants.CLOCK_RAW_VOLTAGE) > EdisonConstants.HIGH_LINE_VOLTAGE_MARK;
-    }
-
+ 
     public void beginPinConfiguration() {
         super.beginPinConfiguration();        
         EdisonGPIO.shieldControl.setDirectionLow(0);
@@ -172,30 +141,6 @@ public class GroveV3EdisonImpl extends Hardware {
 	    EdisonPinManager.digitalWrite(connector, value, EdisonGPIO.gpioLinuxPins);
 	}
 	
-    public void i2cSetClockLow() {
-        EdisonPinManager.writeValue(EdisonPinManager.I2C_CLOCK, EdisonPinManager.I2C_LOW, EdisonGPIO.gpioLinuxPins);
-    }
-
-    public void i2cSetClockHigh() {
-        EdisonPinManager.writeValue(EdisonPinManager.I2C_CLOCK, EdisonPinManager.I2C_HIGH, EdisonGPIO.gpioLinuxPins);
-    }
-
-    public void i2cSetDataLow() {
-        EdisonPinManager.writeValue(EdisonPinManager.I2C_DATA, EdisonPinManager.I2C_LOW, EdisonGPIO.gpioLinuxPins);
-    }
-
-    public void i2cSetDataHigh() {
-        EdisonPinManager.writeValue(EdisonPinManager.I2C_DATA, EdisonPinManager.I2C_HIGH, EdisonGPIO.gpioLinuxPins);
-    }
-
-    public int i2cReadData() {
-        return digitalRead(EdisonPinManager.I2C_DATA);
-    }
-
-    public int i2cReadClock() {
-        return digitalRead(EdisonPinManager.I2C_CLOCK);
-    }
-    
     static void findDup(HardConnection[] base, int baseLimit, HardConnection[] items, boolean mapAnalogs) {
         int i = items.length;
         while (--i>=0) {

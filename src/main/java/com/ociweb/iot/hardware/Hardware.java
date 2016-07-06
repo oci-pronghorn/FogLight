@@ -190,21 +190,7 @@ public abstract class Hardware {
         return MAX_MOVING_AVERAGE_SUPPORTED;
     }
 
-    public abstract void i2cSetClockLow();
-    public abstract void i2cSetClockHigh();
-    public abstract void i2cSetDataLow();
-    public abstract void i2cSetDataHigh();
-    public abstract int i2cReadData();
-    public abstract int i2cReadClock();
-    
-    public abstract void i2cDataIn();
-    public abstract void i2cDataOut();
-    public abstract void i2cClockIn();
-    public abstract void i2cClockOut();
-    public abstract boolean i2cReadAck();
-    public abstract boolean i2cReadClockBool();
-    public abstract boolean i2cReadDataBool();
-    
+   
     public abstract void coldSetup();
     public abstract void cleanup();
     public abstract byte getI2CConnector();

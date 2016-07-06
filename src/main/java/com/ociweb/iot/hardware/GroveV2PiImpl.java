@@ -50,45 +50,6 @@ public class GroveV2PiImpl extends Hardware {
 		//GrovePiGPIO.removeAllLinuxDevices(usedLines);
 	}
 
-	public void i2cDataIn() {
-		//			GrovePiGPIO.configI2CDataIn();
-		System.out.println("Pure Java I2c not currently supported on Pi");
-	}
-
-	public void i2cDataOut() {
-		//GrovePiGPIO.configI2CDataOut();
-		System.out.println("Pure Java I2c not currently supported on Pi");
-	}
-
-	public void i2cClockIn() {
-		//GrovePiGPIO.configI2CClockIn();
-		System.out.println("Pure Java I2c not currently supported on Pi");
-	}
-
-	public void i2cClockOut() {
-		//GrovePiGPIO.configI2CClockOut();
-		System.out.println("Pure Java I2c not currently supported on Pi");
-	}
-
-	public boolean i2cReadAck() {
-		//			boolean ack;
-		//			int voltage = analogRead(GrovePiConstants.DATA_RAW_VOLTAGE);
-		//			ack = voltage<GrovePiConstants.HIGH_LINE_VOLTAGE_MARK;
-		//			if (!ack) {    
-		//				System.err.println("ack value "+ack+" "+Integer.toBinaryString(voltage));
-		//			}
-		//			return ack;
-		System.out.println("Pure Java I2c not currently supported on Pi");
-		return true;
-	}
-
-	@Override
-	public boolean i2cReadClockBool() {
-		//return i2cReadClock() == 0; //TODO: 0 or 1 for HI?
-		System.out.println("Pure Java I2c not currently supported on Pi");
-		return false;
-	}
-
 	public void beginPinConfiguration() {
 		//super.beginPinConfiguration();        
 	}
@@ -118,43 +79,6 @@ public class GroveV2PiImpl extends Hardware {
 		System.out.println("GPIO not currently supported on Pi");
 	}
 
-	//TODO: Is it right to config them as outputs before writing?
-	public void i2cSetClockLow() {
-		//			GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_CLOCK);
-		//			GrovePiPinManager.writeValue(GrovePiPinManager.I2C_CLOCK, GrovePiPinManager.I2C_LOW, GrovePiGPIO.gpioLinuxPins);
-		System.out.println("Pure Java I2c not currently supported on Pi");
-	}
-
-	public void i2cSetClockHigh() {
-		//			GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_CLOCK);
-		//			GrovePiPinManager.writeValue(GrovePiPinManager.I2C_CLOCK, GrovePiPinManager.I2C_HIGH, GrovePiGPIO.gpioLinuxPins);
-		System.out.println("Pure Java I2c not currently supported on Pi");
-	}
-
-	public void i2cSetDataLow() {
-		//			GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_DATA);
-		//			GrovePiPinManager.writeValue(GrovePiPinManager.I2C_DATA, GrovePiPinManager.I2C_LOW, GrovePiGPIO.gpioLinuxPins);
-		System.out.println("Pure Java I2c not currently supported on Pi");
-	}
-
-	public void i2cSetDataHigh() {
-		//			GrovePiGPIO.configDigitalOutput(GrovePiPinManager.I2C_DATA);
-		//			GrovePiPinManager.writeValue(GrovePiPinManager.I2C_DATA, GrovePiPinManager.I2C_HIGH, GrovePiGPIO.gpioLinuxPins);
-		System.out.println("Pure Java I2c not currently supported on Pi");
-	}
-
-	public int i2cReadData() {
-		System.out.println("Pure Java I2c not currently supported on Pi");
-		//return digitalRead(GrovePiPinManager.I2C_DATA);
-		return -1;
-	}
-	public boolean i2cReadDataBool() { return false; } //TODO:
-
-	public int i2cReadClock() {
-		System.out.println("Pure Java I2c not currently supported on Pi");
-		//return digitalRead(GrovePiPinManager.I2C_CLOCK);
-		return -1;
-	}
 
 	static void findDup(HardConnection[] base, int baseLimit, HardConnection[] items, boolean mapAnalogs) {
 		int i = items.length;

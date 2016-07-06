@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -15,6 +16,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
     private static I2CNativeLinuxBacking i2c;
 	private final Pipe<I2CCommandSchema>[] fromCommandChannels;
+	private final  Pipe<I2CResponseSchema> i2cResponsePipe;
 	
 	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
 
@@ -23,11 +25,11 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	                    Pipe<TrafficReleaseSchema>[] goPipe, 
 	                    Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
 			            Pipe<TrafficAckSchema>[] ackPipe, 
-			          //add Pipe<RawDataSchema>[] i2cResponsePipe,
+			            Pipe<I2CResponseSchema> i2cResponsePipe,
 			            Hardware hardware) { 
 		super(init(graphManager,hardware), hardware, i2cPayloadPipes, goPipe, join(ackPipe) /*add i2cREsponsePipe here*/); 
 		this.fromCommandChannels = i2cPayloadPipes;
-
+		this.i2cResponsePipe = i2cResponsePipe;
 	}
 	
 	//this odd hack is here so we throw an error BEFORE calling supper and registering with the graph manger.
@@ -38,6 +40,13 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 
     protected void processMessagesForPipe(int a) {
+        
+        //TODO: Alex, us a boolean to disable the "while" when we are wating for a response.
+        ///     Ask the hardware for which addresses to listen to (but how to know how to talk? and how fast to poll?)
+        //      get teh data and send it out to the SINGULAR i2cResponsePipe pipe (see graph, a splitter shares the data as needed)
+        
+        
+        
         
         
         while (hasReleaseCountRemaining(a) 

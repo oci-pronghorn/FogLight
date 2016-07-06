@@ -16,6 +16,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
@@ -54,6 +55,9 @@ public abstract class Hardware {
     protected final PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
     protected final PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
     protected final PipeConfig<GroveResponseSchema> groveResponseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64, 1024);
+    protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
+    
+    
     
     
     //TODO: ma per field with max defined here., 
@@ -228,7 +232,8 @@ public abstract class Hardware {
     public final void buildStages(Pipe<GroveRequestSchema>[] requestPipes, 
                                   Pipe<I2CCommandSchema>[] i2cPipes, 
                                   Pipe<GroveResponseSchema>[] responsePipes,        
-                                  Pipe<TrafficOrderSchema>[] orderPipes) {
+                                  Pipe<TrafficOrderSchema>[] orderPipes,
+                                  Pipe<I2CResponseSchema>[] i2cResponsePipes) {
             
         
         assert(orderPipes.length == i2cPipes.length);
@@ -263,33 +268,35 @@ public abstract class Hardware {
         
         createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
         
-        createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn);
+        Pipe<I2CResponseSchema> masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
+        SplitterStage i2cResponseSplitter = new SplitterStage<>(gm, masterI2CResponsePipe, i2cResponsePipes);
+        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, i2cResponseSplitter);
+       
+        createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);
         
-        Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig); 
-        
+        Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
         SplitterStage responseSplitter = new SplitterStage<>(gm, masterResponsePipe, responsePipes);
         GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, responseSplitter);
         
-        //NOTE: rate is NOT set since stage sets and configs its own rate based on polling need.
-        ReadDeviceInputStage adInputStage = new ReadDeviceInputStage(this.gm, masterResponsePipe, this);        
+        createADInputStage(masterResponsePipe);        
         
     }
 
+    protected void createADInputStage(Pipe<GroveResponseSchema> masterResponsePipe) {
+        //NOTE: rate is NOT set since stage sets and configs its own rate based on polling need.
+        ReadDeviceInputStage adInputStage = new ReadDeviceInputStage(this.gm, masterResponsePipe, this);
+    }
+
     protected void createI2COutputInputStage(Pipe<I2CCommandSchema>[] i2cPipes,
-            Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn) {
+            Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn, Pipe<I2CResponseSchema> masterI2CResponsePipe) {
         //NOTE: if this throws we should use the Java one here instead.
-        I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, this);
+        I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
         GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, i2cJFFIStage);
     }
 
-
-    //TODO: if the PI need to set pins directly wihout using grove this method should be overriden
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
         DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
     }
-
-	
-
 
 
     

@@ -8,6 +8,7 @@ import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
@@ -60,9 +61,9 @@ public class ReactiveListenerStage extends PronghornStage {
             if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
             } else
-            if (Pipe.isForSchema(localPipe, RawDataSchema.instance)) { //TODO: i2c needs its own schema
+            if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) { 
                 
-                consumeI2CMessage(listener, (Pipe<RawDataSchema>) localPipe);
+                consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);
             }
 //            if (Pipe.isForSchema(localPipe, RestSomethingSchema.instance)) {
 //                
@@ -109,19 +110,20 @@ public class ReactiveListenerStage extends PronghornStage {
     }
     
 
-    private void consumeI2CMessage(Object listener, Pipe<RawDataSchema> p) {
+    private void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
         while (PipeReader.tryReadFragment(p)) {                
                     
                     int msgIdx = PipeReader.getMsgIdx(p);
                     switch (msgIdx) {   
-                        case RawDataSchema.MSG_CHUNKEDSTREAM_1:
+                        case I2CResponseSchema.MSG_RESPONSE_10:
                             if (listener instanceof I2CListener) {
                                 
-                                byte[] backing = PipeReader.readBytesBackingArray(p, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-                                int position = PipeReader.readBytesPosition(p, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-                                int length = PipeReader.readBytesLength(p, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-                                int mask = PipeReader.readBytesMask(p, RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-                                byte addr = backing[mask&position];//hack to get addr for now, new schema will have this split out.
+                                byte addr = (byte)PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
+                                
+                                byte[] backing = PipeReader.readBytesBackingArray(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
+                                int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
+                                int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
+                                int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
                                 
                                 ((I2CListener)listener).i2cEvent(addr, backing, position, length, mask);
                                

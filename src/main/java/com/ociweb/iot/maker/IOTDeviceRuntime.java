@@ -17,6 +17,7 @@ import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -47,7 +48,7 @@ public class IOTDeviceRuntime {
     private List<Pipe<TrafficOrderSchema>> collectedOrderPipes = new ArrayList<Pipe<TrafficOrderSchema>>();
     
     private List<Pipe<GroveResponseSchema>> collectedResponsePipes = new ArrayList<Pipe<GroveResponseSchema>>();
-    private List<Pipe<RawDataSchema>> collectedI2CResponsePipes = new ArrayList<Pipe<RawDataSchema>>();
+    private List<Pipe<I2CResponseSchema>> collectedI2CResponsePipes = new ArrayList<Pipe<I2CResponseSchema>>();
     
     
     private PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 128);
@@ -56,7 +57,7 @@ public class IOTDeviceRuntime {
     
     private PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 64,1024);
     
-    private PipeConfig<RawDataSchema> reponseI2CConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
+    private PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
     
     
     private PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);
@@ -168,7 +169,7 @@ public class IOTDeviceRuntime {
     
     public void addI2CListener(I2CListener listener) {
         
-        Pipe<RawDataSchema> pipe = new Pipe<RawDataSchema>(reponseI2CConfig);
+        Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig);
         collectedI2CResponsePipes.add(pipe);
         
         ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
@@ -246,11 +247,12 @@ public class IOTDeviceRuntime {
                 new SplitterStage<>(gm, responsePipe, collectedResponsePipes.toArray(new Pipe[s]))
                 );
         
-        Pipe<GroveRequestSchema>[] requestPipes   = collectedRequestPipes.toArray(new Pipe[collectedI2CRequestPipes.size()]);
-        Pipe<TrafficOrderSchema>[] orderPipes     = collectedOrderPipes.toArray(new Pipe[collectedOrderPipes.size()]);
-        Pipe<GroveResponseSchema>[] responsePipes = collectedResponsePipes.toArray(new Pipe[collectedResponsePipes.size()]);
+        Pipe<GroveRequestSchema>[] requestPipes    = collectedRequestPipes.toArray(new Pipe[collectedI2CRequestPipes.size()]);
+        Pipe<TrafficOrderSchema>[] orderPipes      = collectedOrderPipes.toArray(new Pipe[collectedOrderPipes.size()]);
+        Pipe<GroveResponseSchema>[] responsePipes  = collectedResponsePipes.toArray(new Pipe[collectedResponsePipes.size()]);
+        Pipe<I2CResponseSchema>[] i2cResponsePipes = collectedI2CResponsePipes.toArray(new Pipe[collectedI2CResponsePipes.size()]);
         
-        hardware.buildStages(requestPipes, i2cPipes, responsePipes, orderPipes);
+        hardware.buildStages(requestPipes, i2cPipes, responsePipes, orderPipes, i2cResponsePipes);
         
 //        exportGraphDotFile();
         

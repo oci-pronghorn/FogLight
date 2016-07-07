@@ -137,6 +137,12 @@ public class GroveShieldV2MockImpl extends Hardware {
 		return null;
 	}
 
+    @Override
+    public byte[][] getGroveI2CInputs() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 
 
 

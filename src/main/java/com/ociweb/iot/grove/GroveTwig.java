@@ -190,6 +190,9 @@ public enum GroveTwig implements IODevice {
     public byte[] getReadMessage(){
     	return null;
     }
+    public int pwmRange() {
+        return 256;
+    }
     
     
 }

@@ -1,5 +1,8 @@
 package com.ociweb.iot.hardware;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
@@ -14,9 +17,11 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveV3EdisonImpl extends Hardware {
 	
-	
-	
+	private final static Logger logger = LoggerFactory.getLogger(GroveV3EdisonImpl.class);
     private HardConnection[] usedLines;
+    
+    //pwm supports the same range and duty values for multiple platforms,  The frequencies are "near" each other but not yet the same.
+    private int pwmBitsShift = 12; //the absolute minimum range for Edison is 1<<12 or 4096 this prevents the user from hitting this value.
     
     public GroveV3EdisonImpl(GraphManager gm) {
     	super(gm);
@@ -58,6 +63,16 @@ public class GroveV3EdisonImpl extends Hardware {
 		}
 		EdisonGPIO.configI2C();
 		endPinConfiguration();//Tri State set high to end configuration
+		
+		//everything is up and running so set the pwmRange for each device
+		
+		for (int i = 0; i < pwmOutputs.length; i++) {
+		    if(pwmOutputs[i].type.equals(ConnectionType.Direct)) {
+		        EdisonPinManager.writePWMRange(pwmOutputs[i].connection, pwmOutputs[i].twig.pwmRange() << pwmBitsShift);
+		    }
+        }
+		
+		
     }
    
     
@@ -74,15 +89,7 @@ public class GroveV3EdisonImpl extends Hardware {
 //		
 //    }
 
-    //only used in startup
-    private void pause() {
-        try {
-          //  Thread.sleep(NS_PAUSE/1_000_000,NS_PAUSE%1_000_000);
-            Thread.sleep(35); //timeout for SMBus
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
+ 
 
     
     
@@ -121,22 +128,29 @@ public class GroveV3EdisonImpl extends Hardware {
         return EdisonPinManager.analogRead(connector);
     }    
 
-    boolean xx = false; //TODO: this is a total hack until we talk to Alex to resolve.
-    
     @Override
     public void analogWrite(int connector, int value) {
-        
-       if (!xx) { 
-           // works with this method 
-           EdisonPinManager.writePWMPeriod(connector, 4096); //no smaller
-           xx = true;
-       }
-       
-       EdisonPinManager.writePWMDuty(connector, value);
+       assert(isInPWMRange(connector,value)) : "Unsupported call"; 
+       EdisonPinManager.writePWMDuty(connector, value << pwmBitsShift);
+    }
+    
+	private boolean isInPWMRange(int connector, int value) {
+	    for (int i = 0; i < pwmOutputs.length; i++) {
+	        if (connector == pwmOutputs[i].connection) {
+	            if (value > pwmOutputs[i].twig.pwmRange()) {
+	                logger.error("pwm value {} out of range, must not be larger than {} ",value,pwmOutputs[i].twig.pwmRange());
+	                return false;
+	            }
+	            return true;    
+	        }
+	    }
+	    logger.error("did not find connection {} as defined",connector);
+        return false;
     }
 
-    
-	public void digitalWrite(int connector, int value) {
+
+
+    public void digitalWrite(int connector, int value) {
 	    assert(0==value || 1==value);    
 	    EdisonPinManager.digitalWrite(connector, value, EdisonGPIO.gpioLinuxPins);
 	}
@@ -200,6 +214,14 @@ public class GroveV3EdisonImpl extends Hardware {
 	public byte getI2CConnector() {
 		return 6;
 	}
+
+
+
+    @Override
+    public byte[][] getGroveI2CInputs() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
 }

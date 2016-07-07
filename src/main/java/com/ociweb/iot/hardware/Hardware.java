@@ -44,7 +44,7 @@ public abstract class Hardware {
     public HardConnection[] analogInputs;  //Light, UV, Moisture
     public HardConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     
-    public HardConnection[] i2cInputs;
+    public I2CConnection[] i2cInputs;
     
     private long timeTriggerRate;
     
@@ -90,9 +90,17 @@ public abstract class Hardware {
     /////
     /////
     
-    HardConnection[] growConnections(HardConnection[] original, HardConnection toAdd) {
+    HardConnection[] growHardConnections(HardConnection[] original, HardConnection toAdd) {
         int l = original.length;
         HardConnection[] result = new HardConnection[l+1];
+        System.arraycopy(original, 0, result, 0, l);
+        result[l] = toAdd;
+        return result;
+    }
+    
+    I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
+    	int l = original.length;
+        I2CConnection[] result = new I2CConnection[l+1];
         System.arraycopy(original, 0, result, 0, l);
         result[l] = toAdd;
         return result;
@@ -106,10 +114,10 @@ public abstract class Hardware {
     	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection):new HardConnection(t,connection);
         if (t.isInput()) {
             assert(!t.isOutput());
-            analogInputs = growConnections(analogInputs, gc);
+            analogInputs = growHardConnections(analogInputs, gc);
         } else {
             assert(t.isOutput());
-            pwmOutputs = growConnections(pwmOutputs, gc);
+            pwmOutputs = growHardConnections(pwmOutputs, gc);
         }
         return this;
     }
@@ -123,10 +131,10 @@ public abstract class Hardware {
         HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection):new HardConnection(t,connection);
         if (t.isInput()) {
             assert(!t.isOutput());
-            digitalInputs = growConnections(digitalInputs, gc);
+            digitalInputs = growHardConnections(digitalInputs, gc);
         } else {
             assert(t.isOutput());
-            digitalOutputs = growConnections(digitalOutputs, gc);
+            digitalOutputs = growHardConnections(digitalOutputs, gc);
         }
         return this;
     }  
@@ -137,7 +145,7 @@ public abstract class Hardware {
         if (t.isInput()) {
             assert(!t.isOutput());
             for(int con:connections) {
-                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con));
+                multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con));
             }
             
           System.out.println("connections "+Arrays.toString(connections));  
@@ -146,7 +154,7 @@ public abstract class Hardware {
         } else {
             assert(t.isOutput());
             for(int con:connections) {
-                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con));
+                multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
             }
         }
         return this;
@@ -189,7 +197,6 @@ public abstract class Hardware {
     public abstract int analogRead(int connector); //Platform specific
     public abstract void digitalWrite(int connector, int value); //Platform specific
     public abstract void analogWrite(int connector, int value); //Platform specific
-    public abstract byte[][] getGroveI2CInputs();
     
     
     public int maxAnalogMovingAverage() {

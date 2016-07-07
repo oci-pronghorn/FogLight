@@ -41,11 +41,64 @@ public class GroveV2PiImpl extends Hardware {
 	}
 	
 	@Override
+	public Hardware useConnectA(IODevice t, int connection) {
+        return useConnectA(t,connection,-1);
+    }
+    
+	@Override
+    public Hardware useConnectA(IODevice t, int connection, int customRate) { //TODO: add customRate support
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
+            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3)); //TODO: Grove specific. acceptable?
+        } else {
+            assert(t.isOutput());
+            pwmOutputs = growHardConnections(pwmOutputs, new HardConnection(t,connection));
+        }
+        return this;
+    }
+    
+	@Override
+    public Hardware useConnectD(IODevice t, int connection) {
+        return useConnectD(t,connection,-1);
+    }
+    
+	@Override
+    public Hardware useConnectD(IODevice t, int connection, int customRate) { //TODO: add customRate support
+    	
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            byte[] temp = {0x01,0x01,(byte)connection,0x00,0x00};
+            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,1)); //TODO: Grove specific. acceptable?
+        } else {
+            assert(t.isOutput());
+            digitalOutputs = growHardConnections(digitalOutputs, new HardConnection(t,connection));
+        }
+        return this;
+    }  
+    
+	@Override
+    public Hardware useConnectDs(IODevice t, int ... connections) {
+
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            for(int con:connections) {
+                multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con)); //TODO: Add multiple input support for pi
+            }
+            
+          System.out.println("connections "+Arrays.toString(connections));  
+          System.out.println("Encoder here "+Arrays.toString(multiBitInputs));  
+            
+        } else {
+            assert(t.isOutput());
+            for(int con:connections) {
+                multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
+            }
+        }
+        return this;
+        
+    }  
 	
-	
-	public byte getI2CConnector(){
-		return 1;
-	}
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);
@@ -136,20 +189,9 @@ public class GroveV2PiImpl extends Hardware {
 		return result;
 	}
 
-
 	@Override
-	public byte[][] getGroveI2CInputs() { //TODO: This is a quick fix. Should return an actual object with this info
-		byte[][] result = new byte[digitalInputs.length+analogInputs.length][];
-		for (int i = 0; i < digitalInputs.length; i++) {
-			byte[] temp= {4, 1, 0x01, 0x01, digitalInputs[i].connection, 0x00, 0x00};
-			result[i] = temp;
-		}
-		for (int i = digitalInputs.length; i < analogInputs.length; i++) {
-			byte[] temp= {4, 3, 0x01, 0x03, analogInputs[i].connection, 0x00, 0x00};
-			result[i] = temp;
-		}
-		
-		return result;
+	public byte getI2CConnector() {
+		return 1;
 	}
 
 	

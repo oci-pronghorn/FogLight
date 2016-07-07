@@ -29,12 +29,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
 
 	private int currentPoll = 0;
-	private byte[][] inputs = null;
-	private int scriptConn[] = null;
-	private int scriptTask[] = null;
-	private byte scriptMsg[][] = null;
-	private int activeSize;
-
+	private I2CConnection[] inputs = null;
 
 	public I2CJFFIStage(GraphManager graphManager, 
 			Pipe<TrafficReleaseSchema>[] goPipe, 
@@ -57,16 +52,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	public void startup(){
 		super.startup();
 		//TODO: add rotary encoder support
-		inputs = hardware.getGroveI2CInputs();
-		activeSize = inputs.length;
-		scriptConn = new int[activeSize];
-		scriptTask = new int[activeSize];
-		scriptMsg = new byte[activeSize][]; 
-		for (int i = 0; i < activeSize; i++) {
-			scriptConn[i] = inputs[i][0];
-			scriptTask[i] = inputs[i][0];
-			scriptMsg[i] = Arrays.copyOfRange(inputs[i], 2, inputs[i].length-1); 
-		}
+		inputs = hardware.i2cInputs;
 
 		//        int j = config.maxAnalogMovingAverage()-1; //TODO: work out what this does
 		//        movingAverageHistory = new int[j][]; 
@@ -204,24 +190,24 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				decReleaseCount(a);
 
 			}
-			System.out.println(currentPoll);
-			i2c.write((byte)scriptConn[currentPoll-1], scriptMsg[currentPoll-1]);
+			
 
 
 		}else{
-			byte[] temp =i2c.read((byte)scriptConn[currentPoll-1], scriptTask[currentPoll-1]);
+			byte[] temp =i2c.read(inputs[currentPoll-1].address, inputs[currentPoll-1].readBytes);
 
 			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, scriptConn[currentPoll-1]);
+				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, inputs[currentPoll-1].address);
 				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
 				PipeWriter.publishWrites(i2cResponsePipe);
 
-				currentPoll=currentPoll++%(activeSize+1);
-				if(currentPoll!=0) i2c.write((byte)scriptConn[currentPoll-1], scriptMsg[currentPoll-1]);
+				currentPoll=currentPoll++%(inputs.length+1);
 			}
 
 
 		}
+		System.out.println(currentPoll);
+		i2c.write((byte)inputs[currentPoll-1].address, inputs[currentPoll-1].readCmd);
 	}
 
 

@@ -215,12 +215,4 @@ public class GroveV3EdisonImpl extends Hardware {
 	}
 
 
-
-    @Override
-    public byte[][] getGroveI2CInputs() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
 }

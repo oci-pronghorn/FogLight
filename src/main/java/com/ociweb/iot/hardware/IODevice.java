@@ -16,5 +16,8 @@ public interface IODevice {
      public boolean isInput();
      public boolean isOutput();
      public boolean isPWM();
+     public int     pwmRange();
+     public boolean isI2C();
+     public byte[] getReadMessage();
      
 }

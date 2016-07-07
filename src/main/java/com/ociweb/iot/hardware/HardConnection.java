@@ -3,7 +3,7 @@ package com.ociweb.iot.hardware;
 public class HardConnection {
 
 	public enum ConnectionType{
-		GrovePi, Direct;
+		Grove, Direct;
 	}
     public final IODevice twig;
     public final byte connection;

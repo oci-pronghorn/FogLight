@@ -184,6 +184,15 @@ public enum GroveTwig implements IODevice {
     public boolean isPWM() {
         return false;
     }
+    public boolean isI2C(){
+    	return false;
+    }
+    public byte[] getReadMessage(){
+    	return null;
+    }
+    public int pwmRange() {
+        return 256;
+    }
     
     
 }

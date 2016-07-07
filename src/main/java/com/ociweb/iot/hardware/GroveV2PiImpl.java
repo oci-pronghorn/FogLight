@@ -1,5 +1,7 @@
 package com.ociweb.iot.hardware;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,6 +130,22 @@ public class GroveV2PiImpl extends Hardware {
 			pos+=GrovePiConstants.i2cPins.length;
 		}
 
+		return result;
+	}
+
+
+	@Override
+	public byte[][] getGroveI2CInputs() { //TODO: This is a quick fix. Should return an actual object with this info
+		byte[][] result = new byte[digitalInputs.length+analogInputs.length][];
+		for (int i = 0; i < digitalInputs.length; i++) {
+			byte[] temp= {4, 1, 0x01, 0x01, digitalInputs[i].connection, 0x00, 0x00};
+			result[i] = temp;
+		}
+		for (int i = digitalInputs.length; i < analogInputs.length; i++) {
+			byte[] temp= {4, 3, 0x01, 0x03, analogInputs[i].connection, 0x00, 0x00};
+			result[i] = temp;
+		}
+		
 		return result;
 	}
 

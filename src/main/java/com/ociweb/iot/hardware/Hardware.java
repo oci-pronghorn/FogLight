@@ -45,6 +45,8 @@ public abstract class Hardware {
     public HardConnection[] analogInputs;  //Light, UV, Moisture
     public HardConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     
+    public HardConnection[] i2cInputs;
+    
     private long timeTriggerRate;
     
     public final GraphManager gm;
@@ -102,7 +104,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-    	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.GrovePi);
+    	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.Grove);
         if (t.isInput()) {
             assert(!t.isOutput());
             analogInputs = growConnections(analogInputs, gc);
@@ -119,7 +121,7 @@ public abstract class Hardware {
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
     	
-        HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.GrovePi);
+        HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.Grove);
         if (t.isInput()) {
             assert(!t.isOutput());
             digitalInputs = growConnections(digitalInputs, gc);
@@ -136,7 +138,7 @@ public abstract class Hardware {
         if (t.isInput()) {
             assert(!t.isOutput());
             for(int con:connections) {
-                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.GrovePi));
+                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.Grove));
             }
             
           System.out.println("connections "+Arrays.toString(connections));  
@@ -145,7 +147,7 @@ public abstract class Hardware {
         } else {
             assert(t.isOutput());
             for(int con:connections) {
-                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.GrovePi));
+                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.Grove));
             }
         }
         return this;
@@ -188,6 +190,7 @@ public abstract class Hardware {
     public abstract int analogRead(int connector); //Platform specific
     public abstract void digitalWrite(int connector, int value); //Platform specific
     public abstract void analogWrite(int connector, int value); //Platform specific
+    public abstract byte[][] getGroveI2CInputs();
     
     
     public int maxAnalogMovingAverage() {
@@ -291,7 +294,7 @@ public abstract class Hardware {
             Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn, Pipe<I2CResponseSchema> masterI2CResponsePipe) {
         //NOTE: if this throws we should use the Java one here instead.
         I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
-        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, i2cJFFIStage);
+        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, 1000000, i2cJFFIStage);
     }
 
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {

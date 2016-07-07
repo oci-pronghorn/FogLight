@@ -96,10 +96,6 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 	protected void processMessagesForPipe(int a) {
 
-		//TODO: Alex, use a boolean to disable the "while" when we are waiting for a response.
-		///     Ask the hardware for which addresses to listen to (but how to know how to talk? and how fast to poll?)
-		//      get the data and send it out to the SINGULAR i2cResponsePipe pipe (see graph, a splitter shares the data as needed)
-
 		if(currentPoll ==0){
 			currentPoll++;
 			while (hasReleaseCountRemaining(a) 

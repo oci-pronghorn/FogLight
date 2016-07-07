@@ -15,7 +15,7 @@ import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class ReactiveListenerStage extends PronghornStage {
+public abstract class ReactiveListenerStage extends PronghornStage {
 
     private final Object              listener;
     private final Pipe<?>[]           pipes;
@@ -110,94 +110,9 @@ public class ReactiveListenerStage extends PronghornStage {
     }
     
 
-    private void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-        while (PipeReader.tryReadFragment(p)) {                
-                    
-                    int msgIdx = PipeReader.getMsgIdx(p);
-                    switch (msgIdx) {   
-                        case I2CResponseSchema.MSG_RESPONSE_10:
-                            if (listener instanceof I2CListener) {
-                                
-                                byte addr = (byte)PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
-                                
-                                byte[] backing = PipeReader.readBytesBackingArray(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-                                int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-                                int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-                                int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-                                
-                                ((I2CListener)listener).i2cEvent(addr, backing, position, length, mask);
-                               
-                            }
-                            break;
-                        case -1:
-                            
-                            requestShutdown();
-                            PipeReader.releaseReadLock(p);
-                            return;
-                           
-                        default:
-                            throw new UnsupportedOperationException("Unknown id: "+msgIdx);
-                        
-                    }
-                    //done reading message off pipe
-                    PipeReader.releaseReadLock(p);
-        }
-    }
-
-    private void consumeResponseMessage(Object listener, Pipe<GroveResponseSchema> p) {
-        while (PipeReader.tryReadFragment(p)) {                
-            
-            int msgIdx = PipeReader.getMsgIdx(p);
-            switch (msgIdx) {   
-
-                case GroveResponseSchema.MSG_ANALOGSAMPLE_30:
-                    if (listener instanceof AnalogListener) {
-                        
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31);
-                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11);
-                        int average = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_AVERAGE_33);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32);
-                        
-                        ((AnalogListener)listener).analogEvent(connector, time, average, value);
-                        
-                    }   
-                break;               
-                case GroveResponseSchema.MSG_DIGITALSAMPLE_20:
-                    if (listener instanceof DigitalListener) {
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21);
-                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_TIME_11);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22);
-                                                    
-                        ((DigitalListener)listener).digitalEvent(connector, time, value);
-                        
-                    }   
-                break; 
-                case GroveResponseSchema.MSG_ENCODER_70:
-                    if (listener instanceof RotaryListener) {    
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_CONNECTOR_71);
-                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_TIME_11);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_VALUE_72);
-                        int delta = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_DELTA_73);
-                        int speed = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_SPEED_74);
-                        
-                        ((RotaryListener)listener).rotaryEvent(connector, time, value, delta, speed);
-                                            
-                    }   
-                break;
-                case -1:
-                {    
-                    requestShutdown();
-                    PipeReader.releaseReadLock(p);
-                    return;
-                }   
-                default:
-                    throw new UnsupportedOperationException("Unknown id: "+msgIdx);
-            }               
-            
-            //done reading message off pipe
-            PipeReader.releaseReadLock(p);
-        }
-    }
+    protected abstract void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p);
+    protected abstract void consumeResponseMessage(Object listener, Pipe<GroveResponseSchema> p);
+        
     
     
     

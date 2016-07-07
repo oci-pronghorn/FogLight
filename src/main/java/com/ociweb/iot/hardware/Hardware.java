@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.base.Splitter;
-import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
@@ -104,7 +103,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-    	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.Grove);
+    	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection):new HardConnection(t,connection);
         if (t.isInput()) {
             assert(!t.isOutput());
             analogInputs = growConnections(analogInputs, gc);
@@ -121,7 +120,7 @@ public abstract class Hardware {
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
     	
-        HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.Grove);
+        HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection):new HardConnection(t,connection);
         if (t.isInput()) {
             assert(!t.isOutput());
             digitalInputs = growConnections(digitalInputs, gc);
@@ -138,7 +137,7 @@ public abstract class Hardware {
         if (t.isInput()) {
             assert(!t.isOutput());
             for(int con:connections) {
-                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.Grove));
+                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con));
             }
             
           System.out.println("connections "+Arrays.toString(connections));  
@@ -147,7 +146,7 @@ public abstract class Hardware {
         } else {
             assert(t.isOutput());
             for(int con:connections) {
-                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.Grove));
+                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con));
             }
         }
         return this;

@@ -2,7 +2,7 @@ package com.ociweb.iot.hardware.impl.edison;
 
 import com.ociweb.iot.grove.GroveTwig;
 import com.ociweb.iot.hardware.HardConnection;
-import com.ociweb.iot.hardware.HardConnection.ConnectionType;
+
 
 public class EdisonConstants {
 
@@ -179,7 +179,7 @@ public class EdisonConstants {
             212,  //IO18 D18 A4
             213,  //IO19 D19 A5
     };
-    public static final HardConnection[] i2cPins = new HardConnection[] {new HardConnection(GroveTwig.I2C,18,ConnectionType.Direct),new HardConnection(GroveTwig.I2C,19,ConnectionType.Direct)};
+    public static final HardConnection[] i2cPins = new HardConnection[] {new HardConnection(GroveTwig.I2C,18),new HardConnection(GroveTwig.I2C,19)};
     public final static int DATA_RAW_VOLTAGE = 4;
     public final static int CLOCK_RAW_VOLTAGE = 5;
     public final static int HIGH_LINE_VOLTAGE_MARK = 1<<8; //This is a number needing 9 or more full bits.

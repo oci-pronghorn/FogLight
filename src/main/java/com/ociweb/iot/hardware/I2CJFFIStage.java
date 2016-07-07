@@ -62,8 +62,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 		scriptConn = new int[activeSize];
 		scriptTask = new int[activeSize];
 		scriptMsg = new byte[activeSize][]; 
-		int i = activeSize;
-		while(i-->=0){
+		for (int i = 0; i < activeSize; i++) {
 			scriptConn[i] = inputs[i][0];
 			scriptTask[i] = inputs[i][0];
 			scriptMsg[i] = Arrays.copyOfRange(inputs[i], 2, inputs[i].length-1); 
@@ -205,7 +204,8 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				decReleaseCount(a);
 
 			}
-			i2c.write((byte)scriptConn[currentPoll], scriptMsg[currentPoll]);
+			System.out.println(currentPoll);
+			i2c.write((byte)scriptConn[currentPoll-1], scriptMsg[currentPoll-1]);
 
 
 		}else{
@@ -217,7 +217,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				PipeWriter.publishWrites(i2cResponsePipe);
 
 				currentPoll=currentPoll++%(activeSize+1);
-				if(currentPoll!=0) i2c.write((byte)scriptConn[currentPoll], scriptMsg[currentPoll]);
+				if(currentPoll!=0) i2c.write((byte)scriptConn[currentPoll-1], scriptMsg[currentPoll-1]);
 			}
 
 

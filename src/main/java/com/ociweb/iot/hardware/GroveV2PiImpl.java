@@ -40,6 +40,9 @@ public class GroveV2PiImpl extends Hardware {
 		return new PiCommandChannel(gm, pipe, i2cPayloadPipe, orderPipe, commandIndex);	
 	}
 	
+	@Override
+	
+	
 	public byte getI2CConnector(){
 		return 1;
 	}
@@ -61,7 +64,7 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	public int digitalRead(int connector) { 
-		System.out.println("GPIO not currently supported on Pi");
+		System.out.println("I'm calling this method like a dingus");
 		return 0;
 	}
 

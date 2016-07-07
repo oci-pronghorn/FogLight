@@ -3,7 +3,6 @@ package com.ociweb.iot.hardware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
@@ -44,7 +43,7 @@ public class GroveV3EdisonImpl extends Hardware {
 //        System.out.println("The digital Output connection at 0 is: " +digitalOutputs[0].connection);
 //        System.out.println("The digital Output type at 0 is: " +digitalOutputs[0].type);
 		for (int i = 0; i < digitalOutputs.length; i++) {
-			if(digitalOutputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalOutput(digitalOutputs[i].connection);//config for writeBit
+			EdisonGPIO.configDigitalOutput(digitalOutputs[i].connection);//config for writeBit
 			System.out.println("configured output "+super.digitalOutputs[i].twig+" on connection "+super.digitalOutputs[i].connection);
 		}
 //      System.out.println("The Analog Output Length is: " +pwmOutputs.length);
@@ -53,13 +52,13 @@ public class GroveV3EdisonImpl extends Hardware {
 //      System.out.println("The output type is: " +ConnectionType.Direct);
 //      System.out.println("The port used is:"+ (int)pwmOutputs[0].connection);
 		for (int i = 0; i < pwmOutputs.length; i++) {
-			if(pwmOutputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configPWM((int)pwmOutputs[i].connection); //config for pwm
+			EdisonGPIO.configPWM((int)pwmOutputs[i].connection); //config for pwm
 		}
 		for (int i = 0; i < super.digitalInputs.length; i++) {
-			if(digitalInputs[i].type.equals(ConnectionType.Direct))EdisonGPIO.configDigitalInput(digitalInputs[i].connection); //config for readBit
+			EdisonGPIO.configDigitalInput(digitalInputs[i].connection); //config for readBit
 		}
 		for (int i = 0; i < super.analogInputs.length; i++) {
-			if(analogInputs[i].type.equals(ConnectionType.Direct)) EdisonGPIO.configAnalogInput(analogInputs[i].connection); //config for readInt
+			EdisonGPIO.configAnalogInput(analogInputs[i].connection); //config for readInt
 		}
 		EdisonGPIO.configI2C();
 		endPinConfiguration();//Tri State set high to end configuration
@@ -67,9 +66,9 @@ public class GroveV3EdisonImpl extends Hardware {
 		//everything is up and running so set the pwmRange for each device
 		
 		for (int i = 0; i < pwmOutputs.length; i++) {
-		    if(pwmOutputs[i].type.equals(ConnectionType.Direct)) {
+		    
 		        EdisonPinManager.writePWMRange(pwmOutputs[i].connection, pwmOutputs[i].twig.pwmRange() << pwmBitsShift);
-		    }
+		    
         }
 		
 		
@@ -198,7 +197,7 @@ public class GroveV3EdisonImpl extends Hardware {
         findDup(result,pos,analogInputs, true);
         int j = analogInputs.length;
         while (--j>=0) {
-            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection],ConnectionType.Direct);
+            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection]);
         }
         
         if (configI2C) {

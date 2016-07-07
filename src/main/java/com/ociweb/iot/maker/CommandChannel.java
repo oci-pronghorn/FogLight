@@ -18,7 +18,6 @@ public abstract class CommandChannel {
       
         privateStage = new CommandStage(gm, output, i2cOutput, goPipe);
     }
-
     
     public abstract boolean digitalBlock(int connector, int duration);
     public abstract boolean digitalSetValue(int connector, int value);

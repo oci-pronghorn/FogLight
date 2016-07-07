@@ -129,66 +129,67 @@ public class IOTDeviceRuntime {
 
     
     public void addRotaryListener(RotaryListener listener) {
-        
-        Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);
-        collectedResponsePipes.add(pipe);
-        
-        ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
+        registerListener(listener);
     }
     
     public void addStartupListener(StartupListener listener) {
-        
-        Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);
-        collectedResponsePipes.add(pipe);
-        
-        ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
+        registerListener(listener);
     }
-    
-    
+        
     public void addAnalogListener(AnalogListener listener) {
-       
-        Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);
-        collectedResponsePipes.add(pipe);
-        
-        ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
+        registerListener(listener);
     }
     
-    public void addDigitalListener(DigitalListener listener) {
-        
-        Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig2x);
-        collectedResponsePipes.add(pipe);
-        
-        ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
-    }
-    
-    public void addI2CListener(I2CListener listener) {
-        
-        Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
-        collectedI2CResponsePipes.add(pipe);
-        
-        ReactiveListenerStage stage = new ReactiveListenerStage(gm, listener, pipe);
+    public void addDigitalListener(DigitalListener listener) {        
+        registerListener(listener);
     }
     
     public void addTimeListener(TimeListener listener) {
-    	registerListener(listener);
+        registerListener(listener);
+    }
+        
+    public void addI2CListener(I2CListener listener) {
+        registerListener(listener);
     }
     
     public void registerListener(Object listener) {
         
-        Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
-        collectedResponsePipes.add(pipe);
-        ReactiveListenerStage stage;
-              
-        stage = new ReactiveListenerStage(gm, listener, pipe);
+        List<Pipe> responsePipes = new ArrayList<Pipe>(); 
         
+        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
+            responsePipes.add(pipe);
+            collectedResponsePipes.add(pipe);
+        }
+        
+        if (listener instanceof I2CListener) {
+            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
+            responsePipes.add(pipe);
+            collectedI2CResponsePipes.add(pipe);
+        }
+        /////////////////////
+        //StartupListener is not driven by any response data and is called when the stage is started up. no pipe needed.
+        /////////////////////
+        //TimeListener, time rate signals are sent from the stages its self and therefore does not need a pipe to consume.
+        /////////////////////
+        if (listener instanceof PubSubListener) {
+            //TODO: need to implement
+        }
+        if (listener instanceof RestListener) {
+            //TODO: need to implement
+        }
+        configureStageRate(listener, new ReactiveListenerStage(gm, listener, responsePipes.toArray(new Pipe[responsePipes.size()]))); 
+    }
+
+    protected void configureStageRate(Object listener, ReactiveListenerStage stage) {
         //if we have a time event turn it on.
         long rate = hardware.getTriggerRate();
-        if (rate>0) {
+        if (rate>0 && listener instanceof TimeListener) {
             stage.setTimeEventSchedule(rate);
             //Since we are using the time schedule we must set the stage to be faster
             long customRate =   (rate*1_000_000)/4;// in ns and 4x faster than clock trigger
             GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, Math.min(customRate,DEFAULT_SLEEP_RATE_NS),stage);
-        } 
+        }
     }
 
         
@@ -288,12 +289,15 @@ public class IOTDeviceRuntime {
     }
 
     public void addSubscriptionListener(String string, PubSubListener exampleController) {
+        //add assert that this is only done before the graph is started
         
         // TODO Auto-generated method stub
         
     }
     
     public void addRESTListener(int id, String route, RestListener listener) {
+        //add assert that this is only done before the graph is started
+        
 
         // TODO accumulate all thse rest processor, when start is called then configure the server to take them all. 
         

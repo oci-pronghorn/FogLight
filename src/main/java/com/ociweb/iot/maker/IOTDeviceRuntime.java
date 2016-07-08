@@ -16,6 +16,7 @@ import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.EdisonReactiveListenerStage;
 import com.ociweb.pronghorn.iot.PiReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -85,30 +86,39 @@ public class IOTDeviceRuntime {
         
     }
 
+    private static final byte piI2C = 1;
+    private static final byte edI2C = 6;
+    
     public Hardware getHardware(){
     	if(this.hardware==null){
-    		String osversion  =System.getProperty("os.version");
-       	 
-            this.isEdison = ( osversion.toLowerCase().indexOf("edison") != -1 );
-            this.isPi     = ( osversion.toLowerCase().indexOf(";ppraspbian") != -1);
-            
-            if(!isEdison){
-            	isPi = true; //TODO: Find a way to detect Pi properly
-            	System.out.println("Device detection for Pi does not work. Defaulting to Pi Hardware for now");
-            }
-            
-            if (!isEdison && !isPi) {
-                logger.error("Unable to detect hardware : {}",osversion);
-                System.exit(0);
-            }
-
-            if(isPi){
-            	this.hardware = new GroveV2PiImpl(gm);
-            }else if(isEdison){
-            	this.hardware = new GroveV3EdisonImpl(gm);
-            }else{
-            	//MockHardware
-            }
+    	    
+    	    ////////////////////////
+    	    //The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
+    	    ///////////////////////
+    	    
+    	    I2CBacking i2cBacking = null;
+    	    
+    	    i2cBacking = Hardware.getI2CBacking(piI2C);
+    	    if (null != i2cBacking) {
+    	        this.isPi = true;
+    	        this.hardware = new GroveV2PiImpl(gm, i2cBacking);
+    	        System.out.println("Detected running on Pi");
+    	    } else {
+    	        i2cBacking = Hardware.getI2CBacking(edI2C);
+    	        if (null != i2cBacking) {
+    	            this.isEdison = true;
+    	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
+    	            System.out.println("Detected running on Edison");
+    	        } else {
+    	            System.out.println("Unrecognized hardware, debug mock hardware will be used");
+    	            
+    	            //TODO: create mock hardware.
+    	            
+    	        }
+    	        
+    	    }
+    	    
+    	    
     	}
     	return this.hardware;
     }

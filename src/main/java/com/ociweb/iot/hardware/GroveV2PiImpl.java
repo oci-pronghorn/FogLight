@@ -12,6 +12,7 @@ import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -29,8 +30,8 @@ public class GroveV2PiImpl extends Hardware {
 	private byte commandIndex = -1;
 	
 
-	public GroveV2PiImpl(GraphManager gm) {
-		super(gm);
+	public GroveV2PiImpl(GraphManager gm, I2CBacking i2cBacking) {
+		super(gm, i2cBacking);
 	}
 
 
@@ -187,11 +188,6 @@ public class GroveV2PiImpl extends Hardware {
 		}
 
 		return result;
-	}
-
-	@Override
-	public byte getI2CConnector() {
-		return 1;
 	}
 
 	

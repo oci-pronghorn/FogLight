@@ -8,6 +8,7 @@ import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.EdisonCommandChannel;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
@@ -22,8 +23,8 @@ public class GroveV3EdisonImpl extends Hardware {
     //pwm supports the same range and duty values for multiple platforms,  The frequencies are "near" each other but not yet the same.
     private int pwmBitsShift = 12; //the absolute minimum range for Edison is 1<<12 or 4096 this prevents the user from hitting this value.
     
-    public GroveV3EdisonImpl(GraphManager gm) {
-    	super(gm);
+    public GroveV3EdisonImpl(GraphManager gm, I2CBacking i2cBacking) {
+    	super(gm, i2cBacking);
    }
       
     
@@ -208,11 +209,5 @@ public class GroveV3EdisonImpl extends Hardware {
     
         return result;
     }
-    
-	@Override
-	public byte getI2CConnector() {
-		return 6;
-	}
-
 
 }

@@ -8,7 +8,9 @@ import com.google.common.base.Splitter;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
+import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
@@ -58,7 +60,7 @@ public abstract class Hardware {
     protected final PipeConfig<GroveResponseSchema> groveResponseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64, 1024);
     protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
     
-    
+    protected final I2CBacking i2cBacking;
     
     
     //TODO: ma per field with max defined here., 
@@ -68,15 +70,18 @@ public abstract class Hardware {
     
     private ReentrantLock lock = new ReentrantLock();
     
-    public Hardware(GraphManager gm) {
-        this(gm, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+    public Hardware(GraphManager gm, I2CBacking i2cBacking) {
+        this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
         
     }
     
-    protected Hardware(GraphManager gm, boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
+    protected Hardware(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
             HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs) {
         
-        this.configI2C = configI2C;
+        this.i2cBacking = i2cBacking;
+        
+        this.configI2C = configI2C; //may be removed.
+        
         this.multiBitInputs = multiDigitalInput; 
         //TODO: add multiBitOutputs and support for this new array
                 
@@ -87,6 +92,15 @@ public abstract class Hardware {
         this.gm = gm;
     }
 
+    
+    public static I2CBacking getI2CBacking(byte deviceNum) {
+        try {
+            return new I2CNativeLinuxBacking(deviceNum);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+    
     /////
     /////
     
@@ -99,11 +113,15 @@ public abstract class Hardware {
     }
     
     I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
-    	int l = original.length;
-        I2CConnection[] result = new I2CConnection[l+1];
-        System.arraycopy(original, 0, result, 0, l);
-        result[l] = toAdd;
-        return result;
+        if (null==original) {
+            return new I2CConnection[] {toAdd};
+        } else {
+        	int l = original.length;
+            I2CConnection[] result = new I2CConnection[l+1];
+            System.arraycopy(original, 0, result, 0, l);
+            result[l] = toAdd;
+            return result;
+        }
     }
     
     public Hardware useConnectA(IODevice t, int connection) {
@@ -206,7 +224,6 @@ public abstract class Hardware {
    
     public abstract void coldSetup();
     public abstract void cleanup();
-    public abstract byte getI2CConnector();
         
     
     public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, 
@@ -306,6 +323,8 @@ public abstract class Hardware {
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
         DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
     }
+
+
 
 
     

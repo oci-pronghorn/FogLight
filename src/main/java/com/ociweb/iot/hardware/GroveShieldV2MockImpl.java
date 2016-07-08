@@ -32,7 +32,7 @@ public class GroveShieldV2MockImpl extends Hardware {
     ThreadLocalRandom r = ThreadLocalRandom.current();
     
     public GroveShieldV2MockImpl(GraphManager gm) {
-        super(gm);
+        super(gm, null);
     }    
     
     public void addOptionalI2CBusSimulationPipe(Pipe<I2CBusSchema> pipe) {
@@ -122,13 +122,6 @@ public class GroveShieldV2MockImpl extends Hardware {
 		//TODO:Log show the log to show the mock process 
 		
 	}
-
-	@Override
-	public byte getI2CConnector() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 
 	@Override
 	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe,

@@ -1,19 +1,13 @@
 package com.ociweb.iot.hardware;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.grove.GroveTwig;
-import com.ociweb.iot.hardware.impl.Util;
-import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
-import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -21,12 +15,12 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class I2CJFFIStage extends AbstractOutputStage {
 
-	private static I2CNativeLinuxBacking i2c;
+	private final I2CBacking i2c;
 	private final Pipe<I2CCommandSchema>[] fromCommandChannels;
 	private final  Pipe<I2CResponseSchema> i2cResponsePipe;
 
 
-	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
+	private static final Logger logger = LoggerFactory.getLogger(I2CJFFIStage.class);
 
 	private int currentPoll = 0;
 	private I2CConnection[] inputs = null;
@@ -37,18 +31,13 @@ public class I2CJFFIStage extends AbstractOutputStage {
 			Pipe<TrafficAckSchema>[] ackPipe, 
 			Pipe<I2CResponseSchema> i2cResponsePipe,
 			Hardware hardware) { 
-		super(init(graphManager,hardware), hardware, i2cPayloadPipes, goPipe, join(ackPipe) /*add i2cREsponsePipe here*/); 
+		super(graphManager, hardware, i2cPayloadPipes, goPipe, join(ackPipe) /*add i2cREsponsePipe here*/); 
+		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
 		this.i2cResponsePipe = i2cResponsePipe;
 	}
 
-	//this odd hack is here so we throw an error BEFORE calling supper and registering with the graph manger.
-	private static GraphManager init(GraphManager gm, Hardware hardware) {	    
-		I2CJFFIStage.i2c = new I2CNativeLinuxBacking(hardware.getI2CConnector());	    
-		return gm;
-	}
-
-	@Override
+    @Override
 	public void startup(){
 		super.startup();
 		//TODO: add rotary encoder support
@@ -132,7 +121,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 						System.out.print(buffer[i]+", ");
 					}
 					System.out.println(" To "+addr);
-					I2CJFFIStage.i2c.write((byte) addr, buffer);
+					i2c.write((byte) addr, buffer);
 				}                                      
 				break;
 
@@ -165,7 +154,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 						System.out.print(buffer[i]+", ");
 					}
 					System.out.println(" To "+cmdAddr);
-					I2CJFFIStage.i2c.write(cmdAddr, buffer);
+					i2c.write(cmdAddr, buffer);
 
 					long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_DURATION_13);
 

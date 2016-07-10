@@ -35,13 +35,14 @@ public class I2CJFFIStage extends AbstractOutputStage {
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
 		this.i2cResponsePipe = i2cResponsePipe;
+		
+		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
 	}
 
     @Override
 	public void startup(){
 		super.startup();
 		//TODO: add rotary encoder support
-		inputs = hardware.i2cInputs;
 
 		//        int j = config.maxAnalogMovingAverage()-1; //TODO: work out what this does
 		//        movingAverageHistory = new int[j][]; 
@@ -179,20 +180,27 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 
 		}else{
-			byte[] temp =i2c.read(inputs[currentPoll-1].address, inputs[currentPoll-1].readBytes);
-
-			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, inputs[currentPoll-1].address);
-				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
-				PipeWriter.publishWrites(i2cResponsePipe);
-
-				currentPoll=currentPoll++%(inputs.length+1);
-			}
+		    int tempIdx = currentPoll-1;
+		    if (tempIdx<inputs.length) {
+    			byte[] temp =i2c.read(inputs[tempIdx].address, inputs[tempIdx].readBytes);
+    
+    			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+    				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, inputs[currentPoll-1].address);
+    				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
+    				PipeWriter.publishWrites(i2cResponsePipe);
+    
+    				currentPoll=currentPoll++%(inputs.length+1);
+    			}
+		    }
 
 
 		}
-		System.out.println(currentPoll);
-		i2c.write((byte)inputs[currentPoll-1].address, inputs[currentPoll-1].readCmd);
+
+		int idx = currentPoll-1;
+		if (idx<inputs.length) {
+		    I2CConnection connection = inputs[idx];
+		    i2c.write((byte)connection.address, connection.readCmd);
+		}
 	}
 
 

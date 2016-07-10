@@ -110,12 +110,6 @@ public class GroveShieldV2MockImpl extends Hardware {
 
     }
 
-    @Override
-    public void cleanup() {
-        // TODO Auto-generated method stub
-
-    }
-
 	@Override
 	public void digitalWrite(int connector, int value) {
 		//TODO:System.out.println();

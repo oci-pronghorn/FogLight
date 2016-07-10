@@ -1,34 +1,34 @@
 package com.ociweb.pronghorn.iot;
 
-import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.RestListener;
-import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class ReactiveListenerStage extends PronghornStage {
 
-    private final Object              listener;
-    private final Pipe<?>[]           pipes;
+    protected final Object              listener;
+    protected final Pipe<?>[]           pipes;
     
-    private long                      timeTrigger;
-    private long                      timeRate;
-               
+    protected long                      timeTrigger;
+    protected long                      timeRate;
+    private final GraphManager          graphManager;           
+    
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?> ... pipes) {
         
         super(graphManager, pipes, NONE);
         this.listener = listener;
-        this.pipes = pipes;                
+        this.pipes = pipes;
+        this.graphManager = graphManager;
+        
+        
     }
 
     public void setTimeEventSchedule(long rate) {
@@ -43,13 +43,19 @@ public abstract class ReactiveListenerStage extends PronghornStage {
     
     @Override
     public void startup() {
+                
+        //before calling any startup commands we must first ensure all commandChannels have finished starting up.
+        GraphManager.spinLockUntilStageOfTypeStarted(graphManager, CommandChannel.stageClass);
+                
         if (listener instanceof StartupListener) {
             ((StartupListener)listener).startup();
         }
+  
     }
-    
+
     @Override
     public void run() {
+        
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         

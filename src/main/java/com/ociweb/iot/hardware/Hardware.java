@@ -30,9 +30,6 @@ public abstract class Hardware {
     public static final int MAX_MOVING_AVERAGE_SUPPORTED = 101;
     
     private static final HardConnection[] EMPTY = new HardConnection[0];
-
-    private final int SLEEP_RATE_NS = 20000000;
-
     
     public boolean configI2C;       //Humidity, LCD need I2C address so..
     public long debugI2CRateLastTime;
@@ -223,11 +220,9 @@ public abstract class Hardware {
 
    
     public abstract void coldSetup();
-    public abstract void cleanup();
         
     
-    public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, 
-    		Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe);
+    public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe);
 
     static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
@@ -264,7 +259,7 @@ public abstract class Hardware {
         
         assert(orderPipes.length == i2cPipes.length);
         assert(orderPipes.length == requestPipes.length);
-        
+      
         
         int t = orderPipes.length;
         
@@ -278,11 +273,13 @@ public abstract class Hardware {
             
             Pipe<TrafficReleaseSchema> i2cGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
             Pipe<TrafficReleaseSchema> pinGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
+            
             Pipe<TrafficAckSchema> i2cAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
             Pipe<TrafficAckSchema> pinAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
         
             masterI2CgoOut[t] = i2cGoPipe;
             masterI2CackIn[t] = i2cAckPipe;
+            
             masterPINgoOut[t] = pinGoPipe;
             masterPINackIn[t] = pinAckPipe;            
             
@@ -294,17 +291,17 @@ public abstract class Hardware {
         
         createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
         
+        //only build and connect I2C if it is used      
         Pipe<I2CResponseSchema> masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
-        SplitterStage i2cResponseSplitter = new SplitterStage<>(gm, masterI2CResponsePipe, i2cResponsePipes);
-        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, i2cResponseSplitter);
-       
+        SplitterStage i2cResponseSplitter = new SplitterStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);  
         createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);
+
         
+        //only build and connect gpio responses if it is used
         Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
-        SplitterStage responseSplitter = new SplitterStage<>(gm, masterResponsePipe, responsePipes);
-        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, responseSplitter);
-        
+        SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
         createADInputStage(masterResponsePipe);        
+
         
     }
 

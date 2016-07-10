@@ -1,6 +1,9 @@
 package com.ociweb.iot.maker;
 
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -10,13 +13,12 @@ import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class CommandChannel {
- 
-    protected final CommandStage privateStage;
-    
+
+    public static Class<CommandChannelStage> stageClass = CommandChannelStage.class;
     
     protected CommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<TrafficOrderSchema> goPipe) {
-      
-        privateStage = new CommandStage(gm, output, i2cOutput, goPipe);
+              //never schedule
+        GraphManager.addNota(gm, GraphManager.UNSCHEDULED, GraphManager.UNSCHEDULED, new CommandChannelStage(gm, output, i2cOutput, goPipe));
     }
     
     public abstract boolean digitalBlock(int connector, int duration);
@@ -27,18 +29,23 @@ public abstract class CommandChannel {
     public abstract void i2cCommandClose();
     public abstract boolean i2cFlushBatch();
 
+    
 
-    private class CommandStage extends PronghornStage {
+    private class CommandChannelStage extends PronghornStage {
 
-        protected CommandStage(GraphManager graphManager, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<TrafficOrderSchema> goPipe) {
+        protected CommandChannelStage(GraphManager graphManager, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<TrafficOrderSchema> goPipe) {
             super(graphManager, NONE, join(output, i2cOutput, goPipe));
-            //never schedule
-            GraphManager.addNota(graphManager, GraphManager.UNSCHEDULED, GraphManager.UNSCHEDULED, this);
         }
 
         @Override
+        public void startup() {
+            //at this point we know the pipes are ready for use so mark it as ready for use.
+        }
+                
+        @Override
         public void run() {
             //never scheduled
+            throw new UnsupportedOperationException("this should never be called, check the scheduler");
         }
         
     }

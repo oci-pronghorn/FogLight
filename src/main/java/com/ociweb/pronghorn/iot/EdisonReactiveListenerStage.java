@@ -17,20 +17,9 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class EdisonReactiveListenerStage extends ReactiveListenerStage{
 
-    private final Object              listener;
-    private final Pipe<?>[]           pipes;
-    
-    private long                      timeTrigger;
-    private long                      timeRate;
-               
-    
-    public EdisonReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?> ... pipes) {
-        
-        super(graphManager, pipes, NONE);
-        this.listener = listener;
-        this.pipes = pipes;                
-    }
-    
+    public EdisonReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?> ... pipes) {        
+        super(graphManager, listener, pipes);                  
+    }    
 
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
         while (PipeReader.tryReadFragment(p)) {                

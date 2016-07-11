@@ -45,10 +45,9 @@ public class TrafficCopStage extends PronghornStage {
             ////////////////////////////////////////////////
             if (ackExpectedOn>=0) {            
                 if (!PipeReader.tryReadFragment(ackIn[ackExpectedOn])) {
-                	
                     return;//we are still waiting for requested operation to complete
                 } else {
-                    PipeReader.releasePendingReadLock(ackIn[ackExpectedOn]);
+                    PipeReader.releaseReadLock(ackIn[ackExpectedOn]);
                     ackExpectedOn = -1;//clear value we are no longer waiting
                 }
             }
@@ -62,10 +61,11 @@ public class TrafficCopStage extends PronghornStage {
                 if (TrafficOrderSchema.MSG_GO_10 == PipeReader.getMsgIdx(primaryIn)) {
                     //read which pipe should be used, set it as expecting to send an ack and get the Pipe object
                     Pipe<TrafficReleaseSchema> releasePipe = goOut[ackExpectedOn = PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11)];
+                    
                     //send the release count message
                     if (PipeWriter.tryWriteFragment(releasePipe, TrafficReleaseSchema.MSG_RELEASE_20)) {                
                         PipeWriter.writeInt(releasePipe, TrafficReleaseSchema.MSG_RELEASE_20_FIELD_COUNT_22, PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12));
-                        System.out.println("Cop writing to JFFI");
+                        
                         PipeWriter.publishWrites(releasePipe);
                     } else {
                         throw new UnsupportedOperationException("The outgoing pipe "+releasePipe+" must be bigger to hold release request");

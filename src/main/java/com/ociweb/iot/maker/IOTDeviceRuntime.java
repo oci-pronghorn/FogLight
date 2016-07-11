@@ -59,7 +59,6 @@ public class IOTDeviceRuntime {
     
     private boolean isEdison = false;
     private boolean isPi = false;
-    private List<Pipe> pipesForListenerConsumption = new ArrayList<Pipe>(); 
     
     private int DEFAULT_SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
     
@@ -140,7 +139,27 @@ public class IOTDeviceRuntime {
     }
     
     public void registerListener(Object listener) {
+        Class<? extends Object> c = listener.getClass();
+        Field[] fields = c.getDeclaredFields();
+        int f = fields.length;
+        while (--f >= 0) {
+            try {
+                fields[f].setAccessible(true);                
+                if (CommandChannel.class == fields[f].getType()) {
+                                        
+                //    System.out.println("found CommandChannel instance:"+   fields[f].get(listener).hashCode());
+
+                }
+                
+            } catch (Throwable e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+     
         
+        
+        List<Pipe> pipesForListenerConsumption = new ArrayList<Pipe>(); 
         
         if(isPi){ // TODO: more Grove Specific stuff. Needs to change to add GPIO read support
         	System.out.println("Creating Pi Listener");
@@ -296,7 +315,15 @@ public class IOTDeviceRuntime {
         
     }
 
-
+	public static IOTDeviceRuntime run(IoTApp app) {
+        
+        IOTDeviceRuntime runtime = new IOTDeviceRuntime();
+        
+        app.specifyConnections(runtime.getHardware());
+        app.setup(runtime);
+        runtime.start();
+        return runtime;
+    }
     
     
 }

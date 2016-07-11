@@ -29,7 +29,7 @@ public class PiReactiveListenerStage extends ReactiveListenerStage{
 
 	@Override
 	protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-		System.out.println("Consuming I2C");
+		
 		while (PipeReader.tryReadFragment(p)) {                
 
 			int msgIdx = PipeReader.getMsgIdx(p);

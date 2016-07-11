@@ -64,12 +64,10 @@ public abstract class ReactiveListenerStage extends PronghornStage {
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         
-    	System.out.println("ReactiveListener Run is Called. pipes.length = "+pipes.length);
         int p = pipes.length;
         while (--p >= 0) {
             //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
             Pipe<?> localPipe = pipes[p];
-            System.out.println("Processing Pipe "+p);
             if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
             } else

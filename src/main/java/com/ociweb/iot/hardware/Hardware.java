@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.base.Splitter;
 import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.IOTDeviceRuntime;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -23,6 +24,8 @@ import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
+import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 
 public abstract class Hardware {
     
@@ -319,6 +322,19 @@ public abstract class Hardware {
 
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
         DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
+    }
+
+    public StageScheduler createScheduler(IOTDeviceRuntime iotDeviceRuntime) {
+        //NOTE: need to consider different schedulers in the future.
+       final StageScheduler scheduler = new ThreadPerStageScheduler(gm);
+
+       Runtime.getRuntime().addShutdownHook(new Thread() {
+           public void run() {
+             scheduler.shutdown();
+             scheduler.awaitTermination(30, TimeUnit.MINUTES);
+           }
+       });
+       return scheduler;
     }
 
 

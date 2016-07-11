@@ -30,7 +30,6 @@ import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
-import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.Appendables;
 
 public class IOTDeviceRuntime {
@@ -197,30 +196,15 @@ public class IOTDeviceRuntime {
     
        
        //find all the instances of CommandChannel stage to startup first, note they are also unscheduled.
+            
        
+       exportGraphDotFile();      
        
-       
-       exportGraphDotFile();        
-       startScheduler();
-              
-    }
-
-
-    //TOOD: do not want makers to call this but need it for unti testing.
-    
-    protected void startScheduler() {
-        //NOTE: need to consider different schedulers in the future.
-       scheduler = new ThreadPerStageScheduler(gm);
+       scheduler = hardware.createScheduler(this);
        scheduler.startup();
-       
-       Runtime.getRuntime().addShutdownHook(new Thread() {
-           public void run() {
-             scheduler.shutdown();
-             scheduler.awaitTermination(30, TimeUnit.MINUTES);
-           }
-       });
-    }
 
+    }
+    
     /**
      * Export file so GraphVis can be used to view the internal graph.
      * 

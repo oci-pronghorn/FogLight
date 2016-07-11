@@ -2,12 +2,15 @@ package com.ociweb.iot.hardware;
 
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.EdisonCommandChannel;
+import com.ociweb.iot.maker.IOTDeviceRuntime;
 import com.ociweb.iot.maker.PiCommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
+import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 
 public class TestHardware extends Hardware {
 
@@ -55,6 +58,14 @@ public class TestHardware extends Hardware {
             return new PiCommandChannel(gm, pipe, i2cPayloadPipe, orderPipe, commandIndex);
         }
         
+    }
+    
+    @Override
+    public StageScheduler createScheduler(IOTDeviceRuntime iotDeviceRuntime) {
+        //NOTE: need to consider different schedulers in the future.
+       final StageScheduler scheduler = new NonThreadScheduler(gm);
+
+       return scheduler;
     }
 
 }

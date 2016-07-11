@@ -24,6 +24,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 	private int currentPoll = 0;
 	private I2CConnection[] inputs = null;
+	private int lastWriteIdx = 0;
 
 	public I2CJFFIStage(GraphManager graphManager, 
 			Pipe<TrafficReleaseSchema>[] goPipe, 
@@ -88,6 +89,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 		if(currentPoll ==0){
 			currentPoll++;
+			lastWriteIdx = -1; // Resets idx for polling below
 			while (hasReleaseCountRemaining(a) 
 					&& Pipe.hasContentToRead(fromCommandChannels[activePipe])
 					&& !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) //peek next address and check that it is not blocking for some time                
@@ -196,10 +198,12 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 		}
 
-		int idx = currentPoll-1;
-		if (idx<inputs.length) {
-		    I2CConnection connection = inputs[idx];
+		//Only send one read command for each i2c read
+		if (lastWriteIdx<currentPoll-1) {
+			lastWriteIdx = currentPoll-1;
+		    I2CConnection connection = inputs[lastWriteIdx];
 		    i2c.write((byte)connection.address, connection.readCmd);
+		    
 		}
 	}
 

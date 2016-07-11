@@ -19,18 +19,12 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class PiReactiveListenerStage extends ReactiveListenerStage{
 
-	private final Object              listener;
-	private final Pipe<?>[]           pipes;
 
-	private long                      timeTrigger;
-	private long                      timeRate;
+	public PiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe[] pipes) {
 
-
-	public PiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?> ... pipes) {
-
-		super(graphManager, pipes, NONE);
-		this.listener = listener;
-		this.pipes = pipes;                
+		super(graphManager, listener, pipes);
+		listener = listener;
+		pipes = pipes;                
 	}
 
 	@Override

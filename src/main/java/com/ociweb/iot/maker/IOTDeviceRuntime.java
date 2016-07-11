@@ -177,7 +177,7 @@ public class IOTDeviceRuntime {
 	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
 	            pipesForListenerConsumption.add(pipe);
 	        }
-	        else if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+	        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
 	            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
 	            pipesForListenerConsumption.add(pipe);
 	            System.out.println("added new response pipe and added lit edison listener");
@@ -188,7 +188,7 @@ public class IOTDeviceRuntime {
 	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
 	            pipesForListenerConsumption.add(pipe);
 	        }
-	        else if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+	        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
 	            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
 	            pipesForListenerConsumption.add(pipe);
 	            System.out.println("added new response pipe and added lit edison listener");

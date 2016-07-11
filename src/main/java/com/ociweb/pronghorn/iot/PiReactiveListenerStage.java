@@ -40,14 +40,16 @@ public class PiReactiveListenerStage extends ReactiveListenerStage{
                         case I2CResponseSchema.MSG_RESPONSE_10:
                             if (listener instanceof I2CListener) {
                                 
-                                byte addr = (byte)PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
+                                int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
+                                int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
+                                int time = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
                                 
                                 byte[] backing = PipeReader.readBytesBackingArray(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
                                 int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
                                 int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
                                 int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
                                 
-                                ((I2CListener)listener).i2cEvent(addr, backing, position, length, mask);
+                                ((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
                                
                             }
                             break;

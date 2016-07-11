@@ -4,6 +4,7 @@
    <template name="Response" id="10">  <!-- every message has address first -->
      <uInt32 name="Address" id="11"/>
      <uInt64 name="Time" id="13"/>
+     <uInt32 name="Register" id="14"/>
      <byteVector name="ByteArray" id="12"/>
    </template>
      

@@ -59,6 +59,7 @@ public class IOTDeviceRuntime {
     
     private boolean isEdison = false;
     private boolean isPi = false;
+    private List<Pipe> pipesForListenerConsumption = new ArrayList<Pipe>(); 
     
     private int DEFAULT_SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
     
@@ -125,7 +126,8 @@ public class IOTDeviceRuntime {
         registerListener(listener);
     }
     
-    public void addDigitalListener(DigitalListener listener) {        
+    public void addDigitalListener(DigitalListener listener) {  
+    	System.out.println("Creating a Digital Listener");
         registerListener(listener);
     }
     
@@ -139,18 +141,41 @@ public class IOTDeviceRuntime {
     
     public void registerListener(Object listener) {
         
-        List<Pipe> pipesForListenerConsumption = new ArrayList<Pipe>(); 
         
-        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
-            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
-            pipesForListenerConsumption.add(pipe);
-            System.out.println("added new response pipe and added lit edison listener");
+        if(isPi){ // TODO: more Grove Specific stuff. Needs to change to add GPIO read support
+        	System.out.println("Creating Pi Listener");
+        	assert(!isEdison);
+	        if (listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
+	            System.out.println("added new Pi Pipe");
+	            pipesForListenerConsumption.add(pipe);
+	        }
+        }else if(isEdison){
+        	System.out.println("Creating Edison Listener");
+        	assert(!isPi);
+        	if (listener instanceof I2CListener) {
+	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
+	            pipesForListenerConsumption.add(pipe);
+	        }
+	        else if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+	            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
+	            pipesForListenerConsumption.add(pipe);
+	            System.out.println("added new response pipe and added lit edison listener");
+	        }
+        }else{ //I just left it as is maybe doesn't need to be different from Ed
+        	System.out.println("Creating Mock Listener");
+        	if (listener instanceof I2CListener) {
+	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
+	            pipesForListenerConsumption.add(pipe);
+	        }
+	        else if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+	            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
+	            pipesForListenerConsumption.add(pipe);
+	            System.out.println("added new response pipe and added lit edison listener");
+	        }
         }
         
-        if (listener instanceof I2CListener) {
-            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
-            pipesForListenerConsumption.add(pipe);
-        }
+        
         /////////////////////
         //StartupListener is not driven by any response data and is called when the stage is started up. no pipe needed.
         /////////////////////
@@ -164,8 +189,8 @@ public class IOTDeviceRuntime {
         }
         
         
-        
         if(isPi){
+        	System.out.println("Creating new PiReactiveListenerStage with pipe array size "+pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]).length);
         	configureStageRate(listener, new PiReactiveListenerStage(gm, listener, pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]))); 
         }else{
         	configureStageRate(listener, new EdisonReactiveListenerStage(gm, listener, pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()])));

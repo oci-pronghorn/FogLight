@@ -3,6 +3,7 @@ package com.ociweb.iot.maker;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -139,6 +140,26 @@ public class IOTDeviceRuntime {
     
     public void registerListener(Object listener) {
         
+        Class<? extends Object> c = listener.getClass();
+        Field[] fields = c.getDeclaredFields();
+        int f = fields.length;
+        while (--f >= 0) {
+            try {
+                fields[f].setAccessible(true);                
+                if (CommandChannel.class == fields[f].getType()) {
+                                        
+                //    System.out.println("found CommandChannel instance:"+   fields[f].get(listener).hashCode());
+
+                }
+                
+            } catch (Throwable e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+     
+        
+        
         List<Pipe> pipesForListenerConsumption = new ArrayList<Pipe>(); 
         
         if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
@@ -269,6 +290,17 @@ public class IOTDeviceRuntime {
 
         // TODO accumulate all thse rest processor, when start is called then configure the server to take them all. 
         
+    }
+
+
+    public static IOTDeviceRuntime run(IoTApp app) {
+        
+        IOTDeviceRuntime runtime = new IOTDeviceRuntime();
+        
+        app.specifyConnections(runtime.getHardware());
+        app.setup(runtime);
+        runtime.start();
+        return runtime;
     }
 
 

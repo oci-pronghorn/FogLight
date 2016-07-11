@@ -21,10 +21,7 @@ public class PiReactiveListenerStage extends ReactiveListenerStage{
 
 
 	public PiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe[] pipes) {
-
-		super(graphManager, listener, pipes);
-		listener = listener;
-		pipes = pipes;                
+		super(graphManager, listener, pipes);             
 	}
 
 	@Override

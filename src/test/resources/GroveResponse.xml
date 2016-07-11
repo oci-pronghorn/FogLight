@@ -7,6 +7,8 @@
      <uInt32 name="Connector" id="21"/>
      <uInt64 name="Time" id="11"/>
      <uInt32 name="Value" id="22"/>
+     <uInt64 name="PrevDuration" id="25"/>
+     
    </template>
        
    <template name="AnalogSample" id="30">
@@ -14,6 +16,7 @@
      <uInt64 name="Time" id="11"/>
      <uInt32 name="Value" id="32"/>
      <uInt32 name="Average" id="33"/>
+     <uInt64 name="PrevDuration" id="35"/>
    </template>
    
    <template name="Encoder" id="70">
@@ -22,6 +25,7 @@
      <int32 name="Value" id="72"/>>
      <int32 name="Delta" id="73"/>
      <uInt32 name="Speed" id="74"/>
+     <uInt64 name="PrevDuration" id="75"/>
    </template>
     
 </templates>

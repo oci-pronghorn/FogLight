@@ -98,8 +98,7 @@ public class IOTDeviceRuntime {
     	            this.hardware = new TestHardware(gm);
     	            System.out.println("Unrecognized hardware, test mock hardware will be used");
     	        }    	        
-    	    }
-    	    
+    	    }  	    
     	    
     	}
     	return this.hardware;
@@ -203,6 +202,11 @@ public class IOTDeviceRuntime {
        scheduler = hardware.createScheduler(this);
        scheduler.startup();
 
+    }
+    
+    //TODO: required for testing only
+    public StageScheduler getScheduler() {
+        return scheduler;
     }
     
     /**

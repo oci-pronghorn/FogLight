@@ -1,10 +1,8 @@
 package com.ociweb.iot.maker;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -15,53 +13,43 @@ public class PiCommandChannel extends CommandChannel{
 
 	private Pipe<GroveRequestSchema> output;
 	private Pipe<I2CCommandSchema> i2cOutput;
-	private Pipe<TrafficOrderSchema> goPipe;
-	private AtomicBoolean aBool = new AtomicBoolean(false);    
+	
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
-	private byte channelIdx;
+	private byte i2cPipeIdx;
 	private byte groveAddr = 0x04;
 	
 
+    //TODO: need to set this as a constant driven from the known i2c devices and the final methods
+    private final int maxCommands = 16;
+	
+
 	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
-			//TODO:Was this protected for security reasons? I'm making it in hardware now.
-		super(gm, output, i2cOutput, goPipe);
+		super(gm, goPipe, output, i2cOutput, goPipe); //yes this is supposed to pass in goPipe twice. 
 		this.output = output;
 		this.i2cOutput = i2cOutput;  
-		this.goPipe = goPipe;
-		this.channelIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital
+		this.i2cPipeIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital
 
 	}
 
 
-	public boolean digitalBlock(int connector, int duration) { //TODO: Make this work for Pi I2C
+	public boolean block(int connector, int duration) { //TODO: Make this work for Pi I2C
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {            
 
-		    boolean msg;
-			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCK_10)) {
+			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCK_10)) {
 
 				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, connector);
 				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13, duration);
 
 				PipeWriter.publishWrites(i2cOutput);
 
-				msg = true;
-			} else {
-			    msg = false;
-			}
-		
-            if(msg && PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { 
-    
-                PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, channelIdx);
-                PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
-                System.out.println("CommandChannel sends digitalWrite i2c go");
-    
-                PipeWriter.publishWrites(goPipe);
+                int count = 1;
+                publishGo(count,i2cPipeIdx);
                 return true;
-            } else {
-                return false; ///TODO: error this is very bad.
+			} else {			  
+                return false; 
             }
         
 		} finally {
@@ -78,8 +66,8 @@ public class PiCommandChannel extends CommandChannel{
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			boolean msg;
-			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
+	
+			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
 
 				digitalMessageTemplate[2] = (byte)connector;
 				digitalMessageTemplate[3] = (byte)value;
@@ -91,20 +79,12 @@ public class PiCommandChannel extends CommandChannel{
 				
 				System.out.println("CommandChannel sends digitalWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
-				msg = true;
-			}else{
-				msg = false;
-			}
 				
-			if(msg && PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { 
-
-					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, channelIdx);
-					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
-					System.out.println("CommandChannel sends digitalWrite i2c go");
-
-					PipeWriter.publishWrites(goPipe);
+                int count = 1;
+                publishGo(count,i2cPipeIdx);
+                
 				return true;
-			} else {
+			}else{
 				return false;
 			}
 
@@ -120,8 +100,7 @@ public class PiCommandChannel extends CommandChannel{
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			boolean msg;
-			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
+			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
 
 				analogMessageTemplate[2] = (byte)connector;
 				analogMessageTemplate[3] = (byte)value;
@@ -133,20 +112,13 @@ public class PiCommandChannel extends CommandChannel{
 				
 				System.out.println("CommandChannel sends analogWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
-				msg = true;
-			}else{
-				msg = false;
-			}
 				
-			if(msg && PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { 
-
-					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, channelIdx);
-					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);
-					System.out.println("CommandChannel sends analogWrite i2c go");
-
-					PipeWriter.publishWrites(goPipe);
+                int count = 1;
+                publishGo(count,i2cPipeIdx);
+				
 				return true;
-			} else {
+			}else{
+				
 				return false;
 			}
 
@@ -160,11 +132,9 @@ public class PiCommandChannel extends CommandChannel{
 			i2cWriter = new DataOutputBlobWriter(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
 		}
 
-
-		//TODO: need to set this as a constant driven from the known i2c devices and the final methods
-		int maxCommands = 16;
-
-		return PipeWriter.hasRoomForWrite(output) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
+		return PipeWriter.hasRoomForWrite(goPipe) &&
+		       PipeWriter.hasRoomForWrite(output) && 
+		       PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
 
 	}
 
@@ -227,34 +197,41 @@ public class PiCommandChannel extends CommandChannel{
 	public boolean i2cFlushBatch() {        
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: Could the I2C Pipe be full so we send too many go commands?
-
-			PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, channelIdx);
-			PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) runningI2CCommandCount);
-			
-			System.out.println("CommandChannel sends standard i2c go");
-
-			PipeWriter.publishWrites(goPipe);
+            int count = 1;
+            publishGo(count,i2cPipeIdx);
+            
 			runningI2CCommandCount =0;
 			return true;
-		}else{
-			System.out.println("failed to send go");
-			
-		}         
+       
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
-	    return false;
 	}
 
 
-	private boolean enterBlockOk() {
-		return aBool.compareAndSet(false, true);
-	}
 
-	private boolean exitBlockOk() {
-		return aBool.compareAndSet(true, false);
-	}
+    @Override
+    public boolean block(int msDuration) {
+        throw new UnsupportedOperationException("TODO: implment this, send.");
+        // TODO Auto-generated method stub
+        //return false;
+    }
+
+
+    @Override
+    public boolean digitalSetValueAndBlock(int connector, int value, int msDuration) {
+        throw new UnsupportedOperationException("TODO: implment this, send.");
+        // TODO Auto-generated method stub
+        //return false;
+    }
+
+
+    @Override
+    public boolean analogSetValueAndBlock(int connector, int value, int msDuration) {
+        throw new UnsupportedOperationException("TODO: implment this, send.");
+        // TODO Auto-generated method stub
+        //return false;
+    }
 
 
 }

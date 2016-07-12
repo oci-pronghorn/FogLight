@@ -1,21 +1,49 @@
 package com.ociweb.iot.maker;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public abstract class CommandChannel {
 
     public final Pipe<?>[] outputPipes;
-    
-    protected CommandChannel(GraphManager gm, Pipe<?> ... outputPipes) {
+    protected final Pipe<TrafficOrderSchema> goPipe;
+    protected AtomicBoolean aBool = new AtomicBoolean(false);    
+        
+    protected CommandChannel(GraphManager gm, Pipe<TrafficOrderSchema> goPipe, Pipe<?> ... outputPipes) {
        this.outputPipes = outputPipes;
+       this.goPipe = goPipe;
     }
     
-    public abstract boolean digitalBlock(int connector, int duration);
+    protected void publishGo(int count, int pipeIdx) {
+        if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) {                 
+            PipeWriter.writeInt(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, pipeIdx);
+            PipeWriter.writeInt(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, count);
+            PipeWriter.publishWrites(goPipe);
+        } else {
+            throw new UnsupportedOperationException("Was already check and should not have run out of space.");
+        }
+    }
+
+    protected boolean enterBlockOk() {
+        return aBool.compareAndSet(false, true);
+    }
+    
+    protected boolean exitBlockOk() {
+        return aBool.compareAndSet(true, false);
+    }
+    
+    public abstract boolean block(int msDuration);
+    public abstract boolean block(int connector, int msDuration);
     public abstract boolean digitalSetValue(int connector, int value);
+    public abstract boolean digitalSetValueAndBlock(int connector, int value, int msDuration);
     public abstract boolean analogSetValue(int connector, int value);
+    public abstract boolean analogSetValueAndBlock(int connector, int value, int msDuration);
     public abstract boolean i2cIsReady();
     public abstract DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress);
     public abstract void i2cCommandClose();

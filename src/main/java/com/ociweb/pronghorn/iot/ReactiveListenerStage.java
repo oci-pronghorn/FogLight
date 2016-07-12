@@ -1,6 +1,7 @@
 package com.ociweb.pronghorn.iot;
 
 import com.ociweb.iot.maker.AnalogListener;
+import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.RestListener;
@@ -25,14 +26,16 @@ public abstract class ReactiveListenerStage extends PronghornStage {
     protected long                      timeTrigger;
     protected long                      timeRate;
     private final GraphManager          graphManager;           
-    
-    
+  
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
+
         
         super(graphManager, inputPipes, outputPipes);
         this.listener = listener;
+
         this.inputPipes = inputPipes;
         this.outputPipes = outputPipes;
+
         this.graphManager = graphManager;
         
         
@@ -66,6 +69,7 @@ public abstract class ReactiveListenerStage extends PronghornStage {
         int p = inputPipes.length;
         while (--p >= 0) {
             //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
+
             Pipe<?> localPipe = inputPipes[p];
 
             if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
@@ -119,8 +123,6 @@ public abstract class ReactiveListenerStage extends PronghornStage {
         }
     }
     
-
-
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
         System.out.println("Wrong I2C Consume");
         while (PipeReader.tryReadFragment(p)) {                
@@ -212,6 +214,7 @@ public abstract class ReactiveListenerStage extends PronghornStage {
             PipeReader.releaseReadLock(p);
         }
     } 
+
     
     
 }

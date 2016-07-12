@@ -141,9 +141,9 @@ public class IOTDeviceRuntime {
     }
     
     public void registerListener(Object listener) {
-        
-        
+  
         Pipe<?>[] outputPipes = new Pipe<?>[0];
+
         Class<? extends Object> c = listener.getClass();
         Field[] fields = c.getDeclaredFields();
         int f = fields.length;
@@ -208,10 +208,12 @@ public class IOTDeviceRuntime {
             //TODO: need to implement
         }
         
+
         Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
-        
+
         if(isPi){
         	System.out.println("Creating new PiReactiveListenerStage with pipe array size "+pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]).length);
+
         	configureStageRate(listener, new PiReactiveListenerStage(gm, listener, inputPipes, outputPipes)); 
         }else{
         	configureStageRate(listener, new EdisonReactiveListenerStage(gm, listener, inputPipes, outputPipes));

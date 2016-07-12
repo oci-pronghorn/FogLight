@@ -12,9 +12,9 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class EdisonCommandChannel extends CommandChannel{
 
-	private Pipe<GroveRequestSchema> output;
-	private Pipe<I2CCommandSchema> i2cOutput;
-	private Pipe<TrafficOrderSchema> goPipe;
+	private final Pipe<GroveRequestSchema> output;
+	private final Pipe<I2CCommandSchema> i2cOutput;
+	private final Pipe<TrafficOrderSchema> goPipe;
 	private AtomicBoolean aBool = new AtomicBoolean(false);    
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
@@ -72,7 +72,7 @@ public class EdisonCommandChannel extends CommandChannel{
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			boolean msg;
-			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) { //TODO: this needs to be generic 
+			if (PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) {
 
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, value);
@@ -83,7 +83,7 @@ public class EdisonCommandChannel extends CommandChannel{
 				msg = false;
 			}
 				
-			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) { //TODO: this needs to be generic 
+			if(msg&&PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) {
 
 					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, adIndex);
 					PipeWriter.writeByte(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, (byte) 1);

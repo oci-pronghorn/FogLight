@@ -32,7 +32,7 @@ public class GroveShieldV2MockImpl extends Hardware {
     ThreadLocalRandom r = ThreadLocalRandom.current();
     
     public GroveShieldV2MockImpl(GraphManager gm) {
-        super(gm);
+        super(gm, null);
     }    
     
     public void addOptionalI2CBusSimulationPipe(Pipe<I2CBusSchema> pipe) {
@@ -110,12 +110,6 @@ public class GroveShieldV2MockImpl extends Hardware {
 
     }
 
-    @Override
-    public void cleanup() {
-        // TODO Auto-generated method stub
-
-    }
-
 	@Override
 	public void digitalWrite(int connector, int value) {
 		//TODO:System.out.println();
@@ -124,24 +118,12 @@ public class GroveShieldV2MockImpl extends Hardware {
 	}
 
 	@Override
-	public byte getI2CConnector() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
-	@Override
 	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe,
 			Pipe<TrafficOrderSchema> orderPipe) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-    @Override
-    public byte[][] getGroveI2CInputs() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
 
 

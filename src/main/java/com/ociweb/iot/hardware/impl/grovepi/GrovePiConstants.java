@@ -2,7 +2,6 @@ package com.ociweb.iot.hardware.impl.grovepi;
 
 import com.ociweb.iot.grove.GroveTwig;
 import com.ociweb.iot.hardware.HardConnection;
-import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 
 /**
  * TODO: GPIO 2 is SDA on an RPi
@@ -107,8 +106,8 @@ public class GrovePiConstants {
     };
     
     public static final HardConnection[] i2cPins = new HardConnection[] {
-    new HardConnection(GroveTwig.I2C,0,ConnectionType.Direct),
-    new HardConnection(GroveTwig.I2C,1,ConnectionType.Direct)
+    new HardConnection(GroveTwig.I2C,0),
+    new HardConnection(GroveTwig.I2C,1)
     };
     
     public final static int DATA_RAW_VOLTAGE = 0;

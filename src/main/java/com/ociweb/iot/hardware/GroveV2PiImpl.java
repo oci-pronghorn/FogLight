@@ -12,6 +12,7 @@ import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -29,8 +30,8 @@ public class GroveV2PiImpl extends Hardware {
 	private byte commandIndex = -1;
 	
 
-	public GroveV2PiImpl(GraphManager gm) {
-		super(gm);
+	public GroveV2PiImpl(GraphManager gm, I2CBacking i2cBacking) {
+		super(gm, i2cBacking);
 	}
 
 
@@ -40,9 +41,66 @@ public class GroveV2PiImpl extends Hardware {
 		return new PiCommandChannel(gm, pipe, i2cPayloadPipe, orderPipe, commandIndex);	
 	}
 	
-	public byte getI2CConnector(){
-		return 1;
-	}
+	@Override
+	public Hardware useConnectA(IODevice t, int connection) {
+        return useConnectA(t,connection,-1);
+    }
+    
+	@Override
+    public Hardware useConnectA(IODevice t, int connection, int customRate) { //TODO: add customRate support
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
+            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection));
+        } else {
+            assert(t.isOutput());
+            pwmOutputs = growHardConnections(pwmOutputs, new HardConnection(t,connection));
+        }
+        return this;
+    }
+    
+	@Override
+    public Hardware useConnectD(IODevice t, int connection) {
+        return useConnectD(t,connection,-1);
+    }
+    
+	@Override
+    public Hardware useConnectD(IODevice t, int connection, int customRate) { //TODO: add customRate support
+    	
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            byte[] temp = {0x01,0x01,(byte)connection,0x00,0x00};
+            System.out.println("Digital Input Connected on "+connection);
+            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,1,connection)); //TODO: Always assumes Grove
+        } else {
+            assert(t.isOutput());
+            digitalOutputs = growHardConnections(digitalOutputs, new HardConnection(t,connection));
+        }
+        return this;
+    }  
+    
+	@Override
+    public Hardware useConnectDs(IODevice t, int ... connections) {
+
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            for(int con:connections) {
+                multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con)); //TODO: Add multiple input support for pi
+            }
+            
+          System.out.println("connections "+Arrays.toString(connections));  
+          System.out.println("Encoder here "+Arrays.toString(multiBitInputs));  
+            
+        } else {
+            assert(t.isOutput());
+            for(int con:connections) {
+                multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
+            }
+        }
+        return this;
+        
+    }  
+	
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);
@@ -61,7 +119,7 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	public int digitalRead(int connector) { 
-		System.out.println("GPIO not currently supported on Pi");
+		System.out.println("I'm calling this method like a dingus");
 		return 0;
 	}
 
@@ -130,22 +188,6 @@ public class GroveV2PiImpl extends Hardware {
 			pos+=GrovePiConstants.i2cPins.length;
 		}
 
-		return result;
-	}
-
-
-	@Override
-	public byte[][] getGroveI2CInputs() { //TODO: This is a quick fix. Should return an actual object with this info
-		byte[][] result = new byte[digitalInputs.length+analogInputs.length][];
-		for (int i = 0; i < digitalInputs.length; i++) {
-			byte[] temp= {4, 1, 0x01, 0x01, digitalInputs[i].connection, 0x00, 0x00};
-			result[i] = temp;
-		}
-		for (int i = digitalInputs.length; i < analogInputs.length; i++) {
-			byte[] temp= {4, 3, 0x01, 0x03, analogInputs[i].connection, 0x00, 0x00};
-			result[i] = temp;
-		}
-		
 		return result;
 	}
 

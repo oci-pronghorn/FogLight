@@ -5,11 +5,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.base.Splitter;
-import com.ociweb.iot.hardware.HardConnection.ConnectionType;
 import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.IOTDeviceRuntime;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
+import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
@@ -22,6 +24,8 @@ import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
+import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 
 public abstract class Hardware {
     
@@ -29,9 +33,6 @@ public abstract class Hardware {
     public static final int MAX_MOVING_AVERAGE_SUPPORTED = 101;
     
     private static final HardConnection[] EMPTY = new HardConnection[0];
-
-    private final int SLEEP_RATE_NS = 20000000;
-
     
     public boolean configI2C;       //Humidity, LCD need I2C address so..
     public long debugI2CRateLastTime;
@@ -45,7 +46,7 @@ public abstract class Hardware {
     public HardConnection[] analogInputs;  //Light, UV, Moisture
     public HardConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     
-    public HardConnection[] i2cInputs;
+    public I2CConnection[] i2cInputs;
     
     private long timeTriggerRate;
     
@@ -59,7 +60,7 @@ public abstract class Hardware {
     protected final PipeConfig<GroveResponseSchema> groveResponseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64, 1024);
     protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
     
-    
+    protected final I2CBacking i2cBacking;
     
     
     //TODO: ma per field with max defined here., 
@@ -69,15 +70,18 @@ public abstract class Hardware {
     
     private ReentrantLock lock = new ReentrantLock();
     
-    public Hardware(GraphManager gm) {
-        this(gm, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+    public Hardware(GraphManager gm, I2CBacking i2cBacking) {
+        this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
         
     }
     
-    protected Hardware(GraphManager gm, boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
+    protected Hardware(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
             HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs) {
         
-        this.configI2C = configI2C;
+        this.i2cBacking = i2cBacking;
+        
+        this.configI2C = configI2C; //may be removed.
+        
         this.multiBitInputs = multiDigitalInput; 
         //TODO: add multiBitOutputs and support for this new array
                 
@@ -88,10 +92,19 @@ public abstract class Hardware {
         this.gm = gm;
     }
 
+    
+    public static I2CBacking getI2CBacking(byte deviceNum) {
+        try {
+            return new I2CNativeLinuxBacking(deviceNum);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+    
     /////
     /////
     
-    HardConnection[] growConnections(HardConnection[] original, HardConnection toAdd) {
+    HardConnection[] growHardConnections(HardConnection[] original, HardConnection toAdd) {
         int l = original.length;
         HardConnection[] result = new HardConnection[l+1];
         System.arraycopy(original, 0, result, 0, l);
@@ -99,18 +112,30 @@ public abstract class Hardware {
         return result;
     }
     
+    I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
+        if (null==original) {
+            return new I2CConnection[] {toAdd};
+        } else {
+        	int l = original.length;
+            I2CConnection[] result = new I2CConnection[l+1];
+            System.arraycopy(original, 0, result, 0, l);
+            result[l] = toAdd;
+            return result;
+        }
+    }
+    
     public Hardware useConnectA(IODevice t, int connection) {
         return useConnectA(t,connection,-1);
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-    	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.Grove);
+    	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection):new HardConnection(t,connection);
         if (t.isInput()) {
             assert(!t.isOutput());
-            analogInputs = growConnections(analogInputs, gc);
+            analogInputs = growHardConnections(analogInputs, gc);
         } else {
             assert(t.isOutput());
-            pwmOutputs = growConnections(pwmOutputs, gc);
+            pwmOutputs = growHardConnections(pwmOutputs, gc);
         }
         return this;
     }
@@ -121,13 +146,13 @@ public abstract class Hardware {
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
     	
-        HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection,ConnectionType.Direct):new HardConnection(t,connection,ConnectionType.Grove);
+        HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection):new HardConnection(t,connection);
         if (t.isInput()) {
             assert(!t.isOutput());
-            digitalInputs = growConnections(digitalInputs, gc);
+            digitalInputs = growHardConnections(digitalInputs, gc);
         } else {
             assert(t.isOutput());
-            digitalOutputs = growConnections(digitalOutputs, gc);
+            digitalOutputs = growHardConnections(digitalOutputs, gc);
         }
         return this;
     }  
@@ -138,7 +163,7 @@ public abstract class Hardware {
         if (t.isInput()) {
             assert(!t.isOutput());
             for(int con:connections) {
-                multiBitInputs = growConnections(multiBitInputs, new HardConnection(t,con,ConnectionType.Grove));
+                multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con));
             }
             
           System.out.println("connections "+Arrays.toString(connections));  
@@ -147,7 +172,7 @@ public abstract class Hardware {
         } else {
             assert(t.isOutput());
             for(int con:connections) {
-                multiBitOutputs = growConnections(multiBitOutputs, new HardConnection(t,con,ConnectionType.Grove));
+                multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
             }
         }
         return this;
@@ -190,7 +215,6 @@ public abstract class Hardware {
     public abstract int analogRead(int connector); //Platform specific
     public abstract void digitalWrite(int connector, int value); //Platform specific
     public abstract void analogWrite(int connector, int value); //Platform specific
-    public abstract byte[][] getGroveI2CInputs();
     
     
     public int maxAnalogMovingAverage() {
@@ -199,12 +223,9 @@ public abstract class Hardware {
 
    
     public abstract void coldSetup();
-    public abstract void cleanup();
-    public abstract byte getI2CConnector();
         
     
-    public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, 
-    		Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe);
+    public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe);
 
     static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
@@ -241,7 +262,7 @@ public abstract class Hardware {
         
         assert(orderPipes.length == i2cPipes.length);
         assert(orderPipes.length == requestPipes.length);
-        
+      
         
         int t = orderPipes.length;
         
@@ -255,11 +276,13 @@ public abstract class Hardware {
             
             Pipe<TrafficReleaseSchema> i2cGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
             Pipe<TrafficReleaseSchema> pinGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
+            
             Pipe<TrafficAckSchema> i2cAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
             Pipe<TrafficAckSchema> pinAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
         
             masterI2CgoOut[t] = i2cGoPipe;
             masterI2CackIn[t] = i2cAckPipe;
+            
             masterPINgoOut[t] = pinGoPipe;
             masterPINackIn[t] = pinAckPipe;            
             
@@ -271,17 +294,23 @@ public abstract class Hardware {
         
         createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
         
-        Pipe<I2CResponseSchema> masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
-        SplitterStage i2cResponseSplitter = new SplitterStage<>(gm, masterI2CResponsePipe, i2cResponsePipes);
-        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, i2cResponseSplitter);
-       
-        createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);
+        //only build and connect I2C if it is used for either in or out  
+        Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
+        if (i2cResponsePipes.length>0) {
+            masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
+            SplitterStage i2cResponseSplitter = new SplitterStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
+        }
+        if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
+            createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);
+        }
         
-        Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
-        SplitterStage responseSplitter = new SplitterStage<>(gm, masterResponsePipe, responsePipes);
-        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, SLEEP_RATE_NS, responseSplitter);
-        
-        createADInputStage(masterResponsePipe);        
+        //only build and connect gpio responses if it is used
+        if (responsePipes.length>0) {
+            Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
+            SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
+            createADInputStage(masterResponsePipe);        
+        }
+
         
     }
 
@@ -300,6 +329,21 @@ public abstract class Hardware {
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
         DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
     }
+
+    public StageScheduler createScheduler(IOTDeviceRuntime iotDeviceRuntime) {
+        //NOTE: need to consider different schedulers in the future.
+       final StageScheduler scheduler = new ThreadPerStageScheduler(gm);
+
+       Runtime.getRuntime().addShutdownHook(new Thread() {
+           public void run() {
+             scheduler.shutdown();
+             scheduler.awaitTermination(30, TimeUnit.MINUTES);
+           }
+       });
+       return scheduler;
+    }
+
+
 
 
     

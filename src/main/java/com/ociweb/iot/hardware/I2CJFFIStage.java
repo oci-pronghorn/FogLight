@@ -1,19 +1,13 @@
 package com.ociweb.iot.hardware;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.grove.GroveTwig;
-import com.ociweb.iot.hardware.impl.Util;
-import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
-import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -21,20 +15,16 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class I2CJFFIStage extends AbstractOutputStage {
 
-	private static I2CNativeLinuxBacking i2c;
+	private final I2CBacking i2c;
 	private final Pipe<I2CCommandSchema>[] fromCommandChannels;
 	private final  Pipe<I2CResponseSchema> i2cResponsePipe;
 
 
-	private static final Logger logger = LoggerFactory.getLogger(JFFIStage.class);
+	private static final Logger logger = LoggerFactory.getLogger(I2CJFFIStage.class);
 
 	private int currentPoll = 0;
-	private byte[][] inputs = null;
-	private int scriptConn[] = null;
-	private int scriptTask[] = null;
-	private byte scriptMsg[][] = null;
-	private int activeSize;
-
+	private I2CConnection[] inputs = null;
+	private int lastWriteIdx = 0;
 
 	public I2CJFFIStage(GraphManager graphManager, 
 			Pipe<TrafficReleaseSchema>[] goPipe, 
@@ -42,32 +32,18 @@ public class I2CJFFIStage extends AbstractOutputStage {
 			Pipe<TrafficAckSchema>[] ackPipe, 
 			Pipe<I2CResponseSchema> i2cResponsePipe,
 			Hardware hardware) { 
-		super(init(graphManager,hardware), hardware, i2cPayloadPipes, goPipe, join(ackPipe) /*add i2cREsponsePipe here*/); 
+		super(graphManager, hardware, i2cPayloadPipes, goPipe, join(ackPipe) /*add i2cREsponsePipe here*/); 
+		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
 		this.i2cResponsePipe = i2cResponsePipe;
+		
+		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
 	}
 
-	//this odd hack is here so we throw an error BEFORE calling supper and registering with the graph manger.
-	private static GraphManager init(GraphManager gm, Hardware hardware) {	    
-		I2CJFFIStage.i2c = new I2CNativeLinuxBacking(hardware.getI2CConnector());	    
-		return gm;
-	}
-
-	@Override
+    @Override
 	public void startup(){
 		super.startup();
 		//TODO: add rotary encoder support
-		inputs = hardware.getGroveI2CInputs();
-		activeSize = inputs.length;
-		scriptConn = new int[activeSize];
-		scriptTask = new int[activeSize];
-		scriptMsg = new byte[activeSize][]; 
-		int i = activeSize;
-		while(i-->=0){
-			scriptConn[i] = inputs[i][0];
-			scriptTask[i] = inputs[i][0];
-			scriptMsg[i] = Arrays.copyOfRange(inputs[i], 2, inputs[i].length-1); 
-		}
 
 		//        int j = config.maxAnalogMovingAverage()-1; //TODO: work out what this does
 		//        movingAverageHistory = new int[j][]; 
@@ -111,12 +87,9 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 	protected void processMessagesForPipe(int a) {
 
-		//TODO: Alex, use a boolean to disable the "while" when we are waiting for a response.
-		///     Ask the hardware for which addresses to listen to (but how to know how to talk? and how fast to poll?)
-		//      get the data and send it out to the SINGULAR i2cResponsePipe pipe (see graph, a splitter shares the data as needed)
-
 		if(currentPoll ==0){
 			currentPoll++;
+			lastWriteIdx = -1; // Resets idx for polling below
 			while (hasReleaseCountRemaining(a) 
 					&& Pipe.hasContentToRead(fromCommandChannels[activePipe])
 					&& !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) //peek next address and check that it is not blocking for some time                
@@ -151,7 +124,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 						System.out.print(buffer[i]+", ");
 					}
 					System.out.println(" To "+addr);
-					I2CJFFIStage.i2c.write((byte) addr, buffer);
+					i2c.write((byte) addr, buffer);
 				}                                      
 				break;
 
@@ -184,7 +157,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 						System.out.print(buffer[i]+", ");
 					}
 					System.out.println(" To "+cmdAddr);
-					I2CJFFIStage.i2c.write(cmdAddr, buffer);
+					i2c.write(cmdAddr, buffer);
 
 					long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_DURATION_13);
 
@@ -205,22 +178,40 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				decReleaseCount(a);
 
 			}
-			i2c.write((byte)scriptConn[currentPoll], scriptMsg[currentPoll]);
+			
 
 
 		}else{
-			byte[] temp =i2c.read((byte)scriptConn[currentPoll-1], scriptTask[currentPoll-1]);
+		    int tempIdx = currentPoll-1;
+		    if (tempIdx<inputs.length) {
+    			byte[] temp =i2c.read(inputs[tempIdx].address, inputs[tempIdx].readBytes);
+    			System.out.print("I2C Read ");
+    			for (int i = 0; i < temp.length; i++) {
+					System.out.print(temp[i] + " ");
+				}
+    			System.out.println("");
+    			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+    				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, inputs[tempIdx].address);
+    				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
+    				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.nanoTime());
+    				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, inputs[tempIdx].register);
+    				PipeWriter.publishWrites(i2cResponsePipe);
+    				System.out.println("I2C read on "+inputs[tempIdx].register);
+    				System.out.println("Sent "+temp[0]+" to listener");
+    
+    				currentPoll=currentPoll++%(inputs.length+1);
+    			}
+		    }
 
-			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, scriptConn[currentPoll-1]);
-				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
-				PipeWriter.publishWrites(i2cResponsePipe);
 
-				currentPoll=currentPoll++%(activeSize+1);
-				if(currentPoll!=0) i2c.write((byte)scriptConn[currentPoll], scriptMsg[currentPoll]);
-			}
+		}
 
-
+		//Only send one read command for each i2c read
+		if (lastWriteIdx<currentPoll-1) {
+			lastWriteIdx = currentPoll-1;
+		    I2CConnection connection = inputs[lastWriteIdx];
+		    i2c.write((byte)connection.address, connection.readCmd);
+		    
 		}
 	}
 

@@ -28,7 +28,7 @@ public abstract class AbstractOutputStage extends PronghornStage {
 	protected int[] activeCounts;	
 	protected int activePipe;
 	private int hitPoints;
-
+	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOutputStage.class);
 
 	//////////////////////////////////////////
@@ -75,7 +75,7 @@ public abstract class AbstractOutputStage extends PronghornStage {
 	
 	@Override
     public void run() {
-	          
+	    
 	    boolean foundWork;
 	    do {
 	        foundWork = false;
@@ -87,13 +87,13 @@ public abstract class AbstractOutputStage extends PronghornStage {
     	            foundWork = true;
                 }
     	        
-    	        //must clear these before calling processMessages
-                connectionBlocker.releaseBlocks(System.currentTimeMillis());
-                
-    	        //set the hardware for this many messages.
-    	        int startCount = activeCounts[a];
-    	        processMessagesForPipe(a);	        
-    	        foundWork |= (activeCounts[a]!=startCount);//work was done if progress was made
+    	        if (activeCounts[a]>0) {
+    	            int startCount = activeCounts[a];
+    	            //must clear these before calling processMessages
+    	            connectionBlocker.releaseBlocks(System.currentTimeMillis());  	        
+    	            processMessagesForPipe(a);	        
+    	            foundWork |= (activeCounts[a]!=startCount);//work was done if progress was made
+    	        }
     	        
     	        //send any acks that are outstanding
     	        if (0==activeCounts[a]) {
@@ -101,7 +101,7 @@ public abstract class AbstractOutputStage extends PronghornStage {
     	                publishWrites(ackPipe[a]);
     	                activeCounts[a] = -1;
     	                foundWork = true;
-    	            }
+    	            }//this will try again later since we did not clear it to -1
     	        }
     	    } 	
     	    //only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.

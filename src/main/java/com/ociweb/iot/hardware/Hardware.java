@@ -294,16 +294,22 @@ public abstract class Hardware {
         
         createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
         
-        //only build and connect I2C if it is used      
-        Pipe<I2CResponseSchema> masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
-        SplitterStage i2cResponseSplitter = new SplitterStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);  
-        createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);
-
+        //only build and connect I2C if it is used for either in or out  
+        Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
+        if (i2cResponsePipes.length>0) {
+            masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
+            SplitterStage i2cResponseSplitter = new SplitterStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
+        }
+        if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
+            createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);
+        }
         
         //only build and connect gpio responses if it is used
-        Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
-        SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
-        createADInputStage(masterResponsePipe);        
+        if (responsePipes.length>0) {
+            Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
+            SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
+            createADInputStage(masterResponsePipe);        
+        }
 
         
     }

@@ -18,19 +18,24 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public abstract class ReactiveListenerStage extends PronghornStage {
 
     protected final Object              listener;
-    protected final Pipe<?>[]           pipes;
+    
+    protected final Pipe<?>[]           inputPipes;
+    protected final Pipe<?>[]           outputPipes;
+    
     
     protected long                      timeTrigger;
     protected long                      timeRate;
     private final GraphManager          graphManager;           
-    
-    
-    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe pipes[]) {
+  
+    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
+
         
-        super(graphManager, pipes, NONE);
+        super(graphManager, inputPipes, outputPipes);
         this.listener = listener;
-        this.pipes = pipes;
-        System.out.println("ReactiveListener receives array length "+pipes.length);
+
+        this.inputPipes = inputPipes;
+        this.outputPipes = outputPipes;
+
         this.graphManager = graphManager;
         
         
@@ -48,10 +53,7 @@ public abstract class ReactiveListenerStage extends PronghornStage {
     
     @Override
     public void startup() {
-                
-        //before calling any startup commands we must first ensure all commandChannels have finished starting up.
-        GraphManager.spinLockUntilStageOfTypeStarted(graphManager, CommandChannel.stageClass);
-                
+ 
         if (listener instanceof StartupListener) {
             ((StartupListener)listener).startup();
         }
@@ -64,10 +66,12 @@ public abstract class ReactiveListenerStage extends PronghornStage {
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         
-        int p = pipes.length;
+        int p = inputPipes.length;
         while (--p >= 0) {
             //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
-            Pipe<?> localPipe = pipes[p];
+
+            Pipe<?> localPipe = inputPipes[p];
+
             if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
             } else
@@ -119,9 +123,8 @@ public abstract class ReactiveListenerStage extends PronghornStage {
         }
     }
     
-
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-    	System.out.println("Wrong I2C Consume");
+        System.out.println("Wrong I2C Consume");
         while (PipeReader.tryReadFragment(p)) {                
                     
                     int msgIdx = PipeReader.getMsgIdx(p);
@@ -210,10 +213,8 @@ public abstract class ReactiveListenerStage extends PronghornStage {
             //done reading message off pipe
             PipeReader.releaseReadLock(p);
         }
-    }
-        
-    
-    
+    } 
+
     
     
 }

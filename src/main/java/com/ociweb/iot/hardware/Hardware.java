@@ -179,6 +179,11 @@ public abstract class Hardware {
         
     }  
     
+    public Hardware useConnectI2CIn(I2CConnection i2cConnection){    	
+    	i2cInputs = growI2CConnections(i2cInputs, i2cConnection);
+    	return this;
+    }
+    
     public Hardware useTriggerRate(long rateInMS) {
         timeTriggerRate = rateInMS;
         return this;

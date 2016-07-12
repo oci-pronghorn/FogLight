@@ -136,7 +136,7 @@ public enum GroveTwig implements IODevice {
             return true;
         }
     },
-    Survo() {
+    Servo() {
         
         @Override
         public boolean isOutput() {
@@ -154,9 +154,14 @@ public enum GroveTwig implements IODevice {
         public boolean isOutput() {
             return true;
         }
+    },
+    Nunchuck() {
+    	@Override
+    	public boolean isInput() {
+    		return true;
+    	}
     };
-    
-    
+	
 
     public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
        System.err.println(this);

@@ -1,5 +1,7 @@
 package com.ociweb.iot.hardware;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,13 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	public void startup(){
 		super.startup();
 		System.out.println("Polling "+this.inputs.length+" i2cInput(s)");
+		
+		for (int i = 0; i < inputs.length; i++) {
+			i2c.write(inputs[i].address, inputs[i].setup); //TODO: add setup for outputs
+			System.out.println("Setup I2C Device on "+inputs[i].address+" Sent "+Arrays.toString(inputs[i].setup));
+		}
+		
+		logger.info("I2C setup {} complete",inputs[i].address);
 		//TODO: add rotary encoder support
 
 		//        int j = config.maxAnalogMovingAverage()-1; //TODO: work out what this does
@@ -86,6 +95,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	}
 
 	protected void processMessagesForPipe(int a) {
+		System.out.println("currentPoll = "+currentPoll);
 		if(currentPoll ==0){
 			currentPoll++;
 			lastWriteIdx = -1; // Resets idx for polling below
@@ -176,14 +186,17 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				lastWriteIdx = tempIdx;
 				I2CConnection connection = this.inputs[lastWriteIdx];
 				i2c.write((byte)connection.address, connection.readCmd);
+				System.out.println("ReadCmd "+connection.address+" sent "+Arrays.toString(connection.readCmd));
 
 			}
 
 
 			byte[] temp =i2c.read(this.inputs[tempIdx].address, this.inputs[tempIdx].readBytes);
+			System.out.println("Reading "+this.inputs[tempIdx].address+" returned "+Arrays.toString(temp));
 			
 
 			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+				System.out.println("sent stuff on pipe");
 				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[tempIdx].address);
 				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
 				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.currentTimeMillis());

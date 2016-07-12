@@ -35,11 +35,11 @@ public class I2CJFFIStage extends AbstractOutputStage {
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
 		this.i2cResponsePipe = i2cResponsePipe;
-		
+
 		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
 	}
 
-    @Override
+	@Override
 	public void startup(){
 		super.startup();
 		System.out.println("Polling "+this.inputs.length+" i2cInput(s)");
@@ -86,7 +86,6 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	}
 
 	protected void processMessagesForPipe(int a) {
-//		System.out.println("currentPoll = "+currentPoll);
 		if(currentPoll ==0){
 			currentPoll++;
 			lastWriteIdx = -1; // Resets idx for polling below
@@ -119,11 +118,6 @@ public class I2CJFFIStage extends AbstractOutputStage {
 					byte[] buffer = new byte[len];
 					Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, len);
 
-					System.out.print("Sent ");
-					for (int i = 0; i < buffer.length; i++) {
-						System.out.print(buffer[i]+", ");
-					}
-					System.out.println(" To "+addr);
 					i2c.write((byte) addr, buffer);
 				}                                      
 				break;
@@ -132,7 +126,6 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				{  
 					int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12);
 					long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13);
-					System.out.println("adding block for "+addr+" for "+duration);
 					connectionBlocker.until(addr, System.currentTimeMillis() + duration);
 				}   
 				break;    
@@ -151,13 +144,6 @@ public class I2CJFFIStage extends AbstractOutputStage {
 					assert(payloadSize == expectedPayloadSize);
 					byte[] buffer = new byte[expectedPayloadSize];
 					Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, expectedPayloadSize);
-
-					System.out.print("Sent ");
-					for (int i = 0; i < buffer.length; i++) {
-						System.out.print(buffer[i]+", ");
-					}
-					System.out.println(" To "+cmdAddr);
-					i2c.write(cmdAddr, buffer);
 
 					long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_DURATION_13);
 
@@ -178,44 +164,39 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				decReleaseCount(a);
 
 			}
-			
+
 
 
 		}else{
-			
-		    int tempIdx = currentPoll-1;
-		    
-		  //Only send one read command for each i2c read
-		    if (lastWriteIdx<tempIdx) {
-//				System.out.println("Sending read cmd");
+
+			int tempIdx = currentPoll-1;
+
+			//Only send one read command for each i2c read
+			if (lastWriteIdx<tempIdx) {
 				lastWriteIdx = tempIdx;
-			    I2CConnection connection = inputs[lastWriteIdx];
-			    i2c.write((byte)connection.address, connection.readCmd);
-			    
+				I2CConnection connection = this.inputs[lastWriteIdx];
+				i2c.write((byte)connection.address, connection.readCmd);
+
 			}
-		    
-		    if (tempIdx<inputs.length) {
-    			byte[] temp =i2c.read(inputs[tempIdx].address, inputs[tempIdx].readBytes);
-    			
-    			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-    				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, inputs[tempIdx].address);
-    				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
-    				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.nanoTime()/1000000);
-    				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, inputs[tempIdx].register);
-    				PipeWriter.publishWrites(i2cResponsePipe);
-//    				System.out.print("Read ");
-//        			for (int i = 0; i < temp.length; i++) {
-//    					System.out.print(temp[i] + " ");
-//    				}
-//        			System.out.println(" From "+inputs[tempIdx].register);
-    
-    				currentPoll=currentPoll++%(inputs.length);
-    			}
-		    }
+
+
+			byte[] temp =i2c.read(this.inputs[tempIdx].address, this.inputs[tempIdx].readBytes);
+			
+
+			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[tempIdx].address);
+				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
+				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.currentTimeMillis());
+				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[tempIdx].register);
+				PipeWriter.publishWrites(i2cResponsePipe);
+
+
+				currentPoll=(currentPoll+1)%(this.inputs.length+1);
+			}
 
 
 		}
-		
+
 	}
 
 

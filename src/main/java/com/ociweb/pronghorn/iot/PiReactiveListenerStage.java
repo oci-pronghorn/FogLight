@@ -40,21 +40,16 @@ public class PiReactiveListenerStage extends ReactiveListenerStage{
 					if (listener instanceof I2CListener){
 						((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
 					}
-					else if(listener instanceof DigitalListener){
-						assert(addr == 4);
-						assert(length == 1);
-						
+					else if(listener instanceof DigitalListener && addr==4 && length==1){
 						int tempValue = backing[position&mask];
 						if(tempValue!=lastDigital){
 							lastDigital = tempValue;
 							((DigitalListener)listener).digitalEvent(register, time, tempValue);
 						}
-					}else{
-						assert(addr == 4);
-						assert(length == 3);
-
+					}
+					else if(listener instanceof AnalogListener && addr==4 && length==3){
 						byte[] temp = Arrays.copyOfRange(backing, position&mask, (position+3)&mask); //TODO: Does this produce garbage?
-						int tempValue = temp[1]*256+((int)temp[2]&0xFF);
+						int tempValue = ((int)temp[1])*256+(((int)temp[2])&0xFF);
 						if(tempValue!=lastAnalog){
 							lastAnalog = tempValue;
 							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=?

@@ -28,6 +28,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
@@ -126,7 +127,8 @@ public class IOTDeviceRuntime {
         registerListener(listener);
     }
     
-    public void addDigitalListener(DigitalListener listener) {        
+    public void addDigitalListener(DigitalListener listener) {  
+    	System.out.println("Creating a Digital Listener");
         registerListener(listener);
     }
     
@@ -140,6 +142,8 @@ public class IOTDeviceRuntime {
     
     public void registerListener(Object listener) {
         
+        
+        Pipe<?>[] outputPipes = new Pipe<?>[0];
         Class<? extends Object> c = listener.getClass();
         Field[] fields = c.getDeclaredFields();
         int f = fields.length;
@@ -147,31 +151,51 @@ public class IOTDeviceRuntime {
             try {
                 fields[f].setAccessible(true);                
                 if (CommandChannel.class == fields[f].getType()) {
-                                        
-                //    System.out.println("found CommandChannel instance:"+   fields[f].get(listener).hashCode());
-
+                    CommandChannel cmdChnl = (CommandChannel)fields[f].get(listener);                    
+                    outputPipes = PronghornStage.join(outputPipes, cmdChnl.outputPipes);
                 }
-                
             } catch (Throwable e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                logger.debug("unable to find CommandChannel",e);
             }
         }
-     
         
         
         List<Pipe> pipesForListenerConsumption = new ArrayList<Pipe>(); 
         
-        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
-            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
-            pipesForListenerConsumption.add(pipe);
-            System.out.println("added new response pipe and added lit edison listener");
+        if(isPi){ // TODO: more Grove Specific stuff. Needs to change to add GPIO read support
+        	System.out.println("Creating Pi Listener");
+        	assert(!isEdison);
+	        if (listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
+	            System.out.println("added new Pi Pipe");
+	            pipesForListenerConsumption.add(pipe);
+	        }
+        }else if(isEdison){
+        	System.out.println("Creating Edison Listener");
+        	assert(!isPi);
+        	if (listener instanceof I2CListener) {
+	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
+	            pipesForListenerConsumption.add(pipe);
+	        }
+	        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+	            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
+	            pipesForListenerConsumption.add(pipe);
+	            System.out.println("added new response pipe and added lit edison listener");
+	        }
+        }else{ //I just left it as is maybe doesn't need to be different from Ed
+        	System.out.println("Creating Mock Listener");
+        	if (listener instanceof I2CListener) {
+	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
+	            pipesForListenerConsumption.add(pipe);
+	        }
+	        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
+	            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
+	            pipesForListenerConsumption.add(pipe);
+	            System.out.println("added new response pipe and added lit edison listener");
+	        }
         }
         
-        if (listener instanceof I2CListener) {
-            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
-            pipesForListenerConsumption.add(pipe);
-        }
+        
         /////////////////////
         //StartupListener is not driven by any response data and is called when the stage is started up. no pipe needed.
         /////////////////////
@@ -184,12 +208,13 @@ public class IOTDeviceRuntime {
             //TODO: need to implement
         }
         
-        
+        Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
         
         if(isPi){
-        	configureStageRate(listener, new PiReactiveListenerStage(gm, listener, pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]))); 
+        	System.out.println("Creating new PiReactiveListenerStage with pipe array size "+pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]).length);
+        	configureStageRate(listener, new PiReactiveListenerStage(gm, listener, inputPipes, outputPipes)); 
         }else{
-        	configureStageRate(listener, new EdisonReactiveListenerStage(gm, listener, pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()])));
+        	configureStageRate(listener, new EdisonReactiveListenerStage(gm, listener, inputPipes, outputPipes));
         }
     }
 
@@ -247,12 +272,21 @@ public class IOTDeviceRuntime {
             
             //to produce the png we must call
             //  dot -Tpng -O deviceGraph.dot        
-            Process result;
-            result = Runtime.getRuntime().exec("dot -Tpng -O deviceGraph.dot");
+            Process result = Runtime.getRuntime().exec("dot -Tsvg -odeviceGraph.dot.svg deviceGraph.dot");
             
             if (0==result.waitFor()) {
                 System.out.println("Built deviceGraph.dot.png to view the runtime graph.");
             }
+            
+            result = Runtime.getRuntime().exec("circo -Tsvg -odeviceGraph.circo.svg deviceGraph.dot");
+            
+            if (0==result.waitFor()) {
+                System.out.println("Built deviceGraph.circo.png to view the runtime graph.");
+            }
+            
+            
+            
+            
         } catch (Exception e) {
             logger.debug("No runtime graph produced.",e);;
             System.out.println("No runtime graph produced.");
@@ -280,6 +314,8 @@ public class IOTDeviceRuntime {
     public void addSubscriptionListener(String string, PubSubListener exampleController) {
         //add assert that this is only done before the graph is started
         
+      //this is a subscription not the creation of an additional stage
+        
         // TODO Auto-generated method stub
         
     }
@@ -287,13 +323,13 @@ public class IOTDeviceRuntime {
     public void addRESTListener(int id, String route, RestListener listener) {
         //add assert that this is only done before the graph is started
         
+        //this is a subscription not the creation of an additional stage
 
         // TODO accumulate all thse rest processor, when start is called then configure the server to take them all. 
         
     }
 
-
-    public static IOTDeviceRuntime run(IoTApp app) {
+	public static IOTDeviceRuntime run(IoTApp app) {
         
         IOTDeviceRuntime runtime = new IOTDeviceRuntime();
         
@@ -302,8 +338,6 @@ public class IOTDeviceRuntime {
         runtime.start();
         return runtime;
     }
-
-
     
     
 }

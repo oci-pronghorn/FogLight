@@ -185,11 +185,19 @@ public class I2CJFFIStage extends AbstractOutputStage {
 		    int tempIdx = currentPoll-1;
 		    if (tempIdx<inputs.length) {
     			byte[] temp =i2c.read(inputs[tempIdx].address, inputs[tempIdx].readBytes);
-    
+    			System.out.print("I2C Read ");
+    			for (int i = 0; i < temp.length; i++) {
+					System.out.print(temp[i] + " ");
+				}
+    			System.out.println("");
     			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-    				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, inputs[currentPoll-1].address);
+    				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, inputs[tempIdx].address);
     				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
+    				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.nanoTime());
+    				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, inputs[tempIdx].register);
     				PipeWriter.publishWrites(i2cResponsePipe);
+    				System.out.println("I2C read on "+inputs[tempIdx].register);
+    				System.out.println("Sent "+temp[0]+" to listener");
     
     				currentPoll=currentPoll++%(inputs.length+1);
     			}

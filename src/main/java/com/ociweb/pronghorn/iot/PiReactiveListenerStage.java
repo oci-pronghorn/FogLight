@@ -26,13 +26,13 @@ public class PiReactiveListenerStage extends ReactiveListenerStage{
 
 	@Override
 	protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-		
+
 		while (PipeReader.tryReadFragment(p)) {                
 
 			int msgIdx = PipeReader.getMsgIdx(p);
 			switch (msgIdx) {   
 			case I2CResponseSchema.MSG_RESPONSE_10:
-				if (listener instanceof I2CListener) {
+				if (listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener) {
 					int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
 					int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
 					int time = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
@@ -42,41 +42,22 @@ public class PiReactiveListenerStage extends ReactiveListenerStage{
 					int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 					int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 
+					if (listener instanceof I2CListener){
+						((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
+					}
+					else if(listener instanceof DigitalListener){
+						assert(addr == 4);
+						assert(length == 1);
 
-					((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
+						System.out.println("received grove digital signal " + backing[position&mask]);
+						((DigitalListener)listener).digitalEvent(register, time, backing[position&mask]);
+					}else{
+						assert(addr == 4);
+						assert(length == 3);
 
-				}
-				else if (listener instanceof DigitalListener){
-					int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
-					int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
-					int time = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
-
-					byte[] backing = PipeReader.readBytesBackingArray(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-					int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-					int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-					int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-
-					assert(addr == 4);
-					assert(length == 1);
-
-					System.out.println("received grove digital signal " + backing[position&mask]);
-					((DigitalListener)listener).digitalEvent(register, time, backing[position&mask]);
-				}
-				else if (listener instanceof AnalogListener){
-					int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
-					int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
-					int time = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
-
-					byte[] backing = PipeReader.readBytesBackingArray(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-					int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-					int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-					int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-
-					assert(addr == 4);
-					assert(length == 3);
-
-					byte[] temp = Arrays.copyOfRange(backing, position&mask, (position+3)&mask); //TODO: Does this produce garbage?
-							((AnalogListener)listener).analogEvent(register, time, 0, temp[1]*256+((int)temp[2]&0xFF)); //TODO: Average=?
+						byte[] temp = Arrays.copyOfRange(backing, position&mask, (position+3)&mask); //TODO: Does this produce garbage?
+						((AnalogListener)listener).analogEvent(register, time, 0, temp[1]*256+((int)temp[2]&0xFF)); //TODO: Average=?
+					}
 				}
 				break;
 			case -1:

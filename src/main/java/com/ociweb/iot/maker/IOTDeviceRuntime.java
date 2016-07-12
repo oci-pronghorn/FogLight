@@ -28,6 +28,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -142,22 +143,7 @@ public class IOTDeviceRuntime {
     
     public void registerListener(Object listener) {
   
-        Pipe<?>[] outputPipes = new Pipe<?>[0];
-
-        Class<? extends Object> c = listener.getClass();
-        Field[] fields = c.getDeclaredFields();
-        int f = fields.length;
-        while (--f >= 0) {
-            try {
-                fields[f].setAccessible(true);                
-                if (CommandChannel.class == fields[f].getType()) {
-                    CommandChannel cmdChnl = (CommandChannel)fields[f].get(listener);                    
-                    outputPipes = PronghornStage.join(outputPipes, cmdChnl.outputPipes);
-                }
-            } catch (Throwable e) {
-                logger.debug("unable to find CommandChannel",e);
-            }
-        }
+        Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
         
         
         List<Pipe> pipesForListenerConsumption = new ArrayList<Pipe>(); 
@@ -219,6 +205,59 @@ public class IOTDeviceRuntime {
         	configureStageRate(listener, new EdisonReactiveListenerStage(gm, listener, inputPipes, outputPipes));
         }
     }
+
+    //////////
+    //only build this when assertions are on
+    //////////
+    private static IntHashTable cmdChannelUsageChecker;
+    static {
+        assert(setupForChannelAssertCheck());
+    }    
+    private static boolean setupForChannelAssertCheck() {
+        cmdChannelUsageChecker = new IntHashTable(9);
+        return true;
+    }
+    private boolean channelNotPreviouslyUsed(CommandChannel cmdChnl) {
+        int hash = cmdChnl.hashCode();
+        System.out.println("added chnl "+hash);
+        if (IntHashTable.hasItem(cmdChannelUsageChecker, hash)) {
+                //this was already assigned somewhere so this is  an error
+                logger.error("A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.", new UnsupportedOperationException());
+                return false;
+        } 
+        //keep so this is detected later if used
+        IntHashTable.setItem(cmdChannelUsageChecker, hash, 42);
+        return true;
+    }
+    ///////////
+    ///////////
+    
+    
+    private Pipe<?>[] extractPipesUsedByListener(Object listener) {
+        Pipe<?>[] outputPipes = new Pipe<?>[0];
+
+        Class<? extends Object> c = listener.getClass();
+        Field[] fields = c.getDeclaredFields();
+        int f = fields.length;
+        while (--f >= 0) {
+            try {
+                fields[f].setAccessible(true);                
+                if (CommandChannel.class == fields[f].getType()) {
+                    CommandChannel cmdChnl = (CommandChannel)fields[f].get(listener);                 
+                    
+                    assert(channelNotPreviouslyUsed(cmdChnl)) : "A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.";
+                                        
+                    outputPipes = PronghornStage.join(outputPipes, cmdChnl.outputPipes);
+                }
+            } catch (Throwable e) {
+                logger.debug("unable to find CommandChannel",e);
+            }
+        }
+        return outputPipes;
+    }
+
+
+
 
     protected void configureStageRate(Object listener, ReactiveListenerStage stage) {
         //if we have a time event turn it on.
@@ -332,12 +371,15 @@ public class IOTDeviceRuntime {
     }
 
 	public static IOTDeviceRuntime run(IoTSetup app) {
-        
-        IOTDeviceRuntime runtime = new IOTDeviceRuntime();
-        
-        app.specifyConnections(runtime.getHardware());
-        app.declareBehavior(runtime);
-        runtime.start();
+	    IOTDeviceRuntime runtime = new IOTDeviceRuntime();
+        try {
+            app.specifyConnections(runtime.getHardware());
+            app.declareBehavior(runtime);
+            runtime.start();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.exit(-1);
+        }
         return runtime;
     }
     

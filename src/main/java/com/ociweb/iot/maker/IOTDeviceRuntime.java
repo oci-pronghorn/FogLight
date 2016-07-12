@@ -331,12 +331,12 @@ public class IOTDeviceRuntime {
         
     }
 
-	public static IOTDeviceRuntime run(IoTApp app) {
+	public static IOTDeviceRuntime run(IoTSetup app) {
         
         IOTDeviceRuntime runtime = new IOTDeviceRuntime();
         
         app.specifyConnections(runtime.getHardware());
-        app.setup(runtime);
+        app.declareBehavior(runtime);
         runtime.start();
         return runtime;
     }

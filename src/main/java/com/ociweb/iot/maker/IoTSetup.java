@@ -2,9 +2,9 @@ package com.ociweb.iot.maker;
 
 import com.ociweb.iot.hardware.Hardware;
 
-public interface IoTApp {
+public interface IoTSetup {
 
     public void specifyConnections(Hardware c);
-    public void setup(IOTDeviceRuntime runtime);
+    public void declareBehavior(IOTDeviceRuntime runtime);
     
 }

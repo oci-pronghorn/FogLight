@@ -26,8 +26,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	private I2CConnection[] inputs = null;
 	private int lastWriteIdx = 0;
 
-	public I2CJFFIStage(GraphManager graphManager, 
-			Pipe<TrafficReleaseSchema>[] goPipe, 
+	public I2CJFFIStage(GraphManager graphManager, Pipe<TrafficReleaseSchema>[] goPipe, 
 			Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
 			Pipe<TrafficAckSchema>[] ackPipe, 
 			Pipe<I2CResponseSchema> i2cResponsePipe,
@@ -43,6 +42,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
     @Override
 	public void startup(){
 		super.startup();
+		System.out.println("Polling "+this.inputs.length+" i2cInput(s)");
 		//TODO: add rotary encoder support
 
 		//        int j = config.maxAnalogMovingAverage()-1; //TODO: work out what this does
@@ -86,7 +86,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	}
 
 	protected void processMessagesForPipe(int a) {
-
+//		System.out.println("currentPoll = "+currentPoll);
 		if(currentPoll ==0){
 			currentPoll++;
 			lastWriteIdx = -1; // Resets idx for polling below
@@ -182,37 +182,40 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 
 		}else{
+			
 		    int tempIdx = currentPoll-1;
+		    
+		  //Only send one read command for each i2c read
+		    if (lastWriteIdx<tempIdx) {
+//				System.out.println("Sending read cmd");
+				lastWriteIdx = tempIdx;
+			    I2CConnection connection = inputs[lastWriteIdx];
+			    i2c.write((byte)connection.address, connection.readCmd);
+			    
+			}
+		    
 		    if (tempIdx<inputs.length) {
     			byte[] temp =i2c.read(inputs[tempIdx].address, inputs[tempIdx].readBytes);
-    			System.out.print("I2C Read ");
-    			for (int i = 0; i < temp.length; i++) {
-					System.out.print(temp[i] + " ");
-				}
-    			System.out.println("");
+    			
     			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
     				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, inputs[tempIdx].address);
     				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
-    				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.nanoTime());
+    				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.nanoTime()/1000000);
     				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, inputs[tempIdx].register);
     				PipeWriter.publishWrites(i2cResponsePipe);
-    				System.out.println("I2C read on "+inputs[tempIdx].register);
-    				System.out.println("Sent "+temp[0]+" to listener");
+//    				System.out.print("Read ");
+//        			for (int i = 0; i < temp.length; i++) {
+//    					System.out.print(temp[i] + " ");
+//    				}
+//        			System.out.println(" From "+inputs[tempIdx].register);
     
-    				currentPoll=currentPoll++%(inputs.length+1);
+    				currentPoll=currentPoll++%(inputs.length);
     			}
 		    }
 
 
 		}
-
-		//Only send one read command for each i2c read
-		if (lastWriteIdx<currentPoll-1) {
-			lastWriteIdx = currentPoll-1;
-		    I2CConnection connection = inputs[lastWriteIdx];
-		    i2c.write((byte)connection.address, connection.readCmd);
-		    
-		}
+		
 	}
 
 

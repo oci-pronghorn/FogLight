@@ -180,7 +180,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 
 
-		}else{
+		}else if(this.inputs.length>0){
 
 			int tempIdx = currentPoll-1;
 
@@ -211,6 +211,8 @@ public class I2CJFFIStage extends AbstractOutputStage {
 			}
 
 
+		}else{
+			currentPoll=0;
 		}
 
 	}

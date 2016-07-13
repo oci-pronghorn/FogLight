@@ -113,6 +113,7 @@ public abstract class Hardware {
     }
     
     I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
+    	System.out.println("Adding I2C Connection");
         if (null==original) {
             return new I2CConnection[] {toAdd};
         } else {

@@ -95,7 +95,6 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	}
 
 	protected void processMessagesForPipe(int a) {
-		System.out.println("currentPoll = "+currentPoll);
 		if(currentPoll ==0){
 			currentPoll++;
 			lastWriteIdx = -1; // Resets idx for polling below
@@ -129,6 +128,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 					Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, len);
 
 					i2c.write((byte) addr, buffer);
+					logger.info("Sent I2C Message {} to address {}", Arrays.toString(buffer), addr);
 				}                                      
 				break;
 
@@ -137,6 +137,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 					int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12);
 					long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13);
 					connectionBlocker.until(addr, System.currentTimeMillis() + duration);
+					logger.info("I2C addr {} blocked for {} millis", addr, duration);
 				}   
 				break;    
 
@@ -158,6 +159,8 @@ public class I2CJFFIStage extends AbstractOutputStage {
 					long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_DURATION_13);
 
 					connectionBlocker.until(cmdAddr, System.currentTimeMillis() + duration);
+					
+					logger.info("Sent I2C Message {} to address {} and blocked for {} millis", Arrays.toString(buffer), cmdAddr, duration);
 				}   
 				break;
 
@@ -186,23 +189,22 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				lastWriteIdx = tempIdx;
 				I2CConnection connection = this.inputs[lastWriteIdx];
 				i2c.write((byte)connection.address, connection.readCmd);
-				System.out.println("ReadCmd "+connection.address+" sent "+Arrays.toString(connection.readCmd));
-
+				logger.debug("Sent ReadCmd {} to addr {}", Arrays.toString(connection.readCmd), connection.address);
 			}
 
 
 			byte[] temp =i2c.read(this.inputs[tempIdx].address, this.inputs[tempIdx].readBytes);
-			System.out.println("Reading "+this.inputs[tempIdx].address+" returned "+Arrays.toString(temp));
+			
 			
 
 			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-				System.out.println("sent stuff on pipe");
+				
 				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[tempIdx].address);
 				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
 				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.currentTimeMillis());
 				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[tempIdx].register);
 				PipeWriter.publishWrites(i2cResponsePipe);
-
+				logger.info("Read {} from addr {}", Arrays.toString(temp),this.inputs[tempIdx].address);
 
 				currentPoll=(currentPoll+1)%(this.inputs.length+1);
 			}

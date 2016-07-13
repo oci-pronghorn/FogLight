@@ -2,6 +2,10 @@ package com.ociweb.pronghorn.iot;
 
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ociweb.iot.hardware.I2CJFFIStage;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -15,6 +19,7 @@ public class PiReactiveListenerStage extends ReactiveListenerStage{
 	private int lastDigital = -1;
 	private int lastAnalog = -1;
 	
+	private static final Logger logger = LoggerFactory.getLogger(PiReactiveListenerStage.class);
 	
 	public PiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
 		super(graphManager, listener, inputPipes, outputPipes);             
@@ -35,10 +40,12 @@ public class PiReactiveListenerStage extends ReactiveListenerStage{
 					int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 					int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 					int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-
 					
+					logger.debug("Pi listener consuming I2C message");
+
 					if (listener instanceof I2CListener){
 						((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
+						logger.debug("Creating I2C event");
 					}
 					else if(listener instanceof DigitalListener && addr==4 && length==1){
 						int tempValue = backing[position&mask];

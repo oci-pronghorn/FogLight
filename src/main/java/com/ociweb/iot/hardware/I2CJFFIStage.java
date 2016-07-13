@@ -49,9 +49,9 @@ public class I2CJFFIStage extends AbstractOutputStage {
 		for (int i = 0; i < inputs.length; i++) {
 			i2c.write(inputs[i].address, inputs[i].setup); //TODO: add setup for outputs
 			System.out.println("Setup I2C Device on "+inputs[i].address+" Sent "+Arrays.toString(inputs[i].setup));
+			logger.info("I2C setup {} complete",inputs[i].address);
 		}
 		
-		logger.info("I2C setup {} complete",inputs[i].address);
 		//TODO: add rotary encoder support
 
 		//        int j = config.maxAnalogMovingAverage()-1; //TODO: work out what this does

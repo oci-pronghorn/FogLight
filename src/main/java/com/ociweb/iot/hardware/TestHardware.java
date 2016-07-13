@@ -6,6 +6,7 @@ import com.ociweb.iot.maker.IOTDeviceRuntime;
 import com.ociweb.iot.maker.PiCommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -50,12 +51,12 @@ public class TestHardware extends Hardware {
     private byte commandIndex = -1;
     
     @Override
-    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe) {
+    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
         if (testAsEdison) {
-            return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, orderPipe);
+            return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
         } else {
             this.commandIndex++;
-            return new PiCommandChannel(gm, pipe, i2cPayloadPipe, orderPipe, commandIndex);
+            return new PiCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);
         }
         
     }

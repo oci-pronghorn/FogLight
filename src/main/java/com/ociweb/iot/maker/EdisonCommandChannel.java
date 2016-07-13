@@ -2,6 +2,7 @@ package com.ociweb.iot.maker;
 
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -26,8 +27,8 @@ public class EdisonCommandChannel extends CommandChannel{
     private final int maxCommands = 16;
 
 
-	public EdisonCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<TrafficOrderSchema> goPipe) {
-			super(gm, goPipe, output, i2cOutput, goPipe);//yes goPipe should be here twice
+	public EdisonCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe) {
+			super(gm, output, i2cOutput, messagePubSub, goPipe);
 	 		this.output = output;
 			this.i2cOutput = i2cOutput;
 			assert(Pipe.isForSchema(outputPipes[pinPipeIdx], GroveRequestSchema.instance));

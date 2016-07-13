@@ -24,6 +24,8 @@ import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.iot.schema.MessagePubSub;
+import com.ociweb.pronghorn.iot.schema.MessageSubscription;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -55,9 +57,9 @@ public class IOTDeviceRuntime {
     private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 128);
     private final PipeConfig<TrafficOrderSchema> goPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, 64);    
     private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 64,1024);    
+    private final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, 64,1024); 
     private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
-    private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);    
-    private final PipeConfig<TrafficOrderSchema> orderPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, 64);
+    private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);   
 
     
     private boolean isEdison = false;
@@ -111,6 +113,7 @@ public class IOTDeviceRuntime {
          
     	return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(requestPipeConfig ),
     	                                       new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig), 
+    	                                       new Pipe<MessagePubSub>(messagePubSubConfig),
     	                                       new Pipe<TrafficOrderSchema>(goPipeConfig));
     	
     }
@@ -219,7 +222,7 @@ public class IOTDeviceRuntime {
     }
     private boolean channelNotPreviouslyUsed(CommandChannel cmdChnl) {
         int hash = cmdChnl.hashCode();
-        System.out.println("added chnl "+hash);
+        
         if (IntHashTable.hasItem(cmdChannelUsageChecker, hash)) {
                 //this was already assigned somewhere so this is  an error
                 logger.error("A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.", new UnsupportedOperationException());
@@ -278,7 +281,9 @@ public class IOTDeviceRuntime {
                             GraphManager.allPipesOfType(gm, I2CCommandSchema.instance),
                             GraphManager.allPipesOfType(gm, GroveResponseSchema.instance), 
                             GraphManager.allPipesOfType(gm, TrafficOrderSchema.instance), 
-                            GraphManager.allPipesOfType(gm, I2CResponseSchema.instance));
+                            GraphManager.allPipesOfType(gm, I2CResponseSchema.instance),
+                            GraphManager.allPipesOfType(gm, MessagePubSub.instance)
+               );
     
        
        //find all the instances of CommandChannel stage to startup first, note they are also unscheduled.

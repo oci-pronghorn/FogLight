@@ -2,6 +2,9 @@ package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -13,11 +16,13 @@ public abstract class CommandChannel {
 
     public final Pipe<?>[] outputPipes;
     protected final Pipe<TrafficOrderSchema> goPipe;
+    protected final Pipe<MessagePubSub> messagePubSub;
     protected AtomicBoolean aBool = new AtomicBoolean(false);    
         
-    protected CommandChannel(GraphManager gm, Pipe<TrafficOrderSchema> goPipe, Pipe<?> ... outputPipes) {
-       this.outputPipes = outputPipes;
+    protected CommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe) {
+       this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};
        this.goPipe = goPipe;
+       this.messagePubSub = messagePubSub;
     }
     
     protected void publishGo(int count, int pipeIdx) {
@@ -48,5 +53,23 @@ public abstract class CommandChannel {
     public abstract DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress);
     public abstract void i2cCommandClose();
     public abstract boolean i2cFlushBatch();
+
+    public boolean subscribe(String topic, PubSubListener listener) {
+        // TODO Auto-generated method stub
+        
+        return false;
+    }
+
+    public boolean unsubscribe(String topic, PubSubListener listener) {
+        // TODO Auto-generated method stub
+        
+        return false;
+    }
+
+    public void openTopic(String string) {
+        // TODO Auto-generated method stub
+        
+        //returns topicObject
+    }
 
 }

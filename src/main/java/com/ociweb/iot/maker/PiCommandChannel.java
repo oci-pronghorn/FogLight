@@ -2,6 +2,7 @@ package com.ociweb.iot.maker;
 
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -24,8 +25,8 @@ public class PiCommandChannel extends CommandChannel{
     private final int maxCommands = 16;
 	
 
-	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
-		super(gm, goPipe, output, i2cOutput, goPipe); //yes this is supposed to pass in goPipe twice. 
+	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
+		super(gm, output, i2cOutput, messagePubSub, goPipe);
 		this.output = output;
 		this.i2cOutput = i2cOutput;  
 		this.i2cPipeIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital

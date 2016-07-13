@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.google.common.base.Splitter;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
 import com.ociweb.pronghorn.TrafficCopStage;
@@ -12,13 +11,14 @@ import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.iot.schema.MessagePubSub;
+import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
@@ -228,9 +228,8 @@ public abstract class Hardware {
 
    
     public abstract void coldSetup();
-        
-    
-    public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe);
+            
+    public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe);
 
     static final boolean debug = false;
     public void progressLog(int taskAtHand, int stepAtHand, int byteToSend) {
@@ -262,7 +261,8 @@ public abstract class Hardware {
                                   Pipe<I2CCommandSchema>[] i2cPipes, 
                                   Pipe<GroveResponseSchema>[] responsePipes,        
                                   Pipe<TrafficOrderSchema>[] orderPipes,
-                                  Pipe<I2CResponseSchema>[] i2cResponsePipes) {
+                                  Pipe<I2CResponseSchema>[] i2cResponsePipes,
+                                  Pipe<MessagePubSub>[] messagePubSub) {
             
         
         assert(orderPipes.length == i2cPipes.length);
@@ -277,13 +277,20 @@ public abstract class Hardware {
         Pipe<TrafficReleaseSchema>[]          masterPINgoOut = new Pipe[t];
         Pipe<TrafficAckSchema>[]              masterPINackIn = new Pipe[t]; 
         
+        Pipe<TrafficReleaseSchema>[]          masterMsggoOut = new Pipe[t];
+        Pipe<TrafficAckSchema>[]              masterMsgackIn = new Pipe[t]; 
+        
+        
+        
         while (--t>=0) {
             
             Pipe<TrafficReleaseSchema> i2cGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
             Pipe<TrafficReleaseSchema> pinGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
+            Pipe<TrafficReleaseSchema> msgGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
             
             Pipe<TrafficAckSchema> i2cAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
             Pipe<TrafficAckSchema> pinAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
+            Pipe<TrafficAckSchema> msgAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
         
             masterI2CgoOut[t] = i2cGoPipe;
             masterI2CackIn[t] = i2cAckPipe;
@@ -291,11 +298,16 @@ public abstract class Hardware {
             masterPINgoOut[t] = pinGoPipe;
             masterPINackIn[t] = pinAckPipe;            
             
-            Pipe<TrafficReleaseSchema>[] goOut = new Pipe[]{pinGoPipe, i2cGoPipe};
-            Pipe<TrafficAckSchema>[] ackIn = new Pipe[]{pinAckPipe, i2cAckPipe};
+            masterMsggoOut[t] = msgGoPipe;
+            masterMsgackIn[t] = msgAckPipe;  
+            
+            Pipe<TrafficReleaseSchema>[] goOut = new Pipe[]{pinGoPipe, i2cGoPipe, msgGoPipe};
+            Pipe<TrafficAckSchema>[] ackIn = new Pipe[]{pinAckPipe, i2cAckPipe, msgAckPipe};
             TrafficCopStage trafficCopStage = new TrafficCopStage(gm, orderPipes[t], ackIn, goOut);
             
         }
+        
+        createMessagePubSubStage(messagePubSub, masterMsggoOut, masterMsgackIn);
         
         createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
         
@@ -315,7 +327,16 @@ public abstract class Hardware {
             SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
             createADInputStage(masterResponsePipe);        
         }
+        
+    }
 
+    private void createMessagePubSubStage(Pipe<MessagePubSub>[] messagePubSub,
+                                          Pipe<TrafficReleaseSchema>[] masterMsggoOut, 
+                                          Pipe<TrafficAckSchema>[] masterMsgackIn) {
+        
+        // TODO Auto-generated method stub, still needs the outgoing pipes for the reactiveListener
+        new MessagePubSubStage(this.gm, messagePubSub, masterMsggoOut, masterMsgackIn);
+                
         
     }
 

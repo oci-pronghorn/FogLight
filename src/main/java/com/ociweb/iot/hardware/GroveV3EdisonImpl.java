@@ -11,6 +11,7 @@ import com.ociweb.iot.maker.EdisonCommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -25,13 +26,12 @@ public class GroveV3EdisonImpl extends Hardware {
     
     public GroveV3EdisonImpl(GraphManager gm, I2CBacking i2cBacking) {
     	super(gm, i2cBacking);
-   }
-      
+    }
     
-    
-    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<TrafficOrderSchema> orderPipe) {
-		return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, orderPipe);
+    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
+		return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
 	}
+    
     public void coldSetup() {
     	System.out.println("ColdSetup: Edison Pin Configuration setup!");
         usedLines = buildUsedLines();

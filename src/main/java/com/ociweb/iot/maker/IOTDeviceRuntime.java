@@ -60,7 +60,7 @@ public class IOTDeviceRuntime {
     private final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, 64,1024); 
     private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
     private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);   
-
+    private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, 64, 1024);
     
     private boolean isEdison = false;
     private boolean isPi = false;
@@ -149,60 +149,30 @@ public class IOTDeviceRuntime {
         Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
         
         
-        List<Pipe> pipesForListenerConsumption = new ArrayList<Pipe>(); 
+        List<Pipe<?>> pipesForListenerConsumption = new ArrayList<Pipe<?>>(); 
         
-        if(isPi){ // TODO: more Grove Specific stuff. Needs to change to add GPIO read support
-        	System.out.println("Creating Pi Listener");
-        	assert(!isEdison);
-	        if (listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
-	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
-	            System.out.println("added new Pi Pipe");
-	            pipesForListenerConsumption.add(pipe);
-	        }
-        }else if(isEdison){
-        	System.out.println("Creating Edison Listener");
-        	assert(!isPi);
-        	if (listener instanceof I2CListener) {
-	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
-	            pipesForListenerConsumption.add(pipe);
-	        }
-	        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
-	            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
-	            pipesForListenerConsumption.add(pipe);
-	            System.out.println("added new response pipe and added lit edison listener");
-	        }
-        }else{ //I just left it as is maybe doesn't need to be different from Ed
-        	System.out.println("Creating Mock Listener");
-        	if (listener instanceof I2CListener) {
-	            Pipe<I2CResponseSchema> pipe = new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x());
-	            pipesForListenerConsumption.add(pipe);
-	        }
-	        if (listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener) {
-	            Pipe<GroveResponseSchema> pipe = new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x());
-	            pipesForListenerConsumption.add(pipe);
-	            System.out.println("added new response pipe and added lit edison listener");
-	        }
+        
+        if (this.hardware.isListeningToI2C(listener)) {
+            pipesForListenerConsumption.add(new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x()));   //must double since used by splitter         
         }
-        
+        if (this.hardware.isListeningToPins(listener)) {
+            pipesForListenerConsumption.add(new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x()));  //must double since used by splitter
+        }
+        if (this.hardware.isListeningToSubscription(listener)) {
+            pipesForListenerConsumption.add(new Pipe<MessageSubscription>(messageSubscriptionConfig));
+        }
+
         
         /////////////////////
         //StartupListener is not driven by any response data and is called when the stage is started up. no pipe needed.
         /////////////////////
         //TimeListener, time rate signals are sent from the stages its self and therefore does not need a pipe to consume.
         /////////////////////
-        if (listener instanceof PubSubListener) {
-            //TODO: need to implement
-        }
-        if (listener instanceof RestListener) {
-            //TODO: need to implement
-        }
         
 
         Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
 
         if(isPi){
-        	System.out.println("Creating new PiReactiveListenerStage with pipe array size "+pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]).length);
-
         	configureStageRate(listener, new PiReactiveListenerStage(gm, listener, inputPipes, outputPipes)); 
         }else{
         	configureStageRate(listener, new EdisonReactiveListenerStage(gm, listener, inputPipes, outputPipes));
@@ -277,11 +247,14 @@ public class IOTDeviceRuntime {
     public void start() {
        hardware.coldSetup();
    
-       hardware.buildStages(GraphManager.allPipesOfType(gm, GroveRequestSchema.instance), 
-                            GraphManager.allPipesOfType(gm, I2CCommandSchema.instance),
-                            GraphManager.allPipesOfType(gm, GroveResponseSchema.instance), 
-                            GraphManager.allPipesOfType(gm, TrafficOrderSchema.instance), 
+       hardware.buildStages(GraphManager.allPipesOfType(gm, GroveResponseSchema.instance), 
                             GraphManager.allPipesOfType(gm, I2CResponseSchema.instance),
+                            GraphManager.allPipesOfType(gm, MessageSubscription.instance),
+                            
+                            GraphManager.allPipesOfType(gm, TrafficOrderSchema.instance), 
+                            
+                            GraphManager.allPipesOfType(gm, GroveRequestSchema.instance), 
+                            GraphManager.allPipesOfType(gm, I2CCommandSchema.instance),
                             GraphManager.allPipesOfType(gm, MessagePubSub.instance)
                );
     
@@ -378,7 +351,7 @@ public class IOTDeviceRuntime {
 	public static IOTDeviceRuntime run(IoTSetup app) {
 	    IOTDeviceRuntime runtime = new IOTDeviceRuntime();
         try {
-            app.specifyConnections(runtime.getHardware());
+            app.declareConnections(runtime.getHardware());
             app.declareBehavior(runtime);
             runtime.start();
         } catch (Throwable t) {

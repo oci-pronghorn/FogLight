@@ -6,8 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
+import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.PiCommandChannel;
+import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -187,6 +191,14 @@ public class GroveV2PiImpl extends Hardware {
 		return result;
 	}
 
-	
+    public boolean isListeningToI2C(Object listener) {
+        return listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener;
+    }
+
+    public boolean isListeningToPins(Object listener) {
+        return false;//TODO: we have no support for this yet
+    }
+    
+    
 }
 

@@ -44,7 +44,8 @@ public class I2CJFFIStage extends AbstractOutputStage {
 	@Override
 	public void startup(){
 		super.startup();
-		System.out.println("Polling "+this.inputs.length+" i2cInput(s)");
+		
+		logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
 		
 		for (int i = 0; i < inputs.length; i++) {
 			i2c.write(inputs[i].address, inputs[i].setup); //TODO: add setup for outputs

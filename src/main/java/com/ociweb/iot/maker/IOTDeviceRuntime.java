@@ -57,10 +57,12 @@ public class IOTDeviceRuntime {
     private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);   
     private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, 64, 1024);
     
+    private int subscriptionPipeIdx = 0; //this implementation is dependent upon graphManager returning the pipes in the order created!
+    
     private boolean isEdison = false;
     private boolean isPi = false;
     
-    private int DEFAULT_SLEEP_RATE_NS = 20_000_000; //we will only check for new work 50 times per second to keep CPU usage low.
+    private int DEFAULT_SLEEP_RATE_NS = 10_000_000;   //we will only check for new work 100 times per second to keep CPU usage low.
     
     private static final byte piI2C = 1;
     private static final byte edI2C = 6;
@@ -138,11 +140,8 @@ public class IOTDeviceRuntime {
     public void addI2CListener(I2CListener listener) {
         registerListener(listener);
     }
-    
+
     public void registerListener(Object listener) {
-  
-        Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
-        
         
         List<Pipe<?>> pipesForListenerConsumption = new ArrayList<Pipe<?>>(); 
         
@@ -153,8 +152,14 @@ public class IOTDeviceRuntime {
         if (this.hardware.isListeningToPins(listener)) {
             pipesForListenerConsumption.add(new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x()));  //must double since used by splitter
         }
+        
+        int subPipeIdx = -1;
+        int testId = -1;
         if (this.hardware.isListeningToSubscription(listener)) {
-            pipesForListenerConsumption.add(new Pipe<MessageSubscription>(messageSubscriptionConfig));
+            Pipe<MessageSubscription> subscriptionPipe = new Pipe<MessageSubscription>(messageSubscriptionConfig);
+            subPipeIdx = subscriptionPipeIdx++;
+            testId = subscriptionPipe.id;
+            pipesForListenerConsumption.add(subscriptionPipe);
         }
 
         
@@ -166,12 +171,21 @@ public class IOTDeviceRuntime {
         
 
         Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
+        Pipe<?>[] outputPipes = extractPipesUsedByListener(listener, subPipeIdx);
 
         if(isPi){
         	configureStageRate(listener, new PiReactiveListenerStage(gm, listener, inputPipes, outputPipes)); 
         }else{
         	configureStageRate(listener, new EdisonReactiveListenerStage(gm, listener, inputPipes, outputPipes));
         }
+        
+        Pipe<MessageSubscription>[] subsPipes = GraphManager.allPipesOfType(gm, MessageSubscription.instance);
+        assert(-1==testId || subsPipes[subPipeIdx].id==testId) : "GraphManager has returned the pipes out of the expected order";
+        
+        if (testId != -1 &&  subsPipes[subPipeIdx].id==testId && subsPipes.length>3) {
+            System.err.println("TESTED, NOW REMOVE THIS BLOCK **********************");
+        }
+        
     }
 
     //////////
@@ -201,7 +215,7 @@ public class IOTDeviceRuntime {
     ///////////
     
     
-    private Pipe<?>[] extractPipesUsedByListener(Object listener) {
+    private Pipe<?>[] extractPipesUsedByListener(Object listener, int subPipeIdx) {
         Pipe<?>[] outputPipes = new Pipe<?>[0];
 
         Class<? extends Object> c = listener.getClass();
@@ -214,6 +228,8 @@ public class IOTDeviceRuntime {
                     CommandChannel cmdChnl = (CommandChannel)fields[f].get(listener);                 
                     
                     assert(channelNotPreviouslyUsed(cmdChnl)) : "A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.";
+                    cmdChnl.setListener(listener);                    
+                    cmdChnl.setSubscriptionPipeId(subPipeIdx);
                                         
                     outputPipes = PronghornStage.join(outputPipes, cmdChnl.outputPipes);
                 }
@@ -242,9 +258,16 @@ public class IOTDeviceRuntime {
     public void start() {
        hardware.coldSetup();
    
+       Pipe<MessageSubscription>[] subsPipes = GraphManager.allPipesOfType(gm, MessageSubscription.instance);
+       
+       //TODO: tell each CmdChnl which pipe is theirs in this array.
+       
+       
+       
+       
        hardware.buildStages(GraphManager.allPipesOfType(gm, GroveResponseSchema.instance), 
                             GraphManager.allPipesOfType(gm, I2CResponseSchema.instance),
-                            GraphManager.allPipesOfType(gm, MessageSubscription.instance),
+                            subsPipes,
                             
                             GraphManager.allPipesOfType(gm, TrafficOrderSchema.instance), 
                             
@@ -289,13 +312,13 @@ public class IOTDeviceRuntime {
             Process result = Runtime.getRuntime().exec("dot -Tsvg -odeviceGraph.dot.svg deviceGraph.dot");
             
             if (0==result.waitFor()) {
-                System.out.println("Built deviceGraph.dot.png to view the runtime graph.");
+                logger.info("Built deviceGraph.dot.png to view the runtime graph.");
             }
             
             result = Runtime.getRuntime().exec("circo -Tsvg -odeviceGraph.circo.svg deviceGraph.dot");
             
             if (0==result.waitFor()) {
-                System.out.println("Built deviceGraph.circo.png to view the runtime graph.");
+                logger.info("Built deviceGraph.circo.png to view the runtime graph.");
             }
             
             
@@ -323,24 +346,6 @@ public class IOTDeviceRuntime {
         scheduler.awaitTermination(timeoutInSeconds, TimeUnit.SECONDS); //timeout error if this does not exit cleanly withing this time.
         //all the software has now stopped so now shutdown the hardware.
         hardware.shutdown();
-    }
-
-    public void addSubscriptionListener(String string, PubSubListener exampleController) {
-        //add assert that this is only done before the graph is started
-        
-      //this is a subscription not the creation of an additional stage
-        
-        // TODO Auto-generated method stub
-        
-    }
-    
-    public void addRESTListener(int id, String route, RestListener listener) {
-        //add assert that this is only done before the graph is started
-        
-        //this is a subscription not the creation of an additional stage
-
-        // TODO accumulate all thse rest processor, when start is called then configure the server to take them all. 
-        
     }
 
 	public static IOTDeviceRuntime run(IoTSetup app) {

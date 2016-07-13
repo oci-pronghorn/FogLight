@@ -72,7 +72,6 @@ public abstract class AbstractOutputStage extends PronghornStage {
 		connectionBlocker = new Blocker(MAX_DEVICES);
 		activeCounts = new int[goPipe.length];
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
-		System.out.println("activeCounts.length = "+activeCounts.length);
 	}
 
 	@Override
@@ -94,7 +93,7 @@ public abstract class AbstractOutputStage extends PronghornStage {
 					connectionBlocker.releaseBlocks(System.currentTimeMillis());  
 					//This method must be called at all times to poll I2C
 					processMessagesForPipe(a);    
-					logger.info("ProcessMessagesForPipe called in output stages");
+					logger.debug("ProcessMessagesForPipe called in output stages");
 					foundWork |= (activeCounts[a]!=startCount);//work was done if progress was made
 
 					//send any acks that are outstanding

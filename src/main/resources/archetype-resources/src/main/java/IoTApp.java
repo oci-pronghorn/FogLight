@@ -3,12 +3,12 @@ package ${package};
 
 import static com.ociweb.iot.grove.GroveTwig.*;
 
-
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.IoTSetup;
 
-public class IoTApp 
+public class IoTApp implements IoTSetup
 {
     ///////////////////////
     //Connection constants 
@@ -25,15 +25,12 @@ public class IoTApp
     
     public static void main( String[] args )
     {
-        IOTDeviceRuntime runtime = new IOTDeviceRuntime();
-        specifyConnections(runtime.getHarware());
-        specifyBehavior(runtime);
-        runtime.start();
+        IOTDeviceRuntime.run(new IoTApp());
     }
     
     
-    public static void specifyConnections(Hardware c) {
-
+    @Override
+    public void declareConnections(Hardware c) {
         ////////////////////////////
         //Connection specifications
         ///////////////////////////
@@ -47,11 +44,11 @@ public class IoTApp
         //c.useConnectA(LED, LED_CONNECTION);        
         //c.useI2C();
         
-    } 
-    
-    
-    public static void specifyBehavior(IOTDeviceRuntime runtime) {
+    }
 
+
+    @Override
+    public void declareBehavior(IOTDeviceRuntime runtime) {
         //////////////////////////////
         //Specify the desired behavior
         //////////////////////////////
@@ -74,7 +71,6 @@ public class IoTApp
         //            }
         //        });
     }
-    
-    
+        
   
 }

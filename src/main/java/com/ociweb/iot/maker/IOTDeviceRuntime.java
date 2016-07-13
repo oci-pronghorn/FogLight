@@ -351,7 +351,7 @@ public class IOTDeviceRuntime {
 	public static IOTDeviceRuntime run(IoTSetup app) {
 	    IOTDeviceRuntime runtime = new IOTDeviceRuntime();
         try {
-            app.specifyConnections(runtime.getHardware());
+            app.declareConnections(runtime.getHardware());
             app.declareBehavior(runtime);
             runtime.start();
         } catch (Throwable t) {

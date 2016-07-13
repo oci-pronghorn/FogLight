@@ -64,6 +64,7 @@ public abstract class AbstractOutputStage extends PronghornStage {
 		this.goPipe = goPipe;
 		this.activePipe = goPipe.length;
 		this.hitPoints = goPipe.length;
+
 	}
 
 	@Override 
@@ -71,38 +72,43 @@ public abstract class AbstractOutputStage extends PronghornStage {
 		connectionBlocker = new Blocker(MAX_DEVICES);
 		activeCounts = new int[goPipe.length];
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
+		System.out.println("activeCounts.length = "+activeCounts.length);
 	}
 
 	@Override
 	public void run() {
-
 		boolean foundWork;
 		do {
 			foundWork = false;
 			int a = activeCounts.length;
-			while (--a >= 0) {
-				//pull all known the values into the active counts array
-				if (-1==activeCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
-					readNextCount(a); 
-					foundWork = true;
-				}
-
-				int startCount = activeCounts[a];
-				//must clear these before calling processMessages
-				connectionBlocker.releaseBlocks(System.currentTimeMillis());  
-				//This method must be called at all times to poll I2C
-				processMessagesForPipe(a);    
-				foundWork |= (activeCounts[a]!=startCount);//work was done if progress was made
-
-				//send any acks that are outstanding
-				if (0==activeCounts[a]) {
-					if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
-						publishWrites(ackPipe[a]);
-						activeCounts[a] = -1;
+			if(a>0){ //TODO: Probably a more elegant way to do this. Need to make sure processMessages runs when there are no cc requests
+				while (--a >= 0) {
+					//pull all known the values into the active counts array
+					if (-1==activeCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
+						readNextCount(a); 
 						foundWork = true;
-					}//this will try again later since we did not clear it to -1
-				}
-			} 	
+					}
+
+					int startCount = activeCounts[a];
+					//must clear these before calling processMessages
+					connectionBlocker.releaseBlocks(System.currentTimeMillis());  
+					//This method must be called at all times to poll I2C
+					processMessagesForPipe(a);    
+					logger.info("ProcessMessagesForPipe called in output stages");
+					foundWork |= (activeCounts[a]!=startCount);//work was done if progress was made
+
+					//send any acks that are outstanding
+					if (0==activeCounts[a]) {
+						if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
+							publishWrites(ackPipe[a]);
+							activeCounts[a] = -1;
+							foundWork = true;
+						}//this will try again later since we did not clear it to -1
+					}
+				} 
+			}else{
+				processMessagesForPipe(a); 
+			}
 			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
 		} while (foundWork);
 	}
@@ -130,7 +136,11 @@ public abstract class AbstractOutputStage extends PronghornStage {
 	}
 
 	protected boolean hasReleaseCountRemaining(int a) {
-		return activeCounts[a] > 0;
+		if(activeCounts.length>0){
+			return activeCounts[a] > 0;
+		}else{
+			return false;
+		}
 	}
 
 }

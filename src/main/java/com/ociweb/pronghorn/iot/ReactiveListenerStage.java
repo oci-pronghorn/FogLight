@@ -1,15 +1,20 @@
 package com.ociweb.pronghorn.iot;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.PayloadReader;
+import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RestListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.iot.schema.MessageSubscription;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -21,12 +26,12 @@ public abstract class ReactiveListenerStage extends PronghornStage {
     
     protected final Pipe<?>[]           inputPipes;
     protected final Pipe<?>[]           outputPipes;
-    
-    
+        
     protected long                      timeTrigger;
-    protected long                      timeRate;
-    private final GraphManager          graphManager;           
+    protected long                      timeRate;          
   
+    private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStage.class);
+    
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
 
         
@@ -34,10 +39,7 @@ public abstract class ReactiveListenerStage extends PronghornStage {
         this.listener = listener;
 
         this.inputPipes = inputPipes;
-        this.outputPipes = outputPipes;
-
-        this.graphManager = graphManager;
-        
+        this.outputPipes = outputPipes;       
         
     }
 
@@ -75,16 +77,14 @@ public abstract class ReactiveListenerStage extends PronghornStage {
             if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
             } else
-            if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) { 
-                
+            if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {                
                 consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);
-            }
-//            if (Pipe.isForSchema(localPipe, RestSomethingSchema.instance)) {
-//                
-//                consumeRestMessage(listener, restResponsePipes);
-//            }
-            else {
-                //error
+            } else
+            if (Pipe.isForSchema(localPipe, MessageSubscription.instance)) {                
+                consumePubSubMessage(listener, (Pipe<MessageSubscription>) localPipe);
+            } else 
+            {
+                logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(localPipe));
             }
         }
         
@@ -92,6 +92,44 @@ public abstract class ReactiveListenerStage extends PronghornStage {
         
     }
 
+    private StringBuilder workspace = new StringBuilder();
+    private PayloadReader payloadReader;
+    
+    private void consumePubSubMessage(Object listener, Pipe<MessageSubscription> p) {
+        while (PipeReader.tryReadFragment(p)) {                
+            
+            int msgIdx = PipeReader.getMsgIdx(p);
+            switch (msgIdx) {
+                case MessageSubscription.MSG_PUBLISH_103:
+                    
+                    workspace.setLength(0);
+                    CharSequence topic = PipeReader.readUTF8(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1, workspace);               
+                    
+                    if (null==payloadReader) {
+                        payloadReader = new PayloadReader(p); 
+                    }
+                    
+                    payloadReader.openHighLevelAPIField(MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
+                    if (! payloadReader.markSupported() ) {
+                        logger.warn("we need mark to be suppported for payloads in pubsub and http."); //TODO: implement mark                      
+                    }
+                    
+                    ((PubSubListener)listener).message(topic, payloadReader);
+                    
+                    break;
+                case -1:
+                    
+                    requestShutdown();
+                    PipeReader.releaseReadLock(p);
+                    return;
+                   
+                default:
+                    throw new UnsupportedOperationException("Unknown id: "+msgIdx);
+                
+            }
+            PipeReader.releaseReadLock(p);
+        }
+    }
 
     private void processTimeEvents(Object listener) {
         //if we do have a clock schedule
@@ -124,7 +162,7 @@ public abstract class ReactiveListenerStage extends PronghornStage {
     }
     
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-        System.out.println("Wrong I2C Consume");
+   
         while (PipeReader.tryReadFragment(p)) {                
                     
                     int msgIdx = PipeReader.getMsgIdx(p);

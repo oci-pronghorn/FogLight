@@ -17,7 +17,9 @@ public class TestHardware extends Hardware {
 
     private final int[] pinData = new int[127];
     private boolean testAsEdison = true; //if false the digital connections are all done as i2c
-        
+    
+    private boolean isInUnitTest = true;
+    
     
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking());
@@ -63,10 +65,15 @@ public class TestHardware extends Hardware {
     
     @Override
     public StageScheduler createScheduler(IOTDeviceRuntime iotDeviceRuntime) {
-        //NOTE: need to consider different schedulers in the future.
-       final StageScheduler scheduler = new NonThreadScheduler(gm);
 
-       return scheduler;
+        if (isInUnitTest) {
+            //NOTE: need to consider different schedulers in the future.
+           return new NonThreadScheduler(gm);
+        } else {
+           return super.createScheduler(iotDeviceRuntime);
+        }
+       
+       
     }
 
 }

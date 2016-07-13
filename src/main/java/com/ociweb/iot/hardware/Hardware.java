@@ -4,8 +4,13 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.PubSubListener;
+import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -16,6 +21,7 @@ import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
+import com.ociweb.pronghorn.iot.schema.MessageSubscription;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
@@ -257,12 +263,17 @@ public abstract class Hardware {
 
 	
 
-    public final void buildStages(Pipe<GroveRequestSchema>[] requestPipes, 
-                                  Pipe<I2CCommandSchema>[] i2cPipes, 
-                                  Pipe<GroveResponseSchema>[] responsePipes,        
-                                  Pipe<TrafficOrderSchema>[] orderPipes,
-                                  Pipe<I2CResponseSchema>[] i2cResponsePipes,
-                                  Pipe<MessagePubSub>[] messagePubSub) {
+    public final void buildStages(Pipe<GroveResponseSchema>[] responsePipes,     //one for each listener of this type (broadcast to all)
+                                  Pipe<I2CResponseSchema>[] i2cResponsePipes,    //one for each listener of this type (broadcast to all)
+                                  Pipe<MessageSubscription>[] subscriptionPipes, //one for each listener of this type (subscription per pipe)
+                                  
+                                  Pipe<TrafficOrderSchema>[] orderPipes,   //one for each command channel 
+                                  
+                                  Pipe<GroveRequestSchema>[] requestPipes, //one for each command channel 
+                                  Pipe<I2CCommandSchema>[] i2cPipes,       //one for each command channel 
+                                  Pipe<MessagePubSub>[] messagePubSub      //one for each command channel 
+                                  
+            ) {
             
         
         assert(orderPipes.length == i2cPipes.length);
@@ -307,7 +318,7 @@ public abstract class Hardware {
             
         }
         
-        createMessagePubSubStage(messagePubSub, masterMsggoOut, masterMsgackIn);
+        createMessagePubSubStage(messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
         
         createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
         
@@ -332,7 +343,8 @@ public abstract class Hardware {
 
     private void createMessagePubSubStage(Pipe<MessagePubSub>[] messagePubSub,
                                           Pipe<TrafficReleaseSchema>[] masterMsggoOut, 
-                                          Pipe<TrafficAckSchema>[] masterMsgackIn) {
+                                          Pipe<TrafficAckSchema>[] masterMsgackIn, 
+                                          Pipe<MessageSubscription>[] subscriptionPipes) {
         
         // TODO Auto-generated method stub, still needs the outgoing pipes for the reactiveListener
         new MessagePubSubStage(this.gm, messagePubSub, masterMsggoOut, masterMsgackIn);
@@ -367,6 +379,18 @@ public abstract class Hardware {
            }
        });
        return scheduler;
+    }
+
+    public boolean isListeningToI2C(Object listener) {
+        return listener instanceof I2CListener;
+    }
+
+    public boolean isListeningToPins(Object listener) {
+        return listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener;
+    }
+
+    public boolean isListeningToSubscription(Object listener) {
+        return listener instanceof PubSubListener;
     }
 
 

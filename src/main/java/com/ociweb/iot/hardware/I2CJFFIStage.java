@@ -128,7 +128,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 					Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, len);
 
 					i2c.write((byte) addr, buffer);
-					logger.info("Sent I2C Message {} to address {}", Arrays.toString(buffer), addr);
+					//logger.info("Sent I2C Message {} to address {}", Arrays.toString(buffer), addr);
 				}                                      
 				break;
 
@@ -189,22 +189,23 @@ public class I2CJFFIStage extends AbstractOutputStage {
 				lastWriteIdx = tempIdx;
 				I2CConnection connection = this.inputs[lastWriteIdx];
 				i2c.write((byte)connection.address, connection.readCmd);
-				logger.debug("Sent ReadCmd {} to addr {}", Arrays.toString(connection.readCmd), connection.address);
+				//System.out.println("Sent ReadCmd "+Arrays.toString(connection.readCmd));
+				//logger.debug("Sent ReadCmd {} to addr {}", Arrays.toString(connection.readCmd), connection.address);
 			}
 
 
 			byte[] temp =i2c.read(this.inputs[tempIdx].address, this.inputs[tempIdx].readBytes);
-			
-			
+			byte[] disqualifier = this.inputs[tempIdx].disqualifier;
+			//System.out.println(Arrays.toString(temp));
 
-			if ((temp[0]!=-1 || temp.length!=1)&& PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+			if (/*(!Arrays.equals(temp, disqualifier))&& */PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
 				
 				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[tempIdx].address);
 				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
 				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.currentTimeMillis());
 				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[tempIdx].register);
 				PipeWriter.publishWrites(i2cResponsePipe);
-				logger.info("Read {} from addr {}", Arrays.toString(temp),this.inputs[tempIdx].address);
+				//logger.info("Read {} from addr {}", Arrays.toString(temp),this.inputs[tempIdx].address);
 
 				currentPoll=(currentPoll+1)%(this.inputs.length+1);
 			}

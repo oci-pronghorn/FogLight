@@ -50,7 +50,8 @@ public class GroveV2PiImpl extends Hardware {
             assert(!t.isOutput());
             byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
             byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
-            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup));
+            byte[] disqualifier = {-1, -1, -1};
+            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup,disqualifier));
         } else {
             assert(t.isOutput());
             pwmOutputs = growHardConnections(pwmOutputs, new HardConnection(t,connection));
@@ -70,8 +71,9 @@ public class GroveV2PiImpl extends Hardware {
             assert(!t.isOutput());
             byte[] readCmd = {0x01,0x01,(byte)connection,0x00,0x00};
             byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
+            byte[] disqualifier = {-1};
             System.out.println("Digital Input Connected on "+connection);
-            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,readCmd,1,connection,setup));
+            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,readCmd,1,connection,setup,disqualifier));
         } else {
             assert(t.isOutput());
             digitalOutputs = growHardConnections(digitalOutputs, new HardConnection(t,connection));

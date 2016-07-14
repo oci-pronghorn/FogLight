@@ -48,11 +48,15 @@ public class IOTDeviceRuntime {
     private StageScheduler scheduler;
     private final GraphManager gm;
   
+    private final int defaultCommandChannelLength = 32;
+    private final int defaultCommandChannelMaxPayload = 1023; //largest i2c request or pub sub payload
     
-    private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, 128);
-    private final PipeConfig<TrafficOrderSchema> goPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, 64);    
-    private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, 64,1024);    
-    private final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, 64,1024); 
+    private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
+    private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, defaultCommandChannelLength,defaultCommandChannelMaxPayload);    
+    private final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, defaultCommandChannelLength,defaultCommandChannelMaxPayload); 
+    private final PipeConfig<TrafficOrderSchema> goPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, defaultCommandChannelLength); 
+    
+
     private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
     private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);   
     private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, 64, 1024);
@@ -115,6 +119,15 @@ public class IOTDeviceRuntime {
     	
     }
 
+    public CommandChannel newCommandChannel(int customChannelLength) { 
+        
+        return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, customChannelLength) ),
+                                               new Pipe<I2CCommandSchema>(new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, customChannelLength,defaultCommandChannelMaxPayload)), 
+                                               new Pipe<MessagePubSub>(new PipeConfig<MessagePubSub>(MessagePubSub.instance, customChannelLength,defaultCommandChannelMaxPayload)),
+                                               new Pipe<TrafficOrderSchema>(new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, customChannelLength)));
+        
+    }
+    
     
     public RotaryListener addRotaryListener(RotaryListener listener) {
         return (RotaryListener)registerListener(listener);

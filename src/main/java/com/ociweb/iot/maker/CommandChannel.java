@@ -19,24 +19,41 @@ public abstract class CommandChannel {
     protected final Pipe<TrafficOrderSchema> goPipe;
     protected final Pipe<MessagePubSub> messagePubSub;
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
+        
+    private int listenerSubscriptionPipeIdx;
     
-    
-    private Object listener;//TODO: populate this once we know the value so it need not be passed arround.
+    private Object listener;
 
     private long topicKeyGen;
     
-    private Pool<PayloadWriter> payloadWriterPool;
+    Pool<PayloadWriter> payloadWriterPool;
     private final int maxOpenTopics = 1;
+    
+    protected final int pinPipeIdx = 0; 
+    protected final int i2cPipeIdx = 1;
+    protected final int subPipeIdx = 2;
+    
         
     protected CommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe) {
        this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};
        this.goPipe = goPipe;
        this.messagePubSub = messagePubSub;
-       
+     
 
     }
     
+
+    void setListener(Object listener) {
+        if (null != this.listener) {
+            throw new UnsupportedOperationException("Bad Configuration, A CommandChannel can only be held and used by a single listener lambda/class");
+        }
+        this.listener = listener;
+    }
     
+
+    void setSubscriptionPipeId(int subPipeIdx) {
+        this.listenerSubscriptionPipeIdx = subPipeIdx;
+    }
     
     protected void publishGo(int count, int pipeIdx) {
         if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) {                 
@@ -67,29 +84,41 @@ public abstract class CommandChannel {
     public abstract void i2cCommandClose();
     public abstract boolean i2cFlushBatch();
 
+    public boolean subscribe(CharSequence topic) {
+        return subscribe(topic, (PubSubListener)listener);
+    }
+    
     public boolean subscribe(CharSequence topic, PubSubListener listener) {
         if (PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100)) {
             
-            //TOOD: which pipe idx is associated with this listener ?????
-            //PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_PIPEIDX_2, listener);
-            
+            PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_PIPEIDX_2, listenerSubscriptionPipeIdx);
             PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_TOPIC_1, topic);
             
             PipeWriter.publishWrites(messagePubSub);
+            
+            int count = 1;
+            publishGo(count,subPipeIdx);
+            
             return true;
         }        
         return false;
     }
 
+    public boolean unsubscribe(CharSequence topic) {
+        return unsubscribe(topic, (PubSubListener)listener);
+    }
+    
     public boolean unsubscribe(CharSequence topic, PubSubListener listener) {
         if (PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101)) {
             
-            //TOOD: which pipe idx is associated with this listener ?????
-            //PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_PIPEIDX_2, listener);
-
+            PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_PIPEIDX_2, listenerSubscriptionPipeIdx);
             PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101_FIELD_TOPIC_1, topic);
             
             PipeWriter.publishWrites(messagePubSub);
+            
+            int count = 1;
+            publishGo(count,subPipeIdx);
+            
             return true;
         }        
         return false;
@@ -104,16 +133,11 @@ public abstract class CommandChannel {
                 lazyInitOfPool(); //must be after the listener has init all the pipes., TODO: could be done when we assign the lister, if we do.
             }
             
-            
             long key = ++topicKeyGen;
-            PayloadWriter pw = payloadWriterPool.get(key);
-            
-            pw.setKey(key);
-            
-            PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1, topic);
-            
-            DataOutputBlobWriter.openField(pw);
-            
+            PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1, topic);            
+            PayloadWriter pw = payloadWriterPool.get(key);            
+            pw.openField(key);            
+                        
             return pw;
             
         } else {
@@ -130,8 +154,12 @@ public abstract class CommandChannel {
         payloadWriterPool = new Pool<PayloadWriter>(members);
         int m = maxOpenTopics;
         while (--m >= 0) {
-            members[m] = new PayloadWriter(messagePubSub, payloadWriterPool);
+            members[m] = new PayloadWriter(messagePubSub, this);
         }
     }
+
+
+
+
 
 }

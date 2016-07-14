@@ -1,5 +1,8 @@
 package com.ociweb.iot.hardware;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.EdisonCommandChannel;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
@@ -18,7 +21,9 @@ public class TestHardware extends Hardware {
     private final int[] pinData = new int[127];
     private boolean testAsEdison = true; //if false the digital connections are all done as i2c
     
-    private boolean isInUnitTest = true;
+    private boolean isInUnitTest = false;
+    
+    private static final Logger logger = LoggerFactory.getLogger(TestHardware.class);
     
     
     public TestHardware(GraphManager gm) {
@@ -42,11 +47,13 @@ public class TestHardware extends Hardware {
 
     @Override
     public void digitalWrite(int connector, int value) {
+        logger.info("digital connection {} set to {}",connector,value);
         pinData[connector]=value;
     }
 
     @Override
     public void analogWrite(int connector, int value) {
+        logger.info("analog connection {} set to {}",connector,value);
         pinData[connector]=value;
     }
 

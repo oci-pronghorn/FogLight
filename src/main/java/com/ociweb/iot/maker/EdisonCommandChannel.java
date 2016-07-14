@@ -18,11 +18,6 @@ public class EdisonCommandChannel extends CommandChannel{
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
 	private int runningI2CCommandCount;
 	
-	//private final byte channelIdx = (byte)1;
-	private final int pinPipeIdx = 0; 
-	private final int i2cPipeIdx = 1;
-    
-
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods
     private final int maxCommands = 16;
 

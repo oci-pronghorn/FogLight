@@ -110,9 +110,10 @@ public abstract class ReactiveListenerStage extends PronghornStage {
                     }
                     
                     payloadReader.openHighLevelAPIField(MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
-                    if (! payloadReader.markSupported() ) {
-                        logger.warn("we need mark to be suppported for payloads in pubsub and http."); //TODO: implement mark                      
-                    }
+
+//                    if (! payloadReader.markSupported() ) {
+//                        logger.warn("we need mark to be suppported for payloads in pubsub and http."); //TODO: need to implement mark, urgent.                      
+//                    }
                     
                     ((PubSubListener)listener).message(topic, payloadReader);
                     

@@ -348,7 +348,7 @@ public abstract class Hardware {
                                           Pipe<MessageSubscription>[] subscriptionPipes) {
         
         // TODO Auto-generated method stub, still needs the outgoing pipes for the reactiveListener
-        new MessagePubSubStage(this.gm, messagePubSub, masterMsggoOut, masterMsgackIn);
+        new MessagePubSubStage(this.gm, this, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
                 
         
     }

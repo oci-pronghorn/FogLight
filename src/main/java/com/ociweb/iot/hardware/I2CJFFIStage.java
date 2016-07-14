@@ -128,6 +128,7 @@ public class I2CJFFIStage extends AbstractOutputStage {
 					byte[] buffer = new byte[len];
 					Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, len);
 
+					logger.debug("Writing to I2C addr {} {}", addr, Arrays.toString(buffer));
 					i2c.write((byte) addr, buffer);
 					//logger.info("Sent I2C Message {} to address {}", Arrays.toString(buffer), addr);
 				}                                      
@@ -196,11 +197,12 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 
 			byte[] temp =i2c.read(this.inputs[tempIdx].address, this.inputs[tempIdx].readBytes);
-			byte[] temp2 = temp;
+			logger.debug("Read {} from {}", Arrays.toString(temp), this.inputs[tempIdx].address);
+			byte[] temp2 = Arrays.copyOf(temp, temp.length);
 			Arrays.fill(temp2, (byte)-1);
 
 			if (!Arrays.equals(temp2,temp) && PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-				
+				logger.debug("Sending reading to Pipe");
 				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[tempIdx].address);
 				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
 				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.currentTimeMillis());

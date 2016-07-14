@@ -53,12 +53,13 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 						if(tempValue!=lastDigital){
 							lastDigital = tempValue;
 							((DigitalListener)listener).digitalEvent(register, time, tempValue);
+							logger.debug("Digital event");
 						}
 					}
 					else if(listener instanceof AnalogListener && addr==4 && length==3){
 						byte[] temp = Arrays.copyOfRange(backing, position&mask, (position+3)&mask); //TODO: Does this produce garbage?
 						int tempValue = ((int)temp[1])*256+(((int)temp[2])&0xFF);
-						if(tempValue!=lastAnalog){
+						if(tempValue>lastAnalog+1 || tempValue<lastAnalog-1){
 							lastAnalog = tempValue;
 							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=?
 						}

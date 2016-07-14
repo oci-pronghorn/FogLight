@@ -19,6 +19,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
 	private int lastDigital = -1;
 	private int lastAnalog = -1;
+	private byte[] currentAnalog = new byte[3];
 	
 	private static final Logger logger = LoggerFactory.getLogger(DexterGrovePiReactiveListenerStage.class);
 	
@@ -57,9 +58,11 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 						}
 					}
 					else if(listener instanceof AnalogListener && addr==4 && length==3){
-						byte[] temp = Arrays.copyOfRange(backing, position&mask, (position+3)&mask); //TODO: Does this produce garbage?
-						int tempValue = ((int)temp[1])*256+(((int)temp[2])&0xFF);
-						if(tempValue>lastAnalog+1 || tempValue<lastAnalog-1){
+						for (int i = 0; i < currentAnalog.length; i++) {
+							currentAnalog[i] = backing[(position+i)&mask];
+						}
+						int tempValue = ((int)currentAnalog[1])*256+(((int)currentAnalog[2])&0xFF);
+						if(tempValue>lastAnalog+5 || tempValue<lastAnalog-5){
 							lastAnalog = tempValue;
 							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=?
 						}

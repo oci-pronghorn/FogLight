@@ -195,10 +195,10 @@ public class I2CJFFIStage extends AbstractOutputStage {
 
 
 			byte[] temp =i2c.read(this.inputs[tempIdx].address, this.inputs[tempIdx].readBytes);
-			byte[] disqualifier = this.inputs[tempIdx].disqualifier;
-			//System.out.println(Arrays.toString(temp));
+			byte[] temp2 = temp;
+			Arrays.fill(temp2, (byte)-1);
 
-			if (/*(!Arrays.equals(temp, disqualifier))&& */PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+			if (!Arrays.equals(temp2,temp) && PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
 				
 				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[tempIdx].address);
 				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);

@@ -19,5 +19,6 @@ public interface IODevice {
      public int     pwmRange();
      public boolean isI2C();
      public byte[] getReadMessage();
+     public boolean isGrove();
      
 }

@@ -156,11 +156,21 @@ public enum GroveTwig implements IODevice {
         }
     },
     Nunchuck() {
+    	
     	@Override
     	public boolean isInput() {
     		return true;
     	}
+    	
+    },
+    TempHumid() {
+    	
+    	@Override
+    	public boolean isInput(){
+    		return true;
+    	}
     };
+	
 	
 
     public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
@@ -198,6 +208,8 @@ public enum GroveTwig implements IODevice {
     public int pwmRange() {
         return 256;
     }
-    
+    public boolean isGrove(){
+    	return true;
+    }
     
 }

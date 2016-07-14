@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.I2CJFFIStage;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
@@ -14,15 +15,15 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class PiReactiveListenerStage extends ReactiveListenerStage{
+public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
 	private int lastDigital = -1;
 	private int lastAnalog = -1;
 	
-	private static final Logger logger = LoggerFactory.getLogger(PiReactiveListenerStage.class);
+	private static final Logger logger = LoggerFactory.getLogger(DexterGrovePiReactiveListenerStage.class);
 	
-	public PiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
-		super(graphManager, listener, inputPipes, outputPipes);             
+	public DexterGrovePiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
+		super(graphManager, listener, inputPipes, outputPipes, hardware);             
 	}
 
 	@Override

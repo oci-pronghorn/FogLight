@@ -3,6 +3,7 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -28,11 +29,13 @@ public abstract class ReactiveListenerStage extends PronghornStage {
     protected final Pipe<?>[]           outputPipes;
         
     protected long                      timeTrigger;
-    protected long                      timeRate;          
+    protected long                      timeRate;   
+    
+    protected Hardware					hardware;
   
     private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStage.class);
     
-    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
+    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
 
         
         super(graphManager, inputPipes, outputPipes);
@@ -40,6 +43,7 @@ public abstract class ReactiveListenerStage extends PronghornStage {
 
         this.inputPipes = inputPipes;
         this.outputPipes = outputPipes;       
+        this.hardware = hardware;
         
     }
 

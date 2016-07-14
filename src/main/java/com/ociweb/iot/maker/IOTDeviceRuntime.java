@@ -14,8 +14,8 @@ import com.ociweb.iot.hardware.GroveV2PiImpl;
 import com.ociweb.iot.hardware.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.TestHardware;
-import com.ociweb.pronghorn.iot.EdisonReactiveListenerStage;
-import com.ociweb.pronghorn.iot.PiReactiveListenerStage;
+import com.ociweb.pronghorn.iot.DefaultReactiveListenerStage;
+import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -177,9 +177,9 @@ public class IOTDeviceRuntime {
         Pipe<?>[] outputPipes = extractPipesUsedByListener(listener, subPipeIdx);
 
         if(isPi){
-        	configureStageRate(listener, new PiReactiveListenerStage(gm, listener, inputPipes, outputPipes)); 
+        	configureStageRate(listener, new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, hardware)); 
         }else{
-        	configureStageRate(listener, new EdisonReactiveListenerStage(gm, listener, inputPipes, outputPipes));
+        	configureStageRate(listener, new DefaultReactiveListenerStage(gm, listener, inputPipes, outputPipes, hardware));
         }
         
         Pipe<MessageSubscription>[] subsPipes = GraphManager.allPipesOfType(gm, MessageSubscription.instance);

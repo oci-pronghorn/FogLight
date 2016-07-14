@@ -24,9 +24,9 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class GroveV2PiImpl extends Hardware {
 
 	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
-	
+
 	private byte commandIndex = -1;
-	
+
 
 	public GroveV2PiImpl(GraphManager gm, I2CBacking i2cBacking) {
 		super(gm, i2cBacking);
@@ -38,71 +38,77 @@ public class GroveV2PiImpl extends Hardware {
 		this.commandIndex++;
 		return new PiCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);	
 	}
-	
+
 	@Override
 	public Hardware useConnectA(IODevice t, int connection) {
-        return useConnectA(t,connection,-1);
-    }
-    
-	@Override
-    public Hardware useConnectA(IODevice t, int connection, int customRate) { //TODO: add customRate support
-        if (t.isInput()) {
-            assert(!t.isOutput());
-            byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
-            byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
-            byte[] disqualifier = {-1, -1, -1};
-            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup,disqualifier));
-        } else {
-            assert(t.isOutput());
-            pwmOutputs = growHardConnections(pwmOutputs, new HardConnection(t,connection));
-        }
-        return this;
-    }
-    
-	@Override
-    public Hardware useConnectD(IODevice t, int connection) {
-        return useConnectD(t,connection,-1);
-    }
-    
-	@Override
-    public Hardware useConnectD(IODevice t, int connection, int customRate) { //TODO: add customRate support
-    	
-        if (t.isInput()) {
-            assert(!t.isOutput());
-            byte[] readCmd = {0x01,0x01,(byte)connection,0x00,0x00};
-            byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
-            byte[] disqualifier = {-1};
-            System.out.println("Digital Input Connected on "+connection);
-            i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,readCmd,1,connection,setup,disqualifier));
-        } else {
-            assert(t.isOutput());
-            digitalOutputs = growHardConnections(digitalOutputs, new HardConnection(t,connection));
-        }
-        return this;
-    }  
-    
-	@Override
-    public Hardware useConnectDs(IODevice t, int ... connections) {
+		return useConnectA(t,connection,-1);
+	}
 
-        if (t.isInput()) {
-            assert(!t.isOutput());
-            for(int con:connections) {
-                multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con)); //TODO: Add multiple input support for pi
-            }
-            
-          System.out.println("connections "+Arrays.toString(connections));  
-          System.out.println("Encoder here "+Arrays.toString(multiBitInputs));  
-            
-        } else {
-            assert(t.isOutput());
-            for(int con:connections) {
-                multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
-            }
-        }
-        return this;
-        
-    }  
-	
+	@Override
+	public Hardware useConnectA(IODevice t, int connection, int customRate) { //TODO: add customRate support
+		if(t.isGrove()){
+			if (t.isInput()) {
+				assert(!t.isOutput());
+				byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
+				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup));
+			} else {
+				assert(t.isOutput());
+				pwmOutputs = growHardConnections(pwmOutputs, new HardConnection(t,connection));
+			}
+		}else{
+			throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
+		}
+		return this;
+	}
+
+	@Override
+	public Hardware useConnectD(IODevice t, int connection) {
+		return useConnectD(t,connection,-1);
+	}
+
+	@Override
+	public Hardware useConnectD(IODevice t, int connection, int customRate) { //TODO: add customRate support
+
+		if(t.isGrove()){
+			if (t.isInput()) {
+				assert(!t.isOutput());
+				byte[] readCmd = {0x01,0x01,(byte)connection,0x00,0x00};
+				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
+				System.out.println("Digital Input Connected on "+connection);
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,readCmd,1,connection,setup));
+			} else {
+				assert(t.isOutput());
+				digitalOutputs = growHardConnections(digitalOutputs, new HardConnection(t,connection));
+			}
+		}else{
+			System.out.println("GPIO not currently supported");
+		}
+		return this;
+	}  
+
+	@Override
+	public Hardware useConnectDs(IODevice t, int ... connections) {
+		//TODO: add the special grove interrupt support to this
+		if (t.isInput()) {
+			assert(!t.isOutput());
+			for(int con:connections) {
+				multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con)); //TODO: Add multiple input support for pi
+			}
+
+			System.out.println("connections "+Arrays.toString(connections));  
+			System.out.println("Encoder here "+Arrays.toString(multiBitInputs));  
+
+		} else {
+			assert(t.isOutput());
+			for(int con:connections) {
+				multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
+			}
+		}
+		return this;
+
+	}  
+
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);
@@ -193,14 +199,14 @@ public class GroveV2PiImpl extends Hardware {
 		return result;
 	}
 
-    public boolean isListeningToI2C(Object listener) {
-        return listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener;
-    }
+	public boolean isListeningToI2C(Object listener) {
+		return listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener;
+	}
 
-    public boolean isListeningToPins(Object listener) {
-        return false;//TODO: we have no support for this yet
-    }
-    
-    
+	public boolean isListeningToPins(Object listener) {
+		return false;//TODO: we have no support for this yet
+	}
+
+
 }
 

@@ -37,6 +37,7 @@ public class MessagePubSubStage extends AbstractOutputStage {
 
     @Override
     protected void processMessagesForPipe(int a) {
+        
         Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[a];
         while (hasReleaseCountRemaining(a) &&
                PipeReader.tryReadFragment(pipe) 

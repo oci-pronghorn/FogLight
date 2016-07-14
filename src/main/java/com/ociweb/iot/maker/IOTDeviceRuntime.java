@@ -116,32 +116,35 @@ public class IOTDeviceRuntime {
     }
 
     
-    public void addRotaryListener(RotaryListener listener) {
-        registerListener(listener);
+    public RotaryListener addRotaryListener(RotaryListener listener) {
+        return (RotaryListener)registerListener(listener);
     }
     
-    public void addStartupListener(StartupListener listener) {
-        registerListener(listener);
+    public StartupListener addStartupListener(StartupListener listener) {
+        return (StartupListener)registerListener(listener);
     }
         
-    public void addAnalogListener(AnalogListener listener) {
-        registerListener(listener);
+    public AnalogListener addAnalogListener(AnalogListener listener) {
+        return (AnalogListener)registerListener(listener);
     }
     
-    public void addDigitalListener(DigitalListener listener) {  
-    	System.out.println("Creating a Digital Listener");
-        registerListener(listener);
+    public DigitalListener addDigitalListener(DigitalListener listener) {
+        return (DigitalListener)registerListener(listener);
     }
     
-    public void addTimeListener(TimeListener listener) {
-        registerListener(listener);
+    public TimeListener addTimeListener(TimeListener listener) {
+        return (TimeListener)registerListener(listener);
     }
         
-    public void addI2CListener(I2CListener listener) {
-        registerListener(listener);
+    public I2CListener addI2CListener(I2CListener listener) {
+        return (I2CListener)registerListener(listener);
+    }
+    
+    public PubSubListener addPubSubListener(PubSubListener listener) {
+        return (PubSubListener)registerListener(listener);
     }
 
-    public void registerListener(Object listener) {
+    public Object registerListener(Object listener) {
         
         List<Pipe<?>> pipesForListenerConsumption = new ArrayList<Pipe<?>>(); 
         
@@ -185,6 +188,8 @@ public class IOTDeviceRuntime {
         if (testId != -1 &&  subsPipes[subPipeIdx].id==testId && subsPipes.length>3) {
             System.err.println("TESTED, NOW REMOVE THIS BLOCK **********************");
         }
+        
+        return listener;
         
     }
 

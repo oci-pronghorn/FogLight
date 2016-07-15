@@ -88,6 +88,8 @@ public class MessagePubSubStage extends AbstractOutputStage {
     @Override
     protected void processMessagesForPipe(int a) {
         
+        //TODO: still need to add support for +
+        //TODO: still need to add support for #
         
         
         Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[a];
@@ -115,8 +117,7 @@ public class MessagePubSubStage extends AbstractOutputStage {
                             if (pendingPublishCount>0) {
                                 pendingReleaseCountIdx = a; //keep so this is only cleared after we have had successful transmit to all subscribers.
                                 return;//must try again later
-                            }
-                            
+                            }                            
                             
                         }
                     }   

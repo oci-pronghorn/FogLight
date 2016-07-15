@@ -21,7 +21,7 @@ public class TestHardware extends Hardware {
     private final int[] pinData = new int[127];
     private boolean testAsEdison = true; //if false the digital connections are all done as i2c
     
-    private boolean isInUnitTest = false;
+    public static boolean isInUnitTest = false;
     
     private static final Logger logger = LoggerFactory.getLogger(TestHardware.class);
     

@@ -71,6 +71,8 @@ public class IOTDeviceRuntime {
     private static final byte piI2C = 1;
     private static final byte edI2C = 6;
     
+    private final IntHashTable subscriptionPipeLookup = new IntHashTable(10);//NOTE: this is a maximum of 1024 listeners
+    
     
     public IOTDeviceRuntime() {
         gm = new GraphManager();
@@ -176,6 +178,8 @@ public class IOTDeviceRuntime {
             subPipeIdx = subscriptionPipeIdx++;
             testId = subscriptionPipe.id;
             pipesForListenerConsumption.add(subscriptionPipe);
+            //store this value for lookup later
+            IntHashTable.setItem(subscriptionPipeLookup, System.identityHashCode(listener), subPipeIdx);
         }
 
         
@@ -187,7 +191,7 @@ public class IOTDeviceRuntime {
         
 
         Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
-        Pipe<?>[] outputPipes = extractPipesUsedByListener(listener, subPipeIdx);
+        Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
 
         if(isPi){
         	configureStageRate(listener, new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, hardware)); 
@@ -233,7 +237,7 @@ public class IOTDeviceRuntime {
     ///////////
     
     
-    private Pipe<?>[] extractPipesUsedByListener(Object listener, int subPipeIdx) {
+    private Pipe<?>[] extractPipesUsedByListener(Object listener) {
         Pipe<?>[] outputPipes = new Pipe<?>[0];
 
         Class<? extends Object> c = listener.getClass();
@@ -246,9 +250,7 @@ public class IOTDeviceRuntime {
                     CommandChannel cmdChnl = (CommandChannel)fields[f].get(listener);                 
                     
                     assert(channelNotPreviouslyUsed(cmdChnl)) : "A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.";
-                    cmdChnl.setListener(listener);                    
-                    cmdChnl.setSubscriptionPipeId(subPipeIdx);
-                                        
+                    cmdChnl.setListener(listener);  
                     outputPipes = PronghornStage.join(outputPipes, cmdChnl.outputPipes);
                 }
             } catch (Throwable e) {
@@ -276,16 +278,10 @@ public class IOTDeviceRuntime {
     public void start() {
        hardware.coldSetup();
    
-       Pipe<MessageSubscription>[] subsPipes = GraphManager.allPipesOfType(gm, MessageSubscription.instance);
-       
-       //TODO: tell each CmdChnl which pipe is theirs in this array.
-       
-       
-       
-       
-       hardware.buildStages(GraphManager.allPipesOfType(gm, GroveResponseSchema.instance), 
+       hardware.buildStages(subscriptionPipeLookup,
+                            GraphManager.allPipesOfType(gm, GroveResponseSchema.instance), 
                             GraphManager.allPipesOfType(gm, I2CResponseSchema.instance),
-                            subsPipes,
+                            GraphManager.allPipesOfType(gm, MessageSubscription.instance),
                             
                             GraphManager.allPipesOfType(gm, TrafficOrderSchema.instance), 
                             

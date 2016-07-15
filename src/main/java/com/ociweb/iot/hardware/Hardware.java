@@ -28,6 +28,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
@@ -264,7 +265,9 @@ public abstract class Hardware {
 
 	
 
-    public final void buildStages(Pipe<GroveResponseSchema>[] responsePipes,     //one for each listener of this type (broadcast to all)
+    public final void buildStages(
+                                  IntHashTable subscriptionPipeLookup,
+                                  Pipe<GroveResponseSchema>[] responsePipes,     //one for each listener of this type (broadcast to all)
                                   Pipe<I2CResponseSchema>[] i2cResponsePipes,    //one for each listener of this type (broadcast to all)
                                   Pipe<MessageSubscription>[] subscriptionPipes, //one for each listener of this type (subscription per pipe)
                                   
@@ -319,7 +322,7 @@ public abstract class Hardware {
             
         }
         
-        createMessagePubSubStage(messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
+        createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
         
         createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
         
@@ -342,13 +345,13 @@ public abstract class Hardware {
         
     }
 
-    private void createMessagePubSubStage(Pipe<MessagePubSub>[] messagePubSub,
+    private void createMessagePubSubStage(IntHashTable subscriptionPipeLookup,
+                                          Pipe<MessagePubSub>[] messagePubSub,
                                           Pipe<TrafficReleaseSchema>[] masterMsggoOut, 
                                           Pipe<TrafficAckSchema>[] masterMsgackIn, 
                                           Pipe<MessageSubscription>[] subscriptionPipes) {
         
-        // TODO Auto-generated method stub, still needs the outgoing pipes for the reactiveListener
-        new MessagePubSubStage(this.gm, this, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
+        new MessagePubSubStage(this.gm, subscriptionPipeLookup, this, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
                 
         
     }

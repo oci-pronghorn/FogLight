@@ -10,6 +10,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Pool;
 
@@ -19,9 +20,7 @@ public abstract class CommandChannel {
     protected final Pipe<TrafficOrderSchema> goPipe;
     protected final Pipe<MessagePubSub> messagePubSub;
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
-        
-    private int listenerSubscriptionPipeIdx;
-    
+      
     private Object listener;
 
     private long topicKeyGen;
@@ -38,8 +37,6 @@ public abstract class CommandChannel {
        this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};
        this.goPipe = goPipe;
        this.messagePubSub = messagePubSub;
-     
-
     }
     
 
@@ -49,11 +46,7 @@ public abstract class CommandChannel {
         }
         this.listener = listener;
     }
-    
 
-    void setSubscriptionPipeId(int subPipeIdx) {
-        this.listenerSubscriptionPipeIdx = subPipeIdx;
-    }
     
     protected void publishGo(int count, int pipeIdx) {
         if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) {                 
@@ -91,7 +84,7 @@ public abstract class CommandChannel {
     public boolean subscribe(CharSequence topic, PubSubListener listener) {
         if (PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100)) {
             
-            PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_PIPEIDX_2, listenerSubscriptionPipeIdx);
+            PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4, System.identityHashCode(listener));
             PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_TOPIC_1, topic);
             
             PipeWriter.publishWrites(messagePubSub);
@@ -111,7 +104,7 @@ public abstract class CommandChannel {
     public boolean unsubscribe(CharSequence topic, PubSubListener listener) {
         if (PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101)) {
             
-            PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_PIPEIDX_2, listenerSubscriptionPipeIdx);
+            PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4, System.identityHashCode(listener));
             PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101_FIELD_TOPIC_1, topic);
             
             PipeWriter.publishWrites(messagePubSub);

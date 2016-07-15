@@ -30,12 +30,15 @@ import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 
 public class IOTDeviceRuntime {
 
     //TODO: we may need a static singleton accessory for this.
     
+    private static final int nsPerMS = 1_000_000;
+
     /*
      * Caution: in order to make good use of ProGuard we need to make an effort to avoid using static so 
      * dependencies can be traced and kept in the jar.
@@ -269,7 +272,7 @@ public class IOTDeviceRuntime {
         if (rate>0 && listener instanceof TimeListener) {
             stage.setTimeEventSchedule(rate);
             //Since we are using the time schedule we must set the stage to be faster
-            long customRate =   (rate*1_000_000)/4;// in ns and 4x faster than clock trigger
+            long customRate =   (rate*nsPerMS)/NonThreadScheduler.granularityMultiplier;// in ns and guanularityXfaster than clock trigger
             GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, Math.min(customRate,DEFAULT_SLEEP_RATE_NS),stage);
         }
     }

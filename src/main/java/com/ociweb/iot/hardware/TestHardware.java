@@ -1,5 +1,7 @@
 package com.ociweb.iot.hardware;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,8 @@ public class TestHardware extends Hardware {
     
     public static boolean isInUnitTest = false;
     
+    private final int[] pinHighValues = new int[127];
+    
     private static final Logger logger = LoggerFactory.getLogger(TestHardware.class);
     
     
@@ -34,6 +38,14 @@ public class TestHardware extends Hardware {
     public void coldSetup() {
            
     }
+    
+    public void clearCaputuredHighs() {
+       Arrays.fill(pinHighValues, Integer.MIN_VALUE);
+    }
+    
+    public int getCapturedHigh(int connector) {
+        return pinHighValues[connector];
+    }    
     
     @Override
     public int digitalRead(int connector) {
@@ -48,12 +60,14 @@ public class TestHardware extends Hardware {
     @Override
     public void digitalWrite(int connector, int value) {
         logger.info("digital connection {} set to {}",connector,value);
+        pinHighValues[connector] = Math.max(pinHighValues[connector], value);
         pinData[connector]=value;
     }
 
     @Override
     public void analogWrite(int connector, int value) {
         logger.info("analog connection {} set to {}",connector,value);
+        pinHighValues[connector] = Math.max(pinHighValues[connector], value);
         pinData[connector]=value;
     }
 

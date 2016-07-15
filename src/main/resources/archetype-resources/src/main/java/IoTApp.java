@@ -23,8 +23,7 @@ public class IoTApp implements IoTSetup
     //private static final int LED_CONNECTION = 5;
        
     
-    public static void main( String[] args )
-    {
+    public static void main( String[] args ) {
         IOTDeviceRuntime.run(new IoTApp());
     }
     

@@ -162,6 +162,10 @@ public class IOTDeviceRuntime {
         return (PubSubListener)registerListener(listener);
     }
 
+    public Object addListener(Object listener) {
+        return registerListener(listener);
+    }
+    
     public Object registerListener(Object listener) {
         
         List<Pipe<?>> pipesForListenerConsumption = new ArrayList<Pipe<?>>(); 

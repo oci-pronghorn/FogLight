@@ -70,6 +70,7 @@ public abstract class CommandChannel {
     public abstract boolean block(int connector, int msDuration);
     public abstract boolean digitalSetValue(int connector, int value);
     public abstract boolean digitalSetValueAndBlock(int connector, int value, int msDuration);
+    public abstract boolean digitalPulse(int connector); //TOOD: add duration, what is the expected accuracy of this?
     public abstract boolean analogSetValue(int connector, int value);
     public abstract boolean analogSetValueAndBlock(int connector, int value, int msDuration);
     public abstract boolean i2cIsReady();

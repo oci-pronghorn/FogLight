@@ -20,12 +20,19 @@ import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 
 public class TestHardware extends Hardware {
 
-    private final int[] pinData = new int[127];
+    private static final int MAX_PINS = 127;
+    
+    private final int[] pinData = new int[MAX_PINS];
     private boolean testAsEdison = true; //if false the digital connections are all done as i2c
     
     public static boolean isInUnitTest = false;
     
-    private final int[] pinHighValues = new int[127];
+    private final int[] pinHighValues = new int[MAX_PINS];
+    private final long[] firstTime = new long[MAX_PINS];
+    private final long[] lastTime = new long[MAX_PINS];
+    
+
+    private byte commandIndex = -1;
     
     private static final Logger logger = LoggerFactory.getLogger(TestHardware.class);
     
@@ -36,16 +43,34 @@ public class TestHardware extends Hardware {
 
     @Override
     public void coldSetup() {
-           
+        clearCaputuredHighs();
+        clearCaputuredFirstTimes();
+        clearCaputuredLastTimes();
     }
     
     public void clearCaputuredHighs() {
        Arrays.fill(pinHighValues, Integer.MIN_VALUE);
     }
     
+    public void clearCaputuredFirstTimes() {
+        Arrays.fill(firstTime, 0);
+    }
+    
+    public void clearCaputuredLastTimes() {
+        Arrays.fill(firstTime, 0);
+    }
+    
     public int getCapturedHigh(int connector) {
         return pinHighValues[connector];
     }    
+    
+    public long getFirstTimeNS(int connector) {
+        return firstTime[connector];
+    }    
+    
+    public long getLastTimeNS(int connector) {
+        return lastTime[connector];
+    }  
     
     @Override
     public int digitalRead(int connector) {
@@ -59,19 +84,27 @@ public class TestHardware extends Hardware {
 
     @Override
     public void digitalWrite(int connector, int value) {
+        long now = System.nanoTime();
         logger.info("digital connection {} set to {}",connector,value);
         pinHighValues[connector] = Math.max(pinHighValues[connector], value);
         pinData[connector]=value;
+        lastTime[connector] = now;
+        if (0==firstTime[connector]) {
+            firstTime[connector]=now;
+        }
     }
 
     @Override
     public void analogWrite(int connector, int value) {
+        long now = System.nanoTime();
         logger.info("analog connection {} set to {}",connector,value);
         pinHighValues[connector] = Math.max(pinHighValues[connector], value);
         pinData[connector]=value;
+        lastTime[connector] = now;
+        if (0==firstTime[connector]) {
+            firstTime[connector]=now;
+        }        
     }
-
-    private byte commandIndex = -1;
     
     @Override
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {

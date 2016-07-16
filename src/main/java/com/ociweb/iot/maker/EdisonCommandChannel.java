@@ -78,6 +78,44 @@ public class EdisonCommandChannel extends CommandChannel{
 		}
 	}
 
+	public boolean digitalPulse(int connector) {
+
+	        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+	        try {
+	            
+	            if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 2 * Pipe.sizeOf(i2cOutput, GroveRequestSchema.MSG_DIGITALSET_110)) && PipeWriter.hasRoomForWrite(goPipe) ) {           
+	            
+	                //Pulse on
+	                if (!PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) {
+	                   throw new RuntimeException("Should not have happend since the pipe was already checked.");
+	                }
+
+	                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
+	                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, 1);
+
+	                PipeWriter.publishWrites(output);
+
+	                //Pulse off
+	                if (!PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) {
+	                       throw new RuntimeException("Should not have happend since the pipe was already checked.");
+	                    }
+
+                    PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
+                    PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, 0);
+
+                    PipeWriter.publishWrites(output);               
+	                
+	                publishGo(2,pinPipeIdx);
+	                
+	                return true;
+	            }else{
+	                return false;
+	            }
+	        } finally {
+	            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+	        }
+	}
+	
 
 	public boolean analogSetValue(int connector, int value) {
 

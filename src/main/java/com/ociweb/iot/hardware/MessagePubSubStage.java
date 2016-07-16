@@ -14,7 +14,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
-public class MessagePubSubStage extends AbstractOutputStage {
+public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 
     private final Pipe<MessagePubSub>[] incomingSubsAndPubsPipe;
     private final Pipe<MessageSubscription>[] outgoingMessagePipes;
@@ -91,6 +91,9 @@ public class MessagePubSubStage extends AbstractOutputStage {
         //TODO: still need to add support for +
         //TODO: still need to add support for #
         
+        if (incomingSubsAndPubsPipe.length==0) {
+            return;//hack for case when there are none, TODO: must stop this earlier so this check is not needed.
+        }
         
         Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[a];
         while (hasReleaseCountRemaining(a) &&

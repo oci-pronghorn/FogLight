@@ -10,7 +10,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class DirectHardwareAnalogDigitalOutputStage extends AbstractOutputStage {
+public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrderedStage {
 
 	private final Pipe<GroveRequestSchema>[] fromCommandChannels;
 

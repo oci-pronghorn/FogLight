@@ -93,6 +93,53 @@ public class PiCommandChannel extends CommandChannel{
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
 	}
+	
+	public boolean digitalPulse(int connector) {
+
+	        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+	        try {
+	    
+	            if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 2 * Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) && PipeWriter.hasRoomForWrite(goPipe) ) {
+	            
+	                digitalMessageTemplate[2] = (byte)connector;
+	                
+	                //pulse on
+	                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+	                    throw new RuntimeException("Should not have happend since the pipe was already checked.");
+	                }
+
+	                digitalMessageTemplate[3] = (byte)1;
+	                
+	                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, groveAddr);	                
+	                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
+	                                
+	                PipeWriter.publishWrites(i2cOutput);
+	                
+	                
+	                //pulse off
+	                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+                        throw new RuntimeException("Should not have happend since the pipe was already checked.");
+                    }
+
+                    digitalMessageTemplate[3] = (byte)0;
+                    
+                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, groveAddr);                  
+                    PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
+                                    
+                    PipeWriter.publishWrites(i2cOutput);
+	                
+	                
+	                publishGo(2,i2cPipeIdx);
+	                
+	                return true;
+	            }else{
+	                return false;
+	            }
+
+	        } finally {
+	            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+	        }
+	    }
 
  
 	private final byte[] analogMessageTemplate = {0x01, 0x04, -1, -1, 0x00};

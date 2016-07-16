@@ -16,7 +16,7 @@ import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Blocker;
 
-public abstract class AbstractOutputStage extends PronghornStage {
+public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 	private final int MAX_DEVICES = 256; //do not know of any hardware yet with more connections than this.
 
@@ -28,8 +28,10 @@ public abstract class AbstractOutputStage extends PronghornStage {
 	protected int[] activeCounts;	
 	protected int activePipe;
 	private int hitPoints;
-
-	private static final Logger logger = LoggerFactory.getLogger(AbstractOutputStage.class);
+    private final GraphManager graphManager;
+    private long msNearWindow;
+    
+	private static final Logger logger = LoggerFactory.getLogger(AbstractTrafficOrderedStage.class);
 
 	//////////////////////////////////////////
 	/////////////////////////////////////////
@@ -38,7 +40,7 @@ public abstract class AbstractOutputStage extends PronghornStage {
 	///do not modify this logic without good reason
 	//////////////////////////////////////////
 
-
+  
 
 	/**
 	 * Using real hardware support this stage turns on and off digital pins and sets PWM for analog out.
@@ -52,7 +54,7 @@ public abstract class AbstractOutputStage extends PronghornStage {
 	 * @param ackPipe
 	 * @param ccToAdOut
 	 */
-	public AbstractOutputStage(GraphManager graphManager, 
+	public AbstractTrafficOrderedStage(GraphManager graphManager, 
 			Hardware hardware,
 			Pipe<?>[] output,
 			Pipe<TrafficReleaseSchema>[] goPipe, Pipe<TrafficAckSchema>[] ackPipe, Pipe<?> ... otherResponse ) {
@@ -64,6 +66,8 @@ public abstract class AbstractOutputStage extends PronghornStage {
 		this.goPipe = goPipe;
 		this.activePipe = goPipe.length;
 		this.hitPoints = goPipe.length;
+		this.graphManager = graphManager;
+		
 
 	}
 
@@ -72,35 +76,41 @@ public abstract class AbstractOutputStage extends PronghornStage {
 		connectionBlocker = new Blocker(MAX_DEVICES);
 		activeCounts = new int[goPipe.length];
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
+		
+		Number nsPollWindow = (Number)GraphManager.getNota(graphManager, this,  GraphManager.SCHEDULE_RATE, 10_000_000);
+		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*2f)/1_000_000f);
+		
 	}
 
 	@Override
 	public void run() {
 		boolean foundWork;
+		int feederCount = activeCounts.length;
+		int[] localActiveCounts = activeCounts;
 		do {
 			foundWork = false;
-			int a = activeCounts.length;
+			int a = feederCount;
 			if(a>0){ //TODO: Probably a more elegant way to do this. Need to make sure processMessages runs when there are no cc requests
 				while (--a >= 0) {
 					//pull all known the values into the active counts array
-					if (-1==activeCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
+					if (-1==localActiveCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
 						readNextCount(a); 
 						foundWork = true;
 					}
 
-					int startCount = activeCounts[a];
+					int startCount = localActiveCounts[a];
 					//must clear these before calling processMessages
 					connectionBlocker.releaseBlocks(System.currentTimeMillis());  
 					//This method must be called at all times to poll I2C
 					processMessagesForPipe(a);    
 					logger.debug("ProcessMessagesForPipe called in output stages");
-					foundWork |= (activeCounts[a]!=startCount);//work was done if progress was made
+					foundWork |= (localActiveCounts[a]!=startCount);//work was done if progress was made
 
 					//send any acks that are outstanding
 					if (0==activeCounts[a]) {
 						if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
 							publishWrites(ackPipe[a]);
-							activeCounts[a] = -1;
+							localActiveCounts[a] = -1;
 							foundWork = true;
 						}//this will try again later since we did not clear it to -1
 					}
@@ -109,7 +119,8 @@ public abstract class AbstractOutputStage extends PronghornStage {
 				processMessagesForPipe(a); 
 			}
 			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
-		} while (foundWork);
+			//we also check for 'near' work but only when there is no found work since its more expensive
+		} while (foundWork || connectionBlocker.willReleaseInWindow(System.currentTimeMillis(),msNearWindow));
 	}
 
 	protected abstract void processMessagesForPipe(int a);

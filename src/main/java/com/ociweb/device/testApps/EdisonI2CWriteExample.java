@@ -45,7 +45,7 @@ public class EdisonI2CWriteExample {
 	static byte digitalRead(int pin){ //0 is input, 1 is output
 		byte[] message = {0x01, 0x01, (byte) pin, 0x00, 0x00};
 		i2c.write(Grove_ADDR, message, message.length);
-		return i2c.read(Grove_ADDR, 1)[0];
+		return i2c.read(Grove_ADDR, new byte[1], 1)[0];
 	}
 
 	static void pinMode(int pin, int val){
@@ -60,13 +60,13 @@ public class EdisonI2CWriteExample {
 	static int analogRead(int pin){
 		byte[] message = {0x01, 0x03, (byte) pin, 0x00, 0x00};
 		i2c.write(Grove_ADDR, message, message.length);
-		byte[] ans = i2c.read(Grove_ADDR, 3);
+		byte[] ans = i2c.read(Grove_ADDR, new byte[3], 3);
 		return ans[1]*256+((int)ans[2]&0xFF);
 	}
 	static int encoderRead(){ //As yet only returns 0 -1
 		byte[] message = {0x01, 0x0B, 0x00, 0x00, 0x00};
 		i2c.write(Grove_ADDR, message, message.length);
-		byte[] ans = i2c.read(Grove_ADDR, 2);
+		byte[] ans = i2c.read(Grove_ADDR, new byte[2], 2);
 		System.out.println(ans[0] + "  " + ans[1]);
 		if(ans[0]>0){
 			return ans[1];

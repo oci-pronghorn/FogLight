@@ -30,6 +30,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	private int hitPoints;
     private final GraphManager graphManager;
     private long msNearWindow;
+    private int startLoopAt = -1;
     
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTrafficOrderedStage.class);
 
@@ -79,18 +80,22 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		
 		Number nsPollWindow = (Number)GraphManager.getNota(graphManager, this,  GraphManager.SCHEDULE_RATE, 10_000_000);
 		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*2f)/1_000_000f);
-		
+		startLoopAt = activeCounts.length;
 	}
 
 	@Override
 	public void run() {
 		boolean foundWork;
-		int feederCount = activeCounts.length;
+		int feederCount = startLoopAt;
 		int[] localActiveCounts = activeCounts;
+		long now = System.currentTimeMillis();
 		do {
+		    
+		    //TODO: need to ensure that groups are called together an no other command channels are able get get between with the same connection..  Urguent fix.
+		    
 			foundWork = false;
 			int a = feederCount;
-			if(a>0){ //TODO: Probably a more elegant way to do this. Need to make sure processMessages runs when there are no cc requests
+
 				while (--a >= 0) {
 					//pull all known the values into the active counts array
 					if (-1==localActiveCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
@@ -100,11 +105,18 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 					int startCount = localActiveCounts[a];
 					//must clear these before calling processMessages
-					connectionBlocker.releaseBlocks(System.currentTimeMillis());  
+					connectionBlocker.releaseBlocks(now = System.currentTimeMillis());  
 					//This method must be called at all times to poll I2C
 					processMessagesForPipe(a);    
 					logger.debug("ProcessMessagesForPipe called in output stages");
-					foundWork |= (localActiveCounts[a]!=startCount);//work was done if progress was made
+					if (0 != localActiveCounts[a]) {
+					    //unable to finish group, try again later, this is critical so that callers can
+					    //interact and then block knowing nothing else can get between the commands.
+					    startLoopAt = a+1;
+					    return;
+					} else {
+					    foundWork |= (localActiveCounts[a]!=startCount);//work was done if progress was made					    
+					}					
 
 					//send any acks that are outstanding
 					if (0==activeCounts[a]) {
@@ -115,12 +127,10 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 						}//this will try again later since we did not clear it to -1
 					}
 				} 
-			}else{
-				processMessagesForPipe(a); 
-			}
+				startLoopAt = activeCounts.length;
 			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
 			//we also check for 'near' work but only when there is no found work since its more expensive
-		} while (foundWork || connectionBlocker.willReleaseInWindow(System.currentTimeMillis(),msNearWindow));
+		} while (foundWork || connectionBlocker.willReleaseInWindow(now,msNearWindow));
 	}
 
 	protected abstract void processMessagesForPipe(int a);

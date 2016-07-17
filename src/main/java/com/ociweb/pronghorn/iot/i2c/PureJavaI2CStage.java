@@ -214,10 +214,6 @@ public class PureJavaI2CStage extends PronghornStage {
                 case I2CCommandSchema.MSG_COMMAND_7:
                     readCommandMessage();
                 break;
-                case I2CCommandSchema.MSG_BLOCK_10:
-                    new Exception("no longer working, TODO: check message structure").printStackTrace();
-                    readDelayMessage(); 
-                break;
             }
         }
 

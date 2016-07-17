@@ -186,16 +186,10 @@ public class Grove_LCD_RGB { //TODO: convert this into an IODevice
         try {
             DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
             do {
-            i2cPayloadWriter = target.i2cCommandOpen(address);
+                i2cPayloadWriter = target.i2cCommandOpen(address);
             } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
-            byte[] message = {(byte) register, (byte) value};
-            System.out.println(Grove_LCD_RGB.LCD_ADDRESS);
-            System.out.println(address);
-//            i2cPayloadWriter.writeByte(address);
-//            i2cPayloadWriter.writeByte(2); //length TODO: redundant
-//            i2cPayloadWriter.writeByte(register);
-//            i2cPayloadWriter.writeByte(value);
-            i2cPayloadWriter.write(message);
+            i2cPayloadWriter.writeByte(register);
+            i2cPayloadWriter.writeByte(value);
             target.i2cCommandClose();
         } catch (IOException e) {
            throw new RuntimeException(e);

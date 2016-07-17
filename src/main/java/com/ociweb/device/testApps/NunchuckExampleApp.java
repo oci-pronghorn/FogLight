@@ -42,7 +42,7 @@ package com.ociweb.device.testApps;
              i2c.write(NUNCHUCK_ADDR, new byte[]{(byte) 0x00},1);
  
              // Read the 6-byte response from the nunchuck.
-             response = i2c.read(NUNCHUCK_ADDR, 6);
+             response = i2c.read(NUNCHUCK_ADDR, new byte[6], 6);
  
              // Decode response by XOR 0x17 and add 0x17.
              for (int i = 0; i < response.length; i++) {

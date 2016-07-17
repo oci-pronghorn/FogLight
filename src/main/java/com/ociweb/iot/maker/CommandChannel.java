@@ -66,8 +66,9 @@ public abstract class CommandChannel {
         return aBool.compareAndSet(true, false);
     }
     
-    public abstract boolean block(int msDuration);
-    public abstract boolean block(int connector, int msDuration);
+    public abstract boolean block(long msDuration);
+    public abstract boolean block(int connector, long msDuration);
+    public abstract boolean blockUntil(int connector, long time);
     public abstract boolean digitalSetValue(int connector, int value);
     public abstract boolean digitalSetValueAndBlock(int connector, int value, int msDuration);
     public abstract boolean digitalPulse(int connector); //TOOD: add duration, what is the expected accuracy of this?

@@ -31,19 +31,17 @@ public class EdisonCommandChannel extends CommandChannel{
 	}
 	
 
-
-	public boolean block(int connector, int duration) {
+	public boolean block(int connector, long duration) {
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCK_220)) {
+			if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)) {
 
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCK_220_FIELD_CONNECTOR_111, connector);
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCK_220_FIELD_DURATION_113, duration);
+				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
+				PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, duration);
 				PipeWriter.publishWrites(output);
 				
-                int count = 1;
-                publishGo(count,pinPipeIdx);
+                publishGo(1,pinPipeIdx);
                 
                 return true;
 			} else {
@@ -66,8 +64,7 @@ public class EdisonCommandChannel extends CommandChannel{
 
 				PipeWriter.publishWrites(output);
                 
-                int count = 1;
-                publishGo(count,pinPipeIdx);
+                publishGo(1,pinPipeIdx);
 				
 				return true;
 			}else{
@@ -127,8 +124,7 @@ public class EdisonCommandChannel extends CommandChannel{
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);
 				PipeWriter.publishWrites(output);
 			                
-                int count = 1;
-                publishGo(count,pinPipeIdx);
+                publishGo(1,pinPipeIdx);
                 
                 return true;
 			} else {
@@ -139,70 +135,62 @@ public class EdisonCommandChannel extends CommandChannel{
 		}
 	}
 
-	public boolean analogBlock(int connector, int value, int duration) {
-
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {  
-			if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240)) {
-
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_CONNECTOR_141,connector);
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_VALUE_142,    value);
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_DURATION_113, duration);				
-				PipeWriter.publishWrites(output);
-                
-                int count = 1;
-                publishGo(count,pinPipeIdx);
-                
-                return true;
-			} else {
-			    return false;
-			}
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
-	}
-	
-	
 
     @Override
     public boolean digitalSetValueAndBlock(int connector, int value, int msDuration) {
+        
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
-            if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240)) {
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(goPipe, Pipe.sizeOf(goPipe, GroveRequestSchema.MSG_DIGITALSET_110)+
+                                                                                                  Pipe.sizeOf(goPipe, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
 
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSETANDBLOCK_210_FIELD_CONNECTOR_111, connector);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSETANDBLOCK_210_FIELD_VALUE_112, value);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSETANDBLOCK_210_FIELD_DURATION_113, msDuration);
+                PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, value);
+
+                PipeWriter.publishWrites(output);
+                
+                PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, msDuration);
                 
                 PipeWriter.publishWrites(output);
                 
-                int count = 1;
-                publishGo(count,pinPipeIdx);
+                publishGo(2,pinPipeIdx);
                 
                 return true;
             }else{
                 return false;
             }
+            
+            
         } finally {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
         }
+        
     }
 
 
     @Override
     public boolean analogSetValueAndBlock(int connector, int value, int msDuration) {
+
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {        
-            if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240)) {
-
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_CONNECTOR_141, connector);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_VALUE_142, value);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSETANDBLOCK_240_FIELD_DURATION_113, value);
-                                
+            
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(goPipe, Pipe.sizeOf(goPipe, GroveRequestSchema.MSG_ANALOGSET_140)+
+                                                                                                  Pipe.sizeOf(goPipe, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
+            
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, connector);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);
                 PipeWriter.publishWrites(output);
                             
-                int count = 1;
-                publishGo(count,pinPipeIdx);
+                PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, msDuration);
+                
+                PipeWriter.publishWrites(output);
+                
+                publishGo(2,pinPipeIdx);
                 
                 return true;
             } else {
@@ -211,15 +199,31 @@ public class EdisonCommandChannel extends CommandChannel{
         } finally {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
         }
+        
     }
 	
 
 
     @Override
-    public boolean block(int msDuration) {
-        throw new UnsupportedOperationException("TODO: implment this, send.");
-        // TODO Auto-generated method stub
-        //return false;
+    public boolean block(long msDuration) {
+
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCHANNELMS_22)) {
+
+                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13, msDuration);
+                PipeWriter.publishWrites(output);
+                
+                publishGo(1,pinPipeIdx);
+                
+                return true;
+            } else {
+                return false;
+            }
+
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
     }
 	
 	
@@ -259,27 +263,47 @@ public class EdisonCommandChannel extends CommandChannel{
 			runningI2CCommandCount++;
 			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
 			PipeWriter.publishWrites(i2cOutput);
-			System.out.println("i2c Command Closed "+runningI2CCommandCount);
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
 		
 	}
 
-
-
 	public boolean i2cFlushBatch() {        
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-		    int count = 1;
-            publishGo(count,i2cPipeIdx);
-            
+            publishGo(runningI2CCommandCount,i2cPipeIdx);            
 			runningI2CCommandCount =0;
 			return true;	       
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
 	}
+
+
+
+    @Override
+    public boolean blockUntil(int connector, long time) {
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221)) {
+
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114, time);
+                PipeWriter.publishWrites(output);
+                
+                int count = 1;
+                publishGo(count,pinPipeIdx);
+                
+                return true;
+            } else {
+                return false;
+            }
+
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+    }
 
 
 

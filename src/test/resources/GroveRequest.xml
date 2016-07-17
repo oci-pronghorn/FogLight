@@ -8,12 +8,20 @@
      <uInt32 name="Value" id="112"/>
   </template>  
    
-  <template name="Block" id="220"> 
+  <template name="BlockConnectionMS" id="220"> 
      <uInt32 name="Connector" id="111">
      	<copy/>
      </uInt32>
-     <uInt32 name="Duration" id="113"/>
+     <uInt64 name="Duration" id="113"/>  
   </template>   
+  
+  <template name="BlockConnectionUntil" id="221"> 
+     <uInt32 name="Connector" id="111">
+     	<copy/>
+     </uInt32>
+     <uInt64 name="TimeMS" id="114"/>  
+  </template>   
+  
      
   <template name="AnalogSet" id="140"> 
      <uInt32 name="Connector" id="141">
@@ -22,20 +30,13 @@
      <uInt32 name="Value" id="142"/>
   </template>  
 
-  <template name="DigitalSetAndBlock" id="210">
-     <uInt32 name="Connector" id="111">
-     	<copy/>
-     </uInt32>
-     <uInt32 name="Value" id="112"/>
-     <uInt32 name="Duration" id="113"/>
-  </template>  
+  <template name="BlockChannelMS" id="22">
+     <uInt64 name="Duration" id="13"/>     
+  </template>
+   
+  <template name="BlockChannelUntil" id="23">
+     <uInt64 name="TimeMS" id="14"/>     
+  </template>
 
-  <template name="AnalogSetAndBlock" id="240"> 
-     <uInt32 name="Connector" id="141">
-     	<copy/>
-     </uInt32>
-     <uInt32 name="Value" id="142"/>
-     <uInt32 name="Duration" id="113"/>
-  </template>  
 
 </templates>

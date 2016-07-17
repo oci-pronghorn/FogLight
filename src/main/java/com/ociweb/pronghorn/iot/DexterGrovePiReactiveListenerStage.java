@@ -68,10 +68,11 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
     						if (tempValue<0) {
     						    System.out.println("bad array "+backing[(position+0)&mask]+" "+backing[(position+1)&mask]+" "+backing[(position+2)&mask]);
     						} else {
-        						
+    						    
+        						//remove this conditiona and always send, TODO , once we have rate control.
         						if(tempValue>lastAnalog+5 || tempValue<lastAnalog-5){
         							lastAnalog = tempValue;
-        							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=?
+        							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=? only clear after we control the poll rate
         						}
     						}
                         }

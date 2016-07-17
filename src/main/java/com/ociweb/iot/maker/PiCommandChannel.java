@@ -1,5 +1,8 @@
 package com.ociweb.iot.maker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
@@ -20,6 +23,7 @@ public class PiCommandChannel extends CommandChannel{
 	private byte i2cPipeIdx;
 	private byte groveAddr = 0x04;
 	
+	private Logger logger = LoggerFactory.getLogger(PiCommandChannel.class);
 
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods
     private final int maxCommands = 16;
@@ -34,20 +38,19 @@ public class PiCommandChannel extends CommandChannel{
 	}
 
 
-	public boolean block(int connector, int duration) { //TODO: Make this work for Pi I2C
+	public boolean block(int connector, long duration) { 
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {            
 
-			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCK_10)) {
+			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
 
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, connector);
-				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13, duration);
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, connector);
+				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, duration);
 
 				PipeWriter.publishWrites(i2cOutput);
 
-                int count = 1;
-                publishGo(count,i2cPipeIdx);
+                publishGo(1,i2cPipeIdx);
                 return true;
 			} else {			  
                 return false; 
@@ -59,7 +62,30 @@ public class PiCommandChannel extends CommandChannel{
         
 	}
 	
-	
+    @Override
+    public boolean blockUntil(int connector, long time) {
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {            
+
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21)) {
+
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12, connector);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_TIMEMS_14, time);
+
+                PipeWriter.publishWrites(i2cOutput);
+
+                publishGo(1,i2cPipeIdx);
+                return true;
+            } else {              
+                return false; 
+            }
+        
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+    }
+    
+    
 	//Build templates like this once that can be populated and sent without redefining the part that is always the same.
 	private final byte[] digitalMessageTemplate = {0x01, 0x02, -1, -1, 0x00};
 
@@ -73,16 +99,13 @@ public class PiCommandChannel extends CommandChannel{
 				digitalMessageTemplate[2] = (byte)connector;
 				digitalMessageTemplate[3] = (byte)value;
 				
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, groveAddr);
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
                 
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
 								
-				
-				System.out.println("CommandChannel sends digitalWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
 				
-                int count = 1;
-                publishGo(count,i2cPipeIdx);
+                publishGo(1,i2cPipeIdx);
                 
 				return true;
 			}else{
@@ -110,7 +133,7 @@ public class PiCommandChannel extends CommandChannel{
 
 	                digitalMessageTemplate[3] = (byte)1;
 	                
-	                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, groveAddr);	                
+	                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);	                
 	                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
 	                                
 	                PipeWriter.publishWrites(i2cOutput);
@@ -123,7 +146,7 @@ public class PiCommandChannel extends CommandChannel{
 
                     digitalMessageTemplate[3] = (byte)0;
                     
-                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, groveAddr);                  
+                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                  
                     PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
                                     
                     PipeWriter.publishWrites(i2cOutput);
@@ -153,7 +176,7 @@ public class PiCommandChannel extends CommandChannel{
 				analogMessageTemplate[2] = (byte)connector;
 				analogMessageTemplate[3] = (byte)value;
 				
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, groveAddr);
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
                 
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
 								
@@ -192,7 +215,7 @@ public class PiCommandChannel extends CommandChannel{
 			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
 			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
 				DataOutputBlobWriter.openField(i2cWriter);
-				System.out.println("sending address "+targetAddress);
+				
 				return i2cWriter;
 			} else {
 				return null;//can not write try again later.
@@ -208,8 +231,7 @@ public class PiCommandChannel extends CommandChannel{
 		try {
 			runningI2CCommandCount++;
 			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-			PipeWriter.publishWrites(i2cOutput);
-			System.out.println("i2c Command Closed "+runningI2CCommandCount);
+			PipeWriter.publishWrites(i2cOutput);			
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
@@ -236,7 +258,7 @@ public class PiCommandChannel extends CommandChannel{
         try {
     
             if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 
-                                        Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCK_10)
+                                        Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)
                                         )) { 
 
                 if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
@@ -246,17 +268,17 @@ public class PiCommandChannel extends CommandChannel{
                 digitalMessageTemplate[2] = (byte)connector;
                 digitalMessageTemplate[3] = (byte)value;
                 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, groveAddr);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
                 PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
                 PipeWriter.publishWrites(i2cOutput);
                 
                 
-                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCK_10)) {
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
                     throw new RuntimeException();
                 }
                 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, connector);
-                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13, msDuration);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, connector);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, msDuration);
                 PipeWriter.publishWrites(i2cOutput);
 
                 publishGo(2,i2cPipeIdx);
@@ -274,18 +296,72 @@ public class PiCommandChannel extends CommandChannel{
 
     @Override
     public boolean analogSetValueAndBlock(int connector, int value, int msDuration) {
-        throw new UnsupportedOperationException("TODO: implment this, send.");
-        // TODO Auto-generated method stub
-        //return false;
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+    
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 
+                                        Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)
+                                        )) { 
+
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+                    throw new RuntimeException();
+                }
+                
+                analogMessageTemplate[2] = (byte)connector;
+                analogMessageTemplate[3] = (byte)value;
+                
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
+                
+                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
+                
+                PipeWriter.publishWrites(i2cOutput);
+                
+                
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
+                    throw new RuntimeException();
+                }
+                
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, connector);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, msDuration);
+                PipeWriter.publishWrites(i2cOutput);
+
+                publishGo(2,i2cPipeIdx);
+                
+                return true;
+            }else{
+                return false;
+            }
+
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
     }
 
     
     @Override
-    public boolean block(int msDuration) {
-        throw new UnsupportedOperationException("TODO: implment this, send.");
-        // TODO Auto-generated method stub
-        //return false;
+    public boolean block(long msDuration) {
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {            
+
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNELMS_22)) {
+
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13, msDuration);
+
+                PipeWriter.publishWrites(i2cOutput);
+
+                publishGo(1,i2cPipeIdx);
+                return true;
+            } else {              
+                return false; 
+            }
+        
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
     }
+
+
+
     
 
 }

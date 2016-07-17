@@ -20,7 +20,7 @@ public interface I2CBacking {
      * @return Data received from the I2C device, or an empty array if no
      *         data was received.
      */
-    byte[] read(byte address, int bufferSize);
+    byte[] read(byte address, byte[] target, int bufferSize);
 
     /**
      * Writes a message to an I2C device at the specified address.

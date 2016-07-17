@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
  */
 public class I2CNativeLinuxBacking implements I2CBacking {
 
+    private static final byte[] EMPTY = new byte[] {};
+
     private static final Logger logger = LoggerFactory.getLogger(I2CNativeLinuxBacking.class);
 
     //Highest value for an I2C address. TODO: Is this the right value?
@@ -72,24 +74,27 @@ public class I2CNativeLinuxBacking implements I2CBacking {
         });
     }
 
-    @Override public byte[] read(byte address, int bufferSize) {
+    @Override public byte[] read(byte address, byte[] target, int bufferSize) {
         //Check if we need to load the address into memory.
         if (ensureI2CDevice(address)) {
-            byte[] receiving = new byte[bufferSize];
-            c.read(i2cFile, receiving, receiving.length);
-            return receiving;
+            c.read(i2cFile, target, bufferSize);
+            return target;
         } else {
-            return new byte[] {};
+            return EMPTY;
         }
     }
 
     @Override public void write(byte address, byte[] message, int length) {
-        
+        assert(length>=0);
         //System.out.println("write to address:"+ Integer.toHexString(address));
         
         //Check if we need to load the address into memory.
-        if (ensureI2CDevice(address)) {            
-            c.write(i2cFile, message, length);
-        }
+        ensureI2CDevice(address); //throws on failure
+        
+        int result;
+        do {
+            result = c.write(i2cFile, message, length);
+        } while (-1 == result); //Caution: this is a spin lock, but upon failure we must immediately try again.
+        
     }
 }

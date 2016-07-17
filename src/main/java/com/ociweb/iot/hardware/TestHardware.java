@@ -57,7 +57,7 @@ public class TestHardware extends Hardware {
     }
     
     public void clearCaputuredLastTimes() {
-        Arrays.fill(firstTime, 0);
+        Arrays.fill(lastTime, 0);
     }
     
     public int getCapturedHigh(int connector) {

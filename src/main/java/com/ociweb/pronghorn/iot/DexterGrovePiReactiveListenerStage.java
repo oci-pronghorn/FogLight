@@ -1,12 +1,9 @@
 package com.ociweb.pronghorn.iot;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.Hardware;
-import com.ociweb.iot.hardware.I2CJFFIStage;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -19,7 +16,6 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
 	private int lastDigital = -1;
 	private int lastAnalog = -1;
-	private byte[] currentAnalog = new byte[3];
 	
 	private static final Logger logger = LoggerFactory.getLogger(DexterGrovePiReactiveListenerStage.class);
 	
@@ -58,14 +54,27 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 						}
 					}
 					else if(listener instanceof AnalogListener && addr==4 && length==3){
-						for (int i = 0; i < currentAnalog.length; i++) {
-							currentAnalog[i] = backing[(position+i)&mask];
-						}
-						int tempValue = ((int)currentAnalog[1])*256+(((int)currentAnalog[2])&0xFF);
-						if(tempValue>lastAnalog+5 || tempValue<lastAnalog-5){
-							lastAnalog = tempValue;
-							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=?
-						}
+						
+						int high = (int)backing[(position+1)&mask];
+                        int low = (int)backing[(position+2)&mask];
+                        
+                        if (-1==high && -1==low) {
+                            
+                            //no data was available, we may be polling too fast
+                            
+                        } else {
+                            int tempValue =  (high<<8) | (0xFF&low);
+    						
+    						if (tempValue<0) {
+    						    System.out.println("bad array "+backing[(position+0)&mask]+" "+backing[(position+1)&mask]+" "+backing[(position+2)&mask]);
+    						} else {
+        						
+        						if(tempValue>lastAnalog+5 || tempValue<lastAnalog-5){
+        							lastAnalog = tempValue;
+        							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=?
+        						}
+    						}
+                        }
 					}
 				}
 				break;

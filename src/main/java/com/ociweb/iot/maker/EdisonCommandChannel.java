@@ -106,7 +106,7 @@ public class EdisonCommandChannel extends CommandChannel{
                     PipeWriter.publishWrites(output);               
 	                
 	                publishGo(2,pinPipeIdx);
-	                
+
 	                return true;
 	            }else{
 	                return false;

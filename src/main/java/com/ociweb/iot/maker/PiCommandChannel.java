@@ -186,32 +186,6 @@ public class PiCommandChannel extends CommandChannel{
 
 	}
 
-//	public Pipe<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
-//		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-//		try {
-//			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
-//			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
-//				//DataOutputBlobWriter.openField(i2cWriter);
-//				System.out.println("Got i2cWriter");
-//				return i2cOutput;
-//			} else {
-//				return null;//can not write try again later.
-//			}
-//		} finally {
-//			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-//		}
-//	}
-//
-//	public void i2cCommandClose() {  
-//		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-//		try {
-//			runningI2CCommandCount++;
-//			PipeWriter.publishWrites(i2cOutput);
-//			System.out.println("i2c Command Closed "+runningI2CCommandCount);
-//		} finally {
-//			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-//		}
-//	}
 	public DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress) {       
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
@@ -245,10 +219,8 @@ public class PiCommandChannel extends CommandChannel{
 	public boolean i2cFlushBatch() {        
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-            int count = 1;
-            publishGo(count,i2cPipeIdx);
-            
-			runningI2CCommandCount =0;
+            publishGo(runningI2CCommandCount,i2cPipeIdx);
+			runningI2CCommandCount = 0;
 			return true;
        
 		} finally {
@@ -259,18 +231,44 @@ public class PiCommandChannel extends CommandChannel{
 
 
     @Override
-    public boolean block(int msDuration) {
-        throw new UnsupportedOperationException("TODO: implment this, send.");
-        // TODO Auto-generated method stub
-        //return false;
-    }
-
-
-    @Override
     public boolean digitalSetValueAndBlock(int connector, int value, int msDuration) {
-        throw new UnsupportedOperationException("TODO: implment this, send.");
-        // TODO Auto-generated method stub
-        //return false;
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+    
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 
+                                        Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCK_10)
+                                        )) { 
+
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+                    throw new RuntimeException();
+                }
+                
+                digitalMessageTemplate[2] = (byte)connector;
+                digitalMessageTemplate[3] = (byte)value;
+                
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, groveAddr);
+                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
+                PipeWriter.publishWrites(i2cOutput);
+                
+                
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCK_10)) {
+                    throw new RuntimeException();
+                }
+                
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12, connector);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13, msDuration);
+                PipeWriter.publishWrites(i2cOutput);
+
+                publishGo(2,i2cPipeIdx);
+                
+                return true;
+            }else{
+                return false;
+            }
+
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
     }
 
 
@@ -281,5 +279,13 @@ public class PiCommandChannel extends CommandChannel{
         //return false;
     }
 
+    
+    @Override
+    public boolean block(int msDuration) {
+        throw new UnsupportedOperationException("TODO: implment this, send.");
+        // TODO Auto-generated method stub
+        //return false;
+    }
+    
 
 }

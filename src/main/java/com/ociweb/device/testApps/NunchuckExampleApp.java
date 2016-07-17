@@ -30,7 +30,7 @@ package com.ociweb.device.testApps;
  
          // Write 0x40 and 0x00 to initialize the nunchuck.
          logger.info("Initializing Nunchuck.");
-         i2c.write(NUNCHUCK_ADDR, (byte) 0x40, (byte) 0x00);
+         i2c.write(NUNCHUCK_ADDR, new byte[]{(byte)0x40, (byte) 0x00},2);
          logger.info("Nunchuck initialized.");
  
          // Loop forever, reading from the nunchuck.
@@ -39,7 +39,7 @@ package com.ociweb.device.testApps;
          byte[] response;
          while (true) {
              // Write 0x00 to the nunchuck to request data.
-             i2c.write(NUNCHUCK_ADDR, (byte) 0x00);
+             i2c.write(NUNCHUCK_ADDR, new byte[]{(byte) 0x00},1);
  
              // Read the 6-byte response from the nunchuck.
              response = i2c.read(NUNCHUCK_ADDR, 6);

@@ -1,6 +1,6 @@
 package com.ociweb.device.testApps;
 
-import com.ociweb.iot.grove.device.Grove_LCD_RGB;
+import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ public class I2CExampleApp {
         int temp = 0xFF & (byte) ((Grove_LCD_RGB.RGB_ADDRESS << 1));
         byte address = (byte) (temp >> 1);
 
-        i2c.write(address, commands);
+        i2c.write(address, commands, commands.length);
     }
 
     public static void main(String[] args) {

@@ -14,7 +14,7 @@ public class TestI2CBacking implements I2CBacking {
     }
 
     @Override
-    public void write(byte address, byte... message) {
+    public void write(byte address, byte[] message, int length) {
         // TODO Auto-generated method stub
 
         //store message but how can we know that the response is?

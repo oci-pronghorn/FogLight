@@ -19,21 +19,25 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 	private final I2CBacking i2c;
 	private final Pipe<I2CCommandSchema>[] fromCommandChannels;
-	private final  Pipe<I2CResponseSchema> i2cResponsePipe;
+	private final Pipe<I2CResponseSchema> i2cResponsePipe;
 
 
 	private static final Logger logger = LoggerFactory.getLogger(I2CJFFIStage.class);
 
-	private int currentPoll = 0;
 	private I2CConnection[] inputs = null;
-	private int lastWriteIdx = 0;
-
+	private byte[] workingBuffer;
+	   
+    private int readWriteFlag = 0;
+    
+    private int inProgressIdx = -1;
+    private boolean awaitingResponse = false;
+    
 	public I2CJFFIStage(GraphManager graphManager, Pipe<TrafficReleaseSchema>[] goPipe, 
 			Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
 			Pipe<TrafficAckSchema>[] ackPipe, 
 			Pipe<I2CResponseSchema> i2cResponsePipe,
 			Hardware hardware) { 
-		super(graphManager, hardware, i2cPayloadPipes, goPipe, join(ackPipe) /*add i2cREsponsePipe here*/); 
+		super(graphManager, hardware, i2cPayloadPipes, goPipe, ackPipe, i2cResponsePipe); 
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
 		this.i2cResponsePipe = i2cResponsePipe;
@@ -45,173 +49,189 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	public void startup(){
 		super.startup();
 		
+		workingBuffer = new byte[1024];
+		
 		logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
 		
+		//I2C processing can be very time critical so this thread needs to be on of the highest in priority.
+		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+		
 		for (int i = 0; i < inputs.length; i++) {
-			i2c.write(inputs[i].address, inputs[i].setup); //TODO: add setup for outputs
+			i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length); //TODO: add setup for outputs
 			System.out.println("Setup I2C Device on "+inputs[i].address+" Sent "+Arrays.toString(inputs[i].setup));
 			logger.info("I2C setup {} complete",inputs[i].address);
 		}
-		
-		//TODO: add rotary encoder support
 
-		//        int j = config.maxAnalogMovingAverage()-1; //TODO: work out what this does
-		//        movingAverageHistory = new int[j][]; 
-		//        while (--j>=0) {
-		//            movingAverageHistory[j] = new int[activeSize];            
-		//        }
-		//lastPublished = new int[activeSize];
-
-
-		//for devices that must poll frequently
-		//        frequentScriptConn = new int[activeSize];
-		//        frequentScriptTwig = new GroveTwig[activeSize];
-		//        frequentScriptLastPublished = new int[activeSize];
-
-		//before we setup the pins they must start in a known state
-		//this is required for the ATD converters (eg any analog port usage)
-
-
-		//		byte sliceCount = 0;
-
-		//configure each sensor
-
-
-		//		int i;
-		//
-		//		i = hardware.getGroveI2CInputs().length;
-		//		while (--i>=0) {
-		//
-		//			int idx = Util.reverseBits(sliceCount++);
-		//			scriptConn[idx] = config.analogInputs[i].connection;
-		//			scriptTask[idx] = DO_INT_READ;
-		//			scriptTwig[idx] = config.analogInputs[i].twig;
-		//			System.out.println("configured "+config.analogInputs[i].twig+" on connection "+config.analogInputs[i].connection);
-		//
-		//		}
-		//
-		//		if (sliceCount>=16) {
-		//			throw new UnsupportedOperationException("The grove base board does not support this many connections.");
-		//		}
 	}
+	
+	@Override
+	public void run() {
+
+	    if (isPollInProgress()) {
+
+	        if (!PipeWriter.hasRoomForFragmentOfSize(i2cResponsePipe, Pipe.sizeOf(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10))) {
+	            return;//no room for response so do not read it now.
+	        }
+	        
+	        byte[] temp =i2c.read(this.inputs[inProgressIdx].address, this.inputs[inProgressIdx].readBytes); //TODO: this may be forcing a GC between blinks??
+	        if (temp.length>0 && -1 == temp[0]) {
+	            //no data yet with all -1 values  
+	            return;
+	        } else {
+	            
+	            if (0==temp.length) {
+	                
+	                //no response and none will follow
+	                //eg the poll failed on this round   
+	                
+	            } else {
+	            
+    	            if (!PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+    	                throw new RuntimeException("should not happen "+i2cResponsePipe);
+    	            }
+    	            
+                    logger.debug("Sending reading to Pipe");
+                    PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
+                    PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
+                    PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.currentTimeMillis());
+                    PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
+                    PipeWriter.publishWrites(i2cResponsePipe);
+                    logger.debug("Read {} from addr {}", Arrays.toString(temp),this.inputs[inProgressIdx].address);
+	            }
+                
+                
+                inProgressIdx--;//read next one
+	        }
+	    }
+	    
+	    //we are not waiting for a response so now its time send the commands.
+	    super.run(); 
+	    
+	    //check if we should begin polling again
+	    if (isTimeToPoll()) {
+	        sendReadRequest();
+	    }
+	    
+	}
+	
+	private boolean isPollInProgress() {
+	    return awaitingResponse && inProgressIdx >= 0;
+	}
+	
+	private boolean isTimeToPoll() {
+	       
+	    if (inProgressIdx >= 0) {
+	        return true; //still processing each of the input items needed
+	    }
+	    
+	   //TODO: what rate should we poll?? How fast is too fast? need to research the sensor limits.
+	    
+	    if (this.inputs.length>0) {
+    	    inProgressIdx = this.inputs.length-1;    	        	    
+    	    return true;
+	    } else {
+	        return false;
+	    }
+	}
+	
+	private void sendReadRequest() {
+	    
+	    I2CConnection connection = this.inputs[inProgressIdx];
+        i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length);
+        awaitingResponse = true;
+        	    
+	}
+
 
 	protected void processMessagesForPipe(int a) {
-		if(currentPoll ==0){
-			
-		    currentPoll++;
-			lastWriteIdx = -1; // Resets idx for polling below
-			sendCommands(a);
-			
-		}else if(this.inputs.length>0){
-
-			int tempIdx = currentPoll-1;
-
-			//Only send one read command for each i2c read
-			if (lastWriteIdx<tempIdx) {
-				lastWriteIdx = tempIdx;
-				I2CConnection connection = this.inputs[lastWriteIdx];
-				i2c.write((byte)connection.address, connection.readCmd);
-				logger.debug("Sent ReadCmd {} to addr {}", Arrays.toString(connection.readCmd), connection.address);
-			}
-
-
-			byte[] temp =i2c.read(this.inputs[tempIdx].address, this.inputs[tempIdx].readBytes);
-			logger.debug("Read {} from {}", Arrays.toString(temp), this.inputs[tempIdx].address);
-			byte[] temp2 = Arrays.copyOf(temp, temp.length);
-			Arrays.fill(temp2, (byte)-1);
-
-			if (!Arrays.equals(temp2,temp) && PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-				logger.debug("Sending reading to Pipe");
-				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[tempIdx].address);
-				PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp);
-				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, System.currentTimeMillis());
-				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[tempIdx].register);
-				PipeWriter.publishWrites(i2cResponsePipe);
-				logger.debug("Read {} from addr {}", Arrays.toString(temp),this.inputs[tempIdx].address);
-
-				currentPoll=(currentPoll+1)%(this.inputs.length+1);
-			}
-
-
-		}else{
-			currentPoll=0;
-		}
+	    
+	    sendOutgoingCommands(a);
 
 	}
+	
+//	long time = 0;
 
-    private void sendCommands(int a) {
+    private void sendOutgoingCommands(int a) {
+        
+    //    boolean first = true;
+        
         while (hasReleaseCountRemaining(a) 
         		&& Pipe.hasContentToRead(fromCommandChannels[activePipe])
         		&& !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) //peek next address and check that it is not blocking for some time                
         		&& PipeReader.tryReadFragment(fromCommandChannels[activePipe])){
 
+//            if (first) {
+//            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+activeCounts[a]);
+//            first = false;
+//            }
+            
         	long now = System.currentTimeMillis();
         	connectionBlocker.releaseBlocks(now);
-
 
         	assert(PipeReader.isNewMessage(fromCommandChannels [activePipe])) : "This test should only have one simple message made up of one fragment";
         	int msgIdx = PipeReader.getMsgIdx(fromCommandChannels [activePipe]);
 
 
         	switch(msgIdx){
-        	case I2CCommandSchema.MSG_COMMAND_7:
-        	{
-        		int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12);
-
-        		byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-        		int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-        		int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-        		int mask = PipeReader.readBytesMask(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-
-        		assert(!connectionBlocker.isBlocked(addr)): "expected command to not be blocked";
-
-
-        		byte[] buffer = new byte[len];
-        		Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, len);
-
-        		logger.debug("Writing to I2C addr {} {}", addr, Arrays.toString(buffer));
-        		i2c.write((byte) addr, buffer);
-        		//logger.info("Sent I2C Message {} to address {}", Arrays.toString(buffer), addr);
-        	}                                      
-        	break;
-
-        	case I2CCommandSchema.MSG_BLOCK_10:
-        	{  
-        		int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12);
-        		long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13);
-        		connectionBlocker.until(addr, System.currentTimeMillis() + duration);
-        		logger.info("I2C addr {} blocked for {} millis", addr, duration);
-        	}   
-        	break;    
-
-        	case I2CCommandSchema.MSG_COMMANDANDBLOCK_11:
-        	{
-        		byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
-        		int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
-        		int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
-        		int mask = PipeReader.readBytesMask(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
-
-        		byte cmdAddr = backing[mask&pos++]; //TODO: this will eventually be in its own field
-        		int payloadSize = backing[mask&pos++];//TODO: this is a VERY bad idea since payload can only be 127 bytes and we know they are often longer!!
-        		//the above size is also not needed
-        		int expectedPayloadSize = len-2;
-        		assert(payloadSize == expectedPayloadSize);
-        		byte[] buffer = new byte[expectedPayloadSize];
-        		Pipe.copyBytesFromToRing(backing, pos, mask, buffer, 0, Integer.MAX_VALUE, expectedPayloadSize);
-
-        		long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_DURATION_13);
-
-        		connectionBlocker.until(cmdAddr, System.currentTimeMillis() + duration);
-        		
-        		logger.info("Sent I2C Message {} to address {} and blocked for {} millis", Arrays.toString(buffer), cmdAddr, duration);
-        	}   
-        	break;
-
-        	default:
-
-        		System.out.println("Wrong Message index "+msgIdx);
-        		assert(msgIdx == -1);
-        		requestShutdown();      
+            	case I2CCommandSchema.MSG_COMMAND_7:
+            	{
+            		int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12);
+    
+            		byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+            		int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+            		int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+            		int mask = PipeReader.readBytesMask(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+    //TODO: why does the len here not match what we do in  MSG_COMMANDANDBLOCK_11
+            		assert(!connectionBlocker.isBlocked(addr)): "expected command to not be blocked";
+    
+              		Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
+            		i2c.write((byte) addr, workingBuffer, len);
+            	}                                      
+            	break;
+    
+            	case I2CCommandSchema.MSG_BLOCK_10:
+            	{  
+            		int addr = PipeReader.readInt(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_ADDRESS_12);
+            		long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_BLOCK_10_FIELD_DURATION_13);
+            		connectionBlocker.until(addr, System.currentTimeMillis() + duration);
+            		logger.debug("I2C addr {} blocked for {} millis", addr, duration);
+            	}   
+            	break;    
+    
+            	case I2CCommandSchema.MSG_COMMANDANDBLOCK_11:
+            	{
+            		byte[] backing = PipeReader.readBytesBackingArray(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
+            		int len  = PipeReader.readBytesLength(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
+            		int pos = PipeReader.readBytesPosition(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
+            		int mask = PipeReader.readBytesMask(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_BYTEARRAY_2);
+    
+            		byte cmdAddr = backing[mask&pos++]; //TODO: this will eventually be in its own field
+            		int payloadSize = backing[mask&pos++];//TODO: this is a VERY bad idea since payload can only be 127 bytes and we know they are often longer!!
+            		//the above size is also not needed
+            		int expectedPayloadSize = len-2;
+            		assert(payloadSize == expectedPayloadSize);
+            		
+            		Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, expectedPayloadSize);
+            		i2c.write((byte) cmdAddr, workingBuffer, expectedPayloadSize);
+            		
+//            		if (time>0) {
+//                        long duration = now-time;
+//                        System.out.println("duration "+duration);
+//                    }
+//                    time = now;
+            		
+            		long duration = PipeReader.readLong(fromCommandChannels [activePipe], I2CCommandSchema.MSG_COMMANDANDBLOCK_11_FIELD_DURATION_13);
+    
+            		connectionBlocker.until(cmdAddr, System.currentTimeMillis() + duration);
+            		
+            	}   
+            	break;
+    
+            	default:
+    
+            		System.out.println("Wrong Message index "+msgIdx);
+            		assert(msgIdx == -1);
+            		requestShutdown();      
 
         	}
         	PipeReader.releaseReadLock(fromCommandChannels [activePipe]);
@@ -220,6 +240,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         	decReleaseCount(a);
 
         }
+//        if (!first) {
+//            System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+//        }
+        
+        
     }
 
 

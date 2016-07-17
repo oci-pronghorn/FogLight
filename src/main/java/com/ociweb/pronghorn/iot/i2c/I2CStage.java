@@ -135,7 +135,7 @@ public class I2CStage extends PronghornStage {
                 int temp = 0xFF & bytesToSendBacking[bytesToSendMask & bytesToSendPosition++];
                 byte address = (byte) (temp >> 1);
 
-                backing.write(address, bytes);
+                backing.write(address, bytes, bytes.length);
 
                 Pipe.confirmLowLevelRead(request, bytesToSendReleaseSize);
                 Pipe.releaseReads(request);

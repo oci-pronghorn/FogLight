@@ -155,7 +155,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     private void sendOutgoingCommands(int a) {
    
         while (hasReleaseCountRemaining(a) 
-        		&& Pipe.hasContentToRead(fromCommandChannels[activePipe])
+        		&& PipeReader.hasContentToRead(fromCommandChannels[activePipe])
         		&& !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) //peek next address and check that it is not blocking for some time                
         		&& PipeReader.tryReadFragment(fromCommandChannels[activePipe])){
 

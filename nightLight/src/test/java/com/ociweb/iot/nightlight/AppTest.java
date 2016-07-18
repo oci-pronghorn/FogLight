@@ -1,8 +1,14 @@
 package com.ociweb.iot.nightlight;
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+
 import org.junit.Test;
 
+import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
+import com.ociweb.iot.hardware.impl.test.TestI2CBacking;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
@@ -16,15 +22,33 @@ public class AppTest {
 	public void testApp() {
 	    	IOTDeviceRuntime runtime = IOTDeviceRuntime.test(new IoTApp());
 	    	    	
-	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
+	    	TestI2CBacking backing = (TestI2CBacking)hardware.i2cBacking;
 	    	
-	    	hardware.analogWrite(IoTApp.ANGLE_SENSOR_CONNECTION, 1024);
-	    	hardware.analogWrite(IoTApp.LIGHT_SENSOR_CONNECTION, 0);
+	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
+
+	    	hardware.clearI2CWriteCount();
 	    	
-	    	scheduler.run();
+	    	hardware.analogWrite(IoTApp.ANGLE_SENSOR_CONNECTION, 512);
+	    	hardware.analogWrite(IoTApp.LIGHT_SENSOR_CONNECTION, 300);
+	    	
+
+	 
+//	    	scheduler.run();
+//	    	
+//	    	int i = hardware.getI2CWriteCount();
+//	    	while (i>0) {
+//	    		
+//	    		hardware.outputLastI2CWrite(System.out,i--);
+//	    		
+//	    	}
+	    	
+	    	
+	    	//need ring of commands so it can be checked.
+	    	//assertEquals(Grove_LCD_RGB.RGB_ADDRESS, backing.lastWriteAddress);
+	    	
 	    	
 	    	//TODO: must ask I2C LCD for its brightness.
 	    	

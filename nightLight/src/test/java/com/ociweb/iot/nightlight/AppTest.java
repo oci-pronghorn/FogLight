@@ -1,11 +1,8 @@
 package com.ociweb.iot.nightlight;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
-import com.ociweb.iot.hardware.TestHardware;
+import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
@@ -15,19 +12,25 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 public class AppTest { 
 
 	
-	 @Test
-	    public void testApp()
-	    {
+	@Test
+	public void testApp() {
 	    	IOTDeviceRuntime runtime = IOTDeviceRuntime.test(new IoTApp());
 	    	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
-	    
-	    	scheduler.setSingleStepMode(true);
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
 	    	
+	    	hardware.analogWrite(IoTApp.ANGLE_SENSOR_CONNECTION, 1024);
+	    	hardware.analogWrite(IoTApp.LIGHT_SENSOR_CONNECTION, 0);
+	    	
+	    	scheduler.run();
+	    	
+	    	//TODO: must ask I2C LCD for its brightness.
+	    	
+	    	
 	    	//test application here
 	    	
-	    }
+    }
+	 
 }

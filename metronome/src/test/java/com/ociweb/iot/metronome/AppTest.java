@@ -2,7 +2,7 @@ package com.ociweb.iot.metronome;
 
 import org.junit.Test;
 
-import com.ociweb.iot.hardware.TestHardware;
+import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
@@ -33,7 +33,7 @@ public class AppTest
         hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 1);
         hardware.analogWrite(IoTApp.ROTARY_ANGLE_CONNECTION, 900);        
      
-    //    scheduler.run();
+        scheduler.run();
         
     //    hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 0);
         

@@ -18,8 +18,8 @@ import com.ociweb.iot.maker.IoTSetup;
 
 public class IoTApp implements IoTSetup
 {
-	private static final int LIGHT_SENSOR_CONNECTION = 2;
-	private static final int ANGLE_SENSOR_CONNECTION = 1;
+	public static final int LIGHT_SENSOR_CONNECTION = 2;
+	public static final int ANGLE_SENSOR_CONNECTION = 1;
 	    
 	int brightness = 255;
 	

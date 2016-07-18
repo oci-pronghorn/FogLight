@@ -181,14 +181,17 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
               		Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
               		
-              		long now2 = System.currentTimeMillis();
-              		if (time!=0) {
-              		    long duration = now2-time;
-              		    System.out.println("dur: "+duration);
+              		boolean timeDigitalOns = true;
+              		if (timeDigitalOns) {
+                  		if (1 == workingBuffer[3]) {
+                      		long now2 = System.nanoTime();
+                      		if (time!=0) {
+                      		    long duration = now2-time;
+                      		    System.out.println("ns "+duration );
+                      		}              		
+                      		time = now2;
+                  		}
               		}
-              		
-              		time = now2;
-              		
               		
             		i2c.write((byte) addr, workingBuffer, len);
             	}                                      

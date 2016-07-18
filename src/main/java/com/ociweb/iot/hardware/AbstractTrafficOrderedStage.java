@@ -79,7 +79,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
 		
 		Number nsPollWindow = (Number)GraphManager.getNota(graphManager, this,  GraphManager.SCHEDULE_RATE, 10_000_000);
-		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*2f)/1_000_000f);
+		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*200f)/1_000_000f);
 		startLoopAt = activeCounts.length;
 	}
 
@@ -109,14 +109,14 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 					//This method must be called at all times to poll I2C
 					processMessagesForPipe(a);    
 					logger.debug("ProcessMessagesForPipe called in output stages");
-					if (0 != localActiveCounts[a]) {
-					    //unable to finish group, try again later, this is critical so that callers can
-					    //interact and then block knowing nothing else can get between the commands.
-					    startLoopAt = a+1;
-					    return;
-					} else {
+//					if (0 != localActiveCounts[a]) {
+//					    //unable to finish group, try again later, this is critical so that callers can
+//					    //interact and then block knowing nothing else can get between the commands.
+//					    startLoopAt = a+1;
+//					    return;
+//					} else {
 					    foundWork |= (localActiveCounts[a]!=startCount);//work was done if progress was made					    
-					}					
+//					}					
 
 					//send any acks that are outstanding
 					if (0==activeCounts[a]) {

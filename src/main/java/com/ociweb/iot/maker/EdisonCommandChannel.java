@@ -246,7 +246,6 @@ public class EdisonCommandChannel extends CommandChannel{
 			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
 			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
 				DataOutputBlobWriter.openField(i2cWriter);
-				System.out.println("sending address "+targetAddress);
 				return i2cWriter;
 			} else {
 				return null;//can not write try again later.

@@ -25,7 +25,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private static final Logger logger = LoggerFactory.getLogger(I2CJFFIStage.class);
 
 	private I2CConnection[] inputs = null;
-	private I2CConnection[] outputSetup = null;
+	private I2CConnection[] outputs = null;
 	private byte[] workingBuffer;
 	   
     private int readWriteFlag = 0;
@@ -44,6 +44,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		this.i2cResponsePipe = i2cResponsePipe;
 
 		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
+		this.outputs = null==hardware.i2cOutputs?new I2CConnection[0]:hardware.i2cOutputs;
 	}
 
 	@Override
@@ -59,8 +60,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		
 		for (int i = 0; i < inputs.length; i++) {
 			i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length); //TODO: add setup for outputs
-			System.out.println("Setup I2C Device on "+inputs[i].address+" Sent "+Arrays.toString(inputs[i].setup));
-			logger.info("I2C setup {} complete",inputs[i].address);
+			logger.info("I2C input setup {} complete",inputs[i].address);
+		}
+		for (int i = 0; i < outputs.length; i++) {
+			i2c.write(outputs[i].address, outputs[i].setup, outputs[i].setup.length); //TODO: add setup for outputs
+			logger.info("I2C output setup {} complete",outputs[i].address);
 		}
 
 	}

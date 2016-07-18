@@ -1,16 +1,18 @@
-package com.ociweb.iot.hardware;
+package com.ociweb.iot.hardware.impl.grovepi;
 
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
+import com.ociweb.iot.hardware.HardConnection;
+import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.I2CConnection;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.PiCommandChannel;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -54,8 +56,8 @@ public class GroveV2PiImpl extends Hardware {
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup));
 			} else {
 				assert(t.isOutput());
-				pwmOutputs = growHardConnections(pwmOutputs, new HardConnection(t,connection));
-
+				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup));
 			}
 		}else{
 			throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
@@ -80,7 +82,8 @@ public class GroveV2PiImpl extends Hardware {
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,readCmd,1,connection,setup));
 			} else {
 				assert(t.isOutput());
-				digitalOutputs = growHardConnections(digitalOutputs, new HardConnection(t,connection));
+				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup));
 			}
 		}else{
 			System.out.println("GPIO not currently supported");
@@ -128,8 +131,7 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	public int digitalRead(int connector) { 
-		System.out.println("I'm calling this method like a dingus");
-		return 0;
+		throw new UnsupportedOperationException();
 	}
 
 	//TODO: Since there's no ADC built into the Pi, we can only read HI or LO.

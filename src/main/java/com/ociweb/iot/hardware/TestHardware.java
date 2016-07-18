@@ -5,10 +5,10 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.impl.edison.EdisonCommandChannel;
+import com.ociweb.iot.hardware.impl.grovepi.PiCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.EdisonCommandChannel;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
-import com.ociweb.iot.maker.PiCommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
@@ -23,7 +23,6 @@ public class TestHardware extends Hardware {
     private static final int MAX_PINS = 127;
     
     private final int[] pinData = new int[MAX_PINS];
-    private boolean testAsEdison = true; //if false the digital connections are all done as i2c
     
     public boolean isInUnitTest = false;
     
@@ -108,12 +107,9 @@ public class TestHardware extends Hardware {
     
     @Override
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
-        if (testAsEdison) {
-            return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
-        } else {
-            this.commandIndex++;
-            return new PiCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);
-        }
+        
+       return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
+
         
     }
     

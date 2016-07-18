@@ -1,8 +1,9 @@
-package com.ociweb.iot.maker;
+package com.ociweb.iot.hardware.impl.grovepi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
@@ -253,7 +254,7 @@ public class PiCommandChannel extends CommandChannel{
 
 
     @Override
-    public boolean digitalSetValueAndBlock(int connector, int value, int msDuration) {
+    public boolean digitalSetValueAndBlock(int connector, int value, long msDuration) {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
     
@@ -295,7 +296,7 @@ public class PiCommandChannel extends CommandChannel{
 
 
     @Override
-    public boolean analogSetValueAndBlock(int connector, int value, int msDuration) {
+    public boolean analogSetValueAndBlock(int connector, int value, long msDuration) {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
     

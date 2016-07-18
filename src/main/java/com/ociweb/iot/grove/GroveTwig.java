@@ -40,6 +40,23 @@ public enum GroveTwig implements IODevice {
             return true;
         }
     },
+    SoundSensor(){
+        @Override
+        public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
+            int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ANALOGSAMPLE_30);
+            Pipe.addIntValue(connector, responsePipe);
+            Pipe.addLongValue(time, responsePipe);
+            Pipe.addIntValue(intValue, responsePipe);
+            Pipe.addIntValue(average, responsePipe);
+            Pipe.publishWrites(responsePipe);
+            Pipe.confirmLowLevelWrite(responsePipe, size);
+        }   
+        
+        @Override
+        public boolean isInput() {
+            return true;
+        }
+    },
     AngleSensor(){
         @Override
         public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {

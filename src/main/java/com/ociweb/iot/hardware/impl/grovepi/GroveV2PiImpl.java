@@ -1,16 +1,18 @@
-package com.ociweb.iot.hardware;
+package com.ociweb.iot.hardware.impl.grovepi;
 
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
+import com.ociweb.iot.hardware.HardConnection;
+import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.I2CConnection;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.PiCommandChannel;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;

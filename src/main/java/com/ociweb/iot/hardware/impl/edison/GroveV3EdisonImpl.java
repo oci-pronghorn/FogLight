@@ -1,13 +1,11 @@
-package com.ociweb.iot.hardware;
+package com.ociweb.iot.hardware.impl.edison;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
-import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
-import com.ociweb.iot.hardware.impl.edison.EdisonPinManager;
+import com.ociweb.iot.hardware.HardConnection;
+import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.EdisonCommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;

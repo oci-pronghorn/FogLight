@@ -10,10 +10,10 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.GroveV2PiImpl;
-import com.ociweb.iot.hardware.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.TestHardware;
+import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
+import com.ociweb.iot.hardware.impl.grovepi.GroveV2PiImpl;
 import com.ociweb.pronghorn.iot.DefaultReactiveListenerStage;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;

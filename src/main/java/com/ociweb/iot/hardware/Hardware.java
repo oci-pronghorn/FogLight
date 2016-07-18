@@ -111,7 +111,7 @@ public abstract class Hardware {
     /////
     /////
     
-    HardConnection[] growHardConnections(HardConnection[] original, HardConnection toAdd) {
+    protected HardConnection[] growHardConnections(HardConnection[] original, HardConnection toAdd) {
         int l = original.length;
         HardConnection[] result = new HardConnection[l+1];
         System.arraycopy(original, 0, result, 0, l);
@@ -119,7 +119,7 @@ public abstract class Hardware {
         return result;
     }
     
-    I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
+    protected I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
     	System.out.println("Adding I2C Connection");
         if (null==original) {
             return new I2CConnection[] {toAdd};

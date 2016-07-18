@@ -1,5 +1,6 @@
 package com.ociweb.iot.grove;
 
+import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -61,6 +62,7 @@ public enum GroveTwig implements IODevice {
         public boolean isOutput() {
             return true;
         }
+        
     },
     LED() {
         
@@ -99,21 +101,6 @@ public enum GroveTwig implements IODevice {
         public boolean isOutput() {
             return true;
         }
-    },
-    Nunchuck() {
-    	
-    	@Override
-    	public boolean isInput() {
-    		return true;
-    	}
-    	
-    },
-    TempHumid() {
-    	
-    	@Override
-    	public boolean isInput(){
-    		return true;
-    	}
     };
     
     public boolean isInput() {
@@ -130,7 +117,7 @@ public enum GroveTwig implements IODevice {
     public boolean isI2C(){
     	return false;
     }
-    public byte[] getReadMessage(){
+    public I2CConnection getI2CConnection(){
     	return null;
     }
     public int pwmRange() {
@@ -138,6 +125,9 @@ public enum GroveTwig implements IODevice {
     }
     public boolean isGrove(){
     	return true;
+    }
+    public byte[] I2COutSetup(){
+    	return null;
     }
     
 }

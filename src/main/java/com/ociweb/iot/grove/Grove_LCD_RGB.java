@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ociweb.iot.hardware.I2CConnection;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -18,7 +21,7 @@ import com.ociweb.pronghorn.pipe.RawDataSchema;
  * @author Nathan Tippy
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class Grove_LCD_RGB { //TODO: convert this into an IODevice
+public class Grove_LCD_RGB implements IODevice{ //TODO: convert this into an IODevice
 
     // Device I2C Adress (note this only uses the lower 7 bits)
     public static int LCD_ADDRESS  =   (0x7c>>1); //  11 1110  0x3E
@@ -195,5 +198,34 @@ public class Grove_LCD_RGB { //TODO: convert this into an IODevice
            throw new RuntimeException(e);
         }
     }
+	@Override
+	public boolean isInput() {
+		return false;
+	}
+	@Override
+	public boolean isOutput() {
+		return true;
+	}
+	@Override
+	public boolean isPWM() {
+		return false;
+	}
+	@Override
+	public int pwmRange() {
+		return 0;
+	}
+	@Override
+	public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
+		byte[] LCD_READCMD = {};
+	    byte[] LCD_SETUP = {};
+	    byte LCD_ADDR = 0x04;
+	    byte LCD_BYTESTOREAD = 0;
+	    byte LCD_REGISTER = 0;
+	    return new I2CConnection(this, LCD_ADDR, LCD_READCMD, LCD_BYTESTOREAD, LCD_REGISTER, LCD_SETUP);
+	}
+	@Override
+	public boolean isGrove() {
+		return false;
+	}
     
 }

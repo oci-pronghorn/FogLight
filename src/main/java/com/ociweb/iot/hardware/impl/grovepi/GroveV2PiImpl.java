@@ -56,7 +56,9 @@ public class GroveV2PiImpl extends Hardware {
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup));
 			} else {
 				assert(t.isOutput());
-				pwmOutputs = growHardConnections(pwmOutputs, new HardConnection(t,connection));
+				assert(!t.isInput());
+				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup));
 			}
 		}else{
 			throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
@@ -77,11 +79,14 @@ public class GroveV2PiImpl extends Hardware {
 				assert(!t.isOutput());
 				byte[] readCmd = {0x01,0x01,(byte)connection,0x00,0x00};
 				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
-				System.out.println("Digital Input Connected on "+connection);
+				logger.info("Digital Input Connected on "+connection);
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,readCmd,1,connection,setup));
 			} else {
 				assert(t.isOutput());
-				digitalOutputs = growHardConnections(digitalOutputs, new HardConnection(t,connection));
+				assert(!t.isInput());
+				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
+				logger.info("Digital Output Connected on "+connection);
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup));
 			}
 		}else{
 			System.out.println("GPIO not currently supported");
@@ -129,8 +134,7 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	public int digitalRead(int connector) { 
-		System.out.println("I'm calling this method like a dingus");
-		return 0;
+		throw new UnsupportedOperationException();
 	}
 
 	//TODO: Since there's no ADC built into the Pi, we can only read HI or LO.

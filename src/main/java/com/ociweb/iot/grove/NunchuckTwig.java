@@ -11,6 +11,7 @@ public class NunchuckTwig implements IODevice{
 	public NunchuckTwig() {
 	}
 
+	@Override
 	public I2CConnection getI2CConnection(){
 		byte[] NUNCHUCK_READCMD = {0x00};
 	    byte[] NUNCHUCK_SETUP = {0x40, 0x00};
@@ -49,16 +50,6 @@ public class NunchuckTwig implements IODevice{
 	@Override
 	public int pwmRange() {
 		return 0;
-	}
-
-	@Override
-	public boolean isI2C() {
-		return true;
-	}
-
-	@Override
-	public byte[] getReadMessage() {
-		return null;
 	}
 
 	@Override

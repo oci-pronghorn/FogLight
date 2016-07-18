@@ -54,6 +54,7 @@ public abstract class Hardware {
     public HardConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     
     public I2CConnection[] i2cInputs;
+    public I2CConnection[] i2cOutputs;
     
     private long timeTriggerRate;
     

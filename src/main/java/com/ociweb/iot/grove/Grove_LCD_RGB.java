@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -18,7 +20,7 @@ import com.ociweb.pronghorn.pipe.RawDataSchema;
  * @author Nathan Tippy
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class Grove_LCD_RGB { //TODO: convert this into an IODevice
+public class Grove_LCD_RGB implements IODevice{ //TODO: convert this into an IODevice
 
     // Device I2C Adress (note this only uses the lower 7 bits)
     public static int LCD_ADDRESS  =   (0x7c>>1); //  11 1110  0x3E
@@ -195,5 +197,46 @@ public class Grove_LCD_RGB { //TODO: convert this into an IODevice
            throw new RuntimeException(e);
         }
     }
+	@Override
+	public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
+		throw new UnsupportedOperationException();
+	}
+	@Override
+	public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
+		throw new UnsupportedOperationException();
+	}
+	@Override
+	public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int value, int delta,
+			int speed) {
+		throw new UnsupportedOperationException();
+	}
+	@Override
+	public boolean isInput() {
+		return false;
+	}
+	@Override
+	public boolean isOutput() {
+		return true;
+	}
+	@Override
+	public boolean isPWM() {
+		return false;
+	}
+	@Override
+	public int pwmRange() {
+		throw new UnsupportedOperationException();
+	}
+//	@Override
+//	public boolean isI2C() {
+//		return true;
+//	}
+	@Override
+	public byte[] getReadMessage() {
+		throw new UnsupportedOperationException();
+	}
+	@Override
+	public boolean isGrove() {
+		return false;
+	}
     
 }

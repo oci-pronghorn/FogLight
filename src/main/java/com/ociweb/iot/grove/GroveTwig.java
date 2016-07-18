@@ -133,6 +133,7 @@ public enum GroveTwig implements IODevice {
         public boolean isOutput() {
             return true;
         }
+        
     },
     LED() {
         
@@ -227,6 +228,9 @@ public enum GroveTwig implements IODevice {
     }
     public boolean isGrove(){
     	return true;
+    }
+    public byte[] I2COutSetup(){
+    	return null;
     }
     
 }

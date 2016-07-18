@@ -71,11 +71,6 @@ public class NunchuckTwig implements IODevice{
 	}
 
 	@Override
-	public boolean isI2C() {
-		return true;
-	}
-
-	@Override
 	public byte[] getReadMessage() {
 		return null;
 	}

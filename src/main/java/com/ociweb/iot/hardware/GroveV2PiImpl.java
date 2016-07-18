@@ -55,6 +55,7 @@ public class GroveV2PiImpl extends Hardware {
 			} else {
 				assert(t.isOutput());
 				pwmOutputs = growHardConnections(pwmOutputs, new HardConnection(t,connection));
+
 			}
 		}else{
 			throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");

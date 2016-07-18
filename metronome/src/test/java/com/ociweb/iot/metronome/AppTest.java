@@ -33,9 +33,9 @@ public class AppTest
         hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 1);
         hardware.analogWrite(IoTApp.ROTARY_ANGLE_CONNECTION, 900);        
      
-        scheduler.run();
+    //    scheduler.run();
         
-        hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 0);
+    //    hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 0);
         
         
 //        int iterations = 10;

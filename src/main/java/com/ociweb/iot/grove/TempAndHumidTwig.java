@@ -30,22 +30,6 @@ public class TempAndHumidTwig implements IODevice{
 		temp[5] = backing[(position+5)&mask];
 		return temp;
 	}
-	
-	@Override
-	public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
-		throw new UnsupportedOperationException();	
-	}
-
-	@Override
-	public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int value, int delta,
-			int speed) {
-		throw new UnsupportedOperationException();
-	}
 
 	@Override
 	public boolean isInput() {

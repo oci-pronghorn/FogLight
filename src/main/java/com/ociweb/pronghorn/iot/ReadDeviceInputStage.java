@@ -234,7 +234,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		if (frequentScriptLastPublished[j]!=rotationState[j] && Pipe.hasRoomForWrite(responsePipe)) {
 			int speed = (int)Math.min( (cycles - rotationLastCycle[j]), Integer.MAX_VALUE);
-			frequentScriptTwig[j].writeRotation(responsePipe, connector, System.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
+			writeRotation(responsePipe, connector, System.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
 
 			frequentScriptLastPublished[j] = rotationState[j];
 			rotationLastCycle[j] = cycles;
@@ -242,19 +242,53 @@ public class ReadDeviceInputStage extends PronghornStage {
 	}
 
 
-	private void readButton(int j, int connector) {
+	private void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int value, int delta, int speed) {
+        int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ENCODER_70);
+        Pipe.addIntValue(connector, responsePipe);
+        Pipe.addLongValue(time, responsePipe);
+        Pipe.addIntValue(value, responsePipe);
+        Pipe.addIntValue(delta, responsePipe);            
+        Pipe.addIntValue(speed, responsePipe);
+        
+        long duration = 0;
+        Pipe.addLongValue(duration, responsePipe);        
+        
+        Pipe.publishWrites(responsePipe);
+        Pipe.confirmLowLevelWrite(responsePipe, size);
+    }
+
+
+    private void readButton(int j, int connector) {
 		//read and xmit
 		int fieldValue = config.digitalRead(connector);
-		if (frequentScriptLastPublished[j]!=fieldValue && Pipe.hasRoomForWrite(responsePipe)) {                        
-			frequentScriptTwig[j].writeBit(responsePipe, connector, System.currentTimeMillis(), fieldValue);
+		if (frequentScriptLastPublished[j]!=fieldValue && Pipe.hasRoomForWrite(responsePipe)) {   
+		    
+			writeBit(responsePipe, connector, System.currentTimeMillis(), fieldValue);
+			
+			
 			frequentScriptLastPublished[j]=fieldValue;
 		} else {
 			//tossing fieldValue but this could be saved to send on next call.
 		}
 	}
+	
+
+	private void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
+	    
+	    int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_DIGITALSAMPLE_20);
+        Pipe.addIntValue(connector, responsePipe);
+        Pipe.addLongValue(time, responsePipe);
+        Pipe.addIntValue(bitValue, responsePipe);
+        
+        long duration = 0;
+        Pipe.addLongValue(duration, responsePipe);        
+        
+        Pipe.publishWrites(responsePipe);
+        Pipe.confirmLowLevelWrite(responsePipe, size);
+    }
 
 
-	private void intRead(final short doit) {
+    private void intRead(final short doit) {
 		{
 			int connector = scriptConn[doit];
 			int maTotal = config.maxAnalogMovingAverage();  //TODO: update so each connection can have its own ma
@@ -276,7 +310,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 			int sendTrigger = useAverageAsTrigger ? avg : intValue;
 
 			if (lastPublished[doit] != sendTrigger && Pipe.hasRoomForWrite(responsePipe)) {
-				scriptTwig[doit].writeInt(responsePipe, connector, System.currentTimeMillis(), intValue, avg);
+				writeInt(responsePipe, connector, System.currentTimeMillis(), intValue, avg);
 				int j = maTotal-1;
 				while (--j>0) {//must stop before zero because we do copy from previous lower index.
 					movingAverageHistory[j][doit]=movingAverageHistory[j-1][doit];                     
@@ -291,12 +325,28 @@ public class ReadDeviceInputStage extends PronghornStage {
 	}
 
 
-	private void bitRead(final short doit) {
+	private void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
+	    int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ANALOGSAMPLE_30);
+        Pipe.addIntValue(connector, responsePipe);
+        Pipe.addLongValue(time, responsePipe);
+        Pipe.addIntValue(intValue, responsePipe);
+        Pipe.addIntValue(average, responsePipe);
+        
+        long duration = 0;
+        Pipe.addLongValue(duration, responsePipe);            
+        
+        Pipe.publishWrites(responsePipe);
+        Pipe.confirmLowLevelWrite(responsePipe, size);
+        
+    }
+
+
+    private void bitRead(final short doit) {
 		{
 			int connector = scriptConn[doit];
 			int fieldValue = config.digitalRead(connector);
 			if (lastPublished[doit]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                  
-				scriptTwig[doit].writeBit(responsePipe, connector, System.currentTimeMillis(), fieldValue);                  
+				writeBit(responsePipe, connector, System.currentTimeMillis(), fieldValue);                  
 				lastPublished[doit]=fieldValue;                          
 			} else {
 				//tossing fieldValue but this could be saved to send on next call.

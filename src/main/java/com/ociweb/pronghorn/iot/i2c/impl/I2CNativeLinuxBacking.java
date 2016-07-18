@@ -77,7 +77,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
     @Override public byte[] read(byte address, byte[] target, int bufferSize) {
         //Check if we need to load the address into memory.
         if (ensureI2CDevice(address)) {
-            c.read(i2cFile, target, bufferSize);
+            c.read(i2cFile, target, bufferSize);//TODO: add retry if we could not do a read on the I2C bus.
             return target;
         } else {
             return EMPTY;
@@ -94,7 +94,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
         int result;
         do {
             result = c.write(i2cFile, message, length);
-        } while (-1 == result); //Caution: this is a spin lock, but upon failure we must immediately try again.
+        } while (-1 == result); //Caution: this is a spin lock, not what we first wanted TODO: re-test metronome and changes this no a non blocking impl.
         
     }
 }

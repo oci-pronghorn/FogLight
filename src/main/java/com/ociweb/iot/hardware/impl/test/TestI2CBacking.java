@@ -42,6 +42,7 @@ public class TestI2CBacking implements I2CBacking{
         lastWriteTime = System.currentTimeMillis();
         lastWriteAddress = address;
         System.arraycopy(message, 0, lastWriteData, 0, length);
+        responseLengths[address] = length;
     }
 
 }

@@ -42,7 +42,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	      
 	      
 	        while (hasReleaseCountRemaining(a) 
-	                && (Pipe.hasContentToRead(fromCommandChannels[activePipe]) && !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) )
+	                && (PipeReader.hasContentToRead(fromCommandChannels[activePipe]) && !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) )
 	                && PipeReader.tryReadFragment(fromCommandChannels[activePipe]) ){
 	  
 	            long now = System.currentTimeMillis();

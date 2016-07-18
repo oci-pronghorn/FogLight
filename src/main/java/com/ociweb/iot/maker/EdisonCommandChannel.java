@@ -141,8 +141,8 @@ public class EdisonCommandChannel extends CommandChannel{
         
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(goPipe, Pipe.sizeOf(goPipe, GroveRequestSchema.MSG_DIGITALSET_110)+
-                                                                                                  Pipe.sizeOf(goPipe, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, GroveRequestSchema.MSG_DIGITALSET_110)+
+                                                                                                  Pipe.sizeOf(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
 
                 PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110);
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
@@ -177,8 +177,8 @@ public class EdisonCommandChannel extends CommandChannel{
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {        
             
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(goPipe, Pipe.sizeOf(goPipe, GroveRequestSchema.MSG_ANALOGSET_140)+
-                                                                                                  Pipe.sizeOf(goPipe, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, GroveRequestSchema.MSG_ANALOGSET_140)+
+                                                                                                  Pipe.sizeOf(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
             
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, connector);
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);

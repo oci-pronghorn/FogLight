@@ -79,14 +79,13 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
 		
 		Number nsPollWindow = (Number)GraphManager.getNota(graphManager, this,  GraphManager.SCHEDULE_RATE, 10_000_000);
-		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*200f)/1_000_000f);
+		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*10f)/1_000_000f);
 		startLoopAt = activeCounts.length;
 	}
 
 	@Override
 	public void run() {
 		boolean foundWork;
-		int feederCount = startLoopAt;
 		int[] localActiveCounts = activeCounts;
 		long now = System.currentTimeMillis();
 		do {
@@ -94,7 +93,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		    //TODO: need to ensure that groups are called together an no other command channels are able get get between with the same connection..  Urguent fix.
 		    
 			foundWork = false;
-			int a = feederCount;
+			int a = startLoopAt;
 
 				while (--a >= 0) {
 					//pull all known the values into the active counts array

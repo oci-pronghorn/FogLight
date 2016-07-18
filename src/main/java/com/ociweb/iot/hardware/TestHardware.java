@@ -25,7 +25,7 @@ public class TestHardware extends Hardware {
     private final int[] pinData = new int[MAX_PINS];
     private boolean testAsEdison = true; //if false the digital connections are all done as i2c
     
-    public static boolean isInUnitTest = false;
+    public boolean isInUnitTest = false;
     
     private final int[] pinHighValues = new int[MAX_PINS];
     private final long[] firstTime = new long[MAX_PINS];

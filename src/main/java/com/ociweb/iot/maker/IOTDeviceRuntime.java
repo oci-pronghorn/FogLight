@@ -369,8 +369,20 @@ public class IOTDeviceRuntime {
         hardware.shutdown();
     }
 
+    public static IOTDeviceRuntime test(IoTSetup app) {        
+        IOTDeviceRuntime runtime = new IOTDeviceRuntime();
+        TestHardware hardware = (TestHardware)runtime.getHardware();
+        hardware.isInUnitTest = true;
+        return run(app, runtime);
+    }
+    
 	public static IOTDeviceRuntime run(IoTSetup app) {
 	    IOTDeviceRuntime runtime = new IOTDeviceRuntime();
+        return run(app, runtime);
+    }
+
+
+    private static IOTDeviceRuntime run(IoTSetup app, IOTDeviceRuntime runtime) {
         try {
             app.declareConnections(runtime.getHardware());
             app.declareBehavior(runtime);

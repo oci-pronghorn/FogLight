@@ -29,7 +29,7 @@ public class UltrasonicRangerTwig implements IODevice{
 		for (int i = 0; i < 3; i++) {
 			temp[i] = (byte) backing[(position+i)&mask];
 		}
-		return temp[1]*256+((int)temp[2])&0xFF;
+		return (((int)temp[1])<<8) | (0xFF&((int)temp[2]));
 	}
 
 	@Override

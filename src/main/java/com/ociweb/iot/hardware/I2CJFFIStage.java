@@ -1,9 +1,10 @@
 package com.ociweb.iot.hardware;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
@@ -58,11 +59,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		
 		for (int i = 0; i < inputs.length; i++) {
-			i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length); //TODO: add setup for outputs
+			i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length);
 			logger.info("I2C input setup {} complete",inputs[i].address);
 		}
 		for (int i = 0; i < outputs.length; i++) {
-			i2c.write(outputs[i].address, outputs[i].setup, outputs[i].setup.length); //TODO: add setup for outputs
+			i2c.write(outputs[i].address, outputs[i].setup, outputs[i].setup.length); 
 			logger.info("I2C output setup {} complete",outputs[i].address);
 		}
 

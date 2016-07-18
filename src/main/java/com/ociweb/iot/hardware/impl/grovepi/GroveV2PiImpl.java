@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.grove.GroveTwig;
 import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.I2CConnection;
@@ -97,20 +98,21 @@ public class GroveV2PiImpl extends Hardware {
 	@Override
 	public Hardware useConnectDs(IODevice t, int ... connections) {
 		//TODO: add the special grove interrupt support to this
-		if (t.isInput()) {
-			assert(!t.isOutput());
-			for(int con:connections) {
-				multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con)); //TODO: Add multiple input support for pi
-			}
+		if (t.getClass()== GroveTwig.RotaryEncoder.getClass()) {
+			int[] temp = {2,3};
+			assert(Arrays.equals(connections, temp)) : "RotaryEncoders may only be connected to ports 2 and 3 on Pi";
+			
+			byte[] ENCODER_READCMD = {0x01, 11, 0x00, 0x00, 0x00};
+		    byte[] ENCODER_SETUP = {0x01, 16, 0x00, 0x00, 0x00};
+		    byte ENCODER_ADDR = 0x04;
+		    byte ENCODER_BYTESTOREAD = 2;
+		    byte ENCODER_REGISTER = 2;
+			growI2CConnections(i2cInputs, new I2CConnection(t, ENCODER_ADDR, ENCODER_READCMD, ENCODER_BYTESTOREAD, ENCODER_REGISTER, ENCODER_SETUP));
 
-			System.out.println("connections "+Arrays.toString(connections));  
-			System.out.println("Encoder here "+Arrays.toString(multiBitInputs));  
+			logger.info("connected Pi encoder");
 
 		} else {
-			assert(t.isOutput());
-			for(int con:connections) {
-				multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
-			}
+			throw new UnsupportedOperationException("You may only connect a RotaryEncoder with useConnectDs on Pi");
 		}
 		return this;
 

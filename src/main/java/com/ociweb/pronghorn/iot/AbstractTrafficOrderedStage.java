@@ -1,4 +1,4 @@
-package com.ociweb.iot.hardware;
+package com.ociweb.pronghorn.iot;
 
 import static com.ociweb.pronghorn.pipe.PipeWriter.publishWrites;
 
@@ -7,6 +7,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;

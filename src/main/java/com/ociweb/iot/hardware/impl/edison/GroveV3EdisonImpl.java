@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -27,7 +28,7 @@ public class GroveV3EdisonImpl extends Hardware {
     }
     
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
-		return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
+		return new DefaultCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
 	}
     
     public void coldSetup() {

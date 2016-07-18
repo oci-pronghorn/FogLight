@@ -91,8 +91,7 @@ public abstract class CommandChannel {
             
             PipeWriter.publishWrites(messagePubSub);
             
-            int count = 1;
-            publishGo(count,subPipeIdx);
+            publishGo(1,subPipeIdx);
             
             return true;
         }        
@@ -111,8 +110,7 @@ public abstract class CommandChannel {
             
             PipeWriter.publishWrites(messagePubSub);
             
-            int count = 1;
-            publishGo(count,subPipeIdx);
+            publishGo(1,subPipeIdx);
             
             return true;
         }        
@@ -141,7 +139,6 @@ public abstract class CommandChannel {
             return null;
         }
     }
-
 
 
     private void lazyInitOfPool() {

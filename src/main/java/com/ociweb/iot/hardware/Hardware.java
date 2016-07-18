@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
@@ -14,6 +15,7 @@ import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
+import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -67,7 +69,7 @@ public abstract class Hardware {
     protected final PipeConfig<GroveResponseSchema> groveResponseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64, 1024);
     protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
     
-    protected final I2CBacking i2cBacking;
+    public final I2CBacking i2cBacking;
     
     
     //TODO: ma per field with max defined here., 
@@ -365,7 +367,6 @@ public abstract class Hardware {
             Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn, Pipe<I2CResponseSchema> masterI2CResponsePipe) {
         //NOTE: if this throws we should use the Java one here instead.
         I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
-        GraphManager.addNota(this.gm, GraphManager.SCHEDULE_RATE, 1000000, i2cJFFIStage);
     }
 
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {

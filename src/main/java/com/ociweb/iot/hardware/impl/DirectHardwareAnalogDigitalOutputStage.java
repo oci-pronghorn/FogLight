@@ -1,8 +1,10 @@
-package com.ociweb.iot.hardware;
+package com.ociweb.iot.hardware.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;

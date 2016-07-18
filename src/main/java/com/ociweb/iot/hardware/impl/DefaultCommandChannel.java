@@ -1,4 +1,4 @@
-package com.ociweb.iot.hardware.impl.edison;
+package com.ociweb.iot.hardware.impl;
 
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -11,7 +11,7 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class EdisonCommandChannel extends CommandChannel{
+public class DefaultCommandChannel extends CommandChannel{
 
 	private final Pipe<GroveRequestSchema> output;
 	private final Pipe<I2CCommandSchema> i2cOutput;
@@ -22,8 +22,7 @@ public class EdisonCommandChannel extends CommandChannel{
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods
     private final int maxCommands = 16;
 
-
-	public EdisonCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe) {
+	public DefaultCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe) {
 			super(gm, output, i2cOutput, messagePubSub, goPipe);
 	 		this.output = output;
 			this.i2cOutput = i2cOutput;

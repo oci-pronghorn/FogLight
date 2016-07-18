@@ -1,18 +1,23 @@
-package com.ociweb.iot.hardware;
+package com.ociweb.iot.hardware.impl.test;
 
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.impl.edison.EdisonCommandChannel;
+import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.hardware.impl.grovepi.PiCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
+import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
@@ -40,6 +45,16 @@ public class TestHardware extends Hardware {
         super(gm, new TestI2CBacking());
     }
 
+    public void i2c() {
+        
+        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        
+        
+        
+        
+    }
+    
+    
     @Override
     public void coldSetup() {
         clearCaputuredHighs();
@@ -106,11 +121,8 @@ public class TestHardware extends Hardware {
     }
     
     @Override
-    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
-        
-       return new EdisonCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
-
-        
+    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {    
+       return new DefaultCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);   //TODO: urgent rename as DefaultCommadnChannel     
     }
     
     @Override

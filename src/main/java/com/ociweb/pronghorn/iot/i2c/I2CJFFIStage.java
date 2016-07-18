@@ -1,11 +1,13 @@
-package com.ociweb.iot.hardware;
+package com.ociweb.pronghorn.iot.i2c;
 
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.pronghorn.iot.i2c.I2CBacking;
+import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.I2CConnection;
+import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;

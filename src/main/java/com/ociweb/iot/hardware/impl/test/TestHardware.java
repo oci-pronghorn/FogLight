@@ -1,5 +1,6 @@
 package com.ociweb.iot.hardware.impl.test;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
+import com.ociweb.pronghorn.util.Appendables;
 
 public class TestHardware extends Hardware {
 
@@ -35,22 +37,28 @@ public class TestHardware extends Hardware {
     private final long[] firstTime = new long[MAX_PINS];
     private final long[] lastTime = new long[MAX_PINS];
     
-
-    private byte commandIndex = -1;
-    
     private static final Logger logger = LoggerFactory.getLogger(TestHardware.class);
     
     
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking());
     }
-
-    public void i2c() {
-        
+    
+    public void clearI2CWriteCount() {
         TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
-        
-        
-        
+        testBacking.clearWriteCount();
+    }
+    
+    public int getI2CWriteCount() {
+        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        return testBacking.getWriteCount();
+    }
+    
+    public <A extends Appendable>void outputLastI2CWrite(A target, int back) {
+        assert(back>0);
+        assert(back<TestI2CBacking.MAX_BACK_MASK);
+        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        testBacking.outputLastI2CWrite(target, back);
         
     }
     

@@ -15,15 +15,10 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
  */
 public class AppTest { 
 
-	@BeforeClass
-	public static void setup() {
-		TestHardware.isInUnitTest = true;		
-	}
-	
 	 @Test
 	    public void testApp()
 	    {
-	    	IOTDeviceRuntime runtime = IOTDeviceRuntime.run(new IoTApp());
+	    	IOTDeviceRuntime runtime = IOTDeviceRuntime.test(new IoTApp());
 	    	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    

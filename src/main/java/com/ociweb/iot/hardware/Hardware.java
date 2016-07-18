@@ -188,8 +188,14 @@ public abstract class Hardware {
         
     }  
     
-    public Hardware useConnectI2CIn(I2CConnection i2cConnection){    	
-    	i2cInputs = growI2CConnections(i2cInputs, i2cConnection);
+    public Hardware useConnectI2C(IODevice t){ 
+    	if(t.isInput()){
+    		assert(!t.isOutput());
+    		i2cInputs = growI2CConnections(i2cInputs, t.getI2CConnection());
+    	}else if(t.isOutput()){
+    		assert(!t.isInput());
+    		i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
+    	}
     	return this;
     }
     

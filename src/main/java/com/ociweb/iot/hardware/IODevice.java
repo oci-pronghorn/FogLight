@@ -10,7 +10,7 @@ public interface IODevice {
      public boolean isOutput();
      public boolean isPWM();
      public int     pwmRange();
-     public byte[] getReadMessage();
      public boolean isGrove();
+     public I2CConnection getI2CConnection();
      
 }

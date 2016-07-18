@@ -5,20 +5,22 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 
-public class NunchuckTwig implements IODevice{
+public class UltrasonicRangerTwig implements IODevice{
 
 	public byte addr = 0x52;
-	public NunchuckTwig() {
+	private byte connection;
+	public UltrasonicRangerTwig(byte connection) {
+		this.connection = connection;
 	}
 
 	@Override
 	public I2CConnection getI2CConnection(){
-		byte[] NUNCHUCK_READCMD = {0x00};
-	    byte[] NUNCHUCK_SETUP = {0x40, 0x00};
-	    byte NUNCHUCK_ADDR = 0x52;
-	    byte NUNCHUCK_BYTESTOREAD = 6;
-	    byte NUNCHUCK_REGISTER = 0;
-	    return new I2CConnection(this, NUNCHUCK_ADDR, NUNCHUCK_READCMD, NUNCHUCK_BYTESTOREAD, NUNCHUCK_REGISTER, NUNCHUCK_SETUP);
+		byte[] URANGE_READCMD = {0x01, 0x07, connection, 0x00, 0x00};
+	    byte[] URANGE_SETUP = null;
+	    byte URANGE_ADDR = 0x04;
+	    byte URANGE_BYTESTOREAD = 2;
+	    byte URANGE_REGISTER = connection;
+	    return new I2CConnection(this, URANGE_ADDR, URANGE_READCMD, URANGE_BYTESTOREAD, URANGE_REGISTER, URANGE_SETUP);
 	}
 	
 	public byte[] interpretData(int register, long time, byte[] backing, int position, int length, int mask){
@@ -51,6 +53,7 @@ public class NunchuckTwig implements IODevice{
 	public int pwmRange() {
 		return 0;
 	}
+
 
 	@Override
 	public boolean isGrove() {

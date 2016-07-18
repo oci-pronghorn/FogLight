@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
@@ -198,19 +199,6 @@ public class Grove_LCD_RGB implements IODevice{ //TODO: convert this into an IOD
         }
     }
 	@Override
-	public void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
-		throw new UnsupportedOperationException();
-	}
-	@Override
-	public void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
-		throw new UnsupportedOperationException();
-	}
-	@Override
-	public void writeRotation(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int value, int delta,
-			int speed) {
-		throw new UnsupportedOperationException();
-	}
-	@Override
 	public boolean isInput() {
 		return false;
 	}
@@ -224,15 +212,16 @@ public class Grove_LCD_RGB implements IODevice{ //TODO: convert this into an IOD
 	}
 	@Override
 	public int pwmRange() {
-		throw new UnsupportedOperationException();
+		return 0;
 	}
-//	@Override
-//	public boolean isI2C() {
-//		return true;
-//	}
 	@Override
-	public byte[] getReadMessage() {
-		throw new UnsupportedOperationException();
+	public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
+		byte[] LCD_READCMD = {};
+	    byte[] LCD_SETUP = {};
+	    byte LCD_ADDR = 0x04;
+	    byte LCD_BYTESTOREAD = 0;
+	    byte LCD_REGISTER = 0;
+	    return new I2CConnection(this, LCD_ADDR, LCD_READCMD, LCD_BYTESTOREAD, LCD_REGISTER, LCD_SETUP);
 	}
 	@Override
 	public boolean isGrove() {

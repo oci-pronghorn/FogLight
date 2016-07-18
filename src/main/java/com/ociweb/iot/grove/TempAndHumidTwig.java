@@ -13,10 +13,14 @@ public class TempAndHumidTwig implements IODevice{
 	public byte addr = 0x04;
 	private byte[] tempData = new byte[4];
 	private byte[] humData = new byte[4];
-	public TempAndHumidTwig() {
+	private byte connection;
+	private byte module_type;
+	public TempAndHumidTwig(byte connection, byte module_type) {
+		this.connection = connection;
+		this.module_type=module_type;
 	}
 
-	public I2CConnection getGrovePi(byte connection, byte module_type){
+	public I2CConnection getI2CConnection(){
 		assert(module_type == 22 || module_type == 21) : "Please enter a valid DHT module type (21 or 22)";
 		byte[] TEMPHUMID_READCMD = {0x01, 0x40, connection, module_type, 0x00};
 	    byte[] TEMPHUMID_SETUP = {0x01, 0x05, connection, 0x00, 0x00}; //set pinMode to output
@@ -64,10 +68,6 @@ public class TempAndHumidTwig implements IODevice{
 //		return true;
 //	}
 
-	@Override
-	public byte[] getReadMessage() {
-		return null;
-	}
 
 	@Override
 	public boolean isGrove() {

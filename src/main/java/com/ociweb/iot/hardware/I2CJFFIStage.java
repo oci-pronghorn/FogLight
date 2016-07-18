@@ -25,6 +25,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private static final Logger logger = LoggerFactory.getLogger(I2CJFFIStage.class);
 
 	private I2CConnection[] inputs = null;
+	private I2CConnection[] outputSetup = null;
 	private byte[] workingBuffer;
 	   
     private int readWriteFlag = 0;

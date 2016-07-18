@@ -182,7 +182,7 @@ public class PiCommandChannel extends CommandChannel{
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
 								
 				
-				System.out.println("CommandChannel sends analogWrite i2c message");
+				logger.debug("CommandChannel sends analogWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
 				
                 int count = 1;

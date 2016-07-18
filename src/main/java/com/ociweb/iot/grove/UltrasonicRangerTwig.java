@@ -9,29 +9,27 @@ public class UltrasonicRangerTwig implements IODevice{
 
 	public byte addr = 0x52;
 	private byte connection;
-	public UltrasonicRangerTwig(byte connection) {
-		this.connection = connection;
+	public UltrasonicRangerTwig(int connection) {
+		this.connection = (byte) connection;
 	}
 
 	@Override
 	public I2CConnection getI2CConnection(){
 		byte[] URANGE_READCMD = {0x01, 0x07, connection, 0x00, 0x00};
-	    byte[] URANGE_SETUP = null;
+	    byte[] URANGE_SETUP = {};
 	    byte URANGE_ADDR = 0x04;
-	    byte URANGE_BYTESTOREAD = 2;
+	    byte URANGE_BYTESTOREAD = 3;
 	    byte URANGE_REGISTER = connection;
 	    return new I2CConnection(this, URANGE_ADDR, URANGE_READCMD, URANGE_BYTESTOREAD, URANGE_REGISTER, URANGE_SETUP);
 	}
 	
-	public byte[] interpretData(int register, long time, byte[] backing, int position, int length, int mask){
-		assert(length==6) : "Non-Nunchuck data passed into the NunchuckTwig class";
-		assert(register == 0) : "Non-Nunchuck data passed into the NunchuckTwig class";
-		byte[] temp = {0,0,0,0,0,0};
-		for (int i = 0; i < 5; i++) {
-			temp[i] = (byte) ((backing[(position+i)&mask] ^ 0x17) + 0x17);
+	public int interpretData(byte[] backing, int position, int length, int mask){
+		assert(length==3) : "Non-Ultrasonic data passed into the NunchuckTwig class";
+		byte[] temp = {0,0,0};
+		for (int i = 0; i < 3; i++) {
+			temp[i] = (byte) backing[(position+i)&mask];
 		}
-		temp[5] = backing[(position+5)&mask];
-		return temp;
+		return temp[1]*256+((int)temp[2])&0xFF;
 	}
 
 	@Override

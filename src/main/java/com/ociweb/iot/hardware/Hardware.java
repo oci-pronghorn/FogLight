@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
@@ -69,6 +72,8 @@ public abstract class Hardware {
     protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
     
     protected final I2CBacking i2cBacking;
+    
+    private static final Logger logger = LoggerFactory.getLogger(Hardware.class);
     
     
     //TODO: ma per field with max defined here., 
@@ -189,6 +194,7 @@ public abstract class Hardware {
     }  
     
     public Hardware useConnectI2C(IODevice t){ 
+    	logger.debug("Connecting I2C Device "+t.getClass());
     	if(t.isInput()){
     		assert(!t.isOutput());
     		i2cInputs = growI2CConnections(i2cInputs, t.getI2CConnection());

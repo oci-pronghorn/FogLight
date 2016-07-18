@@ -302,7 +302,7 @@ public class IOTDeviceRuntime {
        //find all the instances of CommandChannel stage to startup first, note they are also unscheduled.
             
        
-       exportGraphDotFile();      
+       //exportGraphDotFile();      
        
        scheduler = hardware.createScheduler(this);
        scheduler.startup();

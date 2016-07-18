@@ -94,18 +94,19 @@ public class IOTDeviceRuntime {
     	    
     	    I2CBacking i2cBacking = null;
     	    
-    	    i2cBacking = Hardware.getI2CBacking(piI2C);
-    	    if (null != i2cBacking) {
-    	        this.isPi = true;
-    	        this.hardware = new GroveV2PiImpl(gm, i2cBacking);
-    	        System.out.println("Detected running on Pi");
-    	    } else {
-    	        i2cBacking = Hardware.getI2CBacking(edI2C);
-    	        if (null != i2cBacking) {
-    	            this.isEdison = true;
-    	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
-    	            System.out.println("Detected running on Edison");
-    	        } else {
+    	    i2cBacking = Hardware.getI2CBacking(edI2C);
+	        if (null != i2cBacking) {
+	            this.isEdison = true;
+	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
+	            System.out.println("Detected running on Edison");
+	        } else {
+	        	i2cBacking = Hardware.getI2CBacking(piI2C);
+	    	    if (null != i2cBacking) {
+	    	        this.isPi = true;
+	    	        this.hardware = new GroveV2PiImpl(gm, i2cBacking);
+	    	        System.out.println("Detected running on Pi");
+	    	    }
+    	        else {
     	            this.hardware = new TestHardware(gm);
     	            System.out.println("Unrecognized hardware, test mock hardware will be used");
     	        }    	        

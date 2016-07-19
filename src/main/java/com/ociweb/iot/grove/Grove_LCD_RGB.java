@@ -166,7 +166,9 @@ public class Grove_LCD_RGB implements IODevice{
             char c = text.charAt(i);
             if (c == '\n' || (head > 0 && head % 16 == 0)) {
                 // We cannot wrap more than once.
-                if (head > 0 && head % 32 == 0) break;
+                if (head > 0 && head % 32 == 0) {
+                    break;
+                }
 
                 // Write the current line.
                 writeLineToLCD(target, line, head);
@@ -175,7 +177,9 @@ public class Grove_LCD_RGB implements IODevice{
                 writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
 
                 // Ignore the newline character.
-                if (c == '\n') continue;
+                if (c == '\n') {
+                    continue;
+                }
             }
 
             //Write chars.

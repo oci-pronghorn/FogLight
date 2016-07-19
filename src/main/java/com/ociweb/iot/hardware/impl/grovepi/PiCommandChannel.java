@@ -100,10 +100,8 @@ public class PiCommandChannel extends CommandChannel{
 				digitalMessageTemplate[2] = (byte)connector;
 				digitalMessageTemplate[3] = (byte)value;
 				
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
-                
-				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
-								
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
+				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);								
 				PipeWriter.publishWrites(i2cOutput);
 				
                 publishGo(1,i2cPipeIdx);
@@ -150,8 +148,7 @@ public class PiCommandChannel extends CommandChannel{
                     PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                  
                     PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
                                     
-                    PipeWriter.publishWrites(i2cOutput);
-	                
+                    PipeWriter.publishWrites(i2cOutput);	                
 	                
 	                publishGo(2,i2cPipeIdx);
 	                
@@ -177,16 +174,14 @@ public class PiCommandChannel extends CommandChannel{
 				analogMessageTemplate[2] = (byte)connector;
 				analogMessageTemplate[3] = (byte)value;
 				
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
-                
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
 								
 				
 				logger.debug("CommandChannel sends analogWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
 				
-                int count = 1;
-                publishGo(count,i2cPipeIdx);
+                publishGo(1,i2cPipeIdx);
 				
 				return true;
 			}else{
@@ -311,10 +306,8 @@ public class PiCommandChannel extends CommandChannel{
                 analogMessageTemplate[2] = (byte)connector;
                 analogMessageTemplate[3] = (byte)value;
                 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
-                
-                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
-                
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
+                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);                
                 PipeWriter.publishWrites(i2cOutput);
                 
                 

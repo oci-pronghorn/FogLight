@@ -48,7 +48,7 @@ public class UltrasonicRangerTwig implements IODevice{
 	}
 
 	@Override
-	public int pwmRange() {
+	public int range() {
 		return 0;
 	}
 
@@ -58,4 +58,8 @@ public class UltrasonicRangerTwig implements IODevice{
 		return false;
 	}
 
+    @Override
+    public int response() {       
+       return 100;      
+    }
 }

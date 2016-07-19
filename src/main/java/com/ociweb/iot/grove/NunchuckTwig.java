@@ -48,7 +48,7 @@ public class NunchuckTwig implements IODevice{
 	}
 
 	@Override
-	public int pwmRange() {
+	public int range() {
 		return 0;
 	}
 
@@ -56,5 +56,9 @@ public class NunchuckTwig implements IODevice{
 	public boolean isGrove() {
 		return false;
 	}
-
+    
+	@Override
+    public int response() {       
+       return 10;      
+    }
 }

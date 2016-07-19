@@ -430,7 +430,7 @@ public class EdisonPinManager {
                 while (--i>=0 && ((c=buffer.get())>='0')) {
                     result= (result*10)+(c-'0');
                 }
-        
+                result= Math.abs((result-2048)/2);//TODO: test on the light sensor, moisure sensor, and anglesensor. Now start from 0 and max at 1024
                return result;  
            } catch (IOException e) {
                throw new RuntimeException(e);

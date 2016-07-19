@@ -9,3 +9,5 @@ buildNumber.properties
 .mvn/timing.properties
 .metadata
 .recommenders
+*.iml
+.idea

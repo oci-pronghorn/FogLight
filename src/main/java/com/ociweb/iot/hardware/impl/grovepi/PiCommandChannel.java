@@ -222,7 +222,10 @@ public class PiCommandChannel extends CommandChannel{
 	public void i2cCommandClose() {  
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			runningI2CCommandCount++;
+			if (++runningI2CCommandCount >= maxCommands) {
+			    throw new UnsupportedOperationException("too many commands");
+			}
+			
 			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
 			PipeWriter.publishWrites(i2cOutput);			
 		} finally {

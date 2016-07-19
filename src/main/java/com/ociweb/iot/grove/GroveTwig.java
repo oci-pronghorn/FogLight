@@ -43,7 +43,7 @@ public enum GroveTwig implements IODevice {
         }
         
         public int response() {
-            return 50;
+            return 100;
         }
     },
     MoistureSensor(){

@@ -78,7 +78,8 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
     						}
                         }
 					}else if(listener instanceof RotaryListener && addr==4 && length==2){
-						int tempValue = (((int)backing[(position+0)&mask])<<8) | (0xFF&((int)backing[(position+1)&mask]));
+						byte[] tempArray = {backing[(position+0)&mask], backing[(position+1)&mask]};
+						int tempValue = (((int)tempArray[0])<<8) | (0xFF&((int)tempArray[1]));
 						((RotaryListener)listener).rotaryEvent(register, time, tempValue, 0, 0);
 					}
 				}

@@ -33,23 +33,20 @@ import com.ociweb.iot.maker.StartupListener;
  */
 
 
-public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener, DigitalListener {
+public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener {
 
     private final CommandChannel tickCommandChannel;
     private final CommandChannel screenCommandChannel;
     
     private final String topic = "tick";
     
-    
-    
+       
     
     private static final int BBM_SLOWEST     = 40;
     private static final int BBM_FASTEST     = 208;
     
     private static final int BBM_VALUES      = 1+BBM_FASTEST-BBM_SLOWEST;
     private static final int MAX_ANGLE_VALUE = 1024;
-    
-    private boolean frequencySelectEnabled;
     
     private long base;
     private int beatIdx;
@@ -71,25 +68,35 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
         
     }
 
+    long timeOfNewValue;
+    int tempBPM;
+    
     @Override
     public void analogEvent(int connector, long time, int average, int value) {
-         
-        if (frequencySelectEnabled || 0==activeBPM) {
-        
-            int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);            
-            if (newBPM != activeBPM) {                
-                 base = 0; //reset signal                 
-                 activeBPM = newBPM;
-                 
-                 String message = " BPM "+activeBPM;
-                 System.out.println(message);
-                 
-                 
-                 //TODO: this call is causing problems with the pulse time and angular reads.
-                 Grove_LCD_RGB.commandForText(screenCommandChannel, message);
 
+            int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);            
+            if (newBPM != tempBPM) {                
+            	
+            	timeOfNewValue = System.currentTimeMillis();
+            	tempBPM = newBPM;
+            	
+            } else {
+            	if (System.currentTimeMillis()-timeOfNewValue>250) {
+            		if (tempBPM != activeBPM) {
+            			
+            			activeBPM = tempBPM;
+            			base = 0; //reset signal                 
+            			            			
+            			String message = " BPM "+activeBPM;
+            			System.out.println(message);
+            			
+            			Grove_LCD_RGB.commandForText(screenCommandChannel, message);
+            		}
+            		
+            	}
+            	
             }
-        } 
+ 
     }    
 
 
@@ -103,6 +110,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             if (0==base) {
                 base = System.currentTimeMillis();
                 beatIdx = 0;
+                System.out.println("c");
             }                
                                     
             long until = base + ((++beatIdx*60_000L)/activeBPM);
@@ -114,24 +122,27 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
                 
                 System.out.println("time "+until+"  delay  "+(until-last));
                 last = until;
+                
+                if (beatIdx==activeBPM) {
+                	beatIdx = 0;
+                	base += 60_000;
+                	System.out.println("d");
+                }                      
+            } else {
+            	base = System.currentTimeMillis();
+                beatIdx = 0;
+                last = 0;
+                System.out.println("b");
             }
             
-            if (beatIdx==activeBPM) {
-                beatIdx = 0;
-                base += 60_000;
-            }                      
-  
+              
             
-            
+        } else {
+        	System.out.println("a");
         }
         
     }
 
-
-    @Override
-    public void digitalEvent(int connector, long time, int value) {
-        frequencySelectEnabled = 1==value;
-    }
 
 
 }

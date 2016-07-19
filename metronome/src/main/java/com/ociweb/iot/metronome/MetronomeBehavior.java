@@ -35,12 +35,9 @@ import com.ociweb.iot.maker.StartupListener;
 
 public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener {
 
-    private final CommandChannel tickCommandChannel;
-    private final CommandChannel screenCommandChannel;
-    
+    private final CommandChannel commandChannel;
     private final String topic = "tick";
-    
-       
+          
     
     private static final int BBM_SLOWEST     = 40;
     private static final int BBM_FASTEST     = 208;
@@ -49,22 +46,20 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private static final int MAX_ANGLE_VALUE = 1024;
     
     private long base;
-    private int beatIdx;
-    private long last;    
+    private int beatIdx; 
     private int activeBPM;
     
     public MetronomeBehavior(IOTDeviceRuntime runtime) {
-        tickCommandChannel = runtime.newCommandChannel();
-        screenCommandChannel = runtime.newCommandChannel();
+        commandChannel = runtime.newCommandChannel();
     }
     
 
     @Override
     public void startup() {
-        tickCommandChannel.subscribe(topic,this);
-        tickCommandChannel.openTopic(topic).publish();
+        commandChannel.subscribe(topic,this);
+        commandChannel.openTopic(topic).publish();
         
-        Grove_LCD_RGB.commandForColor(screenCommandChannel, 255, 255, 255);
+        Grove_LCD_RGB.commandForColor(commandChannel, 255, 255, 255);
         
     }
 
@@ -80,17 +75,20 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             	timeOfNewValue = System.currentTimeMillis();
             	tempBPM = newBPM;
             	
+            	String message = " BPM "+tempBPM;
+    			System.out.println(message);
+    			
+    			//Can not call frequenlty or we get stack trace error.
+    			Grove_LCD_RGB.commandForText(commandChannel, message);
+            	
             } else {
-            	if (System.currentTimeMillis()-timeOfNewValue>250) {
+            	if (System.currentTimeMillis()-timeOfNewValue>500) {
             		if (tempBPM != activeBPM) {
             			
             			activeBPM = tempBPM;
             			base = 0; //reset signal                 
             			            			
-            			String message = " BPM "+activeBPM;
-            			System.out.println(message);
             			
-            			Grove_LCD_RGB.commandForText(screenCommandChannel, message);
             		}
             		
             	}
@@ -103,42 +101,26 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     @Override
     public void message(CharSequence topic, PayloadReader payload) {
         
-        tickCommandChannel.openTopic(topic).publish();//request next tick while we get this one ready
+        commandChannel.openTopic(topic).publish();//request next tick while we get this one ready
                 
         if (activeBPM>0) {
             
             if (0==base) {
                 base = System.currentTimeMillis();
                 beatIdx = 0;
-                System.out.println("c");
             }                
                                     
             long until = base + ((++beatIdx*60_000L)/activeBPM);
+
+            commandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);        
+            commandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
+
+            if (beatIdx==activeBPM) {
+            	beatIdx = 0;
+            	base += 60_000;
+            }                     
+
             
-            //avoid screeching if the user increases the frequency
-            if (until>last) {
-                tickCommandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);        
-                tickCommandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
-                
-                System.out.println("time "+until+"  delay  "+(until-last));
-                last = until;
-                
-                if (beatIdx==activeBPM) {
-                	beatIdx = 0;
-                	base += 60_000;
-                	System.out.println("d");
-                }                      
-            } else {
-            	base = System.currentTimeMillis();
-                beatIdx = 0;
-                last = 0;
-                System.out.println("b");
-            }
-            
-              
-            
-        } else {
-        	System.out.println("a");
         }
         
     }

@@ -16,6 +16,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.Blocker;
 
 public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
@@ -23,16 +24,17 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private final Pipe<I2CCommandSchema>[] fromCommandChannels;
 	private final Pipe<I2CResponseSchema> i2cResponsePipe;
 
-
 	private static final Logger logger = LoggerFactory.getLogger(I2CJFFIStage.class);
 
 	private I2CConnection[] inputs = null;
 	private byte[] workingBuffer;
 	   
-    private int readWriteFlag = 0;
-    
     private int inProgressIdx = -1;
     private boolean awaitingResponse = false;
+    private long time = 0;
+    
+    private static final int MAX_ADDR = 127;
+    private Blocker pollBlocker;
     
 	public I2CJFFIStage(GraphManager graphManager, Pipe<TrafficReleaseSchema>[] goPipe, 
 			Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
@@ -63,10 +65,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			System.out.println("Setup I2C Device on "+inputs[i].address+" Sent "+Arrays.toString(inputs[i].setup));
 			logger.info("I2C setup {} complete",inputs[i].address);
 		}
+		
+		pollBlocker = new Blocker(MAX_ADDR);
 
 	}
 	
-	long time = 0;
 	
 	@Override
 	public void run() {
@@ -104,8 +107,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                     PipeWriter.publishWrites(i2cResponsePipe);
                     
 	            }
-                
-                
+                                
                 inProgressIdx--;//read next one
 	        }
 	    }
@@ -118,6 +120,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	        sendReadRequest();
 	    }
 	    
+	    //if soon keep polling.
+	    //pollBlocker.willReleaseInWindow(currentTimeMillis, msNearWindow)
+	    
 	}
 	
 	private boolean isPollInProgress() {
@@ -129,10 +134,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    if (inProgressIdx >= 0) {
 	        return true; //still processing each of the input items needed
 	    }
-	    
-	   //TODO: what rate should we poll?? How fast is too fast? need to research the sensor limits.
-	    
-	    if (this.inputs.length>0) {
+
+	    if (this.inputs.length > 0) {
     	    inProgressIdx = this.inputs.length-1;    	        	    
     	    return true;
 	    } else {
@@ -141,11 +144,17 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	}
 	
 	private void sendReadRequest() {
-	    
+	    long now = System.currentTimeMillis();
+	    pollBlocker.releaseBlocks(now);
 	    I2CConnection connection = this.inputs[inProgressIdx];
-        i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length);
-        awaitingResponse = true;
-        	    
+	    if (!pollBlocker.isBlocked(connection.address)) {
+	        i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length);
+	        awaitingResponse = true;
+	        pollBlocker.until(connection.address, now+connection.twig.response());
+	    } else {
+	        inProgressIdx--;
+	    }
+        
 	}
 
 
@@ -183,7 +192,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
               		Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
               		
-              		boolean timeDigitalOns = true;
+              		boolean timeDigitalOns = false;
               		if (timeDigitalOns) {
                   		if (1 == workingBuffer[3]) {
                       		long now2 = System.nanoTime();

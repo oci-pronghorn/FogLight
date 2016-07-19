@@ -59,7 +59,7 @@ public class TempAndHumidTwig implements IODevice{
 	}
 
 	@Override
-	public int pwmRange() {
+	public int range() {
 		return 0;
 	}
 
@@ -74,4 +74,9 @@ public class TempAndHumidTwig implements IODevice{
 		return false; //this has to be false
 	}
 
+    @Override
+    public int response() {       
+       return 50;      
+    }
+    
 }

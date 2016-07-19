@@ -16,7 +16,6 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class PiCommandChannel extends CommandChannel{
 
-	private Pipe<GroveRequestSchema> output;
 	private Pipe<I2CCommandSchema> i2cOutput;
 	
 	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
@@ -27,12 +26,11 @@ public class PiCommandChannel extends CommandChannel{
 	private Logger logger = LoggerFactory.getLogger(PiCommandChannel.class);
 
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods
-    private final int maxCommands = 16;
+    private final int maxCommands = 40;
 	
 
 	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
 		super(gm, output, i2cOutput, messagePubSub, goPipe);
-		this.output = output;
 		this.i2cOutput = i2cOutput;  
 		this.i2cPipeIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital
 
@@ -100,10 +98,8 @@ public class PiCommandChannel extends CommandChannel{
 				digitalMessageTemplate[2] = (byte)connector;
 				digitalMessageTemplate[3] = (byte)value;
 				
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
-                
-				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
-								
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
+				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);								
 				PipeWriter.publishWrites(i2cOutput);
 				
                 publishGo(1,i2cPipeIdx);
@@ -150,8 +146,7 @@ public class PiCommandChannel extends CommandChannel{
                     PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                  
                     PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
                                     
-                    PipeWriter.publishWrites(i2cOutput);
-	                
+                    PipeWriter.publishWrites(i2cOutput);	                
 	                
 	                publishGo(2,i2cPipeIdx);
 	                
@@ -177,16 +172,14 @@ public class PiCommandChannel extends CommandChannel{
 				analogMessageTemplate[2] = (byte)connector;
 				analogMessageTemplate[3] = (byte)value;
 				
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
-                
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
 								
 				
 				logger.debug("CommandChannel sends analogWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
 				
-                int count = 1;
-                publishGo(count,i2cPipeIdx);
+                publishGo(1,i2cPipeIdx);
 				
 				return true;
 			}else{
@@ -205,7 +198,6 @@ public class PiCommandChannel extends CommandChannel{
 		}
 
 		return PipeWriter.hasRoomForWrite(goPipe) &&
-		       PipeWriter.hasRoomForWrite(output) && 
 		       PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
 
 	}
@@ -230,7 +222,10 @@ public class PiCommandChannel extends CommandChannel{
 	public void i2cCommandClose() {  
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			runningI2CCommandCount++;
+			if (++runningI2CCommandCount >= maxCommands) {
+			    throw new UnsupportedOperationException("too many commands");
+			}
+			
 			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
 			PipeWriter.publishWrites(i2cOutput);			
 		} finally {
@@ -311,10 +306,8 @@ public class PiCommandChannel extends CommandChannel{
                 analogMessageTemplate[2] = (byte)connector;
                 analogMessageTemplate[3] = (byte)value;
                 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);
-                
-                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
-                
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
+                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);                
                 PipeWriter.publishWrites(i2cOutput);
                 
                 

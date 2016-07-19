@@ -67,7 +67,7 @@ public class GroveV3EdisonImpl extends Hardware {
 		
 		for (int i = 0; i < pwmOutputs.length; i++) {
 		    
-		        EdisonPinManager.writePWMRange(pwmOutputs[i].connection, pwmOutputs[i].twig.pwmRange() << pwmBitsShift);
+		        EdisonPinManager.writePWMRange(pwmOutputs[i].connection, pwmOutputs[i].twig.range() << pwmBitsShift);
 		    
         }
 		
@@ -136,8 +136,8 @@ public class GroveV3EdisonImpl extends Hardware {
 	private boolean isInPWMRange(int connector, int value) {
 	    for (int i = 0; i < pwmOutputs.length; i++) {
 	        if (connector == pwmOutputs[i].connection) {
-	            if (value > pwmOutputs[i].twig.pwmRange()) {
-	                logger.error("pwm value {} out of range, must not be larger than {} ",value,pwmOutputs[i].twig.pwmRange());
+	            if (value > pwmOutputs[i].twig.range()) {
+	                logger.error("pwm value {} out of range, must not be larger than {} ",value,pwmOutputs[i].twig.range());
 	                return false;
 	            }
 	            return true;    

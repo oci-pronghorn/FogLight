@@ -131,6 +131,9 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
 			//we also check for 'near' work but only when there is no found work since its more expensive
 		} while (foundWork || connectionBlocker.willReleaseInWindow(now,msNearWindow));
+		//TODO: this spin lock can cause a delay in reading an input.
+		
+		
 	}
 
 	protected abstract void processMessagesForPipe(int a);

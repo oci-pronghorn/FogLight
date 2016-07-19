@@ -51,7 +51,7 @@ public class IOTDeviceRuntime {
     private StageScheduler scheduler;
     private final GraphManager gm;
   
-    private final int defaultCommandChannelLength = 32;
+    private final int defaultCommandChannelLength = 48;
     private final int defaultCommandChannelMaxPayload = 1023; //largest i2c request or pub sub payload
     
     private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);

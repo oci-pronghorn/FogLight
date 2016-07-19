@@ -12,11 +12,18 @@ public enum GroveTwig implements IODevice {
         public boolean isInput() {
             return true;
         }
+        public int response() {
+            return 30; 
+        }
     },
     LightSensor(){
         @Override
         public boolean isInput() {
             return true;
+        }
+        
+        public int response() {
+            return 30; //hardware limit
         }
     },
     SoundSensor(){
@@ -24,11 +31,19 @@ public enum GroveTwig implements IODevice {
         public boolean isInput() {
             return true;
         }
+                
+        public int response() {
+            return 0; //special up to 20Khz
+        }
     },
     AngleSensor(){
         @Override
         public boolean isInput() {
             return true;
+        }
+        
+        public int response() {
+            return 100;
         }
     },
     MoistureSensor(){
@@ -111,6 +126,10 @@ public enum GroveTwig implements IODevice {
         return false;
     }
     
+    public int response() {
+        return 20;
+    }
+    
     public boolean isPWM() {
         return false;
     }
@@ -120,7 +139,7 @@ public enum GroveTwig implements IODevice {
     public I2CConnection getI2CConnection(){
     	return null;
     }
-    public int pwmRange() {
+    public int range() {
         return 256;
     }
     public boolean isGrove(){

@@ -21,7 +21,7 @@ import com.ociweb.pronghorn.pipe.RawDataSchema;
  * @author Nathan Tippy
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class Grove_LCD_RGB implements IODevice{ //TODO: convert this into an IODevice
+public class Grove_LCD_RGB implements IODevice{ 
 
     // Device I2C Adress (note this only uses the lower 7 bits)
     public static int LCD_ADDRESS  =   (0x7c>>1); //  11 1110  0x3E
@@ -191,8 +191,16 @@ public class Grove_LCD_RGB implements IODevice{ //TODO: convert this into an IOD
             do {
                 i2cPayloadWriter = target.i2cCommandOpen(address);
             } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
-            i2cPayloadWriter.writeByte(register);
-            i2cPayloadWriter.writeByte(value);
+            
+            
+            i2cPayloadWriter.write(new byte[]{ (byte)register, (byte)value });
+            
+            
+            //TODO: this should be working but its not.
+//            i2cPayloadWriter.writeByte(register);
+//            i2cPayloadWriter.writeByte(value);
+            
+            
             target.i2cCommandClose();
         } catch (IOException e) {
            throw new RuntimeException(e);
@@ -211,7 +219,7 @@ public class Grove_LCD_RGB implements IODevice{ //TODO: convert this into an IOD
 		return false;
 	}
 	@Override
-	public int pwmRange() {
+	public int range() {
 		return 0;
 	}
 	@Override
@@ -227,5 +235,9 @@ public class Grove_LCD_RGB implements IODevice{ //TODO: convert this into an IOD
 	public boolean isGrove() {
 		return false;
 	}
+    @Override
+    public int response() {       
+       return 20;      
+    }
     
 }

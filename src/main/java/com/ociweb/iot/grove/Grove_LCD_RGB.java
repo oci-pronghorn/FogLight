@@ -2,6 +2,7 @@ package com.ociweb.iot.grove;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.ociweb.iot.hardware.I2CConnection;
@@ -89,10 +90,6 @@ public class Grove_LCD_RGB implements IODevice{
      * LCD display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
      * which is using chunk sizes of 3 and is being piped to a {@link I2CStage}.
      *
-     * <b>Note: Internally, this method makes calls to {@link #commandForText(String)}
-     * and {@link #commandForColor(int, int, int)} and then combines the results into
-     * a single array. This results in some leftover arrays that could create garbage.</b>
-     *
      * TODO: This function is currently causing the last letter of the text to be dropped
      *       when displayed on the Grove RGB LCD; there's currently a work-around that
      *       simply appens a space to the incoming text variable, but it's hackish
@@ -160,29 +157,41 @@ public class Grove_LCD_RGB implements IODevice{
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));
         //two lines
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_TWO_LINES);
-                  
+
+        int[] line = new int[16];
+
         //Parse text.
-        int count = 0;
-        int row = 0;
-        for(int i = 0; i < text.length(); i++ ) {
+        int head = 0;
+        for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (c == '\n' || count == 16) {
-                count = 0;
-                row += 1;
-                if (row == 2) break;
-        
-                //Write a thing. TODO: What's the thing?
+            if (c == '\n' || (head > 0 && head % 16 == 0)) {
+                // We cannot wrap more than once.
+                if (head > 0 && head % 32 == 0) break;
+
+                // Write the current line.
+                writeLineToLCD(target, line, head);
+
+                // Write a thing. TODO: What's the thing?
                 writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
 
+                // Ignore the newline character.
                 if (c == '\n') continue;
             }
-        
-            count += 1;
-        
-            //Write chars.
-            writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, c);
 
+            //Write chars.
+            line[i % 16] = (int) c;
+            head += 1;
         }
+
+        writeLineToLCD(target, line, head);
+    }
+
+    private static void writeLineToLCD(CommandChannel target, int[] line, int head) {
+        int[] message = new int[head % 16 == 0 ? 16 : head];
+        for (int i = 0; i < message.length; i++) {
+            message[i] = line[i];
+        }
+        writeBytesToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, message);
     }
     
     private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
@@ -206,6 +215,27 @@ public class Grove_LCD_RGB implements IODevice{
            throw new RuntimeException(e);
         }
     }
+
+    private static void writeBytesToRegister(CommandChannel target, int address, int register, int... values) {
+        try {
+            DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
+            do {
+                i2cPayloadWriter = target.i2cCommandOpen(address);
+            } while (null == i2cPayloadWriter);
+
+            byte[] message = new byte[values.length + 1];
+            message[0] = (byte) register;
+            for (int i = 0; i < values.length; i++) {
+                message[i + 1] = (byte) values[i];
+            }
+            i2cPayloadWriter.write(message);
+
+            target.i2cCommandClose();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 	@Override
 	public boolean isInput() {
 		return false;

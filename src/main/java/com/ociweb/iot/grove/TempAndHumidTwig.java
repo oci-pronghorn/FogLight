@@ -2,6 +2,7 @@ package com.ociweb.iot.grove;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
@@ -15,22 +16,38 @@ public class TempAndHumidTwig implements IODevice{
 	private byte[] humData = new byte[4];
 	private byte connection;
 	private byte module_type;
-	public TempAndHumidTwig(byte connection, byte module_type) {
-		this.connection = connection;
-		this.module_type=module_type;
+	public enum MODULE_TYPE{
+		DHT11,DHT22,DHT21,DHT2301;
+	}
+	
+	public TempAndHumidTwig(int connection, MODULE_TYPE module_type) {
+		this.connection = (byte) connection;
+		switch(module_type){
+		case DHT11 :
+			this.module_type = 0;
+			break;
+		case DHT22 :
+			this.module_type = 1;
+			break;
+		case DHT21 :
+			this.module_type = 2;
+			break;
+		case DHT2301 :
+			this.module_type = 3;
+			break;
+		}
 	}
 
 	public I2CConnection getI2CConnection(){
-		assert(module_type == 22 || module_type == 21) : "Please enter a valid DHT module type (21 or 22)";
-		byte[] TEMPHUMID_READCMD = {0x01, 0x40, connection, module_type, 0x00};
-	    byte[] TEMPHUMID_SETUP = {0x01, 0x05, connection, 0x00, 0x00}; //set pinMode to output
+		byte[] TEMPHUMID_READCMD = {0x01, 40, connection, module_type, 0x00};
+	    byte[] TEMPHUMID_SETUP = {0x01, 0x05, 0x00, 0x00, 0x00}; 
 	    byte TEMPHUMID_ADDR = 0x04;
-	    byte TEMPHUMID_BYTESTOREAD = 4;
+	    byte TEMPHUMID_BYTESTOREAD = 8;
 	    byte TEMPHUMID_REGISTER = connection;
 	    return new I2CConnection(this, TEMPHUMID_ADDR, TEMPHUMID_READCMD, TEMPHUMID_BYTESTOREAD, TEMPHUMID_REGISTER, TEMPHUMID_SETUP);
 	}
 	
-	public float[] interpretGrovePiData(int register, long time, byte[] backing, int position, int length, int mask){
+	public float[] interpretGrovePiData(byte[] backing, int position, int length, int mask){
 		assert(length == 8) : "Incorrect length of data passed into DHT sensor class";
 		for (int i = 0; i < tempData.length; i++) {
 			tempData[i]= backing[(position+i)%mask];
@@ -38,6 +55,8 @@ public class TempAndHumidTwig implements IODevice{
 		for (int i = 0; i < humData.length; i++) {
 			humData[i]= backing[(position+i)%mask];
 		}
+		System.out.println("");
+		System.out.println(Arrays.toString(tempData)+" "+Arrays.toString(humData));
 		float[] temp = {ByteBuffer.wrap(tempData).order(ByteOrder.LITTLE_ENDIAN).getFloat(), 
 				ByteBuffer.wrap(humData).order(ByteOrder.LITTLE_ENDIAN).getFloat()};
 		return temp;
@@ -76,7 +95,7 @@ public class TempAndHumidTwig implements IODevice{
 
     @Override
     public int response() {       
-       return 50;      
+       return 600;      
     }
     
 }

@@ -1,8 +1,13 @@
 package com.ociweb.device.testApps;
 
-import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 
 /**
  * Running the grove pi
@@ -25,24 +30,42 @@ public class GrovePiExample {
 
 		System.out.println("#### Writing data ####");
 		System.out.println("");
-		
-		pinMode(6,0);  //set 3 to output
+		byte[] readcmd = {0x01, 40, 0x07, 0, 0};
+		byte[] tempData = new byte[4];
+		byte[] humData = new byte[4];
+		pinMode(7, 0);
 		
 		while(true){
-			digitalWrite(6, 1);
+			
+			i2c.write((byte) 0x04, readcmd, readcmd.length);
 			try {
-				Thread.sleep(500);
+				Thread.sleep(600);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			digitalWrite(6, 0);
+			byte[] temp = {0,0,0,0,0,0,0,0};
+			i2c.read((byte) 4, temp, 8);
+			
+			for (int i = 0; i < tempData.length; i++) {
+				tempData[i]= temp[i+4];
+			}
+			for (int i = 0; i < humData.length; i++) {
+				humData[i]= temp[i];
+			}
+			System.out.println("");
+			System.out.println(Arrays.toString(tempData)+" "+Arrays.toString(humData));
+			System.out.println(ByteBuffer.wrap(tempData).order(ByteOrder.BIG_ENDIAN).getFloat()+", "+
+					ByteBuffer.wrap(humData).order(ByteOrder.BIG_ENDIAN).getFloat());
 			try {
-				Thread.sleep(500);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			
+			
 		}
 		
 	}

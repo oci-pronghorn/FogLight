@@ -5,6 +5,6 @@ import com.ociweb.iot.hardware.Hardware;
 public interface IoTSetup {
 
     public void declareConnections(Hardware c);
-    public void declareBehavior(IOTDeviceRuntime runtime);
+    public void declareBehavior(DeviceRuntime runtime);
     
 }

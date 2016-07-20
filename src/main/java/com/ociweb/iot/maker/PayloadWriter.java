@@ -29,7 +29,25 @@ public class PayloadWriter {
         }
         return this;
     }
+    
+    public PayloadWriter writeLong(long value) {
+        try {
+            writer.writeLong(value);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
         
+    public PayloadWriter writeBoolean(boolean value) {
+        try {
+            writer.writeBoolean(value);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+    
     public PayloadWriter writeString(CharSequence value) {
         try {
             writer.writeUTF(value);

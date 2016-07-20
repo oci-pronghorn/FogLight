@@ -33,7 +33,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 
-public class IOTDeviceRuntime {
+public class DeviceRuntime {
 
     //TODO: we may need a static singleton accessory for this.
     
@@ -44,7 +44,7 @@ public class IOTDeviceRuntime {
      * dependencies can be traced and kept in the jar.
      *  
      */
-    private static final Logger logger = LoggerFactory.getLogger(IOTDeviceRuntime.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeviceRuntime.class);
     
     protected Hardware hardware;
     
@@ -77,7 +77,7 @@ public class IOTDeviceRuntime {
     private final IntHashTable subscriptionPipeLookup = new IntHashTable(10);//NOTE: this is a maximum of 1024 listeners
     
     
-    public IOTDeviceRuntime() {
+    public DeviceRuntime() {
         gm = new GraphManager();
         //by default, unless explicitly set the stages will use this sleep rate
         GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, DEFAULT_SLEEP_RATE_NS);       
@@ -369,8 +369,8 @@ public class IOTDeviceRuntime {
         hardware.shutdown();
     }
 
-    public static IOTDeviceRuntime test(IoTSetup app) {        
-        IOTDeviceRuntime runtime = new IOTDeviceRuntime();
+    public static DeviceRuntime test(IoTSetup app) {        
+        DeviceRuntime runtime = new DeviceRuntime();
         TestHardware hardware = (TestHardware)runtime.getHardware();
         hardware.isInUnitTest = true;
         try {
@@ -385,13 +385,13 @@ public class IOTDeviceRuntime {
         return runtime;
     }
     
-	public static IOTDeviceRuntime run(IoTSetup app) {
-	    IOTDeviceRuntime runtime = new IOTDeviceRuntime();
+	public static DeviceRuntime run(IoTSetup app) {
+	    DeviceRuntime runtime = new DeviceRuntime();
         return run(app, runtime);
     }
 
 
-    private static IOTDeviceRuntime run(IoTSetup app, IOTDeviceRuntime runtime) {
+    private static DeviceRuntime run(IoTSetup app, DeviceRuntime runtime) {
         try {
             app.declareConnections(runtime.getHardware());
             app.declareBehavior(runtime);

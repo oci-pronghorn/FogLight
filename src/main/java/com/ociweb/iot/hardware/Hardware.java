@@ -13,7 +13,7 @@ import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.TrafficCopStage;
@@ -390,7 +390,7 @@ public abstract class Hardware {
         DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
     }
 
-    public StageScheduler createScheduler(IOTDeviceRuntime iotDeviceRuntime) {
+    public StageScheduler createScheduler(DeviceRuntime iotDeviceRuntime) {
         //NOTE: need to consider different schedulers in the future.
        final StageScheduler scheduler = new ThreadPerStageScheduler(gm);
 

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
@@ -128,7 +128,7 @@ public class TestHardware extends Hardware {
     }
     
     @Override
-    public StageScheduler createScheduler(IOTDeviceRuntime iotDeviceRuntime) {
+    public StageScheduler createScheduler(DeviceRuntime iotDeviceRuntime) {
 
         if (isInUnitTest) {
                       

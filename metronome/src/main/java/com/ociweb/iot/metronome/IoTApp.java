@@ -12,7 +12,7 @@ import com.ociweb.iot.maker.IoTSetup;
 
 public class IoTApp implements IoTSetup {
     
-    public static final int ROTARY_ANGLE_CONNECTION = 14;
+    public static final int ROTARY_ANGLE_CONNECTION = 1;
     public static final int BUZZER_CONNECTION = 2;    
     public static final int BUTTON_CONNECTION = 4;    
     

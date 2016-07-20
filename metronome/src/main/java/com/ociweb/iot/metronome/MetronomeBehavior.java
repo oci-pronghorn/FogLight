@@ -49,6 +49,9 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private int beatIdx; 
     private int activeBPM;
     
+    private long timeOfNewValue;
+    private int tempBPM;
+    
     public MetronomeBehavior(IOTDeviceRuntime runtime) {
         commandChannel = runtime.newCommandChannel();
     }
@@ -63,12 +66,10 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
         
     }
 
-    long timeOfNewValue;
-    int tempBPM;
     
     @Override
     public void analogEvent(int connector, long time, int average, int value) {
-
+    
             int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);            
             if (newBPM != tempBPM) {                
             	
@@ -86,15 +87,11 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             		if (tempBPM != activeBPM) {
             			
             			activeBPM = tempBPM;
-            			base = 0; //reset signal                 
-            			            			
+            			base = 0; //reset signal  
             			
-            		}
-            		
-            	}
-            	
-            }
- 
+            		}            		
+            	}            	
+            } 
     }    
 
 

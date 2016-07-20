@@ -9,7 +9,7 @@ import org.junit.Test;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.hardware.impl.test.TestI2CBacking;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 /**
@@ -20,7 +20,7 @@ public class AppTest {
 	
 	@Test
 	public void testApp() {
-	    	IOTDeviceRuntime runtime = IOTDeviceRuntime.test(new IoTApp());
+	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
 	    	    	
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();

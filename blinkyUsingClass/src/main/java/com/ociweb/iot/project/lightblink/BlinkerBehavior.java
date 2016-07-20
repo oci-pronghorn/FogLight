@@ -1,7 +1,7 @@
 package com.ociweb.iot.project.lightblink;
 
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.PayloadReader;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.StartupListener;
@@ -13,7 +13,7 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	
 	private CommandChannel blinkerChannel;
 	
-	public BlinkerBehavior(IOTDeviceRuntime runtime) {
+	public BlinkerBehavior(DeviceRuntime runtime) {
 		blinkerChannel = runtime.newCommandChannel(); 
 	}	
 	

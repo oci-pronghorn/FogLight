@@ -4,7 +4,7 @@ import static com.ociweb.iot.grove.GroveTwig.LED;
 
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.IoTSetup;
 import com.ociweb.iot.maker.PubSubListener;
 
@@ -14,7 +14,7 @@ public class IoTApp implements IoTSetup {
     private static final int PAUSE = 500;
            
     public static void main( String[] args) {
-        IOTDeviceRuntime.run(new IoTApp());
+        DeviceRuntime.run(new IoTApp());
     }    
     
     @Override
@@ -24,7 +24,7 @@ public class IoTApp implements IoTSetup {
     }
 
     @Override
-    public void declareBehavior(IOTDeviceRuntime runtime) {
+    public void declareBehavior(DeviceRuntime runtime) {
         
         final CommandChannel blinkerChannel = runtime.newCommandChannel(); 
         

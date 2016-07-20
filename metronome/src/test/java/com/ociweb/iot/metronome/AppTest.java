@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 /**
@@ -19,7 +19,7 @@ public class AppTest
     @Test
     public void testApp()
     {
-        IOTDeviceRuntime runtime = IOTDeviceRuntime.test(new IoTApp());
+        DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
                 
         NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();      
         TestHardware hardware = (TestHardware)runtime.getHardware();

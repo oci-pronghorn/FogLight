@@ -7,7 +7,7 @@ import static com.ociweb.iot.grove.GroveTwig.Button;
 import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 
 import com.ociweb.iot.hardware.Hardware;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.IoTSetup;
 
 public class IoTApp implements IoTSetup {
@@ -16,7 +16,7 @@ public class IoTApp implements IoTSetup {
     public static final int BUZZER_CONNECTION = 2;     
             
     public static void main( String[] args ) {
-        IOTDeviceRuntime.run(new IoTApp());
+        DeviceRuntime.run(new IoTApp());
     }
     
     
@@ -29,7 +29,7 @@ public class IoTApp implements IoTSetup {
 
 
     @Override
-    public void declareBehavior(IOTDeviceRuntime runtime) {
+    public void declareBehavior(DeviceRuntime runtime) {
         runtime.registerListener(new MetronomeBehavior(runtime));
     }        
   

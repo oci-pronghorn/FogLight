@@ -4,7 +4,7 @@ import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.PayloadReader;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.StartupListener;
@@ -52,7 +52,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private long timeOfNewValue;
     private int tempBPM;
     
-    public MetronomeBehavior(IOTDeviceRuntime runtime) {
+    public MetronomeBehavior(DeviceRuntime runtime) {
         commandChannel = runtime.newCommandChannel();
     }
     

@@ -14,6 +14,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
@@ -130,6 +131,7 @@ public class TestHardware extends Hardware {
     public StageScheduler createScheduler(IOTDeviceRuntime iotDeviceRuntime) {
 
         if (isInUnitTest) {
+                      
             //NOTE: need to consider different schedulers in the future.
            return new NonThreadScheduler(gm);
         } else {

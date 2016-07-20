@@ -42,14 +42,13 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	
 	  protected void processMessagesForPipe(int a) {
 	      
+	      long now = System.currentTimeMillis();
+	      connectionBlocker.releaseBlocks(now);
 	      
 	        while (hasReleaseCountRemaining(a) 
 	                && (PipeReader.hasContentToRead(fromCommandChannels[activePipe]) && !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) )
 	                && PipeReader.tryReadFragment(fromCommandChannels[activePipe]) ){
-	  
-	            long now = System.currentTimeMillis();
-	            connectionBlocker.releaseBlocks(now);
-	                        
+	  	                        
 	            
 	            assert(PipeReader.isNewMessage(fromCommandChannels [activePipe])) : "This test should only have one simple message made up of one fragment";
 	            int msgIdx = PipeReader.getMsgIdx(fromCommandChannels [activePipe]);
@@ -64,13 +63,12 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                                     	                    
 	                case GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220:
 	                    connectionBlocker.until(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111),
-	                                       now + PipeReader.readLong(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113));
-	                    	                    
+	                                       now + PipeReader.readLong(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113));                   	                    
 	                    break;
 	                    
 	                case GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221:
 	                        connectionBlocker.until(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111),
-	                                           now + PipeReader.readLong(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114));
+	                                           PipeReader.readLong(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114));
 	                                                
 	                        break;   
 	                    
@@ -89,11 +87,13 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                
 	            }
 	            PipeReader.releaseReadLock(fromCommandChannels [activePipe]);
-	            	            
+
 	            //only do now after we know its not blocked and was completed
 	            decReleaseCount(a);
 	            
 	        }
+
+	        
 	    }
 
 	

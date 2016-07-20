@@ -1,5 +1,7 @@
 package com.ociweb.pronghorn;
 
+import java.util.concurrent.TimeoutException;
+
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
@@ -25,16 +27,26 @@ public class TrafficCopStage extends PronghornStage {
     private Pipe<TrafficAckSchema>[] ackIn;
     private Pipe<TrafficReleaseSchema>[] goOut;
     private int ackExpectedOn = -1;   
+    private GraphManager graphManager;
+    private final long msAckTimeout;
+    private long ackExpectedTime;
     
-    public TrafficCopStage(GraphManager graphManager, Pipe<TrafficOrderSchema> primaryIn, Pipe<TrafficAckSchema>[] ackIn,  Pipe<TrafficReleaseSchema>[] goOut) {
+    public TrafficCopStage(GraphManager graphManager, long msAckTimeout, Pipe<TrafficOrderSchema> primaryIn, Pipe<TrafficAckSchema>[] ackIn,  Pipe<TrafficReleaseSchema>[] goOut) {
     	super(graphManager, join(ackIn, primaryIn), goOut);
     	
-    
+    	this.msAckTimeout = msAckTimeout;
         this.primaryIn = primaryIn;
         this.ackIn = ackIn;
         this.goOut = goOut;
-        
+        this.graphManager = graphManager;//for toString
     }    
+    
+    public String toString() {
+        String result = super.toString();
+        
+        return result+ ( (ackExpectedOn>=0) ? " AckExpectedOn:"+ackExpectedOn+" "+GraphManager.getRingProducer(graphManager, +ackIn[ackExpectedOn].id) : "" );
+    }
+    
     
     @Override
     public void run() {
@@ -43,8 +55,14 @@ public class TrafficCopStage extends PronghornStage {
             ////////////////////////////////////////////////
             //check first if we are waiting for an ack back
             ////////////////////////////////////////////////
-            if (ackExpectedOn>=0) {            
+            if (ackExpectedOn>=0) {                              
+                
                 if (!PipeReader.tryReadFragment(ackIn[ackExpectedOn])) {
+                    
+                    if (System.currentTimeMillis() > ackExpectedTime) {
+                        throw new RuntimeException("Expected to get ack back from "+GraphManager.getRingProducer(graphManager, +ackIn[ackExpectedOn].id)+" within "+msAckTimeout+"ms");
+                    }
+                    
                     return;//we are still waiting for requested operation to complete
                 } else {
                     PipeReader.releaseReadLock(ackIn[ackExpectedOn]);
@@ -72,6 +90,9 @@ public class TrafficCopStage extends PronghornStage {
                     }
                     //release the read lock now that we published the write
                     PipeReader.releaseReadLock(primaryIn);  
+                    
+                    ackExpectedTime = msAckTimeout>0 ? msAckTimeout+System.currentTimeMillis() : Long.MAX_VALUE; 
+                 
                 } else {
                     //this may be shutting down or an unsupported message
                     assert(-1 == PipeReader.getMsgIdx(primaryIn)) : "Expected end of stream however got unsupported message: "+PipeReader.getMsgIdx(primaryIn);

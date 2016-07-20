@@ -119,8 +119,8 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 //					}					
 
 					//send any acks that are outstanding
-					if (0==activeCounts[a]) {
-						if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
+					if (0 == localActiveCounts[a]) {
+					    if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
 							publishWrites(ackPipe[a]);
 							localActiveCounts[a] = -1;
 							foundWork = true;

@@ -147,7 +147,7 @@ public abstract class Hardware {
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-    	HardConnection gc = (System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection):new HardConnection(t,connection);
+    	HardConnection gc = new HardConnection(t,connection);
         if (t.isInput()) {
             assert(!t.isOutput());
             analogInputs = growHardConnections(analogInputs, gc);
@@ -164,7 +164,8 @@ public abstract class Hardware {
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
     	
-        HardConnection gc =(System.getProperty("os.version").toLowerCase().indexOf("edison") != -1)? new HardConnection(t,connection):new HardConnection(t,connection);
+        HardConnection gc =new HardConnection(t,connection);
+        
         if (t.isInput()) {
             assert(!t.isOutput());
             digitalInputs = growHardConnections(digitalInputs, gc);
@@ -335,7 +336,8 @@ public abstract class Hardware {
             
             Pipe<TrafficReleaseSchema>[] goOut = new Pipe[]{pinGoPipe, i2cGoPipe, msgGoPipe};
             Pipe<TrafficAckSchema>[] ackIn = new Pipe[]{pinAckPipe, i2cAckPipe, msgAckPipe};
-            TrafficCopStage trafficCopStage = new TrafficCopStage(gm, orderPipes[t], ackIn, goOut);
+            long timeout = 1000;
+            TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut);
             
         }
         

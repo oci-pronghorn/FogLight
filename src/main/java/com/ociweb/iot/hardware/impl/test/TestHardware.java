@@ -1,6 +1,5 @@
 package com.ociweb.iot.hardware.impl.test;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -8,22 +7,16 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
-import com.ociweb.iot.hardware.impl.grovepi.PiCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.IOTDeviceRuntime;
-import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
-import com.ociweb.pronghorn.util.Appendables;
 
 public class TestHardware extends Hardware {
 
@@ -86,11 +79,11 @@ public class TestHardware extends Hardware {
         return pinHighValues[connector];
     }    
     
-    public long getFirstTimeNS(int connector) {
+    public long getFirstTime(int connector) {
         return firstTime[connector];
     }    
     
-    public long getLastTimeNS(int connector) {
+    public long getLastTime(int connector) {
         return lastTime[connector];
     }  
     
@@ -106,7 +99,7 @@ public class TestHardware extends Hardware {
 
     @Override
     public void digitalWrite(int connector, int value) {
-        long now = System.nanoTime();
+        long now = System.currentTimeMillis();
         logger.info("digital connection {} set to {}",connector,value);
         pinHighValues[connector] = Math.max(pinHighValues[connector], value);
         pinData[connector]=value;
@@ -118,7 +111,7 @@ public class TestHardware extends Hardware {
 
     @Override
     public void analogWrite(int connector, int value) {
-        long now = System.nanoTime();
+        long now = System.currentTimeMillis();
         logger.info("analog connection {} set to {}",connector,value);
         pinHighValues[connector] = Math.max(pinHighValues[connector], value);
         pinData[connector]=value;

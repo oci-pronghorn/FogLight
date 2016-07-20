@@ -157,62 +157,24 @@ public class Grove_LCD_RGB implements IODevice{
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));
         //two lines
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_TWO_LINES);
-
-        int[] line = new int[16];
-
-        //Parse text.
-        int head = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            if (c == '\n' || (head > 0 && head % 16 == 0)) {
-                // We cannot wrap more than once.
-                if (head > 0 && head % 32 == 0) {
-                    break;
-                }
-
-                // Write the current line.
-                writeLineToLCD(target, line, head);
-
-                // Write a thing. TODO: What's the thing?
-                writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
-
-                // Ignore the newline character.
-                if (c == '\n') {
-                    continue;
-                }
-            }
-
-            //Write chars.
-            line[i % 16] = (int) c;
-            head += 1;
+        
+        String[] lines = text.split("\n");
+        for(String line: lines) {
+            writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line.trim());
+            writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
         }
 
-        writeLineToLCD(target, line, head);
     }
 
-    private static void writeLineToLCD(CommandChannel target, int[] line, int head) {
-        int[] message = new int[head % 16 == 0 ? 16 : head];
-        for (int i = 0; i < message.length; i++) {
-            message[i] = line[i];
-        }
-        writeBytesToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, message);
-    }
-    
     private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
         try {
             DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
             do {
                 i2cPayloadWriter = target.i2cCommandOpen(address);
             } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
-            
-            
-            i2cPayloadWriter.write(new byte[]{ (byte)register, (byte)value });
-            
-            
-            //TODO: this should be working but its not.
-//            i2cPayloadWriter.writeByte(register);
-//            i2cPayloadWriter.writeByte(value);
-            
+
+            i2cPayloadWriter.writeByte(register);
+            i2cPayloadWriter.writeByte(value);            
             
             target.i2cCommandClose();
         } catch (IOException e) {
@@ -220,26 +182,22 @@ public class Grove_LCD_RGB implements IODevice{
         }
     }
 
-    private static void writeBytesToRegister(CommandChannel target, int address, int register, int... values) {
+    private static void writeUTF8ToRegister(CommandChannel target, int address, int register, CharSequence text) {
         try {
             DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
             do {
                 i2cPayloadWriter = target.i2cCommandOpen(address);
             } while (null == i2cPayloadWriter);
-
-            byte[] message = new byte[values.length + 1];
-            message[0] = (byte) register;
-            for (int i = 0; i < values.length; i++) {
-                message[i + 1] = (byte) values[i];
-            }
-            i2cPayloadWriter.write(message);
-
+                       
+            i2cPayloadWriter.writeByte(register);
+            DataOutputBlobWriter.encodeAsUTF8(i2cPayloadWriter, text);
+            
             target.i2cCommandClose();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
+    
 	@Override
 	public boolean isInput() {
 		return false;

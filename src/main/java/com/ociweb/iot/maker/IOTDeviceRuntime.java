@@ -283,7 +283,7 @@ public class IOTDeviceRuntime {
     }
 
         
-    public void start() {
+    private void start() {
        hardware.coldSetup();
    
        hardware.buildStages(subscriptionPipeLookup,
@@ -304,8 +304,7 @@ public class IOTDeviceRuntime {
        
        //exportGraphDotFile();      
        
-       scheduler = hardware.createScheduler(this);
-       scheduler.startup();
+       scheduler = hardware.createScheduler(this);       
 
     }
     
@@ -374,7 +373,16 @@ public class IOTDeviceRuntime {
         IOTDeviceRuntime runtime = new IOTDeviceRuntime();
         TestHardware hardware = (TestHardware)runtime.getHardware();
         hardware.isInUnitTest = true;
-        return run(app, runtime);
+        try {
+            app.declareConnections(runtime.getHardware());
+            app.declareBehavior(runtime);
+            runtime.start();
+            //for test we do not call startup and wait instead for this to be done by test.
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.exit(-1);
+        }
+        return runtime;
     }
     
 	public static IOTDeviceRuntime run(IoTSetup app) {
@@ -388,6 +396,7 @@ public class IOTDeviceRuntime {
             app.declareConnections(runtime.getHardware());
             app.declareBehavior(runtime);
             runtime.start();
+            runtime.scheduler.startup();
         } catch (Throwable t) {
             t.printStackTrace();
             System.exit(-1);

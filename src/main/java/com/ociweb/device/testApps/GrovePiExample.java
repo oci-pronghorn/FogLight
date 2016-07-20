@@ -24,6 +24,10 @@ public class GrovePiExample {
 
 	// Address of board.
 	public static final byte Grove_ADDR = 0x04;
+	private static int[] sign = {0,0};
+	private static int[] exp = {0,0};
+	private static int[] mantissa = {0,0};
+	private static float[] vals = {0,0};
 
 	public static void main(String[] args) {
 		logger.info("Starting GrovePi example app.");
@@ -31,38 +35,67 @@ public class GrovePiExample {
 		System.out.println("#### Writing data ####");
 		System.out.println("");
 		byte[] readcmd = {0x01, 40, 0x07, 0, 0};
-		byte[] tempData = new byte[4];
-		byte[] humData = new byte[4];
-		pinMode(7, 0);
+		//byte[] readcmd = {0x01, 7, 8, 0, 0};
+		pinMode(14, 0);
+		
+		long start = System.currentTimeMillis();
+		int count = 0;
 		
 		while(true){
+//			count++;
+//			analogRead(14);
+//			if(count>1000){
+//				System.out.println(System.currentTimeMillis()-start);
+//				count = 0;
+//			}
 			
 			i2c.write((byte) 0x04, readcmd, readcmd.length);
 			try {
-				Thread.sleep(600);
+				Thread.sleep(20);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			byte[] temp = {0,0,0,0,0,0,0,0};
-			i2c.read((byte) 4, temp, 8);
+			byte[] read = {0,0,0,0,0,0,0,0,0};
+			i2c.read((byte) 4, read, 9);
 			
-			for (int i = 0; i < tempData.length; i++) {
-				tempData[i]= temp[i+4];
+			
+//			System.out.println("");
+//			System.out.println(Arrays.toString(read));
+//			System.out.println(ByteBuffer.wrap(read).order(ByteOrder.LITTLE_ENDIAN).getFloat(1)+", "+ByteBuffer.wrap(read).order(ByteOrder.LITTLE_ENDIAN).getFloat(5));
+			count++;
+			if(read[1] == -1 || read[5]==-1){
+				System.out.println(count);
+				count = 0;
 			}
-			for (int i = 0; i < humData.length; i++) {
-				humData[i]= temp[i];
-			}
-			System.out.println("");
-			System.out.println(Arrays.toString(tempData)+" "+Arrays.toString(humData));
-			System.out.println(ByteBuffer.wrap(tempData).order(ByteOrder.BIG_ENDIAN).getFloat()+", "+
-					ByteBuffer.wrap(humData).order(ByteOrder.BIG_ENDIAN).getFloat());
+			
 			try {
-				Thread.sleep(100);
+				Thread.sleep(20);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+//			i2c.write((byte) 0x04, readcmd, readcmd.length);
+//			try {
+//				Thread.sleep(15);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			byte[] temp = {0,0,0};
+//			i2c.read((byte) 4, temp, 3);
+//			
+//			System.out.println("");
+//			System.out.println(Arrays.toString(temp));
+//			System.out.println((((int)temp[1])<<8) | (0xFF&((int)temp[2])));
+//			try {
+//				Thread.sleep(5);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+			
 			
 			
 			

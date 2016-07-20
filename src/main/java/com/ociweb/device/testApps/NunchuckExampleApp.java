@@ -32,6 +32,9 @@ package com.ociweb.device.testApps;
          logger.info("Initializing Nunchuck.");
          i2c.write(NUNCHUCK_ADDR, new byte[]{(byte)0x40, (byte) 0x00},2);
          logger.info("Nunchuck initialized.");
+         
+         int count = 0;
+         long start = System.currentTimeMillis();
  
          // Loop forever, reading from the nunchuck.
          System.out.println("#### Wii Nunchuck Tracking Data ####");
@@ -39,32 +42,37 @@ package com.ociweb.device.testApps;
          byte[] response;
          while (true) {
              // Write 0x00 to the nunchuck to request data.
+        	 count++;
+        	 if(count>1000){
+        		 count = 0;
+        		 System.out.println(System.currentTimeMillis()-start);
+        	 }
              i2c.write(NUNCHUCK_ADDR, new byte[]{(byte) 0x00},1);
  
              // Read the 6-byte response from the nunchuck.
              response = i2c.read(NUNCHUCK_ADDR, new byte[6], 6);
  
              // Decode response by XOR 0x17 and add 0x17.
-             for (int i = 0; i < response.length; i++) {
-                 response[i] = (byte) ((response[i] ^ 0x17) + 0x17);
-             }
+//             for (int i = 0; i < response.length; i++) {
+//                 response[i] = (byte) ((response[i] ^ 0x17) + 0x17);
+//             }
  
              // Clear the most recent line so that we don't spew out tons of lines of content.
-             System.out.print("\r");
-             for (int i = 0; i < 100; i++) System.out.print(" ");
-             System.out.print("\r");
- 
-             // Print out tracking data.
-             System.out.print(String.format("Stick (X %d Y %d) | Gyro (X %d Y %d Z %d) | Buttons (%d)",
-                                              response[0], response[1], response[2], response[3],
-                                              response[4], response[5]));
- 
+//             System.out.print("\r");
+//             for (int i = 0; i < 100; i++) System.out.print(" ");
+//             System.out.print("\r");
+// 
+//             // Print out tracking data.
+//             System.out.print(String.format("Stick (X %d Y %d) | Gyro (X %d Y %d Z %d) | Buttons (%d)",
+//                                              response[0], response[1], response[2], response[3],
+//                                              response[4], response[5]));
+// 
              // Sleep for a bit.
-             try {
-                 Thread.sleep(250);
-             } catch (Exception e) {
-                 logger.error(e.getMessage(), e);
-             }
+//             try {
+//                 Thread.sleep(250);
+//             } catch (Exception e) {
+//                 logger.error(e.getMessage(), e);
+//             }
          }
      }
  }

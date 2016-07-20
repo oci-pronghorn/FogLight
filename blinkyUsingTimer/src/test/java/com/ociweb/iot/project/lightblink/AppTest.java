@@ -22,6 +22,7 @@ public class AppTest {
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    
 	    	scheduler.setSingleStepMode(true);
+	    	scheduler.startup();
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    

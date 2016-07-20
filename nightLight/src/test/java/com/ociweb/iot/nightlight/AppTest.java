@@ -28,7 +28,8 @@ public class AppTest {
 	    	TestI2CBacking backing = (TestI2CBacking)hardware.i2cBacking;
 	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
-
+	    	scheduler.startup();
+	    	
 	    	hardware.clearI2CWriteCount();
 	    	
 	    	hardware.analogWrite(IoTApp.ANGLE_SENSOR_CONNECTION, 512);

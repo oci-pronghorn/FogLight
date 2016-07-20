@@ -21,6 +21,7 @@ public class AppTest
 
         scheduler.setSingleStepMode(true);
 
+        scheduler.startup();
         
         TestHardware hardware = (TestHardware)runtime.getHardware();
         
@@ -35,17 +36,15 @@ public class AppTest
      
         scheduler.run();
         
-    //    hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 0);
+        hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 0);
         
         
-//        int iterations = 10;
-//        
-//        int i = iterations;
-//        while (--i>=0) {
-//            scheduler.run();
-//           
-//       //     scheduler.run();            
-//                      
-//        }
+        int iterations = 10;
+        
+        int i = iterations;
+        while (--i>=0) {
+            scheduler.run();
+        }
+        
     }
 }

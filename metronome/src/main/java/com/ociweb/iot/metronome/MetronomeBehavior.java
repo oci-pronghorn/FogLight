@@ -98,17 +98,18 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     @Override
     public void message(CharSequence topic, PayloadReader payload) {
         
+    	
         commandChannel.openTopic(topic).publish();//request next tick while we get this one ready
                 
         if (activeBPM>0) {
+
             if (0==base) {
                 base = System.currentTimeMillis();
                 beatIdx = 0;
             }                
                                     
-            long until = base + ((++beatIdx*60_000L)/activeBPM);
-
-            System.out.println("send pulse "+base+" "+beatIdx+"  "+until);
+            long delta = (++beatIdx*60_000L)/activeBPM;
+            long until = base + delta;
             
             commandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);        
             commandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until

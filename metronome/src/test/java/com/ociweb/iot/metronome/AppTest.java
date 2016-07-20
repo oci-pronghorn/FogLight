@@ -1,6 +1,8 @@
 package com.ociweb.iot.metronome;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -29,10 +31,14 @@ public class AppTest
         scheduler.startup();
         
         long lastTime = 0;
-
-        int ticks = 1;
+        int ticks = 10;
         
-        while (ticks>0) {
+        hardware.clearCaputuredFirstTimes();
+        hardware.clearCaputuredHighs();
+        boolean isMetronomeRunning = false;
+        
+        long startTime = System.currentTimeMillis();
+        while (ticks>0 ) {
         	
             scheduler.run();
             
@@ -42,15 +48,16 @@ public class AppTest
     			if (0!=high) {
 	    			ticks--;
 	    			
-	    			System.out.println("Tick:"+time);
-	    			
 	    			if (0!=lastTime) {
-	    				long durationMs = (time-lastTime);
-	    				System.out.println(durationMs);
-	    				
-	    				assertTrue(durationMs>=300);
-	    				assertTrue(durationMs<=301);
-	    				
+	    			    if (isMetronomeRunning) {
+    	    				long durationMs = (time-lastTime);
+    	    				//System.out.println(durationMs+" at "+time);
+    	    					    				
+    	    				assertTrue(durationMs>=300);
+    	    				assertTrue(durationMs<=301);
+	    			    } else {
+	    			        isMetronomeRunning = true;
+	    			    }
 	    			}
 	    			
 	    			lastTime = time;
@@ -60,9 +67,15 @@ public class AppTest
     				//low
     			}
     		}
-            
-            
+
+    		
         }
+        
+        assertEquals("Did not find all the ticks.",0, ticks);
+        
+        scheduler.shutdown();
+        scheduler.awaitTermination(10, TimeUnit.SECONDS);
+        
         
     }
 }

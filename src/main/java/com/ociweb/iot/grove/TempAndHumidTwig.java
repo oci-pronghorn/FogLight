@@ -12,8 +12,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 public class TempAndHumidTwig implements IODevice{
 
 	public byte addr = 0x04;
-	private byte[] tempData = new byte[4];
-	private byte[] humData = new byte[4];
+	private byte[] readData = new byte[9];
 	private byte connection;
 	private byte module_type;
 	public enum MODULE_TYPE{
@@ -42,24 +41,27 @@ public class TempAndHumidTwig implements IODevice{
 		byte[] TEMPHUMID_READCMD = {0x01, 40, connection, module_type, 0x00};
 	    byte[] TEMPHUMID_SETUP = {0x01, 0x05, 0x00, 0x00, 0x00}; 
 	    byte TEMPHUMID_ADDR = 0x04;
-	    byte TEMPHUMID_BYTESTOREAD = 8;
+	    byte TEMPHUMID_BYTESTOREAD = 9;
 	    byte TEMPHUMID_REGISTER = connection;
 	    return new I2CConnection(this, TEMPHUMID_ADDR, TEMPHUMID_READCMD, TEMPHUMID_BYTESTOREAD, TEMPHUMID_REGISTER, TEMPHUMID_SETUP);
 	}
 	
-	public float[] interpretGrovePiData(byte[] backing, int position, int length, int mask){
-		assert(length == 8) : "Incorrect length of data passed into DHT sensor class";
-		for (int i = 0; i < tempData.length; i++) {
-			tempData[i]= backing[(position+i)%mask];
+	public int[] interpretGrovePiData(byte[] backing, int position, int length, int mask){
+		assert(length == 9) : "Incorrect length of data passed into DHT sensor class";
+		for (int i = 0; i < readData.length; i++) {
+			readData[i] = backing[(position + i)&mask];
 		}
-		for (int i = 0; i < humData.length; i++) {
-			humData[i]= backing[(position+i)%mask];
-		}
-		System.out.println("");
-		System.out.println(Arrays.toString(tempData)+" "+Arrays.toString(humData));
-		float[] temp = {ByteBuffer.wrap(tempData).order(ByteOrder.LITTLE_ENDIAN).getFloat(), 
-				ByteBuffer.wrap(humData).order(ByteOrder.LITTLE_ENDIAN).getFloat()};
+		int[] temp = {(int)ByteBuffer.wrap(readData).order(ByteOrder.LITTLE_ENDIAN).getFloat(1), 
+				(int)ByteBuffer.wrap(readData).order(ByteOrder.LITTLE_ENDIAN).getFloat(5)};
 		return temp;
+	}
+	
+	@Override
+	public boolean isValid(byte[] backing, int position, int length, int mask){
+		for (int i = 0; i < readData.length; i++) {
+			readData[i] = backing[(position + i)&mask];
+		}
+		return length==9 && readData[1]!=-1 && readData[5]!=-1;
 	}
 
 	@Override

@@ -8,6 +8,7 @@ public interface IODevice {
      public boolean       isPWM();
      public int           range(); //for PWM and for A2D read
      public boolean       isGrove();
-     public I2CConnection getI2CConnection();
+     public I2CConnection getI2CConnection(); //TODO: Grove Specific for non-I2C Devices
+     public boolean		  isValid(byte[] backing, int position, int length, int mask);
      
 }

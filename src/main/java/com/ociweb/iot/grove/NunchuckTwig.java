@@ -21,6 +21,7 @@ public class NunchuckTwig implements IODevice{
 	    return new I2CConnection(this, NUNCHUCK_ADDR, NUNCHUCK_READCMD, NUNCHUCK_BYTESTOREAD, NUNCHUCK_REGISTER, NUNCHUCK_SETUP);
 	}
 	
+	
 	public byte[] interpretData(int register, long time, byte[] backing, int position, int length, int mask){
 		assert(length==6) : "Non-Nunchuck data passed into the NunchuckTwig class";
 		assert(register == 0) : "Non-Nunchuck data passed into the NunchuckTwig class";
@@ -30,6 +31,11 @@ public class NunchuckTwig implements IODevice{
 		}
 		temp[5] = backing[(position+5)&mask];
 		return temp;
+	}
+	
+	@Override
+	public boolean isValid(byte[] backing, int position, int length, int mask){
+		return true; //TODO: fill in valid testing
 	}
 
 	@Override

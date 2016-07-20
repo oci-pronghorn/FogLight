@@ -31,6 +31,15 @@ public class UltrasonicRangerTwig implements IODevice{
 		}
 		return (((int)temp[1])<<8) | (0xFF&((int)temp[2]));
 	}
+	
+	@Override
+	public boolean isValid(byte[] backing, int position, int length, int mask){
+		byte[] temp = {0,0,0};
+		for (int i = 0; i < 3; i++) {
+			temp[i] = (byte) backing[(position+i)&mask];
+		}
+		return length == 3 && temp[0]!=-1;
+	}
 
 	@Override
 	public boolean isInput() {

@@ -148,5 +148,8 @@ public enum GroveTwig implements IODevice {
     public byte[] I2COutSetup(){
     	return null;
     }
+    public boolean isValid(byte[] backing, int position, int length, int mask){
+    	return true;
+    }
     
 }

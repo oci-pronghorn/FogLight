@@ -231,5 +231,9 @@ public class Grove_LCD_RGB implements IODevice{
     public int response() {       
        return 20;      
     }
+	@Override
+	public boolean isValid(byte[] backing, int position, int length, int mask) {
+		return true;
+	}
     
 }

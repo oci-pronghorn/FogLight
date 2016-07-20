@@ -81,7 +81,7 @@ public class TestI2CBacking implements I2CBacking{
     public <A extends Appendable>void outputLastI2CWrite(A target, int backCount) {
                         
         try {
-            int previous = MAX_BACK_MASK & (lastWriteIdx-backCount);
+            int previous = MAX_BACK_MASK & ((lastWriteIdx + MAX_BACK_SIZE) - backCount);
             Appendables.appendHexDigits(target, this.lastWriteAddress[previous]).append(" ");
             Appendables.appendArray(target, '[', this.lastWriteData[previous], ']', this.lastWriteLength[previous]);
         } catch (IOException e) {

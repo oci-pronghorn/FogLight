@@ -65,7 +65,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
                             
                         } else {
                             int tempValue =  (high<<8) | (0xFF&low);
-    			
+    	
     						if (tempValue<0) {
     						    System.out.println("bad array "+backing[(position+0)&mask]+" "+backing[(position+1)&mask]+" "+backing[(position+2)&mask]);
     						} else {

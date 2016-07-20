@@ -169,7 +169,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
         	assert(PipeReader.isNewMessage(fromCommandChannels [activePipe])) : "This test should only have one simple message made up of one fragment";
         	int msgIdx = PipeReader.getMsgIdx(fromCommandChannels [activePipe]);
-
+        	
+        	System.out.println("reading msgIdx of "+msgIdx);
 
         	switch(msgIdx){
             	case I2CCommandSchema.MSG_COMMAND_7:

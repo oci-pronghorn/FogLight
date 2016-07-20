@@ -35,18 +35,16 @@ public class AppTest {
     		
     		scheduler.run();
     		
-    		long time = hardware.getLastTimeNS(IoTApp.LED_CONNECTION);
+    		long time = hardware.getLastTime(IoTApp.LED_CONNECTION);
     		if (0!=time) {
     			iterations--;
     			assertEquals(expected, hardware.digitalRead(IoTApp.LED_CONNECTION));
     			expected = 1&(expected+1);
     			
     			if (0!=lastTime) {
-    				long durationMs = (time-lastTime)/1_000_000;
+    				long durationMs = time-lastTime;
     				assertTrue(durationMs>=500);
-    				assertTrue(durationMs<=501);// .2% error
-    				
-    				//System.out.println(durationMs);
+    				assertTrue(durationMs<=750);    				
     			}
     			
     			lastTime = time;

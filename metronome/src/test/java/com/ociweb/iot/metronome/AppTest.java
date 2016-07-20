@@ -1,5 +1,7 @@
 package com.ociweb.iot.metronome;
 
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -18,32 +20,48 @@ public class AppTest
         IOTDeviceRuntime runtime = IOTDeviceRuntime.test(new IoTApp());
                 
         NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();      
+        TestHardware hardware = (TestHardware)runtime.getHardware();
 
         scheduler.setSingleStepMode(true);
 
+        hardware.analogWrite(IoTApp.ROTARY_ANGLE_CONNECTION, 970); //970 will give us 200 BPM and a delay of 300 ms       
+
         scheduler.startup();
         
-        TestHardware hardware = (TestHardware)runtime.getHardware();
-        
-        //set angle rate value
-        
-        //record the time of each pulse first and last?
-        
-        scheduler.run();
+        long lastTime = 0;
 
-        hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 1);
-        hardware.analogWrite(IoTApp.ROTARY_ANGLE_CONNECTION, 900);        
-     
-        scheduler.run();
+        int ticks = 1;
         
-        hardware.digitalWrite(IoTApp.BUTTON_CONNECTION, 0);
-        
-        
-        int iterations = 10;
-        
-        int i = iterations;
-        while (--i>=0) {
+        while (ticks>0) {
+        	
             scheduler.run();
+            
+    		long time = hardware.getFirstTime(IoTApp.BUZZER_CONNECTION);
+    		if (0!=time) {
+    			int high = hardware.getCapturedHigh(IoTApp.BUZZER_CONNECTION);
+    			if (0!=high) {
+	    			ticks--;
+	    			
+	    			System.out.println("Tick:"+time);
+	    			
+	    			if (0!=lastTime) {
+	    				long durationMs = (time-lastTime);
+	    				System.out.println(durationMs);
+	    				
+	    				assertTrue(durationMs>=300);
+	    				assertTrue(durationMs<=301);
+	    				
+	    			}
+	    			
+	    			lastTime = time;
+	    			hardware.clearCaputuredFirstTimes();
+	    			hardware.clearCaputuredHighs();
+    			} else {
+    				//low
+    			}
+    		}
+            
+            
         }
         
     }

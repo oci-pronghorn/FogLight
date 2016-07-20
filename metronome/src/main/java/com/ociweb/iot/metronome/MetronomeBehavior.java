@@ -85,7 +85,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             } else {
             	if (System.currentTimeMillis()-timeOfNewValue>500) {
             		if (tempBPM != activeBPM) {
-            			
+            			System.out.println("set new active to "+tempBPM);
             			activeBPM = tempBPM;
             			base = 0; //reset signal  
             			
@@ -101,7 +101,6 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
         commandChannel.openTopic(topic).publish();//request next tick while we get this one ready
                 
         if (activeBPM>0) {
-            
             if (0==base) {
                 base = System.currentTimeMillis();
                 beatIdx = 0;
@@ -109,6 +108,8 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
                                     
             long until = base + ((++beatIdx*60_000L)/activeBPM);
 
+            System.out.println("send pulse "+base+" "+beatIdx+"  "+until);
+            
             commandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);        
             commandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
 

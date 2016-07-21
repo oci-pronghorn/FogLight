@@ -23,14 +23,20 @@ public class NunchuckTwig implements IODevice{
 	    return new I2CConnection(this, NUNCHUCK_ADDR, NUNCHUCK_READCMD, NUNCHUCK_BYTESTOREAD, NUNCHUCK_REGISTER, NUNCHUCK_SETUP);
 	}
 	
-	
+	/*
+	 * Interprets the data given by an I2C Event from a nunchuck.
+	 * 
+	 * Returns an int array length 7:
+	 * [Stick X, Stick Y, Accel X, Accel Y, Accel Z, C button, Z button]
+	 */
 	public int[] interpretData(byte[] backing, int position, int length, int mask){
 		assert(length==6) : "Non-Nunchuck data passed into the NunchuckTwig class";
-		int[] temp = {0,0,0,0,0,0};
-		for (int i = 0; i < 5; i++) {
-			temp[i] = (backing[(position+i)&mask] ^ 0x17) + 0x17;
+		int[] temp = {0,0,0,0,0,0,0};
+		for (int i = 0; i < 6; i++) {
+			temp[i] = (int)((backing[(position+i)&mask] ^ 0x17) + 0x17)&0xFF;
 		}
-		temp[5] = backing[(position+5)&mask];
+		temp[6]= 1-(temp[5]&0x01);
+		temp[5]= 1-((temp[5]&0x02)>>1);
 		return temp;
 	}
 	

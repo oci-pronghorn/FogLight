@@ -36,6 +36,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     private static final int MAX_ADDR = 127;
     private Blocker pollBlocker;
     
+    private long timeOut = 0;
+    private final int writeTime = 5; //TODO: Writes time out after 5ms. Is this ideal?
+    
 	public I2CJFFIStage(GraphManager graphManager, Pipe<TrafficReleaseSchema>[] goPipe, 
 			Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
 			Pipe<TrafficAckSchema>[] ackPipe, 
@@ -61,7 +64,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		
 		for (int i = 0; i < inputs.length; i++) {
-			i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length); //TODO: add setup for outputs
+			timeOut = System.currentTimeMillis() + writeTime;
+			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && System.currentTimeMillis()<timeOut){};
+			 //TODO: add setup for outputs
 			System.out.println("Setup I2C Device on "+inputs[i].address+" Sent "+Arrays.toString(inputs[i].setup));
 			logger.info("I2C setup {} complete",inputs[i].address);
 		}
@@ -148,7 +153,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    pollBlocker.releaseBlocks(now);
 	    I2CConnection connection = this.inputs[inProgressIdx];
 	    if (!pollBlocker.isBlocked(connection.address)) {
-	        i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length);
+	    	timeOut = System.currentTimeMillis() + writeTime;
+	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && System.currentTimeMillis()<timeOut){};
 	        awaitingResponse = true;
 	        pollBlocker.until(connection.address, now+connection.twig.response());
 	    } else {
@@ -207,7 +213,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                   		}
               		}
               		
-            		i2c.write((byte) addr, workingBuffer, len);
+              		timeOut = System.currentTimeMillis() + writeTime;
+            		while(!i2c.write((byte) addr, workingBuffer, len)&& System.currentTimeMillis()<timeOut){};
             	}                                      
             	break;
     

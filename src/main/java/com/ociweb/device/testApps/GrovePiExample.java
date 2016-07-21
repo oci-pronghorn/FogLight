@@ -28,6 +28,8 @@ public class GrovePiExample {
 	private static int[] exp = {0,0};
 	private static int[] mantissa = {0,0};
 	private static float[] vals = {0,0};
+	private static long timeOut = 0;
+	private static int writeTime = 100;
 
 	public static void main(String[] args) {
 		logger.info("Starting GrovePi example app.");
@@ -36,7 +38,7 @@ public class GrovePiExample {
 		System.out.println("");
 		byte[] readcmd = {0x01, 40, 0x07, 0, 0};
 		//byte[] readcmd = {0x01, 7, 8, 0, 0};
-		pinMode(14, 0);
+		//pinMode(14, 0);
 		
 		long start = System.currentTimeMillis();
 		int count = 0;
@@ -48,8 +50,10 @@ public class GrovePiExample {
 //				System.out.println(System.currentTimeMillis()-start);
 //				count = 0;
 //			}
-			
-			i2c.write((byte) 0x04, readcmd, readcmd.length);
+			System.out.println("about to read");
+			timeOut = System.currentTimeMillis() + writeTime;
+			while(!i2c.write((byte) 0x04, readcmd, readcmd.length) && System.currentTimeMillis()<timeOut){};
+			System.out.println("Write timeout");
 			try {
 				Thread.sleep(20);
 			} catch (InterruptedException e) {

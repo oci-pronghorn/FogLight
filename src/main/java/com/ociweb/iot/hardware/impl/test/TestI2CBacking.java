@@ -57,7 +57,7 @@ public class TestI2CBacking implements I2CBacking{
     }
 
     @Override
-    public void write(byte address, byte[] message, int length) {
+    public boolean write(byte address, byte[] message, int length) {
                 
         lastWriteCount++;
         lastWriteTime[lastWriteIdx] = System.currentTimeMillis();
@@ -65,7 +65,7 @@ public class TestI2CBacking implements I2CBacking{
         System.arraycopy(message, 0, lastWriteData[lastWriteIdx], 0, length);
         responseLengths[lastWriteIdx] = length;
         lastWriteIdx = MAX_BACK_MASK & lastWriteIdx++;
-        
+        return true;
     }
     
     public void clearWriteCount() {

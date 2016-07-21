@@ -29,5 +29,5 @@ public interface I2CBacking {
      *                GrovePi's LCD RGB backlight.
      * @param message Array of bytes to write to the I2C device.
      */
-    void write(byte address, byte[] message, int length);
+    boolean write(byte address, byte[] message, int length);
 }

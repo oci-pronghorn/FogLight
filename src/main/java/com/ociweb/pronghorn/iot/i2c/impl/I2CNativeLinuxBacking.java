@@ -40,6 +40,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
             if (c.ioctl(i2cFile, UnixIoctlLib.I2C_SLAVE_FORCE, address) < 0) {
                 throw new RuntimeException("Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));
             } else {
+            	
                 lastAddress = address;
                 logger.debug("IOCTL configured for I2C device at 0x" + Integer.toHexString(address));
                 return true;
@@ -84,7 +85,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
         }
     }
 
-    @Override public void write(byte address, byte[] message, int length) {
+    @Override public boolean write(byte address, byte[] message, int length) {
         assert(length>=0);
         //System.out.println("write to address:"+ Integer.toHexString(address));
         
@@ -92,9 +93,9 @@ public class I2CNativeLinuxBacking implements I2CBacking {
         ensureI2CDevice(address); //throws on failure
         
         int result;
-        do {
-            result = c.write(i2cFile, message, length);
-        } while (-1 == result); //Caution: this is a spin lock, not what we first wanted TODO: re-test metronome and changes this no a non blocking impl.
+        result = c.write(i2cFile, message, length);
+        
+        return result != -1;
         
     }
 }

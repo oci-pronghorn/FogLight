@@ -5,6 +5,8 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 
+
+//TODO: fix the button response
 public class NunchuckTwig implements IODevice{
 
 	public byte addr = 0x52;

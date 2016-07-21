@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 /**
@@ -17,11 +17,12 @@ public class AppTest {
     @Test
     public void testApp()
     {
-    	IOTDeviceRuntime runtime = IOTDeviceRuntime.test(new IoTApp());
+    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
     	    	
     	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
     
     	scheduler.setSingleStepMode(true);
+    	scheduler.startup();
 
     	TestHardware hardware = (TestHardware)runtime.getHardware();
     
@@ -34,15 +35,15 @@ public class AppTest {
     		
     		scheduler.run();
     		
-    		long time = hardware.getLastTimeNS(IoTApp.LED_CONNECTION);
+    		long time = hardware.getLastTime(IoTApp.LED_CONNECTION);
     		if (0!=time) {
     			iterations--;
     			
     			if (0!=lastTime) {
-    				long durationMs = (time-lastTime)/1_000_000;
+    				long durationMs = (time-lastTime);
     				
     				assertTrue(durationMs>=500);
-    				assertTrue(durationMs<=515);// <3% error due to our filling the pipe as we consume it.
+    				assertTrue(durationMs<=750);
     				
     				assertEquals(expected, hardware.digitalRead(IoTApp.LED_CONNECTION));
     				expected = 1&(expected+1);

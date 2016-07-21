@@ -7,7 +7,7 @@ import static com.ociweb.iot.grove.GroveTwig.LightSensor;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.IOTDeviceRuntime;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.IoTSetup;
 
 
@@ -24,7 +24,7 @@ public class IoTApp implements IoTSetup
 	int brightness = 255;
 	
     public static void main( String[] args ) {
-        IOTDeviceRuntime.run(new IoTApp());
+        DeviceRuntime.run(new IoTApp());
     }
     
     
@@ -38,7 +38,7 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(IOTDeviceRuntime runtime) {
+    public void declareBehavior(DeviceRuntime runtime) {
         
     	
     	

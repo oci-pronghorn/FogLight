@@ -22,12 +22,11 @@ public class NunchuckTwig implements IODevice{
 	}
 	
 	
-	public byte[] interpretData(int register, long time, byte[] backing, int position, int length, int mask){
+	public int[] interpretData(byte[] backing, int position, int length, int mask){
 		assert(length==6) : "Non-Nunchuck data passed into the NunchuckTwig class";
-		assert(register == 0) : "Non-Nunchuck data passed into the NunchuckTwig class";
-		byte[] temp = {0,0,0,0,0,0};
+		int[] temp = {0,0,0,0,0,0};
 		for (int i = 0; i < 5; i++) {
-			temp[i] = (byte) ((backing[(position+i)&mask] ^ 0x17) + 0x17);
+			temp[i] = (backing[(position+i)&mask] ^ 0x17) + 0x17;
 		}
 		temp[5] = backing[(position+5)&mask];
 		return temp;

@@ -77,15 +77,15 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             	tempBPM = newBPM;
             	
             	String message = " BPM "+tempBPM;
-    			System.out.println(message);
+    			//System.out.println(message);
     			
     			//Can not call frequenlty or we get stack trace error.
     			Grove_LCD_RGB.commandForText(commandChannel, message);
             	
             } else {
-            	if (System.currentTimeMillis()-timeOfNewValue>500) {
+            	if (System.currentTimeMillis()-timeOfNewValue>100) {
             		if (tempBPM != activeBPM) {
-            			System.out.println("set new active to "+tempBPM);
+            			//System.out.println("set new active to "+tempBPM);
             			activeBPM = tempBPM;
             			base = 0; //reset signal  
             			

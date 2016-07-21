@@ -40,12 +40,12 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 		this.fromCommandChannels = ccToAdOut;
 	}
 	
-	  protected void processMessagesForPipe(int a) {
+	  protected void processMessagesForPipe(int activePipe) {
 	      
 	      long now = System.currentTimeMillis();
 	      connectionBlocker.releaseBlocks(now);
 	      
-	        while (hasReleaseCountRemaining(a) 
+	        while (hasReleaseCountRemaining(activePipe) 
 	                && (PipeReader.hasContentToRead(fromCommandChannels[activePipe]) && !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) )
 	                && PipeReader.tryReadFragment(fromCommandChannels[activePipe]) ){
 	  	                        
@@ -89,7 +89,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	            PipeReader.releaseReadLock(fromCommandChannels [activePipe]);
 
 	            //only do now after we know its not blocked and was completed
-	            decReleaseCount(a);
+	            decReleaseCount(activePipe);
 	            
 	        }
 

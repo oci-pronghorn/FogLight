@@ -27,7 +27,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	protected final Hardware hardware;
 	protected Blocker connectionBlocker;
 	protected int[] activeCounts;	
-	protected int activePipe;
+	private int activePipe;
 	private int hitPoints;
     private final GraphManager graphManager;
     private long msNearWindow;
@@ -138,7 +138,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 	protected abstract void processMessagesForPipe(int a);
 
-	private void readNextCount(int g) {
+	private void readNextCount(final int g) {
 		assert(PipeReader.isNewMessage(goPipe[g])) : "This test should only have one simple message made up of one fragment";
 		int msgIdx = PipeReader.getMsgIdx(goPipe[g]);
 		if(TrafficReleaseSchema.MSG_RELEASE_20 == msgIdx){

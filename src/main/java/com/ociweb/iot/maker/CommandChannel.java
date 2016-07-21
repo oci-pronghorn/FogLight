@@ -9,8 +9,6 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
-import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Pool;
 
@@ -75,7 +73,7 @@ public abstract class CommandChannel {
     public abstract boolean analogSetValue(int connector, int value);
     public abstract boolean analogSetValueAndBlock(int connector, int value, long msDuration);
     public abstract boolean i2cIsReady();
-    public abstract DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress);
+    public abstract DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress);
     public abstract void i2cCommandClose();
     public abstract boolean i2cFlushBatch();
 

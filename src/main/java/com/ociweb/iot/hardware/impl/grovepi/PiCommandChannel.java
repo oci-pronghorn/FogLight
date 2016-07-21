@@ -11,14 +11,13 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class PiCommandChannel extends CommandChannel{
 
 	private Pipe<I2CCommandSchema> i2cOutput;
 	
-	private DataOutputBlobWriter<RawDataSchema> i2cWriter;  
+	private DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
 	private int runningI2CCommandCount;
 	private byte i2cPipeIdx;
 	private byte groveAddr = 0x04;
@@ -194,15 +193,14 @@ public class PiCommandChannel extends CommandChannel{
 
 	public boolean i2cIsReady() {
 		if (null==i2cWriter) {
-			i2cWriter = new DataOutputBlobWriter(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
+			i2cWriter = new DataOutputBlobWriter<I2CCommandSchema>(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
 		}
 
-		return PipeWriter.hasRoomForWrite(goPipe) &&
-		       PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
-
+		return PipeWriter.hasRoomForWrite(goPipe) &&		        
+		       Pipe.contentRemaining(i2cOutput) < (i2cOutput.sizeOfSlabRing>>1); //if we run out of room make the pipe longer
 	}
 
-	public DataOutputBlobWriter<RawDataSchema> i2cCommandOpen(int targetAddress) {       
+	public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
@@ -211,7 +209,7 @@ public class PiCommandChannel extends CommandChannel{
 				
 				return i2cWriter;
 			} else {
-				return null;//can not write try again later.
+			    throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
 			}
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      

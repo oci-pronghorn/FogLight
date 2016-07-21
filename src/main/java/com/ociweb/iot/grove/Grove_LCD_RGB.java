@@ -168,7 +168,7 @@ public class Grove_LCD_RGB implements IODevice{
 
     private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
         try {
-            DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
+            DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter;
             do {
                 i2cPayloadWriter = target.i2cCommandOpen(address);
             } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
@@ -184,7 +184,7 @@ public class Grove_LCD_RGB implements IODevice{
 
     private static void writeUTF8ToRegister(CommandChannel target, int address, int register, CharSequence text) {
         try {
-            DataOutputBlobWriter<RawDataSchema> i2cPayloadWriter;
+            DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter;
             do {
                 i2cPayloadWriter = target.i2cCommandOpen(address);
             } while (null == i2cPayloadWriter);

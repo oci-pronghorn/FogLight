@@ -336,7 +336,7 @@ public abstract class Hardware {
             
             Pipe<TrafficReleaseSchema>[] goOut = new Pipe[]{pinGoPipe, i2cGoPipe, msgGoPipe};
             Pipe<TrafficAckSchema>[] ackIn = new Pipe[]{pinAckPipe, i2cAckPipe, msgAckPipe};
-            long timeout = 1000;
+            long timeout = 20_000; //20 seconds
             TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut);
             
         }

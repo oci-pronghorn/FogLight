@@ -163,20 +163,23 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    sendOutgoingCommands(a);
 
 	}
-    private void sendOutgoingCommands(int a) {
+		
+    private void sendOutgoingCommands(int activePipe) {
    
-        while (hasReleaseCountRemaining(a) 
+        int x = 0;
+        
+        while ( hasReleaseCountRemaining(activePipe) 
         		&& PipeReader.hasContentToRead(fromCommandChannels[activePipe])
-        		&& !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) //peek next address and check that it is not blocking for some time                
+        		&& !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) //peek next address and check that it is not blocking for some time 
         		&& PipeReader.tryReadFragment(fromCommandChannels[activePipe])){
 
+            x++;
             
         	long now = System.currentTimeMillis();
         	connectionBlocker.releaseBlocks(now);
 
         	assert(PipeReader.isNewMessage(fromCommandChannels [activePipe])) : "This test should only have one simple message made up of one fragment";
         	int msgIdx = PipeReader.getMsgIdx(fromCommandChannels [activePipe]);
-
 
         	switch(msgIdx){
             	case I2CCommandSchema.MSG_COMMAND_7:
@@ -237,7 +240,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         	PipeReader.releaseReadLock(fromCommandChannels [activePipe]);
 
         	//only do now after we know its not blocked and was completed
-        	decReleaseCount(a);
+        	decReleaseCount(activePipe);
 
         }
 

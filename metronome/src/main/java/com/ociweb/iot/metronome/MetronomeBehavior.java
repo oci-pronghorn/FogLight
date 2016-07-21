@@ -8,6 +8,7 @@ import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.PayloadReader;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.StartupListener;
+import com.ociweb.iot.maker.TimeListener;
 
 /*
  * Beats per minute   (build an ENUM of these so we can diplay the names on the screen.
@@ -33,7 +34,7 @@ import com.ociweb.iot.maker.StartupListener;
  */
 
 
-public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener {
+public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener, TimeListener {
 
     private final CommandChannel commandChannel;
     private final String topic = "tick";
@@ -51,6 +52,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     
     private long timeOfNewValue;
     private int tempBPM;
+    private int showingBPM;
     
     public MetronomeBehavior(DeviceRuntime runtime) {
         commandChannel = runtime.newCommandChannel();
@@ -75,12 +77,6 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             	
             	timeOfNewValue = System.currentTimeMillis();
             	tempBPM = newBPM;
-            	
-            	String message = " BPM "+tempBPM;
-    			//System.out.println(message);
-    			
-    			//Can not call frequenlty or we get stack trace error.
-    			Grove_LCD_RGB.commandForText(commandChannel, message);
             	
             } else {
             	if (System.currentTimeMillis()-timeOfNewValue>100) {
@@ -121,6 +117,22 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
 
             
         }
+        
+    }
+
+
+    @Override
+    public void timeEvent(long time) {
+       if (tempBPM != showingBPM) {
+                      
+           String message = " BPM "+tempBPM;
+           //System.out.println(message);
+           
+           if (Grove_LCD_RGB.commandForText(commandChannel, message)) {
+               showingBPM = tempBPM;   
+           }
+           
+       }
         
     }
 

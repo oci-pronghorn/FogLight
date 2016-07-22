@@ -66,13 +66,14 @@ public abstract class Hardware {
     
     public final GraphManager gm;
     
-    protected final PipeConfig<TrafficReleaseSchema> releasePipesConfig          = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 64);
-    protected final PipeConfig<TrafficOrderSchema> orderPipesConfig          = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, 64);
-    protected final PipeConfig<TrafficAckSchema> ackPipesConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 64);
-    protected final PipeConfig<RawDataSchema> I2CToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-    protected final PipeConfig<RawDataSchema> adInToListenerConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 64, 1024);
-    protected final PipeConfig<GroveResponseSchema> groveResponseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64, 1024);
-    protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
+    private static final int DEFAULT_LENGTH = 16;
+    private static final int DEFAULT_PAYLOAD_SIZE = 128;
+    
+    protected final PipeConfig<TrafficReleaseSchema> releasePipesConfig          = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, DEFAULT_LENGTH);
+    protected final PipeConfig<TrafficOrderSchema> orderPipesConfig          = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, DEFAULT_LENGTH);
+    protected final PipeConfig<TrafficAckSchema> ackPipesConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, DEFAULT_LENGTH);
+    protected final PipeConfig<GroveResponseSchema> groveResponseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+    protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 
     public final I2CBacking i2cBacking;
 
@@ -114,6 +115,10 @@ public abstract class Hardware {
         try {
             return new I2CNativeLinuxBacking(deviceNum);
         } catch (Throwable t) {
+            //avoid non error case that is used to detect which hardware is running.
+            if (!t.getMessage().contains("Could not open")) {
+                logger.error("unable to find binary bindings ", t);
+            }
             return null;
         }
     }

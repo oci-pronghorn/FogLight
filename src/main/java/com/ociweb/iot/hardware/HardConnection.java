@@ -11,4 +11,7 @@ public class HardConnection {
         this.connection = (byte)connection;
         
     }
+    
+    
+    
 }

@@ -34,7 +34,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 
 public class DeviceRuntime {
-
+ 
     //TODO: we may need a static singleton accessory for this.
     
     private static final int nsPerMS = 1_000_000;
@@ -51,8 +51,8 @@ public class DeviceRuntime {
     private StageScheduler scheduler;
     private final GraphManager gm;
   
-    private final int defaultCommandChannelLength = 48;
-    private final int defaultCommandChannelMaxPayload = 1023; //largest i2c request or pub sub payload
+    private final int defaultCommandChannelLength = 16;
+    private final int defaultCommandChannelMaxPayload = 256; //largest i2c request or pub sub payload
     
     private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
     private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, defaultCommandChannelLength,defaultCommandChannelMaxPayload);    
@@ -60,9 +60,9 @@ public class DeviceRuntime {
     private final PipeConfig<TrafficOrderSchema> goPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, defaultCommandChannelLength); 
     
 
-    private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, 64, 1024);
-    private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, 64);   
-    private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, 64, 1024);
+    private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
+    private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);   
+    private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
     
     private int subscriptionPipeIdx = 0; //this implementation is dependent upon graphManager returning the pipes in the order created!
     
@@ -88,12 +88,20 @@ public class DeviceRuntime {
     public Hardware getHardware(){
     	if(this.hardware==null){
     	    
+            ///////////////
+            //setup system for binary binding in case Zulu is found on Arm
+            //must populate os.arch as "arm" instead of "aarch32" or "aarch64" in that case, JIFFI is dependent on this value.
+    	    if (System.getProperty("os.arch", "unknown").contains("aarch")) {
+    	        System.setProperty("os.arch", "arm"); //TODO: investigate if this a bug against jiffi or zulu and inform them 
+    	    }
+    	    
+    	    
     	    ////////////////////////
     	    //The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
     	    ///////////////////////
     	    
     	    I2CBacking i2cBacking = null;
-    	    
+
     	    i2cBacking = Hardware.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
 	            this.isEdison = true;

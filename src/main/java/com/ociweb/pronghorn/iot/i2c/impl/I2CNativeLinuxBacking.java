@@ -60,6 +60,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
 
         //Make sure it worked....
         if (i2cFile < 0) {
+            logger.debug("unable to open {}",device);
             throw new RuntimeException("Could not open "+device);
         } else {
             logger.warn("Successfully opened "+device);

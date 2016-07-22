@@ -3,6 +3,7 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
@@ -12,19 +13,40 @@ import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.ma.MAAvgRollerLongTest;
+import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
 public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
 	private int lastDigital = -1;
 	private int lastAnalog = -1;
 	
+	private static final int MAX_SENSORS = 32;
+	private MAvgRollerLong[] rollingMovingAverages = new MAvgRollerLong[MAX_SENSORS];
+	
 	private static final Logger logger = LoggerFactory.getLogger(DexterGrovePiReactiveListenerStage.class);
 	
 	public DexterGrovePiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
-		super(graphManager, listener, inputPipes, outputPipes, hardware);             
+		super(graphManager, listener, inputPipes, outputPipes, hardware); 
+		
+		//Init all the moving averages to the right size
+		setupMovingAverages(hardware.analogInputs);
+		setupMovingAverages(hardware.digitalInputs);
+		
+		
 	}
 
-	@Override
+	private void setupMovingAverages(HardConnection[] con) {
+        int i = con.length;
+        while (--i >= 0) {
+            
+          //  con[i].
+            
+        }
+	    
+    }
+
+    @Override
 	protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
 		while (PipeReader.tryReadFragment(p)) {                
 			int msgIdx = PipeReader.getMsgIdx(p);
@@ -66,6 +88,10 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
                         } else {
                             int tempValue =  (high<<8) | (0xFF&low);
     	
+                            //NEED ONE OF THESE PER REGISTER.
+                            //MAvgRollerLong maRoller = new MAvgRollerLong(COUNT)
+                            
+                            
     						if (tempValue<0) {
     						    System.out.println("bad array "+backing[(position+0)&mask]+" "+backing[(position+1)&mask]+" "+backing[(position+2)&mask]);
     						} else {

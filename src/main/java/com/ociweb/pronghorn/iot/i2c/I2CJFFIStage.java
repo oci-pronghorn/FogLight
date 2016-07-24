@@ -123,7 +123,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    }
 	    
 	    //we are not waiting for a response so now its time send the commands.
-	    super.run();
+	    processReleasedCommands(200);       
 	    //processWaitingTraffic(1000);
 	    
 	    //check if we should begin polling again

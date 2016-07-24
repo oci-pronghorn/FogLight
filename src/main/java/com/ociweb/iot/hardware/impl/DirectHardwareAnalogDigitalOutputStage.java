@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -41,36 +42,38 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	}
 	
 	  protected void processMessagesForPipe(int activePipe) {
-	      
+	      	      
+	        Pipe<GroveRequestSchema> pipe = fromCommandChannels[activePipe];
+	        	        
 	        while (hasReleaseCountRemaining(activePipe) 
-	                && !connectionBlocker.isBlocked(Pipe.peekInt(fromCommandChannels[activePipe], 1)) 
-	                && PipeReader.tryReadFragment(fromCommandChannels[activePipe]) ){
+	                && !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) 
+	                && PipeReader.tryReadFragment(pipe) ){
 	  	                        
-	            int msgIdx = PipeReader.getMsgIdx(fromCommandChannels [activePipe]);
+	            int msgIdx = PipeReader.getMsgIdx(pipe);
 	           
 	            switch(msgIdx){
 	                                
 	                case GroveRequestSchema.MSG_DIGITALSET_110:
 	                    
-	                    hardware.digitalWrite(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111), 
-	                            PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112));
+	                    hardware.digitalWrite(PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111), 
+	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112));
 	                    break;
 	                                     	                    
 	                case GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220:
-	                    connectionBlocker.until(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111),
-	                                       hardware.currentTimeMillis() + PipeReader.readLong(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113));                   	                    
+	                    connectionBlocker.until(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111),
+	                                       hardware.currentTimeMillis() + PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113));                   	                    
 	                    break;
 	                    
 	                case GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221:
-	                    connectionBlocker.until(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111),
-	                                           PipeReader.readLong(fromCommandChannels [activePipe],GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114));
+	                    connectionBlocker.until(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111),
+	                                           PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114));
 	                                                
 	                    break;   
 	                    
 	                case GroveRequestSchema.MSG_ANALOGSET_140:
 	                    
-	                    hardware.analogWrite(PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141), 
-	                            PipeReader.readInt(fromCommandChannels [activePipe],GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142));
+	                    hardware.analogWrite(PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141), 
+	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142));
 	                    break;
 	                    	                    
 	                    
@@ -81,7 +84,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                    requestShutdown();      
 	                
 	            }
-	            PipeReader.releaseReadLock(fromCommandChannels [activePipe]);
+	            PipeReader.releaseReadLock(pipe);
 
 	            //only do now after we know its not blocked and was completed
 	            decReleaseCount(activePipe);

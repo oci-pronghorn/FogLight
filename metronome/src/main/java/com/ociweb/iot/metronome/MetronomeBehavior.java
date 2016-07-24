@@ -37,7 +37,9 @@ import com.ociweb.iot.maker.TimeListener;
 //multiple inheretiance (issue, language have in general),overlap of overlap 
 public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener, TimeListener {
 
-    private final CommandChannel commandChannel;
+    private final CommandChannel tickCommandChannel;
+    private final CommandChannel screenCommandChannel;
+    
     private final String topic = "tick";
           
     
@@ -56,16 +58,17 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private int showingBPM;
     
     public MetronomeBehavior(DeviceRuntime runtime) {
-        this.commandChannel = runtime.newCommandChannel();
+        this.tickCommandChannel = runtime.newCommandChannel();
+        this.screenCommandChannel = runtime.newCommandChannel();
     }
     //this.commandChannel, as a parameter of sth else. you will give it to sb as incomplete stage
 // pass this in sth in the constructor 
     @Override
     public void startup() {
-        commandChannel.subscribe(topic,this); //take this because it is a pub listen/ current object. valid for use 
-        commandChannel.openTopic(topic).publish();
+        tickCommandChannel.subscribe(topic,this); //take this because it is a pub listen/ current object. valid for use 
+        tickCommandChannel.openTopic(topic).publish();
         
-        Grove_LCD_RGB.commandForColor(commandChannel, 255, 255, 255);
+        Grove_LCD_RGB.commandForColor(tickCommandChannel, 255, 255, 255);
         
     }
 
@@ -80,7 +83,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             	tempBPM = newBPM;
             	
             } else {
-            	if (System.currentTimeMillis()-timeOfNewValue>100) {
+            	if (System.currentTimeMillis()-timeOfNewValue>333) {
             		if (tempBPM != activeBPM) {
             			//System.out.println("set new active to "+tempBPM);
             			activeBPM = tempBPM;
@@ -91,12 +94,11 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             } 
     }    
 
-
     @Override
     public void message(CharSequence topic, PayloadReader payload) {
         
     	
-        commandChannel.openTopic(topic).publish();//request next tick while we get this one ready
+        tickCommandChannel.openTopic(topic).publish();//request next tick while we get this one ready
                 
         if (activeBPM>0) {
 
@@ -108,14 +110,13 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             long delta = (++beatIdx*60_000)/activeBPM;//will multiple the pre incremental value if do after 
             long until = base + delta;
             
-            commandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);        
-            commandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
+            tickCommandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);        
+            tickCommandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
 
             if (beatIdx==activeBPM) {
             	beatIdx = 0;
             	base += 60_000; //will talk about the operator 
-            }                     
-
+            }
             
         }
         
@@ -126,11 +127,13 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     public void timeEvent(long time) {
        if (tempBPM != showingBPM) {
                       
-           String message = " BPM "+tempBPM;
-           //System.out.println(message);
+           String message = " BPM "+tempBPM+"   "; //trailing space so we hid the previous numbers
+           System.out.println(message+" "+System.currentTimeMillis());
            
-           if (Grove_LCD_RGB.commandForText(commandChannel, message)) {
-               showingBPM = tempBPM;   
+           //second channel is required or we are left waiting for one cycle of the ticks before we can update.
+           
+           if (Grove_LCD_RGB.commandForText(screenCommandChannel, message)) {
+               showingBPM = tempBPM;
            }
            
        }

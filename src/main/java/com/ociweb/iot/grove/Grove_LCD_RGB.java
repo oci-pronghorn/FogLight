@@ -123,10 +123,10 @@ public class Grove_LCD_RGB implements IODevice{
         if (!target.i2cIsReady()) {
             return false;
         }
-        
-        showTwoLineText(target, text);
-        
+
+        showTwoLineText(target, text);        
         target.i2cFlushBatch();
+        
         return true;
     }
 
@@ -139,19 +139,27 @@ public class Grove_LCD_RGB implements IODevice{
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 2, b);
     }
 
-    private static void showTwoLineText(CommandChannel target, String text) {
+    
+    private static void displayClear(CommandChannel target) {
         //clear display
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
+        target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 2);
+        
+    }
+   
+
+    
+    private static void showTwoLineText(CommandChannel target, String text) {
 
         //display on - no cursor
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));
-
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));        
+        
         //two lines
-        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_TWO_LINES);
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_TWO_LINES);        
         
-        //TODO: need an easy way to add delay for reg entries here..        
-        //target.block((Grove_LCD_RGB.LCD_ADDRESS), 10);
-        
+        //clear display
+        writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
+        target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 1);
         
         String[] lines = text.split("\n");
         for(String line: lines) {

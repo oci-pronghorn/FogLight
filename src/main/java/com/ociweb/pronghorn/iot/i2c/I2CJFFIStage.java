@@ -203,11 +203,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
               		
               		try {
               		    if (logger.isDebugEnabled()) {
-              		        logger.debug("send command {} {}", Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
+              		        logger.debug("{} send command {} {}", activePipe, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
               		    }
                     } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
               		
               		timeOut = hardware.currentTimeMillis() + writeTime;

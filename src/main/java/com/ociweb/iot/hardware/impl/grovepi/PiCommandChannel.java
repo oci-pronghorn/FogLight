@@ -24,8 +24,6 @@ public class PiCommandChannel extends CommandChannel{
 	
 	private Logger logger = LoggerFactory.getLogger(PiCommandChannel.class);
 
-    //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
-    private final int maxCommands = 6;
 	
 
 	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
@@ -240,6 +238,30 @@ public class PiCommandChannel extends CommandChannel{
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
 		
+	}
+	
+	public void i2cDelay(int targetAddress, int durationMillis) {
+	    assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+	    try {
+            if (++runningI2CCommandCount > maxCommands) {
+                throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
+            }
+	    
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
+
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, targetAddress);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, durationMillis);
+
+                PipeWriter.publishWrites(i2cOutput);
+
+            }else {
+                throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
+            }    
+            
+	    } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+        
 	}
 
 	public void i2cFlushBatch() {        

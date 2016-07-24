@@ -21,6 +21,9 @@ public abstract class CommandChannel {
       
     private Object listener;
 
+    //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
+    protected final int maxCommands = 10;
+    
     private long topicKeyGen;
     
     Pool<PayloadWriter> payloadWriterPool;
@@ -76,6 +79,8 @@ public abstract class CommandChannel {
     public abstract DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress);
     public abstract void i2cCommandClose();
     public abstract void i2cFlushBatch();
+    public abstract void i2cDelay(int i, int j);
+    
 
     public boolean subscribe(CharSequence topic) {
         return subscribe(topic, (PubSubListener)listener);
@@ -147,8 +152,6 @@ public abstract class CommandChannel {
             members[m] = new PayloadWriter(messagePubSub, this);
         }
     }
-
-
 
 
 

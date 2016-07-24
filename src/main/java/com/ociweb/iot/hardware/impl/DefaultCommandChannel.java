@@ -72,11 +72,16 @@ public class DefaultCommandChannel extends CommandChannel{
 	}
 
 	public boolean digitalPulse(int connector) {
+	    return digitalPulse(connector, 0);
+	}
+	public boolean digitalPulse(int connector, long durationMillis) {
 
 	        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 	        try {
+	            int msgCount = durationMillis > 0 ? 3 : 2;
 	            
-	            if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 2 * Pipe.sizeOf(i2cOutput, GroveRequestSchema.MSG_DIGITALSET_110)) && PipeWriter.hasRoomForWrite(goPipe) ) {           
+	            if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 2 * Pipe.sizeOf(i2cOutput, GroveRequestSchema.MSG_DIGITALSET_110)) && 
+	                PipeWriter.hasRoomForWrite(goPipe) ) {           
 	            
 	                //Pulse on
 	                if (!PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) {
@@ -87,6 +92,18 @@ public class DefaultCommandChannel extends CommandChannel{
 	                PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112, 1);
 
 	                PipeWriter.publishWrites(output);
+	                
+	                //duration
+	                //delay
+	                if (durationMillis>0) {
+	                    if (!PipeWriter.tryWriteFragment(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)) {
+	                        throw new RuntimeException("Should not have happend since the pipe was already checked.");
+	                    }
+	                    PipeWriter.writeInt(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
+	                    PipeWriter.writeLong(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, durationMillis);
+	                    PipeWriter.publishWrites(i2cOutput);
+	                }
+	                
 
 	                //Pulse off
 	                if (!PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110)) {
@@ -98,7 +115,7 @@ public class DefaultCommandChannel extends CommandChannel{
 
                     PipeWriter.publishWrites(output);               
 	                
-	                publishGo(2,pinPipeIdx);
+	                publishGo(msgCount,pinPipeIdx);
 
 	                return true;
 	            }else{

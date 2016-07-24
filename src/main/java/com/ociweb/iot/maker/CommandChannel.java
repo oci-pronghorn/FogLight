@@ -14,7 +14,7 @@ import com.ociweb.pronghorn.util.Pool;
 
 public abstract class CommandChannel {
 
-    public final Pipe<?>[] outputPipes;
+    protected final Pipe<?>[] outputPipes;
     protected final Pipe<TrafficOrderSchema> goPipe;
     protected final Pipe<MessagePubSub> messagePubSub;
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
@@ -68,18 +68,19 @@ public abstract class CommandChannel {
     }
     
     public abstract boolean block(long msDuration);
-    public abstract boolean block(int connector, long msDuration);
+    public abstract boolean block(int connector, long durationMilli);
     public abstract boolean blockUntil(int connector, long time);
     public abstract boolean digitalSetValue(int connector, int value);
-    public abstract boolean digitalSetValueAndBlock(int connector, int value, long msDuration);
-    public abstract boolean digitalPulse(int connector); //TOOD: add duration, what is the expected accuracy of this?
+    public abstract boolean digitalSetValueAndBlock(int connector, int value, long durationMilli);
+    public abstract boolean digitalPulse(int connector);
+    public abstract boolean digitalPulse(int connector, long durationMilli);
     public abstract boolean analogSetValue(int connector, int value);
-    public abstract boolean analogSetValueAndBlock(int connector, int value, long msDuration);
+    public abstract boolean analogSetValueAndBlock(int connector, int value, long durationMilli);
     public abstract boolean i2cIsReady();
     public abstract DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress);
     public abstract void i2cCommandClose();
     public abstract void i2cFlushBatch();
-    public abstract void i2cDelay(int i, int j);
+    public abstract void i2cDelay(int targetAddress, int durationMilli);
     
 
     public boolean subscribe(CharSequence topic) {

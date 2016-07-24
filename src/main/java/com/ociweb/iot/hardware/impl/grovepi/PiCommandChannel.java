@@ -112,52 +112,71 @@ public class PiCommandChannel extends CommandChannel{
 	}
 	
 	public boolean digitalPulse(int connector) {
+	       return digitalPulse(connector, 0);
+	}
+	
 
-	        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-	        try {
-	            
-	            assert( Pipe.getPublishBatchSize(i2cOutput)==0);
-	    
-	            if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 2 * Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) && PipeWriter.hasRoomForWrite(goPipe) ) {
-	            
-	                digitalMessageTemplate[2] = (byte)connector;
-	                
-	                //pulse on
-	                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
-	                    throw new RuntimeException("Should not have happend since the pipe was already checked.");
-	                }
 
-	                digitalMessageTemplate[3] = (byte)1;
-	                
-	                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);	                
-	                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
-	                                
-	                PipeWriter.publishWrites(i2cOutput);
-	                
-	                
-	                //pulse off
-	                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+    @Override
+    public boolean digitalPulse(int connector, long durationMillis) {
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            int msgCount = durationMillis > 0 ? 3 : 2;
+            assert( Pipe.getPublishBatchSize(i2cOutput)==0);
+    
+            if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, msgCount * Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) &&
+                PipeWriter.hasRoomForWrite(goPipe) ) {
+            
+                digitalMessageTemplate[2] = (byte)connector;
+                
+                //pulse on
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+                    throw new RuntimeException("Should not have happend since the pipe was already checked.");
+                }
+
+                digitalMessageTemplate[3] = (byte)1;
+                
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                 
+                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
+                                
+                PipeWriter.publishWrites(i2cOutput);
+                
+                //delay
+                if (durationMillis>0) {
+                    if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
                         throw new RuntimeException("Should not have happend since the pipe was already checked.");
                     }
+                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, groveAddr);
+                    PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, durationMillis);
+                    PipeWriter.publishWrites(i2cOutput);
+                }
+                
+                //pulse off
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+                    throw new RuntimeException("Should not have happend since the pipe was already checked.");
+                }
 
-                    digitalMessageTemplate[3] = (byte)0;
-                    
-                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                  
-                    PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
+                digitalMessageTemplate[3] = (byte)0;
+                
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                  
+                PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
+                                
+                PipeWriter.publishWrites(i2cOutput);                    
+                
+                publishGo(msgCount,i2cPipeIdx);
                                     
-                    PipeWriter.publishWrites(i2cOutput);	                
-                    
-	                publishGo(2,i2cPipeIdx);
-	                	                
-	                return true;
-	            }else{
-	                return false;
-	            }
+                return true;
+            }else{
+                return false;
+            }
 
-	        } finally {
-	            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-	        }
-	    }
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+    }
+
+
+	
 
  
 	private final byte[] analogMessageTemplate = {0x01, 0x04, -1, -1, 0x00};
@@ -382,7 +401,6 @@ public class PiCommandChannel extends CommandChannel{
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
         }
     }
-
 
 
     

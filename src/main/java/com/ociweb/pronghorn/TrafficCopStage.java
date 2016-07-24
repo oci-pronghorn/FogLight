@@ -39,6 +39,10 @@ public class TrafficCopStage extends PronghornStage {
         this.ackIn = ackIn;
         this.goOut = goOut;
         this.graphManager = graphManager;//for toString
+        
+        //force all commands to happen upon publish and release
+        this.supportsBatchedPublish = false;
+        this.supportsBatchedRelease = false;
     }    
     
     public String toString() {

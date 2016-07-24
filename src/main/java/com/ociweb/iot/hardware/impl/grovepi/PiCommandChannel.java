@@ -24,8 +24,8 @@ public class PiCommandChannel extends CommandChannel{
 	
 	private Logger logger = LoggerFactory.getLogger(PiCommandChannel.class);
 
-    //TODO: need to set this as a constant driven from the known i2c devices and the final methods
-    private final int maxCommands = 40;
+    //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
+    private final int maxCommands = 6;
 	
 
 	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
@@ -117,6 +117,8 @@ public class PiCommandChannel extends CommandChannel{
 
 	        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 	        try {
+	            
+	            assert( Pipe.getPublishBatchSize(i2cOutput)==0);
 	    
 	            if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 2 * Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) && PipeWriter.hasRoomForWrite(goPipe) ) {
 	            
@@ -146,9 +148,9 @@ public class PiCommandChannel extends CommandChannel{
                     PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, digitalMessageTemplate);
                                     
                     PipeWriter.publishWrites(i2cOutput);	                
-	                
+                    
 	                publishGo(2,i2cPipeIdx);
-	                
+	                	                
 	                return true;
 	            }else{
 	                return false;
@@ -192,21 +194,26 @@ public class PiCommandChannel extends CommandChannel{
 	}
 
 	public boolean i2cIsReady() {
-		if (null==i2cWriter) {
-			i2cWriter = new DataOutputBlobWriter<I2CCommandSchema>(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
-		}
-
-		return PipeWriter.hasRoomForWrite(goPipe) &&		        
-		       Pipe.contentRemaining(i2cOutput) < (i2cOutput.sizeOfSlabRing>>1); //if we run out of room make the pipe longer
+ 
+		return  PipeWriter.hasRoomForWrite(goPipe) &&		  
+		                  PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
+       
 	}
 
 	public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
+
 			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
 			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
-				DataOutputBlobWriter.openField(i2cWriter);
-				
+
+			    if (null==i2cWriter) {
+			        //TODO: add init method that we we will call from stage to do this.
+			        i2cWriter = new DataOutputBlobWriter<I2CCommandSchema>(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
+			    }
+			     
+			    DataOutputBlobWriter.openField(i2cWriter);
+
 				return i2cWriter;
 			} else {
 			    throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
@@ -220,25 +227,27 @@ public class PiCommandChannel extends CommandChannel{
 	public void i2cCommandClose() {  
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			if (++runningI2CCommandCount >= maxCommands) {
-			    throw new UnsupportedOperationException("too many commands");
+
+			if (++runningI2CCommandCount > maxCommands) {
+			    throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
 			}
 			
 			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-			PipeWriter.publishWrites(i2cOutput);			
+
+			PipeWriter.publishWrites(i2cOutput);	
+
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
 		
 	}
 
-	public boolean i2cFlushBatch() {        
+	public void i2cFlushBatch() {        
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
             publishGo(runningI2CCommandCount,i2cPipeIdx);
 			runningI2CCommandCount = 0;
-			return true;
-       
+
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}

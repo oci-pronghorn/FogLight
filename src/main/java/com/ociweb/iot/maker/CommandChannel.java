@@ -75,7 +75,7 @@ public abstract class CommandChannel {
     public abstract boolean i2cIsReady();
     public abstract DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress);
     public abstract void i2cCommandClose();
-    public abstract boolean i2cFlushBatch();
+    public abstract void i2cFlushBatch();
 
     public boolean subscribe(CharSequence topic) {
         return subscribe(topic, (PubSubListener)listener);

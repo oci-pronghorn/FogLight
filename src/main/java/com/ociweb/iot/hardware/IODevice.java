@@ -10,5 +10,6 @@ public interface IODevice {
      public boolean       isGrove();
      public I2CConnection getI2CConnection(); //TODO: Grove Specific for non-I2C Devices
      public boolean		  isValid(byte[] backing, int position, int length, int mask);
+     public int           pinsUsed();//count of contiguous pins used, eg almost always 1 but would be 2 for the grove rotary encoder
      
 }

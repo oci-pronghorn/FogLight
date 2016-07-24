@@ -1,8 +1,9 @@
 package com.ociweb.pronghorn.iot.schema;
 
 import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
-public class I2CCommandSchema extends RawDataSchema {
+import com.ociweb.pronghorn.pipe.MessageSchema;
+
+public class I2CCommandSchema extends MessageSchema {
 
     public final static FieldReferenceOffsetManager FROM = new FieldReferenceOffsetManager(
             new int[]{0xc0400003,0x80000000,0xb8000000,0xc0200003,0xc0400003,0x80000000,0x90000000,0xc0200003,0xc0400003,0x80000000,0x90000001,0xc0200003,0xc0400002,0x90000000,0xc0200002,0xc0400002,0x90000001,0xc0200002},

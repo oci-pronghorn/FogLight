@@ -58,13 +58,15 @@ public class TestI2CBacking implements I2CBacking{
 
     @Override
     public boolean write(byte address, byte[] message, int length) {
-                
+            
         lastWriteCount++;
         lastWriteTime[lastWriteIdx] = System.currentTimeMillis();
         lastWriteAddress[lastWriteIdx] = address;
         System.arraycopy(message, 0, lastWriteData[lastWriteIdx], 0, length);
-        responseLengths[lastWriteIdx] = length;
-        lastWriteIdx = MAX_BACK_MASK & lastWriteIdx++;
+        lastWriteLength[lastWriteIdx] = length;
+
+        lastWriteIdx = (1+lastWriteIdx) & MAX_BACK_MASK;
+                
         return true;
     }
     
@@ -83,7 +85,7 @@ public class TestI2CBacking implements I2CBacking{
         try {
             int previous = MAX_BACK_MASK & ((lastWriteIdx + MAX_BACK_SIZE) - backCount);
             Appendables.appendHexDigits(target, this.lastWriteAddress[previous]).append(" ");
-            Appendables.appendArray(target, '[', this.lastWriteData[previous], ']', this.lastWriteLength[previous]);
+            Appendables.appendArray(target, '[', this.lastWriteData[previous], ']', this.lastWriteLength[previous]);        
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

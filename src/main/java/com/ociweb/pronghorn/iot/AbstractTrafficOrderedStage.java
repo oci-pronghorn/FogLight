@@ -75,28 +75,50 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 	@Override 
 	public void startup() {
+	    	       
+        //processing can be very time critical so this thread needs to be on of the highest in priority.
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+	    
 		connectionBlocker = new Blocker(MAX_DEVICES);
 		activeCounts = new int[goPipe.length];
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
 		
 		Number nsPollWindow = (Number)GraphManager.getNota(graphManager, this,  GraphManager.SCHEDULE_RATE, 10_000_000);
 		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*10f)/1_000_000f);
+		logger.info("near window size for ordered stage: {} ",msNearWindow);
 		startLoopAt = activeCounts.length;
 	}
 
 	@Override
 	public void run() {
-		boolean foundWork;
+	    long timeout = 10_000;
+	    	    
+		processReleasedCommands(timeout);
+		
+	}
+
+    protected void processReleasedCommands(long timeout) {
+        boolean foundWork;
 		int[] localActiveCounts = activeCounts;
-		long now = System.currentTimeMillis();
+		long timeLimit = hardware.currentTimeMillis()+timeout;
+
 		do {
-		    
-		    //TODO: need to ensure that groups are called together an no other command channels are able get get between with the same connection..  Urguent fix.
-		    
 			foundWork = false;
 			int a = startLoopAt;
-
+			
 				while (--a >= 0) {
+
+				    long now = hardware.currentTimeMillis();
+				    if (now >= timeLimit) {
+				        System.out.println("timeout of cmmand loop");
+				        //stop here because we have run out of time, do save our location to start back here.
+				        startLoopAt = a+1;
+                        return;
+				    }
+				    
+				    //must clear these before calling processMessages, 
+				    connectionBlocker.releaseBlocks(now);				    
+				    
 					//pull all known the values into the active counts array
 					if (-1==localActiveCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
 						readNextCount(a); 
@@ -104,19 +126,19 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 					}
 
 					int startCount = localActiveCounts[a];
-					//must clear these before calling processMessages
-					connectionBlocker.releaseBlocks(now = System.currentTimeMillis());  
+										
 					//This method must be called at all times to poll I2C
-					processMessagesForPipe(a);    
+					processMessagesForPipe(a);
+					
 					logger.debug("ProcessMessagesForPipe called in output stages");
-//					if (0 != localActiveCounts[a]) {
-//					    //unable to finish group, try again later, this is critical so that callers can
-//					    //interact and then block knowing nothing else can get between the commands.
-//					    startLoopAt = a+1;
-//					    return;
-//					} else {
+					if (0 != localActiveCounts[a]) {
+					    //unable to finish group, try again later, this is critical so that callers can
+					    //interact and then block knowing nothing else can get between the commands.
+					    startLoopAt = a+1;
+					    return; //a poll may happen here but no other commands will happen until this is completed.
+					} else {
 					    foundWork |= (localActiveCounts[a]!=startCount);//work was done if progress was made					    
-//					}					
+					}					
 
 					//send any acks that are outstanding
 					if (0 == localActiveCounts[a]) {
@@ -130,11 +152,8 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 				startLoopAt = activeCounts.length;
 			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
 			//we also check for 'near' work but only when there is no found work since its more expensive
-		} while (foundWork || connectionBlocker.willReleaseInWindow(now,msNearWindow));
-		//TODO: this spin lock can cause a delay in reading an input.
-		
-		
-	}
+		} while (foundWork || connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),msNearWindow));
+    }
 
 	protected abstract void processMessagesForPipe(int a);
 

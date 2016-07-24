@@ -74,4 +74,10 @@ public class NunchuckTwig implements IODevice{
     public int response() {       
        return 10;      
     }
+	
+    @Override
+    public int pinsUsed() {
+        return 1;
+    }
+    
 }

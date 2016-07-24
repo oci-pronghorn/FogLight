@@ -33,6 +33,7 @@ public class TestHardware extends Hardware {
     
     private static final Logger logger = LoggerFactory.getLogger(TestHardware.class);
     
+    private long lastProvidedTime;
     
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking());
@@ -48,11 +49,12 @@ public class TestHardware extends Hardware {
         return testBacking.getWriteCount();
     }
     
-    public <A extends Appendable>void outputLastI2CWrite(A target, int back) {
+    public <A extends Appendable>A outputLastI2CWrite(A target, int back) {
         assert(back>0);
         assert(back<TestI2CBacking.MAX_BACK_MASK);
         TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
         testBacking.outputLastI2CWrite(target, back);
+        return target;
         
     }
     
@@ -100,26 +102,24 @@ public class TestHardware extends Hardware {
 
     @Override
     public void digitalWrite(int connector, int value) {
-        long now = System.currentTimeMillis();
-        logger.info("digital connection {} set to {}",connector,value);
         pinHighValues[connector] = Math.max(pinHighValues[connector], value);
         pinData[connector]=value;
-        lastTime[connector] = now;
+        lastTime[connector] = lastProvidedTime;
         if (0==firstTime[connector]) {
-            firstTime[connector]=now;
+            firstTime[connector]=lastProvidedTime;
         }
+        logger.info("digital connection {} set to {} at {}",connector,value,lastProvidedTime);
     }
 
     @Override
     public void analogWrite(int connector, int value) {
-        long now = System.currentTimeMillis();
-        logger.info("analog connection {} set to {}",connector,value);
         pinHighValues[connector] = Math.max(pinHighValues[connector], value);
         pinData[connector]=value;
-        lastTime[connector] = now;
+        lastTime[connector] = lastProvidedTime;
         if (0==firstTime[connector]) {
-            firstTime[connector]=now;
+            firstTime[connector]=lastProvidedTime;
         }        
+        logger.info("analog connection {} set to {} at {}",connector,value,lastProvidedTime);
     }
     
     @Override
@@ -140,5 +140,15 @@ public class TestHardware extends Hardware {
        
        
     }
+    
+    
+    @Override
+    public long currentTimeMillis() {
+        return lastProvidedTime = super.currentTimeMillis();
+    }
 
+    public long lastProvidedTimeMillis() {
+        return lastProvidedTime;
+    }
+    
 }

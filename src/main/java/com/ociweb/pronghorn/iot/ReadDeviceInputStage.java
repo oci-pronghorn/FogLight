@@ -234,7 +234,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		if (frequentScriptLastPublished[j]!=rotationState[j] && Pipe.hasRoomForWrite(responsePipe)) {
 			int speed = (int)Math.min( (cycles - rotationLastCycle[j]), Integer.MAX_VALUE);
-			writeRotation(responsePipe, connector, System.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
+			writeRotation(responsePipe, connector, config.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
 
 			frequentScriptLastPublished[j] = rotationState[j];
 			rotationLastCycle[j] = cycles;
@@ -263,7 +263,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 		int fieldValue = config.digitalRead(connector);
 		if (frequentScriptLastPublished[j]!=fieldValue && Pipe.hasRoomForWrite(responsePipe)) {   
 		    
-			writeBit(responsePipe, connector, System.currentTimeMillis(), fieldValue);
+			writeBit(responsePipe, connector, config.currentTimeMillis(), fieldValue);
 			
 			
 			frequentScriptLastPublished[j]=fieldValue;
@@ -310,7 +310,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 			int sendTrigger = useAverageAsTrigger ? avg : intValue;
 
 			if (lastPublished[doit] != sendTrigger && Pipe.hasRoomForWrite(responsePipe)) {
-				writeInt(responsePipe, connector, System.currentTimeMillis(), intValue, avg);
+				writeInt(responsePipe, connector, config.currentTimeMillis(), intValue, avg);
 				int j = maTotal-1;
 				while (--j>0) {//must stop before zero because we do copy from previous lower index.
 					movingAverageHistory[j][doit]=movingAverageHistory[j-1][doit];                     
@@ -346,7 +346,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 			int connector = scriptConn[doit];
 			int fieldValue = config.digitalRead(connector);
 			if (lastPublished[doit]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                  
-				writeBit(responsePipe, connector, System.currentTimeMillis(), fieldValue);                  
+				writeBit(responsePipe, connector, config.currentTimeMillis(), fieldValue);                  
 				lastPublished[doit]=fieldValue;                          
 			} else {
 				//tossing fieldValue but this could be saved to send on next call.

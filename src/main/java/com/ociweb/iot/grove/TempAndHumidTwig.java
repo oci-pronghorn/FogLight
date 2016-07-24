@@ -100,4 +100,9 @@ public class TempAndHumidTwig implements IODevice{
        return 600;      
     }
     
+    @Override
+    public int pinsUsed() {
+        return 1;
+    }
+    
 }

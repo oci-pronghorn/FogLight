@@ -8,7 +8,6 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class DefaultCommandChannel extends CommandChannel{
@@ -267,12 +266,12 @@ public class DefaultCommandChannel extends CommandChannel{
 		
 	}
 
-	public boolean i2cFlushBatch() {        
+	public void i2cFlushBatch() {        
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
             publishGo(runningI2CCommandCount,i2cPipeIdx);            
 			runningI2CCommandCount =0;
-			return true;	       
+	       
 		} finally {
 			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}

@@ -1,20 +1,13 @@
 package com.ociweb.iot.grove;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.pipe.PipeWriter;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 
 /**
  * TODO: This class probably needs to be renamed and moved; it's now both a simple API and collection of constants.
@@ -112,9 +105,7 @@ public class Grove_LCD_RGB implements IODevice{
         
         showRGBColor(target, r, g, b);
         showTwoLineText(target, text);
-        while (!target.i2cFlushBatch()) {
-            //WARNING: this is now a blocking call, should NEVER happen because we checked up front.
-        }
+        target.i2cFlushBatch();
         return true;
     }
     public static boolean commandForColor(CommandChannel target, int r, int g, int b) {
@@ -124,20 +115,18 @@ public class Grove_LCD_RGB implements IODevice{
         }
         
         showRGBColor(target, r, g, b);
-        while (!target.i2cFlushBatch()) {
-            //WARNING: this is now a blocking call, should NEVER happen because we checked up front.
-        }
+        target.i2cFlushBatch();
         return true;
     }
     public static boolean commandForText(CommandChannel target, String text) {
-        
+                
         if (!target.i2cIsReady()) {
             return false;
         }
+        
         showTwoLineText(target, text);
-        while (!target.i2cFlushBatch()) {
-            //WARNING: this is now a blocking call, should NEVER happen because we checked up front.
-        }
+        
+        target.i2cFlushBatch();
         return true;
     }
 
@@ -153,10 +142,16 @@ public class Grove_LCD_RGB implements IODevice{
     private static void showTwoLineText(CommandChannel target, String text) {
         //clear display
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
+
         //display on - no cursor
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, ((byte) LCD_DISPLAYCONTROL | (byte) LCD_ENTRYMODESET));
+
         //two lines
         writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_TWO_LINES);
+        
+        //TODO: need an easy way to add delay for reg entries here..        
+        //target.block((Grove_LCD_RGB.LCD_ADDRESS), 10);
+        
         
         String[] lines = text.split("\n");
         for(String line: lines) {
@@ -168,13 +163,11 @@ public class Grove_LCD_RGB implements IODevice{
 
     private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
         try {
-            DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter;
-            do {
-                i2cPayloadWriter = target.i2cCommandOpen(address);
-            } while (null==i2cPayloadWriter); //WARNING: this is now a blocking call, NOTE be sure pipe is long enough for the known messages to ensure this never happens  TODO: check this figure.
+            DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
-            i2cPayloadWriter.writeByte(register);
-            i2cPayloadWriter.writeByte(value);            
+            i2cPayloadWriter.write(new byte[]{(byte)register,(byte)value});
+           // i2cPayloadWriter.writeByte(register);
+           // i2cPayloadWriter.writeByte(value);            
             
             target.i2cCommandClose();
         } catch (IOException e) {
@@ -184,10 +177,7 @@ public class Grove_LCD_RGB implements IODevice{
 
     private static void writeUTF8ToRegister(CommandChannel target, int address, int register, CharSequence text) {
         try {
-            DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter;
-            do {
-                i2cPayloadWriter = target.i2cCommandOpen(address);
-            } while (null == i2cPayloadWriter);
+            DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
                        
             i2cPayloadWriter.writeByte(register);
             DataOutputBlobWriter.encodeAsUTF8(i2cPayloadWriter, text);
@@ -235,5 +225,10 @@ public class Grove_LCD_RGB implements IODevice{
 	public boolean isValid(byte[] backing, int position, int length, int mask) {
 		return true;
 	}
+	
+    @Override
+    public int pinsUsed() {
+        return 1;
+    }
     
 }

@@ -71,4 +71,9 @@ public class UltrasonicRangerTwig implements IODevice{
     public int response() {       
        return 100;      
     }
+    
+    @Override
+    public int pinsUsed() {
+        return 1;
+    }
 }

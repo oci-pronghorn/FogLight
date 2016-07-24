@@ -11,9 +11,9 @@ import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
 //github.com/oci-pronghorn/PronghornIoT.git
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.TrafficCopStage;
@@ -33,7 +33,6 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -147,12 +146,25 @@ public abstract class Hardware {
         }
     }
     
+    //TODO: double check new name  connectAnalog  and confirm before rename.
     public Hardware useConnectA(IODevice t, int connection) {
         return useConnectA(t,connection,-1);
     }
     
     public Hardware useConnectA(IODevice t, int connection, int customRate) {
-    	HardConnection gc = new HardConnection(t,connection);
+    	HardConnection gc = new HardConnection(t,connection,customRate);
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            analogInputs = growHardConnections(analogInputs, gc);
+        } else {
+            assert(t.isOutput());
+            pwmOutputs = growHardConnections(pwmOutputs, gc);
+        }
+        return this;
+    }
+    
+    public Hardware useConnectA(IODevice t, int connection, int customRate, int customAverageMS) {
+        HardConnection gc = new HardConnection(t,connection,customRate, customAverageMS);
         if (t.isInput()) {
             assert(!t.isOutput());
             analogInputs = growHardConnections(analogInputs, gc);
@@ -169,11 +181,28 @@ public abstract class Hardware {
     
     public Hardware useConnectD(IODevice t, int connection, int customRate) {
     	
-        HardConnection gc =new HardConnection(t,connection);
+        HardConnection gc =new HardConnection(t,connection, customRate);
         
         if (t.isInput()) {
             assert(!t.isOutput());
             digitalInputs = growHardConnections(digitalInputs, gc);
+        } else {
+            assert(t.isOutput());
+            digitalOutputs = growHardConnections(digitalOutputs, gc);
+        }
+        return this;
+    }  
+    
+    public Hardware useConnectD(IODevice t, int connection, int customRate, int customAverageMS) {
+        
+        HardConnection gc =new HardConnection(t,connection, customRate, customAverageMS);
+        
+        if (t.isInput()) {
+            assert(!t.isOutput());
+            digitalInputs = growHardConnections(digitalInputs, gc);
+            
+            
+            
         } else {
             assert(t.isOutput());
             digitalOutputs = growHardConnections(digitalOutputs, gc);
@@ -418,6 +447,14 @@ public abstract class Hardware {
 
     public boolean isListeningToSubscription(Object listener) {
         return listener instanceof PubSubListener;
+    }
+
+    /**
+     * access to system time.  This method is required so it can be monitored and simulated by unit tests.
+     * @return
+     */
+    public long currentTimeMillis() {
+        return System.currentTimeMillis();
     }
 
 

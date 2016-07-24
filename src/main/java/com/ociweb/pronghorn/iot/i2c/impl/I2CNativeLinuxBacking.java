@@ -32,24 +32,28 @@ public class I2CNativeLinuxBacking implements I2CBacking {
      *
      * @param address Byte address of the I2C device to configure for.
      */
-    private boolean ensureI2CDevice(byte address) {
-        if (address > 0 && address <= I2C_MAX_ADDRESSES && lastAddress != address) {
+    private boolean ensureI2CDevice(byte address) {        
+        if (lastAddress == address) {
+            return true;
+        }
+        return checkNewAddress(address);
+    }
+
+    private boolean checkNewAddress(byte address) {
+        if (address > 0 && address <= I2C_MAX_ADDRESSES) {
             /**
              * IOCTL will return -1 if it fails for any reason.
              */
-            if (c.ioctl(i2cFile, UnixIoctlLib.I2C_SLAVE_FORCE, address) < 0) {
-                throw new RuntimeException("Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));
-            } else {
-            	
+            if (c.ioctl(i2cFile, UnixIoctlLib.I2C_SLAVE_FORCE, address) >= 0) {
                 lastAddress = address;
                 logger.debug("IOCTL configured for I2C device at 0x" + Integer.toHexString(address));
                 return true;
+            } else {
+                throw new RuntimeException("Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));            	
             }
-        } else if (address < 0 || address > I2C_MAX_ADDRESSES) {
+        } else {
             throw new RuntimeException("I2C Device 0x" + Integer.toHexString(address) + " is outside of the possible I2C address range.");
         }
-
-        return true;
     }
 
     public I2CNativeLinuxBacking(byte connector) {
@@ -92,11 +96,8 @@ public class I2CNativeLinuxBacking implements I2CBacking {
         
         //Check if we need to load the address into memory.
         ensureI2CDevice(address); //throws on failure
+        return -1 != c.write(i2cFile, message, length);
         
-        int result;
-        result = c.write(i2cFile, message, length);
-        
-        return result != -1;
         
     }
 }

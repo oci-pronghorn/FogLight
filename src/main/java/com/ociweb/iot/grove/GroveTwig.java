@@ -71,6 +71,11 @@ public enum GroveTwig implements IODevice {
             return true;
         }
         
+        @Override
+        public int pinsUsed() {
+            return 2;
+        }
+        
     },
     Buzzer() {        
         @Override
@@ -150,6 +155,10 @@ public enum GroveTwig implements IODevice {
     }
     public boolean isValid(byte[] backing, int position, int length, int mask){
     	return true;
+    }
+    
+    public int pinsUsed() {
+        return 1;
     }
     
 }

@@ -45,12 +45,15 @@ public abstract class ReactiveListenerStage extends PronghornStage {
         this.outputPipes = outputPipes;       
         this.hardware = hardware;
         
+        //force all commands to happen upon publish and release
+        this.supportsBatchedPublish = false;
+        this.supportsBatchedRelease = false;
     }
 
     public void setTimeEventSchedule(long rate) {
         
         timeRate = rate;
-        long now = System.currentTimeMillis();
+        long now = hardware.currentTimeMillis();
         if (timeTrigger <= now) {
             timeTrigger = now + timeRate;
         }
@@ -69,6 +72,7 @@ public abstract class ReactiveListenerStage extends PronghornStage {
     @Override
     public void run() {
         
+        processTimeEvents(listener);
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         
@@ -92,7 +96,6 @@ public abstract class ReactiveListenerStage extends PronghornStage {
             }
         }
         
-        processTimeEvents(listener);
         
     }
 
@@ -139,7 +142,7 @@ public abstract class ReactiveListenerStage extends PronghornStage {
     private void processTimeEvents(Object listener) {
         //if we do have a clock schedule
         if (0 != timeRate) {
-            long now = System.currentTimeMillis();
+            long now = hardware.currentTimeMillis();
             if (now >= timeTrigger) {
                 if (listener instanceof TimeListener) {
                     ((TimeListener)listener).timeEvent(now);

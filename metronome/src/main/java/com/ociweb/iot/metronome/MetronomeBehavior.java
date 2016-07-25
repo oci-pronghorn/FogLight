@@ -39,7 +39,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
 
     private final CommandChannel tickCommandChannel;
     private final CommandChannel screenCommandChannel;
-    
+    private final String [] tempo ={ "Largo","Larghetto","Adagio","Andante","Moderato","Allegro","Presto","Prestissimo"};
     private final String topic = "tick";
           
     
@@ -56,6 +56,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private long timeOfNewValue;
     private int tempBPM;
     private int showingBPM;
+    private String tempoIdx;
     
     public MetronomeBehavior(DeviceRuntime runtime) {
         this.tickCommandChannel = runtime.newCommandChannel();
@@ -126,13 +127,33 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     @Override
     public void timeEvent(long time) {
        if (tempBPM != showingBPM) {
-                      
+           
            String message = " BPM "+tempBPM+"   "; //trailing space so we hid the previous numbers
-           System.out.println(message+" "+System.currentTimeMillis());
+           if (tempBPM<108){
+        	   if(tempBPM<66){
+        		   if (tempBPM<60)tempoIdx = tempo[0];
+        		   else tempoIdx = tempo[1];
+        	   }
+        	   else{
+        		   if (tempBPM<76)tempoIdx = tempo[2];
+        		   else tempoIdx = tempo[3];
+        	   }
+           }else{
+        	   if(tempBPM<168){
+        		   if (tempBPM<120)tempoIdx = tempo[4];
+        		   else tempoIdx = tempo[5];
+        	   }
+        	   else{
+        		   if (tempBPM<200)tempoIdx = tempo[6];
+        		   else tempoIdx = tempo[7];
+        	   }
+           }
+           System.out.println(message+" "+System.currentTimeMillis()+"      "+tempoIdx);
+           
            
            //second channel is required or we are left waiting for one cycle of the ticks before we can update.
            
-           if (Grove_LCD_RGB.commandForText(screenCommandChannel, message)) {
+           if (Grove_LCD_RGB.commandForText(screenCommandChannel, message+" "+tempoIdx)) {
                showingBPM = tempBPM;
            }
            

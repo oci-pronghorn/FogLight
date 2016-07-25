@@ -14,8 +14,6 @@ import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GroveV2PiImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.pronghorn.iot.DefaultReactiveListenerStage;
-import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -209,11 +207,7 @@ public class DeviceRuntime {
         Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
         Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
 
-        if(isPi){
-        	configureStageRate(listener, new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, hardware)); 
-        }else{
-        	configureStageRate(listener, new DefaultReactiveListenerStage(gm, listener, inputPipes, outputPipes, hardware));
-        }
+        configureStageRate(listener,hardware.createReactiveListener(gm, listener, inputPipes, outputPipes));
         
         Pipe<MessageSubscription>[] subsPipes = GraphManager.allPipesOfType(gm, MessageSubscription.instance);
         assert(-1==testId || subsPipes[subPipeIdx].id==testId) : "GraphManager has returned the pipes out of the expected order";
@@ -225,6 +219,7 @@ public class DeviceRuntime {
         return listener;
         
     }
+
 
     //////////
     //only build this when assertions are on

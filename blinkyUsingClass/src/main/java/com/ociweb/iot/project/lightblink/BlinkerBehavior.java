@@ -1,3 +1,20 @@
+/**
+ * blinkerChannel is a CommandChannel created to transport data. 
+ * Data is published to the channel, and it can also be accessed 
+ * by playload.writeInt() to read from the channel
+ * <p>
+ * The blinky light is achieved by alternate the value publish to
+ * the channel. The method shown below enable to turn on/off the 
+ * LED as well as block the command channel for the duration of a 
+ * blink
+ * digitalSetValueAndBlock(int connector, int value, long msDuration)
+ * @param  connector  the LED connect to the digital connector D5
+ * @param  value      1 is turn on the LED while 0 turn off the LED
+ * @param  msDuration how long the channel is blocked till it is available for next command
+ * @return      return true when the method operated successfully 
+ */
+
+
 package com.ociweb.iot.project.lightblink;
 
 import com.ociweb.iot.maker.CommandChannel;

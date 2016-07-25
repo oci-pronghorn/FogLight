@@ -33,14 +33,17 @@ import com.ociweb.iot.maker.TimeListener;
  * 
  */
 
-
+//importance of interface. 
+//multiple inheretiance (issue, language have in general),overlap of overlap 
 public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener, TimeListener {
 
-    private final CommandChannel commandChannel;
+    private final CommandChannel tickCommandChannel;
+    private final CommandChannel screenCommandChannel;
+    
     private final String topic = "tick";
           
     
-    private static final int BBM_SLOWEST     = 40;
+    private static final int BBM_SLOWEST     = 40; // the  private static final int 
     private static final int BBM_FASTEST     = 208;
     
     private static final int BBM_VALUES      = 1+BBM_FASTEST-BBM_SLOWEST;
@@ -55,30 +58,32 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private int showingBPM;
     
     public MetronomeBehavior(DeviceRuntime runtime) {
-        commandChannel = runtime.newCommandChannel();
+        this.tickCommandChannel = runtime.newCommandChannel();
+        this.screenCommandChannel = runtime.newCommandChannel();
     }
-    
-
+    //this.commandChannel, as a parameter of sth else. you will give it to sb as incomplete stage
+// pass this in sth in the constructor 
     @Override
     public void startup() {
-        commandChannel.subscribe(topic,this);
-        commandChannel.openTopic(topic).publish();
+        tickCommandChannel.subscribe(topic,this); //take this because it is a pub listen/ current object. valid for use 
+        tickCommandChannel.openTopic(topic).publish();
         
-        Grove_LCD_RGB.commandForColor(commandChannel, 255, 255, 255);
+        Grove_LCD_RGB.commandForColor(tickCommandChannel, 255, 255, 255);
         
     }
 
-    
+    //we will talk about override
     @Override
     public void analogEvent(int connector, long time, int average, int value) {
-            int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);            
+    //later in the deck, do the publish subsribe 
+            int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation      
             if (newBPM != tempBPM) {                
             	
             	timeOfNewValue = System.currentTimeMillis();
             	tempBPM = newBPM;
             	
             } else {
-            	if (System.currentTimeMillis()-timeOfNewValue>100) {
+            	if (System.currentTimeMillis()-timeOfNewValue>333) {
             		if (tempBPM != activeBPM) {
             			//System.out.println("set new active to "+tempBPM);
             			activeBPM = tempBPM;
@@ -89,30 +94,29 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             } 
     }    
 
-
     @Override
     public void message(CharSequence topic, PayloadReader payload) {
         
-        commandChannel.openTopic(topic).publish();//request next tick while we get this one ready
+    	
+        tickCommandChannel.openTopic(topic).publish();//request next tick while we get this one ready
                 
         if (activeBPM>0) {
 
             if (0==base) {
-                base = System.currentTimeMillis();
+                base = System.currentTimeMillis(); //this is a standard java they should know. 1970 UMT
                 beatIdx = 0;
             }                
                                     
-            long delta = (++beatIdx*60_000L)/activeBPM;
+            long delta = (++beatIdx*60_000)/activeBPM;//will multiple the pre incremental value if do after 
             long until = base + delta;
             
-            commandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);        
-            commandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
+            tickCommandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);        
+            tickCommandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
 
             if (beatIdx==activeBPM) {
             	beatIdx = 0;
-            	base += 60_000;
-            }                     
-
+            	base += 60_000; //will talk about the operator 
+            }
             
         }
         
@@ -123,14 +127,13 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     public void timeEvent(long time) {
        if (tempBPM != showingBPM) {
                       
-           String message = " BPM "+tempBPM;
-           //System.out.println(message);
-           System.out.println("writing to LCD");
-           if (Grove_LCD_RGB.commandForText(commandChannel, message)) {
-               showingBPM = tempBPM;   
-               System.out.println(message);
-           }else{
-        	   System.out.println("Failed to send message");
+           String message = " BPM "+tempBPM+"   "; //trailing space so we hid the previous numbers
+           System.out.println(message+" "+System.currentTimeMillis());
+           
+           //second channel is required or we are left waiting for one cycle of the ticks before we can update.
+           
+           if (Grove_LCD_RGB.commandForText(screenCommandChannel, message)) {
+               showingBPM = tempBPM;
            }
            
        }

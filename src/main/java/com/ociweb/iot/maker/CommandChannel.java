@@ -22,7 +22,7 @@ public abstract class CommandChannel {
     private Object listener;
 
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
-    protected final int maxCommands = 10;
+    protected final int maxCommands = 15;
     
     private long topicKeyGen;
     

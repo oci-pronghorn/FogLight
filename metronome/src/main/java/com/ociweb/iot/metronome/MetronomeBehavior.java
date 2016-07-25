@@ -71,7 +71,6 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     
     @Override
     public void analogEvent(int connector, long time, int average, int value) {
-    
             int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);            
             if (newBPM != tempBPM) {                
             	
@@ -94,7 +93,6 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     @Override
     public void message(CharSequence topic, PayloadReader payload) {
         
-    	
         commandChannel.openTopic(topic).publish();//request next tick while we get this one ready
                 
         if (activeBPM>0) {
@@ -127,9 +125,12 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
                       
            String message = " BPM "+tempBPM;
            //System.out.println(message);
-           
+           System.out.println("writing to LCD");
            if (Grove_LCD_RGB.commandForText(commandChannel, message)) {
                showingBPM = tempBPM;   
+               System.out.println(message);
+           }else{
+        	   System.out.println("Failed to send message");
            }
            
        }

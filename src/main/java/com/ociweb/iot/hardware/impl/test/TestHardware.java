@@ -7,18 +7,14 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
-import com.ociweb.iot.hardware.impl.grovepi.GroveV2PiImpl;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.pronghorn.iot.DefaultReactiveListenerStage;
-import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
@@ -156,7 +152,7 @@ public class TestHardware extends Hardware {
     }
     
     public ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
-        return new DefaultReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
+        return new ReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
     }
 
     

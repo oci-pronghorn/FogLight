@@ -336,11 +336,29 @@ public class Grove_LCD_RGB implements IODevice{
 		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
 		target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 1);
 
-		String[] lines = text.split("\n");
-		for(String line: lines) {
-			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line.trim());
+		/*
+ * When LCD display string with more than 3 characters, will be "too many commands error, found 16 only have room for 15"	
+ * Test code to show only the first 3 chars
+ */
+		int size =16;//switch line after
+	    String[] result = new String[(int)Math.ceil((double)text.length()/(double)size)];
+	    for (int i=0; i<result.length; i++){
+	        result[i] = text.substring(i*size, Math.min(text.length(), (i+1)*size));
+	        for (int j=0;j<result[i].length();j++){
+	        writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(j)));	
+	        }
 			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
-		}
+	    }
+		
+
+/*
+ * Original Code is below:	    
+ */
+//		String[] lines = text.split("\n");
+//		for(String line: lines) {
+//			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line.trim());
+//			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+//		}
 
 	}
 
@@ -351,7 +369,7 @@ public class Grove_LCD_RGB implements IODevice{
 			i2cPayloadWriter.write(new byte[]{(byte)register,(byte)value});
 			// i2cPayloadWriter.writeByte(register);
 			// i2cPayloadWriter.writeByte(value);          
-			System.out.println(Arrays.toString(new byte[]{(byte)register,(byte)value}));
+			//System.out.println(Arrays.toString(new byte[]{(byte)register,(byte)value}));
 
 			target.i2cCommandClose();
 		} catch (IOException e) {
@@ -369,7 +387,7 @@ public class Grove_LCD_RGB implements IODevice{
 				temp[i+1]=(byte)values[i];
 				
 			}
-			System.out.println(Arrays.toString(temp));
+			//System.out.println(Arrays.toString(temp));
 			i2cPayloadWriter.writeByteArray(temp);        
 
 			target.i2cCommandClose();

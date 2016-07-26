@@ -21,7 +21,7 @@ import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public abstract class ReactiveListenerStage extends PronghornStage {
+public class ReactiveListenerStage extends PronghornStage {
 
     protected final Object              listener;
     

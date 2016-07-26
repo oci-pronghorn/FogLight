@@ -13,7 +13,7 @@ import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.util.ma.MAAvgRollerLongTest;
+//import com.ociweb.pronghorn.util.ma.MAAvgRollerLongTest;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
 public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{

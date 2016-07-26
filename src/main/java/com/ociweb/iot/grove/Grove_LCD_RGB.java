@@ -259,8 +259,8 @@ public class Grove_LCD_RGB implements IODevice{
 	private static void showTwoLineText(CommandChannel target, String text) {
 
 		//display on - no cursor
-		//writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, 
-		//LCD_DISPLAYCONTROL | LCD_DISPLAYON);       
+		writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, 
+		LCD_DISPLAYCONTROL | LCD_DISPLAYON);       
 
 		//two lines
 		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_TWO_LINES);        
@@ -275,7 +275,6 @@ public class Grove_LCD_RGB implements IODevice{
  */
 		int size =16;//switch line after
 	    String[] result = new String[(int)Math.ceil((double)text.length()/(double)size)];
-//	    for (int i=0; i<result.length; i++){
 	    for (int i=0; i<result.length; i++){
 	        result[i] = text.substring(i*size, Math.min(text.length(), (i+1)*size));
 	        for (int j=0;j<result[i].length();j++){

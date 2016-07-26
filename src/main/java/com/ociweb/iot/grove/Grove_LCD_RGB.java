@@ -277,8 +277,8 @@ public class Grove_LCD_RGB implements IODevice{
 //	    for (int i=0; i<result.length; i++){
 //	        result[i] = text.substring(i*size, Math.min(text.length(), (i+1)*size));
 //			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(0)));
-//			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(1)));
-//			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(2)));
+//			if (result[i].length()>=2) writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(1)));
+//			if (result[i].length()>=3) writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(2)));
 //			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
 //	    }
 		
@@ -286,12 +286,23 @@ public class Grove_LCD_RGB implements IODevice{
 /*
  * Original Code is below:	    
  */
+//		String[] lines = text.split("\n");
+//		for(String line: lines) {
+//			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, Sline.trim());
+//			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+//		}
+
+/*
+ * Test Code
+ */
 		String[] lines = text.split("\n");
 		for(String line: lines) {
-			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line.trim());
+			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(line.trim().charAt(0)));
+			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(line.trim().charAt(1)));
+			if (line.length()>=3)writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(line.trim().charAt(2)));
 			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
 		}
-
+		
 	}
 
 	private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {

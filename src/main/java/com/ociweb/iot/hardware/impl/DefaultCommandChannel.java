@@ -12,16 +12,9 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class DefaultCommandChannel extends CommandChannel{
 
-	private final Pipe<GroveRequestSchema> output;
-	private final Pipe<I2CCommandSchema> i2cOutput;
-	
-	private DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
-	private int runningI2CCommandCount;
 
 	public DefaultCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe) {
 			super(gm, output, i2cOutput, messagePubSub, goPipe);
-	 		this.output = output;
-			this.i2cOutput = i2cOutput;
 			assert(Pipe.isForSchema(outputPipes[pinPipeIdx], GroveRequestSchema.instance));
 			assert(Pipe.isForSchema(outputPipes[i2cPipeIdx], I2CCommandSchema.instance));
 	}
@@ -137,8 +130,8 @@ public class DefaultCommandChannel extends CommandChannel{
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);
 				PipeWriter.publishWrites(output);
 			                
-                publishGo(1,pinPipeIdx);
-                
+				
+                publishGo(1,pinPipeIdx);                
                 return true;
 			} else {
 				return false;
@@ -239,81 +232,6 @@ public class DefaultCommandChannel extends CommandChannel{
         }
     }
 	
-	
-	
-	public boolean i2cIsReady() {
-		if (null==i2cWriter) {
-			i2cWriter = new DataOutputBlobWriter(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
-		}
-
-		return PipeWriter.hasRoomForWrite(goPipe) && 
-		        Pipe.contentRemaining(i2cOutput) < (i2cOutput.sizeOfSlabRing>>1); //if we run out of room make the pipe longer
-
-	}
-
-
-	public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {
-			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
-			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
-				DataOutputBlobWriter.openField(i2cWriter);
-				return i2cWriter;
-			} else {
-			    throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
-			}
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
-		
-	}
-	
-	   public void i2cDelay(int targetAddress, int durationMillis) {
-	        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-	        try {
-	            if (++runningI2CCommandCount > maxCommands) {
-	                throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
-	            }
-	        
-	            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
-
-	                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, targetAddress);
-	                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, durationMillis);
-
-	                PipeWriter.publishWrites(i2cOutput);
-
-	            }else {
-	                throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
-	            }    
-	            
-	        } finally {
-	            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-	        }
-	        
-	    }
-	
-	public void i2cCommandClose() {  
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {
-			runningI2CCommandCount++;
-			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-			PipeWriter.publishWrites(i2cOutput);
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
-		
-	}
-
-	public void i2cFlushBatch() {        
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {
-            publishGo(runningI2CCommandCount,i2cPipeIdx);            
-			runningI2CCommandCount =0;
-	       
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
-	}
 
 
 

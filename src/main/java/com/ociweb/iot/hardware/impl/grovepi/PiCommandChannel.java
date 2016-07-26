@@ -15,10 +15,6 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class PiCommandChannel extends CommandChannel{
 
-	private Pipe<I2CCommandSchema> i2cOutput;
-	
-	private DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
-	private int runningI2CCommandCount;
 	private byte i2cPipeIdx;
 	private byte groveAddr = 0x04;
 	
@@ -27,8 +23,7 @@ public class PiCommandChannel extends CommandChannel{
 	
 
 	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
-		super(gm, output, i2cOutput, messagePubSub, goPipe);
-		this.i2cOutput = i2cOutput;  
+		super(gm, output, i2cOutput, messagePubSub, goPipe); 
 		this.i2cPipeIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital
 
 	}
@@ -188,8 +183,7 @@ public class PiCommandChannel extends CommandChannel{
 			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
 
 				analogMessageTemplate[2] = (byte)connector;
-				analogMessageTemplate[3] = (byte)value;
-				
+				analogMessageTemplate[3] = (byte)value;				
 				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
 								
@@ -197,11 +191,9 @@ public class PiCommandChannel extends CommandChannel{
 				logger.debug("CommandChannel sends analogWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
 				
-                publishGo(1,i2cPipeIdx);
-				
+                publishGo(1,i2cPipeIdx);				
 				return true;
 			}else{
-				
 				return false;
 			}
 
@@ -210,89 +202,7 @@ public class PiCommandChannel extends CommandChannel{
 		}
 	}
 
-	public boolean i2cIsReady() {
- 
-		return  PipeWriter.hasRoomForWrite(goPipe) &&		  
-		                  PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
-       
-	}
 
-	public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {
-
-			if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
-			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
-
-			    if (null==i2cWriter) {
-			        //TODO: add init method that we we will call from stage to do this.
-			        i2cWriter = new DataOutputBlobWriter<I2CCommandSchema>(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
-			    }
-			     
-			    DataOutputBlobWriter.openField(i2cWriter);
-
-				return i2cWriter;
-			} else {
-			    throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
-			}
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
-		
-	}
-
-	public void i2cCommandClose() {  
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {
-
-			if (++runningI2CCommandCount > maxCommands) {
-			    throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
-			}
-			
-			DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-
-			PipeWriter.publishWrites(i2cOutput);	
-
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
-		
-	}
-	
-	public void i2cDelay(int targetAddress, int durationMillis) {
-	    assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-	    try {
-            if (++runningI2CCommandCount > maxCommands) {
-                throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
-            }
-	    
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
-
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, targetAddress);
-                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, durationMillis);
-
-                PipeWriter.publishWrites(i2cOutput);
-
-            }else {
-                throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
-            }    
-            
-	    } finally {
-            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-        }
-        
-	}
-
-	public void i2cFlushBatch() {        
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {
-            publishGo(runningI2CCommandCount,i2cPipeIdx);
-			runningI2CCommandCount = 0;
-
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
-	}
 
 
 
@@ -388,7 +298,6 @@ public class PiCommandChannel extends CommandChannel{
             if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNELMS_22)) {
 
                 PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13, msDuration);
-
                 PipeWriter.publishWrites(i2cOutput);
 
                 publishGo(1,i2cPipeIdx);

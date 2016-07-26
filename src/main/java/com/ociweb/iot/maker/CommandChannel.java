@@ -17,12 +17,19 @@ public abstract class CommandChannel {
     protected final Pipe<?>[] outputPipes;
     protected final Pipe<TrafficOrderSchema> goPipe;
     protected final Pipe<MessagePubSub> messagePubSub;
+    protected final Pipe<I2CCommandSchema> i2cOutput;
+    protected final Pipe<GroveRequestSchema> output;
+    
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
-      
+
+
+    protected DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
+    protected int runningI2CCommandCount;
+    
     private Object listener;
 
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
-    protected final int maxCommands = 10;
+    protected final int maxCommands = 15;
     
     private long topicKeyGen;
     
@@ -34,10 +41,14 @@ public abstract class CommandChannel {
     protected final int subPipeIdx = 2;
     
         
-    protected CommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe) {
+    protected CommandChannel(GraphManager gm, 
+                             Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub,  //avoid adding more and see how they can be combined.
+                             Pipe<TrafficOrderSchema> goPipe) {
        this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};
        this.goPipe = goPipe;
        this.messagePubSub = messagePubSub;
+       this.i2cOutput = i2cOutput;
+       this.output = output;
     }
     
 
@@ -76,13 +87,93 @@ public abstract class CommandChannel {
     public abstract boolean digitalPulse(int connector, long durationMilli);
     public abstract boolean analogSetValue(int connector, int value);
     public abstract boolean analogSetValueAndBlock(int connector, int value, long durationMilli);
-    public abstract boolean i2cIsReady();
-    public abstract DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress);
-    public abstract void i2cCommandClose();
-    public abstract void i2cFlushBatch();
-    public abstract void i2cDelay(int targetAddress, int durationMilli);
+
+    public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+
+            if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
+
+                if (null==i2cWriter) {
+                    //TODO: add init method that we we will call from stage to do this.
+                    i2cWriter = new DataOutputBlobWriter<I2CCommandSchema>(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
+                }
+                 
+                DataOutputBlobWriter.openField(i2cWriter);
+                return i2cWriter;
+            } else {
+                throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
+            }
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+        
+    }
     
 
+
+    
+    public void i2cDelay(int targetAddress, int durationMillis) {
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            if (++runningI2CCommandCount > maxCommands) {
+                throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
+            }
+        
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
+
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, targetAddress);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, durationMillis);
+
+                PipeWriter.publishWrites(i2cOutput);
+
+            }else {
+                throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
+            }    
+            
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+        
+    }
+    
+    public boolean i2cIsReady() {
+        
+        return  PipeWriter.hasRoomForWrite(goPipe) &&         
+                          PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
+       
+    }
+    
+
+    public void i2cFlushBatch() {        
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            publishGo(runningI2CCommandCount,i2cPipeIdx);
+            runningI2CCommandCount = 0;
+
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+    }
+
+
+
+    public void i2cCommandClose() {  
+        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+        try {
+            if (++runningI2CCommandCount > maxCommands) {
+                throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
+            }
+            
+            DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+            PipeWriter.publishWrites(i2cOutput);
+        } finally {
+            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+        }
+        
+    }
+    
     public boolean subscribe(CharSequence topic) {
         return subscribe(topic, (PubSubListener)listener);
     }

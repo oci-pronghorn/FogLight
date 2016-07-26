@@ -153,7 +153,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
            
            //second channel is required or we are left waiting for one cycle of the ticks before we can update.
            
-           if (Grove_LCD_RGB.commandForText(screenCommandChannel, message+" "+tempoIdx)) {
+           if (Grove_LCD_RGB.commandForText(screenCommandChannel, String.valueOf(tempBPM))) {
                showingBPM = tempBPM;
            }
            

@@ -15,7 +15,6 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.RotaryListener;
-import com.ociweb.pronghorn.iot.DefaultReactiveListenerStage;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;

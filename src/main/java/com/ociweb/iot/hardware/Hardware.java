@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
-import com.ociweb.iot.hardware.impl.grovepi.GroveV2PiImpl;
 //github.com/oci-pronghorn/PronghornIoT.git
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
@@ -18,8 +17,6 @@ import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.TrafficCopStage;
-import com.ociweb.pronghorn.iot.DefaultReactiveListenerStage;
-import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;

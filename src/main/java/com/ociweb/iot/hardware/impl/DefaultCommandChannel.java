@@ -28,6 +28,7 @@ public class DefaultCommandChannel extends CommandChannel{
 
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
 				PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, duration);
+				
 				PipeWriter.publishWrites(output);
 				
                 publishGo(1,pinPipeIdx);

@@ -273,26 +273,26 @@ public class Grove_LCD_RGB implements IODevice{
  * When LCD display string with more than 3 characters, will be "too many commands error, found 16 only have room for 15"	
  * Test code to show only the first 3 chars
  */
-//		int size =3;
-//	    String[] result = new String[(int)Math.ceil((double)text.length()/(double)size)];
-////	    for (int i=0; i<result.length; i++){
-//	    for (int i=0; i<1; i++){
-//	        result[i] = text.substring(i*size, Math.min(text.length(), (i+1)*size));
-//			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(0)));
-//			if (result[i].length()>=2) writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(1)));
-//			if (result[i].length()>=3) writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(2)));
-//			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
-//	    }
+		int size =16;//switch line after
+	    String[] result = new String[(int)Math.ceil((double)text.length()/(double)size)];
+//	    for (int i=0; i<result.length; i++){
+	    for (int i=0; i<result.length; i++){
+	        result[i] = text.substring(i*size, Math.min(text.length(), (i+1)*size));
+	        for (int j=0;j<result[i].length();j++){
+	        writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(j)));	
+	        }
+			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+	    }
 		
 
 /*
  * Original Code is below:	    
  */
-		String[] lines = text.split("\n");
-		for(String line: lines) {
-			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line.trim());
-			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
-		}
+//		String[] lines = text.split("\n");
+//		for(String line: lines) {
+//			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line.trim());
+//			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+//		}
 
 		
 	}

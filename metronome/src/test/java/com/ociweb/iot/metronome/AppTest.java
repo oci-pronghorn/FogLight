@@ -34,7 +34,7 @@ public class AppTest
         scheduler.startup();
         
         long lastTime = 0;
-        int ticks = 10;
+        int ticks = 4;
         
         hardware.clearCaputuredFirstTimes();
         hardware.clearCaputuredHighs();

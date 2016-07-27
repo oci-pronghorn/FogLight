@@ -149,7 +149,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    }
 
 	    if (this.inputs.length > 0) {
-    	    inProgressIdx = this.inputs.length-1;    	        	    
+    	    inProgressIdx = this.inputs.length-1; 
     	    return true;
 	    } else {
 	        return false;
@@ -166,7 +166,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     	    	timeOut = hardware.currentTimeMillis() + writeTime;
     	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
     	        try {
-					Thread.sleep(1);
+					Thread.sleep(0,1000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

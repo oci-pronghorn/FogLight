@@ -25,7 +25,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private final I2CBacking i2c;
 	private final Pipe<I2CCommandSchema>[] fromCommandChannels;
 	private final Pipe<I2CResponseSchema> i2cResponsePipe;
-
+	
+	
 	private static final Logger logger = LoggerFactory.getLogger(I2CJFFIStage.class);
 
 	private I2CConnection[] inputs = null;
@@ -69,7 +70,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			timeOut = hardware.currentTimeMillis() + writeTime;
 			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
 			 //TODO: add setup for outputs
-			System.out.println("Setup I2C Device on "+inputs[i].address+" Sent "+Arrays.toString(inputs[i].setup));
 			logger.info("I2C setup {} complete",inputs[i].address);
 		}
 		
@@ -108,8 +108,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         	            if (!PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
         	                throw new RuntimeException("should not happen "+i2cResponsePipe);
         	            }
-        	            
-                        logger.debug("Sending reading to Pipe");
+
                         PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
                         PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
                         PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
@@ -167,6 +166,12 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     	    if (!pollBlocker.isBlocked(deviceKey(connection))) {
     	    	timeOut = hardware.currentTimeMillis() + writeTime;
     	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
     	        awaitingResponse = true;
     	        //NOTE: the register may or may not be present and the address may not be enough to go on so we MUST 
     	        pollBlocker.until(deviceKey(connection), now+connection.twig.response());
@@ -192,14 +197,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     private void sendOutgoingCommands(int activePipe) {
         
         Pipe<I2CCommandSchema> pipe = fromCommandChannels[activePipe];
-        int pipeKey = -1 -activePipe;
-        
-        if (connectionBlocker.isBlocked(pipeKey)) {
-            return; //TODO: is this blocking right?? TOOD: should this be across stages??
-        }
-        
-        
+
         while ( hasReleaseCountRemaining(activePipe) 
+                && !isChannelBlocked(activePipe)
         		&& !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) //peek next address and check that it is not blocking for some time 
         		&& PipeReader.tryReadFragment(pipe)){
 
@@ -237,9 +237,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
             	case I2CCommandSchema.MSG_BLOCKCHANNELMS_22:
             	{
-            	   long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13);
-            	   connectionBlocker.until(pipeKey, hardware.currentTimeMillis() + duration);
-            	   logger.debug("CommandChannel blocked for {} millis ",duration);
+            	   blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));            	   
+            	   logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
             	}
             	break;
             	

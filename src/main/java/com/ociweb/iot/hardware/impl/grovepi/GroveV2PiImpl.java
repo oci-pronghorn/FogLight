@@ -54,12 +54,14 @@ public class GroveV2PiImpl extends Hardware {
 		if(t.isGrove()){
 			if (t.isInput()) {
 				assert(!t.isOutput());
+				connection = GrovePiConstants.ANALOG_PIN_TO_REGISTER[connection];
 				byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
 				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};				
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup));
 			} else {
 				assert(t.isOutput());
 				assert(!t.isInput());
+				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
 				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
 				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup));
 			}
@@ -80,6 +82,7 @@ public class GroveV2PiImpl extends Hardware {
 		if(t.isGrove()){
 			if (t.isInput()) {
 				assert(!t.isOutput());
+				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
 				byte[] readCmd = {0x01,0x01,(byte)connection,0x00,0x00};
 				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
 				logger.info("Digital Input Connected on "+connection);
@@ -87,6 +90,7 @@ public class GroveV2PiImpl extends Hardware {
 			} else {
 				assert(t.isOutput());
 				assert(!t.isInput());
+				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
 				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
 				logger.info("Digital Output Connected on "+connection);
 				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup));

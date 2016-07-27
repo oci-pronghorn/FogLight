@@ -69,6 +69,7 @@ public class DeviceRuntime {
     
     private boolean isEdison = false;
     private boolean isPi = false;
+    private int channelsCount;
     
     private int DEFAULT_SLEEP_RATE_NS = 10_000_000;   //we will only check for new work 100 times per second to keep CPU usage low.
     
@@ -126,7 +127,7 @@ public class DeviceRuntime {
     }
     
     public CommandChannel newCommandChannel() { 
-         
+        channelsCount++;
     	return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(requestPipeConfig ),
     	                                       new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig), 
     	                                       new Pipe<MessagePubSub>(messagePubSubConfig),
@@ -135,7 +136,7 @@ public class DeviceRuntime {
     }
 
     public CommandChannel newCommandChannel(int customChannelLength) { 
-        
+        channelsCount++;
         return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, customChannelLength) ),
                                                new Pipe<I2CCommandSchema>(new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, customChannelLength,defaultCommandChannelMaxPayload)), 
                                                new Pipe<MessagePubSub>(new PipeConfig<MessagePubSub>(MessagePubSub.instance, customChannelLength,defaultCommandChannelMaxPayload)),
@@ -290,8 +291,11 @@ public class DeviceRuntime {
 
         
     private void start() {
-       hardware.coldSetup();
+       hardware.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
    
+       hardware.initChannelBlocker(channelsCount);
+       
+       
        hardware.buildStages(subscriptionPipeLookup,
                             GraphManager.allPipesOfType(gm, GroveResponseSchema.instance), 
                             GraphManager.allPipesOfType(gm, I2CResponseSchema.instance),

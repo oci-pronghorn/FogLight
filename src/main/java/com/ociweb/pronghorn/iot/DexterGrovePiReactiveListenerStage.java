@@ -3,8 +3,8 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -13,8 +13,6 @@ import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-//import com.ociweb.pronghorn.util.ma.MAAvgRollerLongTest;
-import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
 public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
@@ -57,6 +55,8 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 						int tempValue = backing[position&mask];
 						if(tempValue!=lastDigital){
 							lastDigital = tempValue;
+							register = GrovePiConstants.REGISTER_TO_PIN[register];
+							assert(register!=-1);
 							((DigitalListener)listener).digitalEvent(register, time, tempValue);
 							logger.debug("Digital event");
 						}
@@ -76,6 +76,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
     						if (tempValue<0) {
     						    System.out.println("bad array "+backing[(position+0)&mask]+" "+backing[(position+1)&mask]+" "+backing[(position+2)&mask]);
     						} else {
+    							register = GrovePiConstants.REGISTER_TO_PIN[register];
     							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=? only clear after we control the poll rate
         						lastAnalog = tempValue;        			
     						}

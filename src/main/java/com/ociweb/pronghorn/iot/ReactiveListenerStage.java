@@ -39,8 +39,8 @@ public class ReactiveListenerStage extends PronghornStage {
     
     private static final int MAX_SENSORS = 32;
     
-    protected final MAvgRollerLong[] rollingMovingAveragesAnalog;
-    protected final MAvgRollerLong[] rollingMovingAveragesDigital;    
+    protected MAvgRollerLong[] rollingMovingAveragesAnalog;
+    protected MAvgRollerLong[] rollingMovingAveragesDigital;    
     
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
@@ -56,13 +56,6 @@ public class ReactiveListenerStage extends PronghornStage {
         //force all commands to happen upon publish and release
         this.supportsBatchedPublish = false;
         this.supportsBatchedRelease = false;                
-        
-        //Init all the moving averages to the right size
-        this.rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_SENSORS];
-        this.rollingMovingAveragesDigital = new MAvgRollerLong[MAX_SENSORS];
-        
-        setupMovingAverages(rollingMovingAveragesAnalog, hardware.analogInputs);
-        setupMovingAverages(rollingMovingAveragesDigital, hardware.digitalInputs);
                 
     }
 
@@ -95,6 +88,13 @@ public class ReactiveListenerStage extends PronghornStage {
         if (listener instanceof StartupListener) {
             ((StartupListener)listener).startup();
         }
+                
+        //Init all the moving averages to the right size
+        rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_SENSORS];
+        rollingMovingAveragesDigital = new MAvgRollerLong[MAX_SENSORS];
+        
+        setupMovingAverages(rollingMovingAveragesAnalog, hardware.analogInputs);
+        setupMovingAverages(rollingMovingAveragesDigital, hardware.digitalInputs);
   
     }
 

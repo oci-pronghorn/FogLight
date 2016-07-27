@@ -29,7 +29,7 @@ public abstract class CommandChannel {
     private Object listener;
 
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
-    protected final int maxCommands = 40; // Change from 15 to 40 to accommodate the changes in LCD writeTwoLines
+    protected final int maxCommands = 15; // Change from 15 to 44 (32-3+15) to accommodate the changes in LCD writeTwoLines 
     
     private long topicKeyGen;
     
@@ -147,16 +147,8 @@ public abstract class CommandChannel {
     
     public boolean i2cIsReady() {
         
-        boolean result =  PipeWriter.hasRoomForWrite(goPipe) &&         
+        return PipeWriter.hasRoomForWrite(goPipe) &&         
                 PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
-        
-        if (!result) {
-            
-            System.out.println(goPipe);
-            System.out.println(i2cOutput+" need room for "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
-        }
-        
-        return result;
        
     }
     

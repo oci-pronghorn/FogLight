@@ -16,7 +16,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class PiCommandChannel extends CommandChannel{
 
 	private byte i2cPipeIdx;
-	private byte groveAddr = 0x04;
+	private final byte groveAddr = 0x04;
 	
 	private Logger logger = LoggerFactory.getLogger(PiCommandChannel.class);
 

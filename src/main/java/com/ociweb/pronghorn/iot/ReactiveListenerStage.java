@@ -3,6 +3,7 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
@@ -20,6 +21,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
 public class ReactiveListenerStage extends PronghornStage {
 
@@ -33,7 +35,13 @@ public class ReactiveListenerStage extends PronghornStage {
     
     protected Hardware					hardware;
   
-    private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStage.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStage.class); 
+    
+    private static final int MAX_SENSORS = 32;
+    
+    protected final MAvgRollerLong[] rollingMovingAveragesAnalog;
+    protected final MAvgRollerLong[] rollingMovingAveragesDigital;    
+    
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
 
@@ -47,9 +55,30 @@ public class ReactiveListenerStage extends PronghornStage {
         
         //force all commands to happen upon publish and release
         this.supportsBatchedPublish = false;
-        this.supportsBatchedRelease = false;
+        this.supportsBatchedRelease = false;                
+        
+        //Init all the moving averages to the right size
+        this.rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_SENSORS];
+        this.rollingMovingAveragesDigital = new MAvgRollerLong[MAX_SENSORS];
+        
+        setupMovingAverages(rollingMovingAveragesAnalog, hardware.analogInputs);
+        setupMovingAverages(rollingMovingAveragesDigital, hardware.digitalInputs);
+                
     }
 
+    private void setupMovingAverages(MAvgRollerLong[] target, HardConnection[] con) {
+        int i = con.length;
+        while (--i >= 0) {
+            
+              int ms   = con[i].movingAverageWindowMS;
+              int rate = con[i].responseMS;
+              target[con[i].connection] = new MAvgRollerLong(ms/rate);
+  
+        }        
+    }
+    
+    
+    
     public void setTimeEventSchedule(long rate) {
         
         timeRate = rate;

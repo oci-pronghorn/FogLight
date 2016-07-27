@@ -44,14 +44,14 @@ public class IoTApp implements IoTSetup
     	
     	final CommandChannel lcdScreenChannel = runtime.newCommandChannel();
     	runtime.addAnalogListener((connection, time, average, value)->{
-    		
+ 
     		switch(connection) {
 	    		case LIGHT_SENSOR_CONNECTION:
 	    			
 	    			int leadingZeros =  Integer.numberOfLeadingZeros(value) - (32-10); //value is only 10 bits max
-		
+
 	    			int level = Math.min(255, (brightness * Math.min(leadingZeros,8))/8);
-	    			
+
 	    			Grove_LCD_RGB.commandForColor(lcdScreenChannel, level, level, level);	    			
 	    				    			
 	    			break;

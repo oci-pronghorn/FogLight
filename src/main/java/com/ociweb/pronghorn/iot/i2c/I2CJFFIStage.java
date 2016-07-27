@@ -70,7 +70,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			timeOut = hardware.currentTimeMillis() + writeTime;
 			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
 			 //TODO: add setup for outputs
-			System.out.println("Setup I2C Device on "+inputs[i].address+" Sent "+Arrays.toString(inputs[i].setup));
 			logger.info("I2C setup {} complete",inputs[i].address);
 		}
 		
@@ -109,8 +108,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         	            if (!PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
         	                throw new RuntimeException("should not happen "+i2cResponsePipe);
         	            }
-        	            
-                        logger.debug("Sending reading to Pipe");
+        	           
                         PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
                         PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
                         PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
@@ -168,6 +166,12 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     	    if (!pollBlocker.isBlocked(deviceKey(connection))) {
     	    	timeOut = hardware.currentTimeMillis() + writeTime;
     	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
+    	        try {
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
     	        awaitingResponse = true;
     	        //NOTE: the register may or may not be present and the address may not be enough to go on so we MUST 
     	        pollBlocker.until(deviceKey(connection), now+connection.twig.response());

@@ -105,6 +105,44 @@ public class GrovePiConstants {
         40
     };
     
+    public static final int[] DIGITAL_PIN_TO_REGISTER = new int[] {
+    		0,
+    		1,
+    		2,
+    		3,
+    		4,
+    		5,
+    		6,
+    		7,
+    		8,
+    };
+    
+    public static final int[] ANALOG_PIN_TO_REGISTER = new int[] {
+    		14,
+    		15,
+    		16	
+    };
+    
+    public static final int[] REGISTER_TO_PIN = new int[] {
+    		0,
+    		1,
+    		2,
+    		3,
+    		4,
+    		5,
+    		6,
+    		7,
+    		8,
+    		-1,
+    		-1,
+    		-1,
+    		-1,
+    		-1,
+    		0,
+    		1,
+    		2
+    };
+    
     public static final HardConnection[] i2cPins = new HardConnection[] {
     new HardConnection(GroveTwig.I2C,0),
     new HardConnection(GroveTwig.I2C,1)

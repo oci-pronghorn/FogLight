@@ -39,6 +39,7 @@ import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
+import com.ociweb.pronghorn.util.Blocker;
 
 public abstract class Hardware {
     
@@ -63,6 +64,7 @@ public abstract class Hardware {
     public I2CConnection[] i2cOutputs;
     
     private long timeTriggerRate;
+    private Blocker channelBlocker;
     
     public final GraphManager gm;
     
@@ -90,7 +92,6 @@ public abstract class Hardware {
     
     public Hardware(GraphManager gm, I2CBacking i2cBacking) {
         this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
-        
     }
     
     protected Hardware(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
@@ -406,7 +407,7 @@ public abstract class Hardware {
                                           Pipe<MessageSubscription>[] subscriptionPipes) {
         
         new MessagePubSubStage(this.gm, subscriptionPipeLookup, this, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
-                
+       
         
     }
 
@@ -458,7 +459,22 @@ public abstract class Hardware {
         return System.currentTimeMillis();
     }
 
+    public void initChannelBlocker(int channelsCount) {
+        channelBlocker = new Blocker(channelsCount);
+    }
 
+    public void blockChannelUntil(int channelId, long timeInMillis) {        
+        channelBlocker.until(channelId, timeInMillis);
+    }
+    
+    public boolean isChannelBlocked(int channelId) {
+        return channelBlocker.isBlocked(channelId);
+    }
+
+    public void releaseChannelBlocks(long now) {
+        channelBlocker.releaseBlocks(now);
+    }
+    
 
 
     

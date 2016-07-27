@@ -196,14 +196,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     private void sendOutgoingCommands(int activePipe) {
         
         Pipe<I2CCommandSchema> pipe = fromCommandChannels[activePipe];
-        int pipeKey = -1 -activePipe;
-        
-        if (connectionBlocker.isBlocked(pipeKey)) {
-            return; //TODO: is this blocking right?? TOOD: should this be across stages??
-        }
-        
-        
+
         while ( hasReleaseCountRemaining(activePipe) 
+                && !isChannelBlocked(activePipe)
         		&& !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) //peek next address and check that it is not blocking for some time 
         		&& PipeReader.tryReadFragment(pipe)){
 
@@ -241,9 +236,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
             	case I2CCommandSchema.MSG_BLOCKCHANNELMS_22:
             	{
-            	   long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13);
-            	   connectionBlocker.until(pipeKey, hardware.currentTimeMillis() + duration);
-            	   logger.debug("CommandChannel blocked for {} millis ",duration);
+            	   blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));            	   
+            	   logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
             	}
             	break;
             	

@@ -1,6 +1,7 @@
 package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -21,7 +22,6 @@ public abstract class CommandChannel {
     protected final Pipe<GroveRequestSchema> output;
     
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
-
 
     protected DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
     protected int runningI2CCommandCount;
@@ -48,8 +48,7 @@ public abstract class CommandChannel {
        this.goPipe = goPipe;
        this.messagePubSub = messagePubSub;
        this.i2cOutput = i2cOutput;
-       
-       
+                             
        if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
            throw new UnsupportedOperationException("maxCommands too large or pipe is too small, pipe size must be at least "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
        }

@@ -26,6 +26,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 	protected final Hardware hardware;
 	protected Blocker connectionBlocker;
+		
 	protected int[] activeCounts;	
 
 	private int hitPoints;
@@ -92,6 +93,11 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	public void run() {
 		processReleasedCommands(10_000);		
 	}
+	
+	
+	protected void blockChannelDuration(int activePipe, long timeMillis) {
+	    hardware.blockChannelUntil(( goPipe[activePipe].id ), hardware.currentTimeMillis() + timeMillis );
+	}
 
     protected boolean processReleasedCommands(long timeout) {
         boolean foundWork;
@@ -104,6 +110,10 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 			
 				while (--a >= 0) {
 				    long now = hardware.currentTimeMillis();
+				    hardware.releaseChannelBlocks(now);
+				    if (isChannelBlocked(a) ) {
+				        return true;            
+				    }   
 				    if (now >= timeLimit) {
 				        //stop here because we have run out of time, do save our location to start back here.
 				        startLoopAt = a+1;
@@ -121,6 +131,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 					int startCount = localActiveCounts[a];
 										
+			           
 					//This method must be called at all times to poll I2C
 					processMessagesForPipe(a);
 					
@@ -149,6 +160,10 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 			//we also check for 'near' work but only when there is no found work since its more expensive
 		} while (foundWork || connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),msNearWindow));
 		return true;
+    }
+
+    protected boolean isChannelBlocked(int a) {
+        return hardware.isChannelBlocked( goPipe[a].id );
     }
 
 	protected abstract void processMessagesForPipe(int a);

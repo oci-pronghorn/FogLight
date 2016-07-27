@@ -166,12 +166,14 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     	    if (!pollBlocker.isBlocked(deviceKey(connection))) {
     	    	timeOut = hardware.currentTimeMillis() + writeTime;
     	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
+
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
+
     	        awaitingResponse = true;
     	        //NOTE: the register may or may not be present and the address may not be enough to go on so we MUST 
     	        pollBlocker.until(deviceKey(connection), now+connection.twig.response());

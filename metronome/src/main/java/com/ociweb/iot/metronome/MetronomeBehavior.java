@@ -39,7 +39,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
 
     private final CommandChannel tickCommandChannel;
     private final CommandChannel screenCommandChannel;
-    private final String [] tempo ={ "Largo","Larghetto","Adagio","Andante","Moderato","Allegro","Presto","Prestissimo"};
+    
     private final String topic = "tick";
           
     
@@ -56,7 +56,6 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private long timeOfNewValue;
     private int tempBPM;
     private int showingBPM;
-    private String tempoIdx;
     
     public MetronomeBehavior(DeviceRuntime runtime) {
         this.tickCommandChannel = runtime.newCommandChannel();
@@ -99,8 +98,6 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     public void message(CharSequence topic, PayloadReader payload) {
         
     	
-        tickCommandChannel.openTopic(topic).publish();//request next tick while we get this one ready
-                
         if (activeBPM>0) {
 
             if (0==base) {
@@ -113,6 +110,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             
             tickCommandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);     
             tickCommandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
+            
 
             if (beatIdx==activeBPM) {
             	beatIdx = 0;
@@ -120,6 +118,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             }
             
         }
+        tickCommandChannel.openTopic(topic).publish();//request next tick
         
     }
 
@@ -127,33 +126,29 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     @Override
     public void timeEvent(long time) {
        if (tempBPM != showingBPM) {
-           
-           String message = " BPM "+tempBPM+"   "; //trailing space so we hid the previous numbers
+                      
+           String tempo;
            if (tempBPM<108){
         	   if(tempBPM<66){
-        		   if (tempBPM<60)tempoIdx = tempo[0];
-        		   else tempoIdx = tempo[1];
-        	   }
-        	   else{
-        		   if (tempBPM<76)tempoIdx = tempo[2];
-        		   else tempoIdx = tempo[3];
+        	       tempo = tempBPM<60 ? "Largo" : "Larghetto";
+        	   } else{
+        	       tempo = tempBPM<76 ? "Adagio" : "Andante";
         	   }
            }else{
         	   if(tempBPM<168){
-        		   if (tempBPM<120)tempoIdx = tempo[4];
-        		   else tempoIdx = tempo[5];
-        	   }
-        	   else{
-        		   if (tempBPM<200)tempoIdx = tempo[6];
-        		   else tempoIdx = tempo[7];
+        	       tempo = tempBPM<120 ? "Moderato" : "Allegro";
+        	   } else {
+        	       tempo = tempBPM<200 ? "Presto" : "Prestissimo";
         	   }
            }
-           System.out.println(message+" "+System.currentTimeMillis()+"      "+tempoIdx);
            
+           String bpm = Integer.toString(tempBPM);
+           if (tempBPM<100) {
+               bpm = "0"+bpm;
+           }
            
-           //second channel is required or we are left waiting for one cycle of the ticks before we can update.
-           
-           if (Grove_LCD_RGB.commandForText(screenCommandChannel, String.valueOf(tempBPM))) {
+           //second channel is used so we are left waiting for one cycle of the ticks before we can update.
+           if (Grove_LCD_RGB.commandForText(screenCommandChannel, bpm+"-"+tempo)) {
                showingBPM = tempBPM;
            }
            

@@ -50,14 +50,12 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	@Override
-	public Hardware useConnectA(IODevice t, int connection, int customRate) { //TODO: add customRate support
+	public Hardware useConnectA(IODevice t, int connection, int customRate) {
 		if(t.isGrove()){
-			connection = connection + 14; //TODO: Nathan know I did this to map analog pin numbers to the board.
-										  //If you prefer, we can add it to the twigs themselves instead of here
 			if (t.isInput()) {
 				assert(!t.isOutput());
 				byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
-				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
+				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};				
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup));
 			} else {
 				assert(t.isOutput());

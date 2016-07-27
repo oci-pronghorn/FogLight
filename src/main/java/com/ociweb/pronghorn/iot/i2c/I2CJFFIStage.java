@@ -52,7 +52,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		this.i2cResponsePipe = i2cResponsePipe;
 
 		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
-		
+
         //force all commands to happen upon publish and release
         this.supportsBatchedPublish = false;
         this.supportsBatchedRelease = false;
@@ -165,11 +165,12 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    I2CConnection connection = this.inputs[inProgressIdx];
 	    
 	    do {
-    	    if (!pollBlocker.isBlocked(connection.address)) {
+    	    if (!pollBlocker.isBlocked(deviceKey(connection))) {
     	    	timeOut = hardware.currentTimeMillis() + writeTime;
     	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
     	        awaitingResponse = true;
-    	        pollBlocker.until(connection.address, now+connection.twig.response());
+    	        //NOTE: the register may or may not be present and the address may not be enough to go on so we MUST 
+    	        pollBlocker.until(deviceKey(connection), now+connection.twig.response());
     	        Thread.yield();//provide the system and opportunity to switch.
     	        return;
     	    }
@@ -179,7 +180,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	}
 
 
-	protected void processMessagesForPipe(int a) {
+	private int deviceKey(I2CConnection connection) {
+        return  (((int)connection.address)<< 16) | connection.register;
+    }
+
+    protected void processMessagesForPipe(int a) {
 	    
 	    sendOutgoingCommands(a);
 

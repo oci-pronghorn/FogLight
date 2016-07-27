@@ -18,4 +18,9 @@ public class I2CConnection {
         this.setup = setup;
 
     }
+    
+    @Override
+    public String toString() {
+        return twig.getClass().getSimpleName()+" "+address;        
+    }
 }

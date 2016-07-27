@@ -77,7 +77,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 						}
 					}
 					else if(listener instanceof AnalogListener && addr==4 && length==3){
-						
+	
 						int high = (int)backing[(position+1)&mask];
                         int low = (int)backing[(position+2)&mask];
                         
@@ -90,6 +90,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
     	
                             //NEED ONE OF THESE PER REGISTER.
                             //MAvgRollerLong maRoller = new MAvgRollerLong(COUNT)
+                                                     
                             
                             
     						if (tempValue<0) {

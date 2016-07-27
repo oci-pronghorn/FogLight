@@ -1,12 +1,7 @@
 package com.ociweb.iot.nightlight;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-
 import org.junit.Test;
 
-import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.hardware.impl.test.TestI2CBacking;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -35,7 +30,9 @@ public class AppTest {
 	    	hardware.analogWrite(IoTApp.ANGLE_SENSOR_CONNECTION, 512);
 	    	hardware.analogWrite(IoTApp.LIGHT_SENSOR_CONNECTION, 300);
 	    	
-
+	    	
+	    	
+	    	
 	 
 //	    	scheduler.run();
 //	    	

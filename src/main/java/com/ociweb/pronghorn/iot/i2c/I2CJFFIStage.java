@@ -33,7 +33,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	   
     private int inProgressIdx = -1;
     private boolean awaitingResponse = false;
-    private long time = 0;
     
     private static final int MAX_ADDR = 127;
     private Blocker pollBlocker;

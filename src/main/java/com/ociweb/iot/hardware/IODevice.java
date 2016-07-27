@@ -2,7 +2,7 @@ package com.ociweb.iot.hardware;
 
 public interface IODevice {
 
-     public int           response(); //in ms, do not poll faster than this, 0 is continuous audio
+     public int           response(); //in ms, do not poll faster than this
      public boolean       isInput();
      public boolean       isOutput();
      public boolean       isPWM();

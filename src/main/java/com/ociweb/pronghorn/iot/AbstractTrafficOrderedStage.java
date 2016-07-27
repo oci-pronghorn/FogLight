@@ -30,7 +30,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 	private int hitPoints;
     private final GraphManager graphManager;
-    private long msNearWindow;
+    protected long msNearWindow;
     private int startLoopAt = -1;
     
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTrafficOrderedStage.class);
@@ -93,7 +93,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		processReleasedCommands(10_000);		
 	}
 
-    protected void processReleasedCommands(long timeout) {
+    protected boolean processReleasedCommands(long timeout) {
         boolean foundWork;
 		int[] localActiveCounts = activeCounts;
 		long timeLimit = hardware.currentTimeMillis()+timeout;
@@ -105,10 +105,9 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 				while (--a >= 0) {
 				    long now = hardware.currentTimeMillis();
 				    if (now >= timeLimit) {
-				        System.out.println("timeout of cmmand loop");
 				        //stop here because we have run out of time, do save our location to start back here.
 				        startLoopAt = a+1;
-                        return;
+                        return false;
 				    }
 				    
 				    //must clear these before calling processMessages, 
@@ -130,7 +129,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 					    //unable to finish group, try again later, this is critical so that callers can
 					    //interact and then block knowing nothing else can get between the commands.
 					    startLoopAt = a+1;
-					    return; //a poll may happen here but no other commands will happen until this is completed.
+					    return true; //a poll may happen here but no other commands will happen until this is completed.
 					} else {
 					    foundWork |= (localActiveCounts[a]!=startCount);//work was done if progress was made					    
 					}					
@@ -149,6 +148,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
 			//we also check for 'near' work but only when there is no found work since its more expensive
 		} while (foundWork || connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),msNearWindow));
+		return true;
     }
 
 	protected abstract void processMessagesForPipe(int a);

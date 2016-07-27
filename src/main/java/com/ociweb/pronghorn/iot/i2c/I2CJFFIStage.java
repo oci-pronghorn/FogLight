@@ -81,60 +81,64 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	
 	@Override
 	public void run() {
-
-	    //All poll cycles come first as the highest priority.
+	    boolean doneWithActiveCommands = false;
+	    //All poll cycles come first as the highest priority. commands will come second and they can back up on the pipe if needed.
 	    
-	    if (isPollInProgress()) {
-
-	        if (!PipeWriter.hasRoomForFragmentOfSize(i2cResponsePipe, Pipe.sizeOf(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10))) {
-	            return;//no room for response so do not read it now.
-	        }
-	        
-	        int len = this.inputs[inProgressIdx].readBytes;
-	        workingBuffer[0] = -2;
-	        byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, len); 
-	        if (-1 == temp[0]) {
-	            //no data yet with all -1 values  s
-	            return;
-	        } else {
-	            
-	            if (-2 == temp[0]) {
-	                
-	                //no response and none will follow
-	                //eg the poll failed on this round   
-	                
-	            } else {
-	            
-    	            if (!PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-    	                throw new RuntimeException("should not happen "+i2cResponsePipe);
-    	            }
+	    do {
+    	    if (isPollInProgress()) {
+    
+    	        if (!PipeWriter.hasRoomForFragmentOfSize(i2cResponsePipe, Pipe.sizeOf(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10))) {
+    	            return;//no room for response so do not read it now.
+    	        }
+    	        
+    	        int len = this.inputs[inProgressIdx].readBytes;
+    	        workingBuffer[0] = -2;
+    	        byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, len); 
+    	        if (-1 == temp[0]) {
+    	            //no data yet with all -1 values
+    	            return;
+    	        } else {
     	            
-                    logger.debug("Sending reading to Pipe");
-                    PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
-                    PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
-                    PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
-                    PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
-                    PipeWriter.publishWrites(i2cResponsePipe);
-                    
-	            }
-                                
-                inProgressIdx--;//read next one
-	        }
-	    }
-	    
-	    //we are not waiting for a response so now its time send the commands.
-	    processReleasedCommands(200);       
-	    //processWaitingTraffic(1000);
-	    
-	    //check if we should begin polling again
-	    if (isTimeToPoll()) {
-	        sendReadRequest();
-	    }
-	    
+    	            if (-2 == temp[0]) {
+    	                
+    	                //no response and none will follow
+    	                //eg the poll failed on this round   
+    	                
+    	            } else {
+    	            
+        	            if (!PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+        	                throw new RuntimeException("should not happen "+i2cResponsePipe);
+        	            }
+        	            
+                        logger.debug("Sending reading to Pipe");
+                        PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
+                        PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
+                        PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
+                        PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
+                        PipeWriter.publishWrites(i2cResponsePipe);
+                        
+    	            }
+                                    
+                    inProgressIdx--;//read next one
+    	        }
+    	    }
+    	    
+    	    long durationToNextRelease = pollBlocker.durationToNextRelease(hardware.currentTimeMillis(), 1000);
+    	        	    
+    	    //we are not waiting for a response so now its time send the commands.
+    	    //will return false if this timed out and we still had work to complete
+            doneWithActiveCommands = processReleasedCommands(durationToNextRelease); //no longer than 1 second     
+    	    
+    	    //check if we should begin polling again
+    	    if (isTimeToPoll()) {
+    	        sendReadRequest();
+    	    }
+    	    
+	    } while (!doneWithActiveCommands || 
+	             isPollInProgress() || 
+	             connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),msNearWindow) || 
+	             pollBlocker.willReleaseInWindow(hardware.currentTimeMillis(), msNearWindow));
 
-	    //if soon keep polling.
-	    //pollBlocker.willReleaseInWindow(currentTimeMillis, msNearWindow)
-	    
 	}
 	
 	private boolean isPollInProgress() {
@@ -159,14 +163,18 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    long now = System.currentTimeMillis();
 	    pollBlocker.releaseBlocks(now);
 	    I2CConnection connection = this.inputs[inProgressIdx];
-	    if (!pollBlocker.isBlocked(connection.address)) {
-	    	timeOut = hardware.currentTimeMillis() + writeTime;
-	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
-	        awaitingResponse = true;
-	        pollBlocker.until(connection.address, now+connection.twig.response());
-	    } else {
-	        inProgressIdx--;
-	    }
+	    
+	    do {
+    	    if (!pollBlocker.isBlocked(connection.address)) {
+    	    	timeOut = hardware.currentTimeMillis() + writeTime;
+    	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
+    	        awaitingResponse = true;
+    	        pollBlocker.until(connection.address, now+connection.twig.response());
+    	        Thread.yield();//provide the system and opportunity to switch.
+    	        return;
+    	    }
+    	    //if that one was blocked check the next.
+	    } while (--inProgressIdx >= 0);
         
 	}
 
@@ -180,7 +188,13 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     private void sendOutgoingCommands(int activePipe) {
         
         Pipe<I2CCommandSchema> pipe = fromCommandChannels[activePipe];
-                
+        int pipeKey = -1 -activePipe;
+        
+        if (connectionBlocker.isBlocked(pipeKey)) {
+            return; //TODO: is this blocking right?? TOOD: should this be across stages??
+        }
+        
+        
         while ( hasReleaseCountRemaining(activePipe) 
         		&& !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) //peek next address and check that it is not blocking for some time 
         		&& PipeReader.tryReadFragment(pipe)){
@@ -217,6 +231,14 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
             	}                                      
             	break;
     
+            	case I2CCommandSchema.MSG_BLOCKCHANNELMS_22:
+            	{
+            	   long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13);
+            	   connectionBlocker.until(pipeKey, hardware.currentTimeMillis() + duration);
+            	   logger.debug("CommandChannel blocked for {} millis ",duration);
+            	}
+            	break;
+            	
             	case I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20:
             	{  
             		int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12);
@@ -245,12 +267,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         	decReleaseCount(activePipe);
 
         }
-        
-//        System.out.println("DATA "+ hasReleaseCountRemaining(activePipe)+" && "+PipeReader.hasContentToRead(pipe)+" && "+
-//         (!connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)))+" && "+ //peek next address and check that it is not blocking for some time 
-//          PipeReader.tryReadFragment(pipe));
-//
-//        
+    
     }
 
 

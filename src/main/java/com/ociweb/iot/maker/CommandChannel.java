@@ -48,6 +48,13 @@ public abstract class CommandChannel {
        this.goPipe = goPipe;
        this.messagePubSub = messagePubSub;
        this.i2cOutput = i2cOutput;
+       
+       
+       if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
+           throw new UnsupportedOperationException("maxCommands too large or pipe is too small, pipe size must be at least "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
+       }
+       
+       
        this.output = output;
     }
     
@@ -140,8 +147,16 @@ public abstract class CommandChannel {
     
     public boolean i2cIsReady() {
         
-        return  PipeWriter.hasRoomForWrite(goPipe) &&         
-                          PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
+        boolean result =  PipeWriter.hasRoomForWrite(goPipe) &&         
+                PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
+        
+        if (!result) {
+            
+            System.out.println(goPipe);
+            System.out.println(i2cOutput+" need room for "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
+        }
+        
+        return result;
        
     }
     

@@ -52,8 +52,11 @@ public class DeviceRuntime {
     private final int defaultCommandChannelLength = 16;
     private final int defaultCommandChannelMaxPayload = 256; //largest i2c request or pub sub payload
     
+    private final int i2cDefaultLength = 300;
+    private final int i2cDefaultMaxPayload = 16;
+    
     private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
-    private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, defaultCommandChannelLength,defaultCommandChannelMaxPayload);    
+    private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);    
     private final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, defaultCommandChannelLength,defaultCommandChannelMaxPayload); 
     private final PipeConfig<TrafficOrderSchema> goPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, defaultCommandChannelLength); 
     

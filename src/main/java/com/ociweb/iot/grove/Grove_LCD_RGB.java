@@ -1,6 +1,7 @@
 package com.ociweb.iot.grove;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
@@ -89,7 +90,7 @@ public class Grove_LCD_RGB implements IODevice{
 	 *
 	 * TODO: This function is currently causing the last letter of the text to be dropped
 	 *       when displayed on the Grove RGB LCD; there's currently a work-around that
-	 *       simply appens a space to the incoming text variable, but it's hackish
+	 *       simply appends a space to the incoming text variable, but it's hackish
 	 *       and should be looked into more...
 	 *
 	 * @param text String to display on the Grove RGB LCD.
@@ -131,7 +132,39 @@ public class Grove_LCD_RGB implements IODevice{
 
 		return true;
 	}
-	
+
+	public static void customCharDemo(CommandChannel target){
+		switch(index){
+		case(0):
+			commandForDisplay(target, true);
+		commandForColor(target, 0, 255, 0);
+		int[] seven = {0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f};
+		System.out.println("Setting char: ");
+		Grove_LCD_RGB.setCustomChar(target, 1, seven);
+		System.out.println("Done char");
+		break;
+		case(1):
+			commandForText(target, "text string");
+		break;
+		case(2):
+			displayClear(target);
+		//writeUTF8ToRegister(target, LCD_ADDRESS, LCD_SETCGRAMADDR, "a");
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, 68);
+		//writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+		target.i2cFlushBatch();
+		break;
+		case(3):
+			displayClear(target);
+		//writeUTF8ToRegister(target, LCD_ADDRESS, LCD_SETCGRAMADDR, "a");
+		System.out.println("writing custom");
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, 1);
+		//writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+		target.i2cFlushBatch();
+		break;
+		}
+		index++;
+	}
+
 
 	public static boolean commandForTextAndColor(CommandChannel target, String text, int r, int g, int b) {
 		if (!target.i2cIsReady()) {
@@ -143,6 +176,7 @@ public class Grove_LCD_RGB implements IODevice{
 		target.i2cFlushBatch();
 		return true;
 	}
+
 	public static boolean commandForColor(CommandChannel target, int r, int g, int b) {
 
 		if (!target.i2cIsReady()) {
@@ -154,6 +188,7 @@ public class Grove_LCD_RGB implements IODevice{
 		target.i2cFlushBatch();
 		return true;
 	}
+
 	public static boolean commandForText(CommandChannel target, String text) {
 
 		if (!target.i2cIsReady()) {
@@ -166,6 +201,13 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
+	/**
+	 * Switches the lcd display on or off. Default is on
+	 * 
+	 * @param target CommandChannel to send command on
+	 * @param on boolean to set display to
+	 * @return boolean command is successful
+	 */
 	public static boolean commandForDisplay (CommandChannel target, boolean on){
 		if (!target.i2cIsReady()) {
 			return false;
@@ -182,6 +224,13 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
+	/**
+	 * Switches the cursor on or off. Default is off
+	 * 
+	 * @param target CommandChannel to send command on
+	 * @param on boolean to set cursor to
+	 * @return boolean command is successful
+	 */
 	public static boolean commandForCursor (CommandChannel target, boolean on){
 		if (!target.i2cIsReady()) {
 			return false;
@@ -199,6 +248,13 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
+	/**
+	 * Switches the blinking cursor on or off. Default is off
+	 * 
+	 * @param target CommandChannel to send command on
+	 * @param on boolean to set blink to
+	 * @return boolean command is successful
+	 */
 	public static boolean commandForBlink (CommandChannel target, boolean on){
 		if (!target.i2cIsReady()) {
 			return false;
@@ -216,18 +272,33 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
-	
-	public static boolean setCustomChar(CommandChannel target, int location, byte chars[]){
+	public static boolean setCustomChar(CommandChannel target, int location, int charMap[]){
 		if (!target.i2cIsReady()) {
 			return false;
 		}
+		assert(charMap.length == 8) : "charMap must contain an array of 8 bytes";
 		location &= 0x7;
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), LCD_SETCGRAMADDR, location << 3);
-		for (int i = 0; i < chars.length; i++) {
-			writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), LCD_SETCGRAMADDR, chars[i]);
+		for (int i = 0; i < charMap.length; i++) {
+			charMap[i] &= 0x1F; //each element contains 5 bits
 		}
+		
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_SETCGRAMADDR | (location<<3));
+		writeMultipleBytesToRegister(target, LCD_ADDRESS, LCD_SETCGRAMADDR, charMap);
 		target.i2cDelay(LCD_ADDRESS, 1);
 		target.i2cFlushBatch();
+		return true;
+	}
+
+	public static boolean writeCustomChar(CommandChannel target, int character){
+		if (!target.i2cIsReady()) {
+			return false;
+		}
+		setDisplayControl(target);
+		displayClear(target);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, character);
+		target.i2cDelay(LCD_ADDRESS, 1);
+		//		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+		//		target.i2cDelay(LCD_ADDRESS, 1);
 		return true;
 	}
 
@@ -246,7 +317,6 @@ public class Grove_LCD_RGB implements IODevice{
 		writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 2, b);
 	}
 
-
 	private static void displayClear(CommandChannel target) {
 		//clear display
 		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
@@ -254,56 +324,41 @@ public class Grove_LCD_RGB implements IODevice{
 
 	}
 
-
-
 	private static void showTwoLineText(CommandChannel target, String text) {
 
 		//display on - no cursor
-		//writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, 
-		//LCD_DISPLAYCONTROL | LCD_DISPLAYON);       
+		setDisplayControl(target);       
 
 		//two lines
 		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_TWO_LINES);        
 
 		//clear display
 		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
-		target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 1);
-
-/*
- * When LCD display string with more than 3 characters, will be "too many commands error, found 16 only have room for 15"	
- * Test code to show only the first 3 chars
- */
-		int size =16;//switch line after
-	    String[] result = new String[(int)Math.ceil((double)text.length()/(double)size)];
-//	    for (int i=0; i<result.length; i++){
-	    for (int i=0; i<result.length; i++){
-	        result[i] = text.substring(i*size, Math.min(text.length(), (i+1)*size));
-	        for (int j=0;j<result[i].length();j++){
-	        writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, String.valueOf(result[i].charAt(j)));	
-	        }
-			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
-	    }
+	
+		target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 2);
 		
+		String[] lines = text.split("\n");
+        int steps = 4;
+        for(String line: lines) {
+            int p = 0;
+            while (p<line.length()) {
+                writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line, p, Math.min(steps, line.length()-p) );
+                p+=steps;
+            }
+            //new line
+            writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+        }
 
-/*
- * Original Code is below:	    
- */
-//		String[] lines = text.split("\n");
-//		for(String line: lines) {
-//			writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line.trim());
-//			writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
-//		}
-
-		
 	}
 
 	private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
 		try {
 			DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
-			i2cPayloadWriter.write(new byte[]{(byte)register,(byte)value});
-			// i2cPayloadWriter.writeByte(register);
-			// i2cPayloadWriter.writeByte(value);            
+			//i2cPayloadWriter.write(new byte[]{(byte)register,(byte)value});
+			i2cPayloadWriter.writeByte(register);
+		    i2cPayloadWriter.writeByte(value);          
+			//System.out.println(Arrays.toString(new byte[]{(byte)register,(byte)value}));
 
 			target.i2cCommandClose();
 		} catch (IOException e) {
@@ -311,12 +366,31 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 	}
 
-	private static void writeUTF8ToRegister(CommandChannel target, int address, int register, CharSequence text) {
+	private static void writeMultipleBytesToRegister(CommandChannel target, int address, int register, int[] values) {
+		try {
+			DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
+
+			byte[] temp = new byte[values.length+1];  //TODO: Garbage
+			temp[0] = (byte)register;
+			for (int i = 0; i < values.length; i++) {
+				temp[i+1]=(byte)values[i];
+				
+			}
+			//System.out.println(Arrays.toString(temp));
+			i2cPayloadWriter.writeByteArray(temp);        
+
+			target.i2cCommandClose();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static void writeUTF8ToRegister(CommandChannel target, int address, int register, CharSequence text, int pos, int len) {
 		try {
 			DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
 			i2cPayloadWriter.writeByte(register);
-			DataOutputBlobWriter.encodeAsUTF8(i2cPayloadWriter, text);
+			DataOutputBlobWriter.encodeAsUTF8(i2cPayloadWriter, text, pos, len);
 
 			target.i2cCommandClose();
 		} catch (IOException e) {

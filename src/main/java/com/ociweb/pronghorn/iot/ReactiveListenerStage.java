@@ -247,10 +247,13 @@ public class ReactiveListenerStage extends PronghornStage {
                         int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31);
                         long time = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11);
                         int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32);
+                        //TODO: remove average.
                         int average = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_AVERAGE_33);
+
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_PREVDURATION_35);
-                        
-                        ((AnalogListener)listener).analogEvent(connector, time, average, value);
+                                                
+                        MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], value);                                                
+                        ((AnalogListener)listener).analogEvent(connector, time, (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]), value);
                         
                     }   
                 break;               

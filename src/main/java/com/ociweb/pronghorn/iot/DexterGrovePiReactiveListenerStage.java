@@ -58,8 +58,13 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 						int tempValue = backing[position&mask];
 						if(tempValue!=lastDigital){
 							lastDigital = tempValue;
-							register = GrovePiConstants.REGISTER_TO_PIN[register];
-							assert(register!=-1);
+							
+							int connector = GrovePiConstants.REGISTER_TO_PIN[register];
+							assert(connector!=-1);
+							
+							MAvgRollerLong.roll(rollingMovingAveragesDigital[connector], tempValue);
+							//TODO: add moving average 
+							
 							((DigitalListener)listener).digitalEvent(register, time, tempValue);
 							logger.debug("Digital event");
 						}
@@ -79,8 +84,10 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
     						if (tempValue<0) {
     						    System.out.println("bad array "+backing[(position+0)&mask]+" "+backing[(position+1)&mask]+" "+backing[(position+2)&mask]);
     						} else {
-    							register = GrovePiConstants.REGISTER_TO_PIN[register];
-    							((AnalogListener)listener).analogEvent(register, time, 0, tempValue); //TODO: Average=? only clear after we control the poll rate
+    							int connector = GrovePiConstants.REGISTER_TO_PIN[register];
+    							
+    							MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], tempValue);    							
+    							((AnalogListener)listener).analogEvent(connector, time, (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]), tempValue); //TODO: Average=? only clear after we control the poll rate
         						lastAnalog = tempValue;        			
     						}
                         }

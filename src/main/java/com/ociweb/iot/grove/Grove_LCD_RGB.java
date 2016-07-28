@@ -266,7 +266,7 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 		setDisplayControl(target);  
 		target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 1);
-
+		target.i2cFlushBatch();
 		return true;
 	}
 
@@ -347,6 +347,7 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, character);
 		target.i2cDelay(LCD_ADDRESS, 1);
+		target.i2cFlushBatch();
 
 		return true;
 	}
@@ -357,6 +358,7 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 		displayClear(target);
 
+		target.i2cFlushBatch();
 		return true;
 	}
 	
@@ -366,6 +368,7 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 	    col = (row == 0 ? col|0x80 : col|0xc0);
 	    writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, col);
+	    target.i2cFlushBatch();
 	    return true;
 	}
 	

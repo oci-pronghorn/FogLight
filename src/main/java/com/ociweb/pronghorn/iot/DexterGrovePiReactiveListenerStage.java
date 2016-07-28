@@ -86,8 +86,10 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
     						} else {
     							int connector = GrovePiConstants.REGISTER_TO_PIN[register];
     							
-    							MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], tempValue);    							
-    							((AnalogListener)listener).analogEvent(connector, time, (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]), tempValue); //TODO: Average=? only clear after we control the poll rate
+    							//TODO: Something Nathan do.
+    							//MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], tempValue);    							
+    							int mean = /*(int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);*/ 0;
+								((AnalogListener)listener).analogEvent(connector, time, mean, tempValue); //TODO: Average=? only clear after we control the poll rate
         						lastAnalog = tempValue;        			
     						}
                         }

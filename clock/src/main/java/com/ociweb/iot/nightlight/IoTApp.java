@@ -1,8 +1,14 @@
-package com.ociweb.iot.nightlight;
+package com.ociweb.iot.nightlight; //TODO: namespace needs to remain the same since we are bulding on previous work.  Better NAME?
 
 
 import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 import static com.ociweb.iot.grove.GroveTwig.LightSensor;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.hardware.Hardware;
@@ -18,6 +24,7 @@ import com.ociweb.iot.maker.IoTSetup;
 
 public class IoTApp implements IoTSetup
 {
+
 	public static final int LIGHT_SENSOR_CONNECTION = 2;
 	public static final int ANGLE_SENSOR_CONNECTION = 1;
 	    
@@ -34,44 +41,54 @@ public class IoTApp implements IoTSetup
     	c.useConnectA(LightSensor, LIGHT_SENSOR_CONNECTION);
     	c.useConnectA(AngleSensor, ANGLE_SENSOR_CONNECTION);
     	c.useI2C();
+    	c.useTriggerRate(1000);
     }
 
 
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
-        
-    	
-    	
-    	final CommandChannel lcdScreenChannel = runtime.newCommandChannel();
-    	runtime.addAnalogListener((connection, time, average, value)->{
- 
-    	    
-    	    System.out.println("connection "+connection+" value "+value);
-    	    
+            	    	
+    	final CommandChannel rgbLightChannel = runtime.newCommandChannel();
+    	runtime.addAnalogListener((connection, time, average, value)->{    	    
     		switch(connection) {
 	    		case LIGHT_SENSOR_CONNECTION:
 	    			
 	    			int leadingZeros =  Integer.numberOfLeadingZeros(value)- (32-10); //value is only 10 bits max
 
 	    			int level = Math.min(255, (brightness * Math.min(leadingZeros,8))/8);
-
-	    			Grove_LCD_RGB.commandForColor(lcdScreenChannel, level, level, level);	    			
+	    			Grove_LCD_RGB.commandForColor(rgbLightChannel, level, level, level);	    			
 	    				    			
 	    			break;
 	    		
 	    		case ANGLE_SENSOR_CONNECTION:
 	    			
-	    		  //  System.out.println("angle:"+value+"  "+AngleSensor.range());
-	    		    
 	    			brightness = (400 * value)/1024;	    			
 	    			
 	    			break;
-	    		
-    		
     		}
     		
     		
     	});
+    	
+    	
+    	final CommandChannel lcdTextChannel = runtime.newCommandChannel();
+    	final DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("  hh:mm:ss a");
+    	final DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("EE MMM dd,yyyy");
+    	final ZoneId zone = ZoneId.systemDefault();
+    	
+    	runtime.addTimeListener((time)->{ 
+    		
+    		  LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), zone);
+    		
+    		  String text = date.format(formatter1)+"\n"+date.format(formatter2);
+
+			  Grove_LCD_RGB.commandForText(lcdTextChannel, text);
+    		
+    	});
+    	
+    	
+    	
+    	
     	
     }
         

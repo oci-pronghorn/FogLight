@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ociweb</groupId>
@@ -11,6 +12,7 @@
     <module>blinkyUsingQueue</module>
     <module>blinkyUsingTimer</module>
     <module>metronome</module>
+    <module>nightLight</module>
+    <module>clock</module>
   </modules>
 </project>
-

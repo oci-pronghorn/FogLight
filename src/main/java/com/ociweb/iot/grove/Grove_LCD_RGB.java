@@ -409,7 +409,7 @@ public class Grove_LCD_RGB implements IODevice{
 		if(!isStarted){
 			begin(target);
 		}
-			
+		displayClear(target);
 		String[] lines = text.split("\n");
         int steps = 4;
         for(String line: lines) {

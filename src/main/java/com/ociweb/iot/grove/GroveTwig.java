@@ -45,6 +45,10 @@ public enum GroveTwig implements IODevice {
         public int response() {
             return 100;
         }
+        
+        public int range() {
+            return 1024;
+        }
     },
     MoistureSensor(){
         @Override

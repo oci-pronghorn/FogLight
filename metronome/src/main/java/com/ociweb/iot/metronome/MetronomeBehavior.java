@@ -75,6 +75,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     //we will talk about override
     @Override
     public void analogEvent(int connector, long time, int average, int value) {
+  
     //later in the deck, do the publish subsribe 
             int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation      
             if (newBPM != tempBPM) {                
@@ -85,7 +86,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             } else {
             	if (System.currentTimeMillis()-timeOfNewValue>333) {
             		if (tempBPM != activeBPM) {
-            			//System.out.println("set new active to "+tempBPM);
+            			
             			activeBPM = tempBPM;
             			base = 0; //reset signal  
             			

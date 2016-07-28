@@ -62,8 +62,8 @@ public class IoTApp implements IoTSetup
 	    		
 	    		case ANGLE_SENSOR_CONNECTION:
 	    			
-	    			brightness = (400 * value)/1024;	    			
-	    			
+	    			brightness = ((AngleSensor.range()/2) * value)/AngleSensor.range();	    			
+	    				    			
 	    			break;
     		}
     		

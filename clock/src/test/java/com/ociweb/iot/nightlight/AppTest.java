@@ -15,7 +15,7 @@ public class AppTest {
 	
 	@Test
 	public void testApp() {
-	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
+	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp(false));
 	    	    	
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();

@@ -30,6 +30,7 @@ public class IoTApp implements IoTSetup
 	public static final int ANGLE_SENSOR_CONNECTION = 1;
 	    
 	private int brightness = 255;
+	
 	    
     private final DateTimeFormatter formatter1;
     private final DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("EE MMM dd,yyyy");
@@ -38,6 +39,8 @@ public class IoTApp implements IoTSetup
     //TODO: NOTE: the pi may have the wrong time and should be set.
     //           MMDDhhmmYY
     // sudo date 0728224916
+    // may need to set timezone:   sudo dpkg-reconfigure tzdata
+    // may need to install NTP:   sudo apt-get install ntpdate
     
 	public IoTApp(boolean is24HourTime) {
 	
@@ -60,7 +63,7 @@ public class IoTApp implements IoTSetup
     @Override
     public void declareConnections(Hardware c) {
     	
-    	c.useConnectA(LightSensor, LIGHT_SENSOR_CONNECTION);
+    	c.useConnectA(LightSensor, LIGHT_SENSOR_CONNECTION, 100);
     	c.useConnectA(AngleSensor, ANGLE_SENSOR_CONNECTION);
     	c.useI2C();
     	c.useTriggerRate(1000);

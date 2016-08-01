@@ -115,7 +115,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			doneReading = false;
 			//System.out.println("now reading");
 		}
-		long tempy = System.currentTimeMillis();
 
 
 
@@ -131,7 +130,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 				//long nsWait = readReleaseTime-System.nanoTime(); //TODO: ReadReleaseTime needs to be dependent on sensor
 				
 					try {
-						Thread.sleep(1); //TODO: this changes depending on what we're doing
+						Thread.sleep(this.inputs[inProgressIdx].delayAfterRequestNS/1_000_000, 
+								(int)(this.inputs[inProgressIdx].delayAfterRequestNS%1_000_000));
 					} catch (InterruptedException e) {
 						requestShutdown();
 						return;

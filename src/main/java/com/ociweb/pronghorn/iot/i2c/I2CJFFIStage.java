@@ -39,6 +39,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
     private static final int MAX_ADDR = 127;
     private Blocker pollBlocker;
+    private long readReleaseTime;
     
     private long timeOut = 0;
     private final int writeTime = 5; //TODO: Writes time out after 5ms. Is this ideal?
@@ -105,6 +106,16 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
     	        if (!PipeWriter.hasRoomForFragmentOfSize(i2cResponsePipe, Pipe.sizeOf(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10))) {
     	            return;//no room for response so do not read it now.
+    	        }
+    	            	        
+    	        long nsWait = readReleaseTime-System.nanoTime();
+    	        if (nsWait>0) {
+    	            try {
+                        Thread.sleep(nsWait/1_000_000, (int)(nsWait%1_000_000));
+                    } catch (InterruptedException e) {
+                        requestShutdown();
+                        return;
+                    }
     	        }
     	        
     	        int len = this.inputs[inProgressIdx].readBytes;
@@ -183,15 +194,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     	    if (!pollBlocker.isBlocked(deviceKey(connection))) {
     	    	timeOut = hardware.currentTimeMillis() + writeTime;
     	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
-    	        try {
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					throw new RuntimeException();
-				}
+    	        readReleaseTime = System.nanoTime()+10_000;//TODO: we may need a different value per twig but this will do for now.
     	        awaitingResponse = true;
     	        //NOTE: the register may or may not be present and the address may not be enough to go on so we MUST 
     	        pollBlocker.until(deviceKey(connection), now+connection.responseMS);
-    	        Thread.yield();//provide the system and opportunity to switch.
     	        return;
     	    }
     	    //if that one was blocked check the next.

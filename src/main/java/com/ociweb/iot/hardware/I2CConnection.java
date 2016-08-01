@@ -9,6 +9,9 @@ public class I2CConnection {
     public final int register;			//identifier for register you're reading from. Does not have to match device spec.
     public final byte[] setup;			//setup bytes sent to initialize communications
     
+    public final int responseMS;
+    public final int movingAverageWindowMS;
+    
     public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup) {
         this.twig = twig;
         this.address = address;
@@ -16,7 +19,30 @@ public class I2CConnection {
         this.readBytes = readBytes;
         this.register = register;
         this.setup = setup;
-
+        this.responseMS = twig.response();
+        this.movingAverageWindowMS = HardConnection.DEFAULT_AVERAGE;
+    }
+    
+    public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS) {
+        this.twig = twig;
+        this.address = address;
+        this.readCmd = readCmd;
+        this.readBytes = readBytes;
+        this.register = register;
+        this.setup = setup;
+        this.responseMS = responseMS;
+        this.movingAverageWindowMS = HardConnection.DEFAULT_AVERAGE;
+    }
+    
+    public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS, int movingAverageWindowMS) {
+        this.twig = twig;
+        this.address = address;
+        this.readCmd = readCmd;
+        this.readBytes = readBytes;
+        this.register = register;
+        this.setup = setup;
+        this.responseMS = responseMS; 
+        this.movingAverageWindowMS = movingAverageWindowMS;
     }
     
     @Override

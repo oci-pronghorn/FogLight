@@ -9,7 +9,7 @@ public class HardConnection {
     public final int movingAverageWindowMS;
     
     
-    private static final int DEFAULT_AVERAGE = 1000;
+    public static final int DEFAULT_AVERAGE = 1000;
     
     public HardConnection(IODevice twig, int connection) {
         this.twig = twig;

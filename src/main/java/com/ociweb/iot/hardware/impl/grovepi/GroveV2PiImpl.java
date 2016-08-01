@@ -46,24 +46,25 @@ public class GroveV2PiImpl extends Hardware {
 
 	@Override
 	public Hardware useConnectA(IODevice t, int connection) {
-		return useConnectA(t,connection,-1);
+		return useConnectA(t,connection, t.response());
 	}
 
 	@Override
 	public Hardware useConnectA(IODevice t, int connection, int customRate) {
+	    super.useConnectA(t, connection, customRate);
 		if(t.isGrove()){
 			if (t.isInput()) {
 				assert(!t.isOutput());
 				connection = GrovePiConstants.ANALOG_PIN_TO_REGISTER[connection];
 				byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
 				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};				
-				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection,setup));
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection, setup, customRate));
 			} else {
 				assert(t.isOutput());
 				assert(!t.isInput());
 				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
 				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
-				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup));
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection, setup, customRate));
 			}
 		}else{
 			throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
@@ -73,12 +74,12 @@ public class GroveV2PiImpl extends Hardware {
 
 	@Override
 	public Hardware useConnectD(IODevice t, int connection) {
-		return useConnectD(t,connection,-1);
+		return useConnectD(t,connection,t.response());
 	}
 
 	@Override
 	public Hardware useConnectD(IODevice t, int connection, int customRate) { //TODO: add customRate support
-
+	    super.useConnectD(t, connection, customRate);
 		if(t.isGrove()){
 			if (t.isInput()) {
 				assert(!t.isOutput());
@@ -86,14 +87,14 @@ public class GroveV2PiImpl extends Hardware {
 				byte[] readCmd = {0x01,0x01,(byte)connection,0x00,0x00};
 				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};
 				logger.info("Digital Input Connected on "+connection);
-				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,readCmd,1,connection,setup));
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,readCmd,1,connection,setup,customRate));
 			} else {
 				assert(t.isOutput());
 				assert(!t.isInput());
 				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
 				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
 				logger.info("Digital Output Connected on "+connection);
-				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup));
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup,customRate));
 			}
 		}else{
 			System.out.println("GPIO not currently supported");
@@ -104,6 +105,8 @@ public class GroveV2PiImpl extends Hardware {
 	@Override
 	public Hardware useConnectDs(IODevice t, int ... connections) {
 		//TODO: add the special grove interrupt support to this
+	    //TODO: not sure this will end up here IODevice now has t.pinsUsed() and this can go on the normal digital method
+	    //TODO: rename all the use methods for digital and analog as we decided.
 		if (t.getClass()== GroveTwig.RotaryEncoder.getClass()) {
 			int[] temp = {2,3};
 			assert(Arrays.equals(connections, temp)) : "RotaryEncoders may only be connected to ports 2 and 3 on Pi";

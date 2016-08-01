@@ -51,7 +51,7 @@ public class ReactiveListenerStage extends PronghornStage {
     private static final int MAX_CONNECTIONS = 10;
     
     //for analog values returns the one with the longest run within the last n samples
-    protected static final int OVERSAMPLE = 2; //  (COUNT), SAMPLE1, ... SAMPLEn
+    protected static final int OVERSAMPLE = 4; //  (COUNT), SAMPLE1, ... SAMPLEn
     protected static final int OVERSAMPLE_STEP = OVERSAMPLE+1;
     
     protected int[] lastDigitalValues;

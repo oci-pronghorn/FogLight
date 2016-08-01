@@ -19,6 +19,8 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.Blocker;
+import com.ociweb.pronghorn.util.math.PMath;
+import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
 public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
@@ -27,7 +29,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private final Pipe<I2CResponseSchema> i2cResponsePipe;
 
 	private static final Logger logger = LoggerFactory.getLogger(I2CJFFIStage.class);
-
+	private ScriptedSchedule schedule;
+	
 	private I2CConnection[] inputs = null;
 	private byte[] workingBuffer;
 	   
@@ -39,6 +42,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
     private long timeOut = 0;
     private final int writeTime = 5; //TODO: Writes time out after 5ms. Is this ideal?
+
+    //NOTE: on the pi without any RATE value this stage is run every .057 ms, this is how long 1 run takes to complete for the clock., 2 analog sensors.
+    
     
 	public I2CJFFIStage(GraphManager graphManager, Pipe<TrafficReleaseSchema>[] goPipe, 
 			Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
@@ -55,6 +61,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         //force all commands to happen upon publish and release
         this.supportsBatchedPublish = false;
         this.supportsBatchedRelease = false;
+        
+        
+        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, -1, this); //for time test of iterations
+        
 	}
 
 	@Override
@@ -65,20 +75,28 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		
 		logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
 		
+		int[] schedulePeriods = new int[inputs.length];
 		for (int i = 0; i < inputs.length; i++) {
+		    schedulePeriods[i] = inputs[i].responseMS;
+		    
 			timeOut = hardware.currentTimeMillis() + writeTime;
 			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
-			 //TODO: add setup for outputs
 			logger.info("I2C setup {} complete",inputs[i].address);
 		}
+		//TODO: add setup for outputs ??
+		
+		schedule = PMath.buildScriptedSchedule(schedulePeriods);
+		
+		System.out.println("proposed schedule:"+schedule);
+		
 		
 		pollBlocker = new Blocker(MAX_ADDR);
-
 	}
 	
 	
 	@Override
 	public void run() {
+
 	    boolean doneWithActiveCommands = false;
 	    //All poll cycles come first as the highest priority. commands will come second and they can back up on the pipe if needed.
 	    
@@ -135,7 +153,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	             isPollInProgress() || 
 	             connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),msNearWindow) || 
 	             pollBlocker.willReleaseInWindow(hardware.currentTimeMillis(), msNearWindow));
-
+	   	    
 	}
 	
 	private boolean isPollInProgress() {
@@ -166,14 +184,13 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     	    	timeOut = hardware.currentTimeMillis() + writeTime;
     	        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
     	        try {
-					Thread.sleep(0,1000);
+					Thread.sleep(1);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					throw new RuntimeException();
 				}
     	        awaitingResponse = true;
     	        //NOTE: the register may or may not be present and the address may not be enough to go on so we MUST 
-    	        pollBlocker.until(deviceKey(connection), now+connection.twig.response());
+    	        pollBlocker.until(deviceKey(connection), now+connection.responseMS);
     	        Thread.yield();//provide the system and opportunity to switch.
     	        return;
     	    }

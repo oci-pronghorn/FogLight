@@ -1,6 +1,7 @@
 package com.ociweb.iot.hardware.impl.test;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.util.Appendables;
@@ -56,9 +57,11 @@ public class TestI2CBacking implements I2CBacking{
         
     }
 
+    boolean newLineNeeded = false;
+    
     @Override
     public boolean write(byte address, byte[] message, int length) {
-            
+        
         lastWriteCount++;
         lastWriteTime[lastWriteIdx] = System.currentTimeMillis();
         lastWriteAddress[lastWriteIdx] = address;
@@ -66,8 +69,36 @@ public class TestI2CBacking implements I2CBacking{
         lastWriteLength[lastWriteIdx] = length;
 
         lastWriteIdx = (1+lastWriteIdx) & MAX_BACK_MASK;
-                
+        
+        consoleSimulationLCD(address, message, length);
+        
         return true;
+    }
+
+
+    protected void consoleSimulationLCD(byte address, byte[] message, int length) {
+        if (62==address & '@'==message[0]) {
+            System.out.print(new String(message, 1, length-1));
+            newLineNeeded = true;
+        } else {
+            if (62==address & -128==message[0] & -64==message[1] & 2==length) {
+                System.out.println(); //new line message
+                newLineNeeded=false;
+            } else {
+                if (newLineNeeded) {
+                    System.out.println(); 
+                    newLineNeeded=false;
+                }
+                
+                System.out.print("                         I2C Write to Addr:"+address+"  ");            
+                try {
+                    Appendables.appendArray(System.out, '[', message, 0, Integer.MAX_VALUE, ']', length).append('\n');
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            
+        }
     }
     
     public void clearWriteCount() {

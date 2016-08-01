@@ -36,7 +36,9 @@ public class GroveV3EdisonImpl extends Hardware {
     	System.out.println("ColdSetup: Edison Pin Configuration setup!");
         usedLines = buildUsedLines();
         EdisonGPIO.ensureAllLinuxDevices(usedLines);
+        
         beginPinConfiguration(); //TODO:Uncertain stay above/below setToKnownStateFromColdStart,Will trial and error
+        
         setToKnownStateFromColdStart();  
 //		EdisonGPIO.configPWM(5);//config for writeBit
 //		EdisonGPIO.configDigitalOutput(6);//config for writeBit

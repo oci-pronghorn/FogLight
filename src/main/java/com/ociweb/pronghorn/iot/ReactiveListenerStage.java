@@ -1,5 +1,7 @@
 package com.ociweb.pronghorn.iot;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,18 @@ public class ReactiveListenerStage extends PronghornStage {
     protected MAvgRollerLong[] rollingMovingAveragesDigital;    
     
     
+    protected int[] oversampledAnalogValues;
+    protected int[] oversampledAnalogCounts;
+
+    private static final int MAX_CONNECTIONS = 10;
+    
+    //for analog values returns the one with the longest run within the last n samples
+    protected static final int OVERSAMPLE = 2; //  (COUNT), SAMPLE1, ... SAMPLEn
+    protected static final int OVERSAMPLE_STEP = OVERSAMPLE+1;
+    
+    protected int[] lastDigitalValues;
+    protected int[] lastAnalogValues;
+    
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
 
         
@@ -66,7 +80,7 @@ public class ReactiveListenerStage extends PronghornStage {
               int ms   = con[i].movingAverageWindowMS;
               int rate = con[i].responseMS;
               target[con[i].connection] = new MAvgRollerLong(ms/rate);
-  
+              System.out.println("expecting moving average on connection "+con[i].connection);
         }        
     }
     
@@ -82,6 +96,48 @@ public class ReactiveListenerStage extends PronghornStage {
         
     }
     
+    protected int findStableReading(int tempValue, int connector) { 
+        int offset = updateRunLenghtOfActiveValue(tempValue, connector);       
+        return findLongestRunningValue(offset);
+    }
+
+    private int updateRunLenghtOfActiveValue(int tempValue, int connector) {
+        int activeCount;
+        //store this value with the oversamples
+        int offset = connector*OVERSAMPLE_STEP;
+        int pos =       oversampledAnalogValues[offset];
+        int prevValue = oversampledAnalogValues[offset+pos];
+        //if this matches the last value grow the run length
+        if (prevValue == tempValue) {
+            activeCount = oversampledAnalogCounts[offset+pos]+1;
+        } else {
+            activeCount = 1;
+        }                                
+        
+        if (--pos<=0) {
+            pos = OVERSAMPLE;
+        }
+        oversampledAnalogValues[offset] = pos;
+        oversampledAnalogValues[offset+pos] = tempValue;
+        oversampledAnalogCounts[offset+pos] = activeCount;
+        return offset;
+    }
+    
+    private int findLongestRunningValue(int offset) {
+        //review the previous values and pick the one with the longest run
+        int max = Integer.MIN_VALUE;
+        int maxPos = -1;
+        for(int i = 1; i<=OVERSAMPLE; i++) {
+            int count = oversampledAnalogCounts[offset+i];
+            if (count>max) {
+                max = count;
+                maxPos = i;
+            }
+        }
+        int runningValue = oversampledAnalogValues[offset+maxPos];
+        return runningValue;
+    } 
+    
     @Override
     public void startup() {
  
@@ -93,9 +149,19 @@ public class ReactiveListenerStage extends PronghornStage {
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_SENSORS];
         rollingMovingAveragesDigital = new MAvgRollerLong[MAX_SENSORS];
         
+        System.out.println("setup analogs "+Arrays.toString(hardware.analogInputs));
         setupMovingAverages(rollingMovingAveragesAnalog, hardware.analogInputs);
+        
+        System.out.println("setup digitals "+Arrays.toString(hardware.digitalInputs));       
         setupMovingAverages(rollingMovingAveragesDigital, hardware.digitalInputs);
   
+        
+        lastDigitalValues = new int[MAX_CONNECTIONS];
+        lastAnalogValues = new int[MAX_CONNECTIONS];
+            
+        oversampledAnalogValues = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP];
+        oversampledAnalogCounts = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP]; 
+        
     }
 
     @Override
@@ -252,9 +318,12 @@ public class ReactiveListenerStage extends PronghornStage {
 
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_PREVDURATION_35);
                                                 
-                        //MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], value);                                                
+                        int runningValue = findStableReading(value, connector);             
+                        
+                        MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);                                                
+                        
                         int mean = 0/*(int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector])*/;
-						((AnalogListener)listener).analogEvent(connector, time, mean, value);
+						((AnalogListener)listener).analogEvent(connector, time, mean, runningValue);
                         
                     }   
                 break;               

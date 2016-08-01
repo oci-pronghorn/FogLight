@@ -84,7 +84,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
 		
 		Number nsPollWindow = (Number)GraphManager.getNota(graphManager, this,  GraphManager.SCHEDULE_RATE, 10_000_000);
-		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*10f)/1_000_000f);
+		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*4f)/1_000_000f);
 		logger.info("near window size for ordered stage: {} ",msNearWindow);
 		startLoopAt = activeCounts.length;
 	}

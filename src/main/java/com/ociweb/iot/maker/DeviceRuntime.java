@@ -81,6 +81,8 @@ public class DeviceRuntime {
     
     public DeviceRuntime() {
         gm = new GraphManager();
+     
+        
         //by default, unless explicitly set the stages will use this sleep rate
         GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, DEFAULT_SLEEP_RATE_NS);       
         
@@ -312,10 +314,31 @@ public class DeviceRuntime {
        //find all the instances of CommandChannel stage to startup first, note they are also unscheduled.
             
        
+       logStageScheduleRates();
+       
+       
        //exportGraphDotFile();      
        
        scheduler = hardware.createScheduler(this);       
 
+    }
+
+
+    private void logStageScheduleRates() {
+        int totalStages = GraphManager.countStages(gm);
+           for(int i=1;i<=totalStages;i++) {
+               PronghornStage s = GraphManager.getStage(gm, i);
+               if (null != s) {
+                   
+                   Object rate = GraphManager.getNota(gm, i, GraphManager.SCHEDULE_RATE, null);
+                   if (null == rate) {
+                       logger.info("{} is running without breaks",s);
+                   } else  {
+                       logger.info("{} is running at rate of {}",s,rate);
+                   }
+               }
+               
+           }
     }
     
     //TODO: required for testing only

@@ -19,18 +19,12 @@ import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
 public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
-	private int lastDigital = -1;
-	private int lastAnalog = -1;
 
-	
 	private static final Logger logger = LoggerFactory.getLogger(DexterGrovePiReactiveListenerStage.class);
 	
 	public DexterGrovePiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
-		super(graphManager, listener, inputPipes, outputPipes, hardware); 
-
+		super(graphManager, listener, inputPipes, outputPipes, hardware);
 	}
-
-
 
     @Override
 	protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
@@ -50,23 +44,19 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 					
 					logger.debug("Pi listener consuming I2C message");
 
-					if (listener instanceof I2CListener){
-						((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
-						logger.debug("Creating I2C event");
-					}
-					else if(listener instanceof DigitalListener && addr==4 && length==1){
-						int tempValue = backing[position&mask];
-						if(tempValue!=lastDigital){
-							lastDigital = tempValue;
-							
-							int connector = GrovePiConstants.REGISTER_TO_PIN[register];
-							assert(connector!=-1);
-							
-							MAvgRollerLong.roll(rollingMovingAveragesDigital[connector], tempValue);
-							//TODO: add moving average 
-							
+				    if(listener instanceof DigitalListener && addr==4 && length==1){
+				        int tempValue = backing[position&mask];
+						
+						int connector = GrovePiConstants.REGISTER_TO_PIN[register];
+						assert(connector!=-1);
+						
+						MAvgRollerLong.roll(rollingMovingAveragesDigital[connector], tempValue);
+						
+						//only send when it changes, 
+						if(tempValue!=lastDigitalValues[connector]){							
 							((DigitalListener)listener).digitalEvent(register, time, tempValue);
 							logger.debug("Digital event");
+							lastDigitalValues[connector] = tempValue;
 						}
 					}
 					else if(listener instanceof AnalogListener && addr==4 && length==3){
@@ -81,23 +71,34 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
                         } else {
                             int tempValue =  (high<<8) | (0xFF&low);
                                 
+                            int connector = GrovePiConstants.REGISTER_TO_PIN[register];
+                            assert(connector>0) :"bad connector "+connector;
+                            
     						if (tempValue<0) {
-    						    System.out.println("bad array "+backing[(position+0)&mask]+" "+backing[(position+1)&mask]+" "+backing[(position+2)&mask]);
+    						    logger.error("connection {} bad i2c result array [{}, {}, {}] ",connector,backing[(position+0)&mask],backing[(position+1)&mask],backing[(position+2)&mask]);
     						} else {
-    							int connector = GrovePiConstants.REGISTER_TO_PIN[register];
     							
-    							//TODO: Something Nathan do.
-    							//MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], tempValue);    							
-    							int mean = /*(int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);*/ 0;
-								((AnalogListener)listener).analogEvent(connector, time, mean, tempValue); //TODO: Average=? only clear after we control the poll rate
-        						lastAnalog = tempValue;        			
+    							int runningValue = findStableReading(tempValue, connector);    						    							
+
+    							//works on PC, works in unit test but fails on PI, not sure why yet.		
+    							//		MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);    							
+    							
+    							//only send upon change
+    							if (runningValue!=lastAnalogValues[connector]) {
+    							    int mean = /*(int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);*/ 0;
+    							    ((AnalogListener)listener).analogEvent(connector, time, mean, runningValue); 
+    							    lastAnalogValues[connector] = runningValue;     
+    							}
     						}
                         }
 					}else if(listener instanceof RotaryListener && addr==4 && length==2){
 						byte[] tempArray = {backing[(position+0)&mask], backing[(position+1)&mask]};
 						int tempValue = (((int)tempArray[0])<<8) | (0xFF&((int)tempArray[1]));
 						((RotaryListener)listener).rotaryEvent(register, time, tempValue, 0, 0);
-					}
+					} else if (listener instanceof I2CListener){ //must be last so we only do this if one of the more specific conditions were not met first.
+                        ((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
+                        logger.debug("Creating I2C event");
+                    }
 				}
 				break;
 			case -1:
@@ -113,5 +114,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 			//done reading message off pipe
 			PipeReader.releaseReadLock(p);
 		}
-	} 
+	}
+
+
 }

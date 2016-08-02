@@ -132,6 +132,10 @@ public class GroveV3EdisonImpl extends Hardware {
 
     @Override
     public void analogWrite(int connector, int value) {
+        
+       assert((CommandChannel.ANALOG_BIT&connector) != 0): "expected analog connection"; 
+        
+       connector = connector - CommandChannel.ANALOG_BIT;
        assert(isInPWMRange(connector,value)) : "Unsupported call"; 
        EdisonPinManager.writePWMDuty(connector, value << pwmBitsShift);
     }
@@ -153,6 +157,8 @@ public class GroveV3EdisonImpl extends Hardware {
 
 
     public void digitalWrite(int connector, int value) {
+        assert((CommandChannel.ANALOG_BIT&connector) == 0): "expected digital connection"; 
+                
 	    assert(0==value || 1==value);    
 	    EdisonPinManager.digitalWrite(connector, value, EdisonGPIO.gpioLinuxPins);
 	}

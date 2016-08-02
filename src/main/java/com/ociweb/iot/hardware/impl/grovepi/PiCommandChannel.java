@@ -28,8 +28,17 @@ public class PiCommandChannel extends CommandChannel{
 
 	}
 
-
-	public boolean block(int connector, long duration) { 
+	@Override
+	public boolean digitalBlock(int connector, long duration) { 
+	    return block(connector,duration); 
+	}
+	
+	@Override
+    public boolean analogBlock(int connector, long duration) { 
+	    return block(ANALOG_BIT|connector,duration); 
+    }
+    
+	private boolean block(int connector, long duration) { 
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {            
@@ -192,7 +201,7 @@ public class PiCommandChannel extends CommandChannel{
 				analogMessageTemplate[2] = (byte)connector;
 				analogMessageTemplate[3] = (byte)value;		
 				
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_CONNECTOR_11, connector);
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_CONNECTOR_11, ANALOG_BIT|connector);
 				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);
 								
@@ -275,7 +284,7 @@ public class PiCommandChannel extends CommandChannel{
                 analogMessageTemplate[2] = (byte)connector;
                 analogMessageTemplate[3] = (byte)value;
                 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_CONNECTOR_11, connector);      
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_CONNECTOR_11, ANALOG_BIT|connector);      
                 PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);      
                 PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, analogMessageTemplate);                
                 PipeWriter.publishWrites(i2cOutput);
@@ -285,7 +294,7 @@ public class PiCommandChannel extends CommandChannel{
                     throw new RuntimeException();
                 }
                 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11, connector);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11, ANALOG_BIT|connector);
                 PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, groveAddr);
                 PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, msDuration);
                 PipeWriter.publishWrites(i2cOutput);

@@ -23,6 +23,8 @@ public abstract class CommandChannel {
     
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
 
+    public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog vs digital
+    
     protected DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
     protected int runningI2CCommandCount;
     
@@ -85,7 +87,9 @@ public abstract class CommandChannel {
     }
     
     public abstract boolean block(long msDuration);
-    public abstract boolean block(int connector, long durationMilli);
+    public abstract boolean digitalBlock(int connector, long durationMilli);
+    public abstract boolean analogBlock(int connector, long durationMilli);
+    
     public abstract boolean blockUntil(int connector, long time);
     public abstract boolean digitalSetValue(int connector, int value);
     public abstract boolean digitalSetValueAndBlock(int connector, int value, long durationMilli);

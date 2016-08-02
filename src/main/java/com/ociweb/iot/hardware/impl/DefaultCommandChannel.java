@@ -20,7 +20,7 @@ public class DefaultCommandChannel extends CommandChannel{
 	}
 	
 
-	public boolean block(int connector, long duration) {
+	private boolean block(int connector, long duration) {
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
@@ -127,7 +127,7 @@ public class DefaultCommandChannel extends CommandChannel{
 		try {        
 			if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_ANALOGSET_140)) {
 
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, connector);
+				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, ANALOG_BIT|connector);
 				PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);
 				PipeWriter.publishWrites(output);
 			                
@@ -187,12 +187,12 @@ public class DefaultCommandChannel extends CommandChannel{
             if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, GroveRequestSchema.MSG_ANALOGSET_140)+
                                                                                                   Pipe.sizeOf(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
             
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, connector);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, ANALOG_BIT|connector);
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);
                 PipeWriter.publishWrites(output);
                             
                 PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, ANALOG_BIT|connector);
                 PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, msDuration);
                 
                 PipeWriter.publishWrites(output);
@@ -211,6 +211,16 @@ public class DefaultCommandChannel extends CommandChannel{
 	
 
 
+    @Override
+    public boolean digitalBlock(int connector, long duration) { 
+        return block(connector,duration); 
+    }
+    
+    @Override
+    public boolean analogBlock(int connector, long duration) { 
+        return block(ANALOG_BIT|connector,duration); 
+    }
+    
     @Override
     public boolean block(long msDuration) {
 

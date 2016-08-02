@@ -238,11 +238,11 @@ public class ReactiveListenerStage extends PronghornStage {
     private void processTimeEvents(Object listener) {
         //if we do have a clock schedule
         if (0 != timeRate) {
-            long now = hardware.currentTimeMillis();
-            if (now >= timeTrigger) {
-                if (listener instanceof TimeListener) {
-                    ((TimeListener)listener).timeEvent(now);
-                    timeTrigger = now + timeRate;
+            if (listener instanceof TimeListener) {
+                long now = hardware.currentTimeMillis();
+                if (now >= timeTrigger) {
+                        ((TimeListener)listener).timeEvent(now);
+                        timeTrigger += timeRate;
                 }
             }
         }

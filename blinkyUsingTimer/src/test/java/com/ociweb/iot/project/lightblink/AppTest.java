@@ -26,10 +26,11 @@ public class AppTest {
 	    	    	
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
-	    	int iterations = 10;
-	    	boolean isFirst = true;
-	    	
+	    	int testSize = 10;
+	    	int iterations = testSize;
 	    	int expected = 1;
+	    	
+	    	long sum = 0;
 	    	
 	    	long lastTime = 0;
 	    	while (iterations>0) {
@@ -44,13 +45,9 @@ public class AppTest {
 	    			
 	    			if (0!=lastTime) {
 	    				long durationMs = (time-lastTime);
-	    				
-	    				if (!isFirst) {
-	    					assertTrue(Long.toString(durationMs),durationMs>=470);//first difference may be short because first transition is later due to startup.
-	    				} else {
-	    					isFirst = false;
-	    				}
-	    				assertTrue(Long.toString(durationMs),durationMs<=750);
+	    				sum+=durationMs;
+	    				assertTrue(Long.toString(durationMs),durationMs>=480);
+	    				assertTrue(Long.toString(durationMs),durationMs<=520);
 	    			}
 	    			
 	    			lastTime = time;
@@ -60,5 +57,10 @@ public class AppTest {
 		    	
 	    		
 	    	}
+	    	
+	    	long avg = sum/(testSize-1);
+	    	assertTrue(Long.toString(avg),avg>=498);
+			assertTrue(Long.toString(avg),avg<=502);
+	 	    	
 	    }
 }

@@ -18,15 +18,16 @@ public class AppTest {
     public void testApp()
     {
     	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
-    	    	
+    	
     	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
     
     	scheduler.setSingleStepMode(true);
     	scheduler.startup();
-
+    	    	
     	TestHardware hardware = (TestHardware)runtime.getHardware();
     
     	int iterations = 10;
+    	boolean isFirst = true;
     	
     	int expected = 0;
     	
@@ -38,16 +39,18 @@ public class AppTest {
     		long time = hardware.getLastTime(IoTApp.LED_CONNECTION);
     		if (0!=time) {
     			iterations--;
+    			assertEquals(expected, hardware.digitalRead(IoTApp.LED_CONNECTION));
+    			expected = 1&(expected+1);
     			
     			if (0!=lastTime) {
     				long durationMs = (time-lastTime);
     				
-    				assertTrue(durationMs>=500);
+    				if (!isFirst) {
+    					assertTrue(durationMs>=500);//first difference may be short because first transition is later due to startup.
+    				} else {
+    					isFirst = false;
+    				}
     				assertTrue(durationMs<=750);
-    				
-    				assertEquals(expected, hardware.digitalRead(IoTApp.LED_CONNECTION));
-    				expected = 1&(expected+1);
-    				
     			}
     			
     			lastTime = time;

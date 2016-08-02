@@ -32,24 +32,23 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private ScriptedSchedule schedule;
 
 	private I2CConnection[] inputs = null;
+	private final boolean hasInputs;
+	
 	private byte[] workingBuffer;
 
 	private int inProgressIdx = 0;
+	private byte[] inErrorCode;
+	
 	private long blockStartTime = 0;
 	private int scheduleIdx = 0;
 
 	private boolean awaitingResponse = false;
 
 	private static final int MAX_ADDR = 127;
-	private Blocker pollBlocker;
-	private long readReleaseTime;
-	private boolean doneReading = false;
-	private int activePipe =-1;
-
 
 
 	private long timeOut = 0;
-	private final int writeTime = 1; //TODO: Writes time out after 1ms. Is this ideal?
+	private final int writeTime = 5; //it often takes 1 full ms just to contact the linux driver so this value must be a minimum of 3ms.
 
 	//NOTE: on the pi without any RATE value this stage is run every .057 ms, this is how long 1 run takes to complete for the clock., 2 analog sensors.
 
@@ -65,14 +64,21 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		this.i2cResponsePipe = i2cResponsePipe;
 
 		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
-
+		this.hasInputs = inputs.length>0;
+		
 		//force all commands to happen upon publish and release
 		this.supportsBatchedPublish = false;
 		this.supportsBatchedRelease = false;
 
-
-		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, -1, this); //TODO: Give this a concrete time
-
+		if (this.hasInputs) {
+    		int[] schedulePeriods = new int[inputs.length];
+            for (int i = 0; i < inputs.length; i++) {
+                schedulePeriods[i] = inputs[i].responseMS;
+            }
+    		this.schedule = PMath.buildScriptedSchedule(schedulePeriods);
+    		
+    		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock*1_000_000)/10 , this); 
+		}
 	}
 
 	@Override
@@ -80,211 +86,109 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		super.startup();
 
 		workingBuffer = new byte[2048];
+		
+		inErrorCode = new byte[MAX_ADDR];
+		Arrays.fill(inErrorCode, (byte)-2);
 
-		logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
+		logger.info("Polling "+this.inputs.length+" i2cInput(s)");
 
-		int[] schedulePeriods = new int[inputs.length];
 		for (int i = 0; i < inputs.length; i++) {
-			schedulePeriods[i] = inputs[i].responseMS;
-
 			timeOut = hardware.currentTimeMillis() + writeTime;
 			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
 			logger.info("I2C setup {} complete",inputs[i].address);
 		}
 		//TODO: add setup for outputs ??
 
-		schedule = PMath.buildScriptedSchedule(schedulePeriods);
+		
 
-		System.out.println("proposed schedule:"+schedule);
+		logger.info("proposed schedule: {} ",schedule);
 
-
-		pollBlocker = new Blocker(MAX_ADDR);
-
-		blockStartTime = System.currentTimeMillis();
+		blockStartTime = hardware.currentTimeMillis();
 	}
 
 
 	@Override
 	public void run() {
-		if(blockStartTime == 0){ blockStartTime = System.currentTimeMillis(); }; //TODO: This can be cleaned up
-
-		
-		if(System.currentTimeMillis()<blockStartTime){
-			return; //Enough time has not elapsed to start next block on schedule
-		}else{
-			doneReading = false;
-			//System.out.println("now reading");
-		}
-
-
-
-		do{
-			inProgressIdx = schedule.script[scheduleIdx];
-			scheduleIdx = (scheduleIdx+1) % schedule.script.length;
-			
-			if(inProgressIdx != -1){ //TODO: I don't know if this is formatted very well having if and while conditionals being the same
-				//System.out.println("Processing " + inProgressIdx);
-
-				sendReadRequest();
-
-				//long nsWait = readReleaseTime-System.nanoTime(); //TODO: ReadReleaseTime needs to be dependent on sensor
-				
-					try {
-						Thread.sleep(this.inputs[inProgressIdx].delayAfterRequestNS/1_000_000, 
-								(int)(this.inputs[inProgressIdx].delayAfterRequestNS%1_000_000));
-					} catch (InterruptedException e) {
-						requestShutdown();
-						return;
-					}
-				
-				
-				int len = this.inputs[inProgressIdx].readBytes;
-				workingBuffer[0] = -2;
-				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, len); 
-
-				if (PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-					PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
-					PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
-					PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
-					PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
-					PipeWriter.publishWrites(i2cResponsePipe);
-				}else{
-					System.out.println("Pipe full. Deal with it");
-				}	
-			}
-
-		}while(inProgressIdx != -1);
-
-		blockStartTime += schedule.commonClock;
-		if(System.currentTimeMillis()<blockStartTime){
-			doneReading = true; //can now send outgoing commands
-			//sendOutgoingCommands(activePipe);
-			System.out.println("now writing");
-		}
-		super.run();
-//		System.out.println(blockStartTime - System.currentTimeMillis());
-//		System.out.println(System.currentTimeMillis()-tempy);
-		
-
-
-
-		//	    boolean doneWithActiveCommands = false;
-		//	    //All poll cycles come first as the highest priority. commands will come second and they can back up on the pipe if needed.
-		//	    
-		//		
-		//	    do {
-		//    	    if (isPollInProgress()) {
-		//    
-		//    	        if (!PipeWriter.hasRoomForFragmentOfSize(i2cResponsePipe, Pipe.sizeOf(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10))) {
-		//    	            return;//no room for response so do not read it now.
-		//    	        }
-		//    	            	        
-		//    	        long nsWait = readReleaseTime-System.nanoTime();
-		//    	        if (nsWait>0) {
-		//    	            try {
-		//                        Thread.sleep(nsWait/1_000_000, (int)(nsWait%1_000_000));
-		//                    } catch (InterruptedException e) {
-		//                        requestShutdown();
-		//                        return;
-		//                    }
-		//    	        }
-		//    	        
-		//    	        int len = this.inputs[inProgressIdx].readBytes;
-		//    	        workingBuffer[0] = -2;
-		//    	        byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, len); 
-		//    	        if (-1 == temp[0]) {
-		//    	            //no data yet with all -1 values
-		//    	            return;
-		//    	        } else {
-		//    	            
-		//    	            if (-2 == temp[0]) {
-		//    	                
-		//    	                //no response and none will follow
-		//    	                //eg the poll failed on this round   
-		//    	                
-		//    	            } else {
-		//    	            
-		//        	            if (!PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-		//        	                throw new RuntimeException("should not happen "+i2cResponsePipe);
-		//        	            }
-		//        	           
-		//                        PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
-		//                        PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
-		//                        PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
-		//                        PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
-		//                        PipeWriter.publishWrites(i2cResponsePipe);
-		//                        
-		//    	            }
-		//                                    
-		//                    inProgressIdx--;//read next one
-		//    	        }
-		//    	    }
-		//    	    
-		//    	    long durationToNextRelease = pollBlocker.durationToNextRelease(hardware.currentTimeMillis(), 1000);
-		//    	        	    
-		//    	    //we are not waiting for a response so now its time send the commands.
-		//    	    //will return false if this timed out and we still had work to complete
-		//            doneWithActiveCommands = processReleasedCommands(durationToNextRelease); //no longer than 1 second     
-		//    	    
-		//    	    //check if we should begin polling again
-		//    	    if (isTimeToPoll()) {
-		//    	        sendReadRequest();
-		//    	    }
-		//    	    
-		//	    } while (!doneWithActiveCommands || 
-		//	             isPollInProgress() || 
-		//	             connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),msNearWindow) || 
-		//	             pollBlocker.willReleaseInWindow(hardware.currentTimeMillis(), msNearWindow));
-		//	   	    
+	
+	    //never run poll if we have nothing to poll, in that case the array will have a single -1 
+	    if (hasInputs) {
+	        do {
+        	    long waitTime = blockStartTime -hardware.currentTimeMillis();
+        		if(waitTime>0){
+        		   //do commands now while we wait for the next block. 
+        		   processReleasedCommands(waitTime);
+        		   waitTime = blockStartTime -hardware.currentTimeMillis();
+        		   if (waitTime>0) {
+        		       return; //Enough time has not elapsed to start next block on schedule
+        		   }
+        		}
+        
+        		do{
+        			inProgressIdx = schedule.script[scheduleIdx];
+        			scheduleIdx = (scheduleIdx+1) % schedule.script.length;
+        			
+        			if(inProgressIdx != -1) {
+        			    
+                        I2CConnection connection = this.inputs[inProgressIdx];
+                        timeOut = hardware.currentTimeMillis() + writeTime;
+      
+                        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
+        				
+        				int len = this.inputs[inProgressIdx].readBytes;
+        				workingBuffer[0] = inErrorCode[inProgressIdx];
+        				if (-3 == workingBuffer[0]) {
+        				    if (PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+                                PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
+                                PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, workingBuffer, 0, 1, Integer.MAX_VALUE);
+                                PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
+                                PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
+                                PipeWriter.publishWrites(i2cResponsePipe);  
+                                workingBuffer[0] = inErrorCode[inProgressIdx] = -2;
+                            }
+        				} 	
+        				
+                        try {
+                            Thread.sleep(this.inputs[inProgressIdx].delayAfterRequestNS/1_000_000, 
+                                    (int)(this.inputs[inProgressIdx].delayAfterRequestNS%1_000_000));
+                        } catch (InterruptedException e) {
+                            logger.info("break shutdown");
+                            requestShutdown();
+                            return;
+                        }   
+                        
+        				readI2CData(len);	
+        				
+        			}
+        
+        		}while(inProgressIdx != -1);
+        		blockStartTime += schedule.commonClock;
+        		
+	        } while (true);
+	    } else {
+	        processReleasedCommands(10);
+	    }
 	}
 
-	private boolean isPollInProgress() {
-		return awaitingResponse && inProgressIdx >= 0;
-	}
-
-	private boolean isTimeToPoll() {
-
-		if (inProgressIdx >= 0) {
-			return true; //still processing each of the input items needed
-		}
-
-		if (this.inputs.length > 0) {
-			inProgressIdx = this.inputs.length-1; 
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	private void sendReadRequest() {
-		//long now = System.currentTimeMillis();
-		//pollBlocker.releaseBlocks(now);
-		I2CConnection connection = this.inputs[inProgressIdx];
-
-		//do {
-			//if (!pollBlocker.isBlocked(deviceKey(connection))) {
-				timeOut = hardware.currentTimeMillis() + writeTime;
-				while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
-				//readReleaseTime = System.nanoTime()+10_000;//TODO: we may need a different value per twig but this will do for now.
-				//awaitingResponse = true;
-				//NOTE: the register may or may not be present and the address may not be enough to go on so we MUST 
-				//pollBlocker.until(deviceKey(connection), now+connection.responseMS);
-				return;
-			//}
-			//if that one was blocked check the next.
-		//} while (--inProgressIdx >= 0);
-
-	}
+    private void readI2CData(int len) {
+        byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, len); //this is odd and we should reconcider and do it after the pipe check?
+  
+        if (PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
+        	PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
+        	PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
+        	PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
+        	PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
+        	PipeWriter.publishWrites(i2cResponsePipe);    					
+        }else{
+            System.out.println("pipe is full");
+            inErrorCode[inProgressIdx]=-3;
+        }
+    }
 
 
-	private int deviceKey(I2CConnection connection) {
-		return  (((int)connection.address)<< 16) | connection.register;
-	}
+
 
 	protected void processMessagesForPipe(int a) {
-
 		sendOutgoingCommands(a);
-		System.out.println("activePipe = "+a);
 
 	}
 
@@ -294,75 +198,72 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			return; //No active pipe selected yet
 		}
 		
-
 		Pipe<I2CCommandSchema> pipe = fromCommandChannels[activePipe];
-		System.out.println("outgoingCommand");
+
 		while ( hasReleaseCountRemaining(activePipe) 
 				&& !isChannelBlocked(activePipe)
 				&& !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) //peek next address and check that it is not blocking for some time 
-				&& doneReading
 				&& PipeReader.tryReadFragment(pipe)){
-			System.out.println("writing");
 
 			int msgIdx = PipeReader.getMsgIdx(pipe);
 
 			switch(msgIdx){
-			case I2CCommandSchema.MSG_COMMAND_7:
-			{
-				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12);
-
-				byte[] backing = PipeReader.readBytesBackingArray(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-				int len  = PipeReader.readBytesLength(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-				int pos = PipeReader.readBytesPosition(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-				int mask = PipeReader.readBytesMask(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
-
-				assert(!connectionBlocker.isBlocked(addr)): "expected command to not be blocked";
-
-				Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
-
-				try {
-					if (logger.isDebugEnabled()) {
-						logger.debug("{} send command {} {}", activePipe, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
-					}
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-
-				timeOut = hardware.currentTimeMillis() + writeTime;
-				while(!i2c.write((byte) addr, workingBuffer, len) && hardware.currentTimeMillis()<timeOut){};
-
-				logger.debug("send done");
-
-			}                                      
-			break;
-
-			case I2CCommandSchema.MSG_BLOCKCHANNELMS_22:
-			{
-				blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));            	   
-				logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
-			}
-			break;
-
-			case I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20:
-			{  
-				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12);
-				long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13);
-				connectionBlocker.until(addr, hardware.currentTimeMillis() + duration);
-				logger.debug("I2C addr {} blocked for {} millis  {}", addr, duration, pipe);
-			}   
-			break;
-
-			case I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21:
-			{  
-				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12);
-				long time = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_TIMEMS_14);
-				connectionBlocker.until(addr, time);
-				logger.debug("I2C addr {} blocked until {} millis {}", addr, time, pipe);
-			}
-
-			break;    
-			case -1 :
-				requestShutdown();      
+    			case I2CCommandSchema.MSG_COMMAND_7:
+    			{
+    				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12);
+    
+    				byte[] backing = PipeReader.readBytesBackingArray(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+    				int len  = PipeReader.readBytesLength(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+    				int pos = PipeReader.readBytesPosition(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+    				int mask = PipeReader.readBytesMask(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+    
+    				assert(!connectionBlocker.isBlocked(addr)): "expected command to not be blocked";
+    
+    				Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
+    
+    				try {
+    					if (logger.isDebugEnabled()) {
+    						logger.debug("{} send command {} {}", activePipe, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
+    					}
+    				} catch (IOException e) {
+    					throw new RuntimeException(e);
+    				}
+    
+    				timeOut = hardware.currentTimeMillis() + writeTime;
+    				while(!i2c.write((byte) addr, workingBuffer, len) && hardware.currentTimeMillis()<timeOut){}
+    
+    				logger.debug("send done");
+    
+    			}                                      
+    			break;
+    
+    			case I2CCommandSchema.MSG_BLOCKCHANNELMS_22:
+    			{
+    				blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));            	   
+    				logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
+    			}
+    			break;
+    
+    			case I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20:
+    			{  
+    				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12);
+    				long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13);
+    				connectionBlocker.until(addr, hardware.currentTimeMillis() + duration);
+    				logger.debug("I2C addr {} blocked for {} millis  {}", addr, duration, pipe);
+    			}   
+    			break;
+    
+    			case I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21:
+    			{  
+    				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12);
+    				long time = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_TIMEMS_14);
+    				connectionBlocker.until(addr, time);
+    				logger.debug("I2C addr {} blocked until {} millis {}", addr, time, pipe);
+    			}
+    
+    			break;    
+    			case -1 :
+    				requestShutdown();      
 
 			}
 			PipeReader.releaseReadLock(pipe);

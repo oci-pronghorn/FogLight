@@ -23,7 +23,7 @@ public enum GroveTwig implements IODevice {
         }
         
         public int response() {
-            return 40; 
+            return 100; 
         }
     },
     SoundSensor(){
@@ -33,7 +33,7 @@ public enum GroveTwig implements IODevice {
         }
                 
         public int response() {
-            return 0; //special up to 20Khz
+            return 5;
         }
     },
     AngleSensor(){
@@ -43,7 +43,7 @@ public enum GroveTwig implements IODevice {
         }
         
         public int response() {
-            return 20;
+            return 40;
         }
         
         public int range() {

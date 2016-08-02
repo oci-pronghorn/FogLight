@@ -69,7 +69,7 @@ public class TestI2CBacking implements I2CBacking{
         lastWriteLength[lastWriteIdx] = length;
 
         lastWriteIdx = (1+lastWriteIdx) & MAX_BACK_MASK;
-        
+
         consoleSimulationLCD(address, message, length);
         
         return true;

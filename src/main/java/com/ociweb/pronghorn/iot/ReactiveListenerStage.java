@@ -97,8 +97,9 @@ public class ReactiveListenerStage extends PronghornStage {
     }
     
     protected int findStableReading(int tempValue, int connector) { 
-        int offset = updateRunLenghtOfActiveValue(tempValue, connector);       
-        return findLongestRunningValue(offset);
+        return tempValue;
+        //int offset = updateRunLenghtOfActiveValue(tempValue, connector);       
+        //return findLongestRunningValue(offset);
     }
 
     private int updateRunLenghtOfActiveValue(int tempValue, int connector) {

@@ -94,6 +94,10 @@ public class ReadDeviceInputStage extends PronghornStage {
 		//before we setup the pins they must start in a known state
 		//this is required for the ATD converters (eg any analog port usage)
 
+		
+	//TODO: ADD Schedule of the selected inputs and their speeds.	
+	//	int[] schedulePeriods = new int[inputs.length];
+		
 
 		byte sliceCount = 0;
 

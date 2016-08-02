@@ -17,20 +17,9 @@ public class I2CConnection extends HardwareConnection {
         this.readBytes = readBytes;
         this.register = register;
         this.setup = setup;
-        //this.delayAfterRequestNS = null==readCmd? 20_000_000 : computeMinimum(readCmd.length, 3);
-        this.delayAfterRequestNS = 80_000;
+        this.delayAfterRequestNS = 80_000; //TODO: + additional delay known by twig
     }
     
-    private long computeMinimum(int readRequestLen, int responseLen) {
-        
-        int totalBits = 9 * (2+readRequestLen+responseLen); //plus 2 for addresses
-        int oneSecond = 1_000_000_000;
-        int i2cSpeed = 100_000;//cycles per second
-        int oneCycle = oneSecond/i2cSpeed;
-        int totalTime = oneCycle*totalBits;
-        System.out.println("Required wait time: "+totalTime+"ns");        
-        return totalTime+20_00_000;
-    }
 
     public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS) {
     	super(twig, responseMS, HardConnection.DEFAULT_AVERAGE);
@@ -39,8 +28,7 @@ public class I2CConnection extends HardwareConnection {
         this.readBytes = readBytes;
         this.register = register;
         this.setup = setup;
-        //this.delayAfterRequestNS = null==readCmd? 20_000_000 : computeMinimum(readCmd.length, 3);
-        this.delayAfterRequestNS = 80_000;
+        this.delayAfterRequestNS = 80_000; //TODO: + additional delay known by twig
     }
     
 

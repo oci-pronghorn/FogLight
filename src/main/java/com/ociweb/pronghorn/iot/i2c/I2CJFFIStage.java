@@ -148,17 +148,14 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         				} 	
         				
         				long now = System.nanoTime();
-        				while(System.nanoTime() < now + this.inputs[inProgressIdx].delayAfterRequestNS){};
-//                        try {
-//                            Thread.sleep(this.inputs[inProgressIdx].delayAfterRequestNS/1_000_000, 
-//                                    (int)(this.inputs[inProgressIdx].delayAfterRequestNS%1_000_000));
-//                        	
-//                        } catch (InterruptedException e) {
-//                            logger.info("break shutdown");
-//                            requestShutdown();
-//                            return;
-//                        }   
-        				
+        				while(System.nanoTime() < now + this.inputs[inProgressIdx].delayAfterRequestNS) {
+        				    Thread.yield();
+        				    if (Thread.interrupted()) {
+        				        requestShutdown();
+        				        return;
+        				    }
+        				}
+
         				readI2CData(len);	
         				
         			}

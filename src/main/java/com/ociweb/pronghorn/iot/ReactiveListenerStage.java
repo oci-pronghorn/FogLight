@@ -46,12 +46,11 @@ public class ReactiveListenerStage extends PronghornStage {
     
     
     protected int[] oversampledAnalogValues;
-    protected int[] oversampledAnalogCounts;
 
     private static final int MAX_CONNECTIONS = 10;
     
     //for analog values returns the one with the longest run within the last n samples
-    protected static final int OVERSAMPLE = 4; //  (COUNT), SAMPLE1, ... SAMPLEn
+    protected static final int OVERSAMPLE = 3; //  (COUNT), SAMPLE1, ... SAMPLEn
     protected static final int OVERSAMPLE_STEP = OVERSAMPLE+1;
     
     protected int[] lastDigitalValues;
@@ -97,47 +96,51 @@ public class ReactiveListenerStage extends PronghornStage {
     }
     
     protected int findStableReading(int tempValue, int connector) { 
-        return tempValue;
-        //int offset = updateRunLenghtOfActiveValue(tempValue, connector);       
-        //return findLongestRunningValue(offset);
+        int offset = updateRunLenghtOfActiveValue(tempValue, connector);
+        return findMedian(offset);
+    }
+
+    
+    private int findMedian(int offset) {
+        assert(3 == OVERSAMPLE);//ONLY WORKS FOR 3
+        
+        int a = oversampledAnalogValues[offset+1];
+        int b = oversampledAnalogValues[offset+2];
+        int c = oversampledAnalogValues[offset+3];
+        
+        //TODO: what if we returned the floor?
+        
+        if (a>b) {
+            if (b>c) {
+                return b;
+            } else {
+                return c;
+            }
+        } else {
+            //b > a
+            if (a>c) {
+                return a;
+            } else {
+                return c;
+            }
+        }
+        
     }
 
     private int updateRunLenghtOfActiveValue(int tempValue, int connector) {
-        int activeCount;
+
         //store this value with the oversamples
         int offset = connector*OVERSAMPLE_STEP;
-        int pos =       oversampledAnalogValues[offset];
-        int prevValue = oversampledAnalogValues[offset+pos];
-        //if this matches the last value grow the run length
-        if (prevValue == tempValue) {
-            activeCount = oversampledAnalogCounts[offset+pos]+1;
-        } else {
-            activeCount = 1;
-        }                                
+        int pos =       oversampledAnalogValues[offset];                           
         
         if (--pos<=0) {
             pos = OVERSAMPLE;
         }
-        oversampledAnalogValues[offset] = pos;
+        oversampledAnalogValues[offset]     = pos;
         oversampledAnalogValues[offset+pos] = tempValue;
-        oversampledAnalogCounts[offset+pos] = activeCount;
         return offset;
     }
     
-    private int findLongestRunningValue(int offset) {
-        //review the previous values and pick the one with the longest run
-        int max = Integer.MIN_VALUE;
-        int maxPos = -1;
-        for(int i = 1; i<=OVERSAMPLE; i++) {
-            int count = oversampledAnalogCounts[offset+i];
-            if (count>max) {
-                max = count;
-                maxPos = i;
-            }
-        }
-        int runningValue = oversampledAnalogValues[offset+maxPos];
-        return runningValue;
-    } 
     
     @Override
     public void startup() {

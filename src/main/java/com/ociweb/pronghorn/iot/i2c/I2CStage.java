@@ -106,10 +106,14 @@ public class I2CStage extends PronghornStage {
             bytesToSendReleaseSize = Pipe.sizeOf(request, msgId);
             switch (msgId) {
                 case I2CCommandSchema.MSG_COMMAND_7:
+                    
+                    int connection = Pipe.takeValue(request);
                     int addr = Pipe.takeValue(request);
                     int meta = Pipe.takeRingByteMetaData(request);
                     int len = Pipe.takeRingByteLen(request);
 
+                    
+                    
                     bytesToSendBacking = Pipe.byteBackingArray(meta, request);
                     bytesToSendMask = Pipe.blobMask(request);
                     bytesToSendPosition = Pipe.bytePosition(meta, request, len);

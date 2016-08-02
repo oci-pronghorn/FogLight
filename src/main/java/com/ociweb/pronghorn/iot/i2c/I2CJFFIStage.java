@@ -202,7 +202,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 		while ( hasReleaseCountRemaining(activePipe) 
 				&& !isChannelBlocked(activePipe)
-				&& !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) //peek next address and check that it is not blocking for some time 
+				&& !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) //peek next connection and check that it is not blocking for some time 
 				&& PipeReader.tryReadFragment(pipe)){
 
 			int msgIdx = PipeReader.getMsgIdx(pipe);
@@ -210,6 +210,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			switch(msgIdx){
     			case I2CCommandSchema.MSG_COMMAND_7:
     			{
+    			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_CONNECTOR_11);
     				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12);
     
     				byte[] backing = PipeReader.readBytesBackingArray(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
@@ -217,7 +218,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     				int pos = PipeReader.readBytesPosition(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
     				int mask = PipeReader.readBytesMask(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
     
-    				assert(!connectionBlocker.isBlocked(addr)): "expected command to not be blocked";
+    				assert(!connectionBlocker.isBlocked(connection)): "expected command to not be blocked";
     
     				Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
     
@@ -246,19 +247,24 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
     			case I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20:
     			{  
+    			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11);
     				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12);
     				long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13);
-    				connectionBlocker.until(addr, hardware.currentTimeMillis() + duration);
-    				logger.debug("I2C addr {} blocked for {} millis  {}", addr, duration, pipe);
+    				
+    				//TODO: urgent this blocker is picking up the i2c address which is the same for all twigs on the pi.
+    				
+    				connectionBlocker.until(connection, hardware.currentTimeMillis() + duration);
+    				logger.debug("I2C addr {} {} blocked for {} millis  {}", addr, connection, duration, pipe);
     			}   
     			break;
     
     			case I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21:
     			{  
+    			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11);
     				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12);
     				long time = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_TIMEMS_14);
-    				connectionBlocker.until(addr, time);
-    				logger.debug("I2C addr {} blocked until {} millis {}", addr, time, pipe);
+    				connectionBlocker.until(connection, time);
+    				logger.debug("I2C addr {} {} blocked until {} millis {}", addr, connection, time, pipe);
     			}
     
     			break;    

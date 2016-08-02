@@ -164,7 +164,6 @@ public class ReactiveListenerStage extends PronghornStage {
         lastAnalogValues = new int[MAX_CONNECTIONS];
             
         oversampledAnalogValues = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP];
-        oversampledAnalogCounts = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP]; 
         
     }
 

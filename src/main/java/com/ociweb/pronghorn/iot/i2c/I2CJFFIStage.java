@@ -111,7 +111,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	public void run() {
 	
 	    //never run poll if we have nothing to poll, in that case the array will have a single -1 
-	    if (hasInputs) {
+	    if (hasInputs && hasListeners()) {
 	        do {
         	    long waitTime = blockStartTime -hardware.currentTimeMillis();
         		if(waitTime>0){
@@ -147,15 +147,18 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                             }
         				} 	
         				
-                        try {
-                            Thread.sleep(this.inputs[inProgressIdx].delayAfterRequestNS/1_000_000, 
-                                    (int)(this.inputs[inProgressIdx].delayAfterRequestNS%1_000_000));
-                        } catch (InterruptedException e) {
-                            logger.info("break shutdown");
-                            requestShutdown();
-                            return;
-                        }   
-                        
+        				long now = System.nanoTime();
+        				while(System.nanoTime() < now + this.inputs[inProgressIdx].delayAfterRequestNS){};
+//                        try {
+//                            Thread.sleep(this.inputs[inProgressIdx].delayAfterRequestNS/1_000_000, 
+//                                    (int)(this.inputs[inProgressIdx].delayAfterRequestNS%1_000_000));
+//                        	
+//                        } catch (InterruptedException e) {
+//                            logger.info("break shutdown");
+//                            requestShutdown();
+//                            return;
+//                        }   
+        				
         				readI2CData(len);	
         				
         			}
@@ -167,6 +170,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    } else {
 	        processReleasedCommands(10);
 	    }
+	}
+
+	private boolean hasListeners() {
+		return i2cResponsePipe != null;
 	}
 
     private void readI2CData(int len) {

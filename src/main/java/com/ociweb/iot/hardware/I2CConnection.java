@@ -17,7 +17,8 @@ public class I2CConnection extends HardwareConnection {
         this.readBytes = readBytes;
         this.register = register;
         this.setup = setup;
-        this.delayAfterRequestNS = null==readCmd? 20_000_000 : computeMinimum(readCmd.length, 3);
+        //this.delayAfterRequestNS = null==readCmd? 20_000_000 : computeMinimum(readCmd.length, 3);
+        this.delayAfterRequestNS = 80_000;
     }
     
     private long computeMinimum(int readRequestLen, int responseLen) {
@@ -38,7 +39,8 @@ public class I2CConnection extends HardwareConnection {
         this.readBytes = readBytes;
         this.register = register;
         this.setup = setup;
-        this.delayAfterRequestNS = null==readCmd? 20_000_000 : computeMinimum(readCmd.length, 3);
+        //this.delayAfterRequestNS = null==readCmd? 20_000_000 : computeMinimum(readCmd.length, 3);
+        this.delayAfterRequestNS = 80_000;
     }
     
 

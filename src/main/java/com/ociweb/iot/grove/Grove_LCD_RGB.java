@@ -244,6 +244,13 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
+	/**
+	 * Creates a custom char from an array of 8 bytes. Can save up to 8 custom chars in the LCD. 
+	 * @param target CommandChannel to send command on
+	 * @param location location 0-7 to store the charmap in the LCD
+	 * @param charMap Array of 8 bytes. Each byte is a row. Least significant 5 bits determines values within row
+	 * @return
+	 */
 	public static boolean setCustomChar(CommandChannel target, int location,  byte charMap[]){
 		if (!target.i2cIsReady()) {
 			return false;
@@ -251,6 +258,7 @@ public class Grove_LCD_RGB implements IODevice{
 		if(!isStarted){
 			begin(target);
 		}
+		assert(location < 8 && location >= 0) : "Only locations 0-7 are valid";
 		assert(charMap.length == 8) : "charMap must contain an array of 8 bytes";
 		location &= 0x7;
 		for (int i = 0; i < charMap.length; i++) {
@@ -267,11 +275,17 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
-	public static boolean writeCustomChar(CommandChannel target, int character){
+	/**
+	 * Writes an ascii char  with idx characterIdx. Locations 0-7 contain custom characters.
+	 * @param target CommandChannel to send command on
+	 * @param characterIdx Index of the character
+	 * @return
+	 */
+	public static boolean writeChar(CommandChannel target, int characterIdx){
 		if (!target.i2cIsReady()) {
 			return false;
 		}
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, character);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, characterIdx);
 		target.i2cDelay(LCD_ADDRESS, 1);
 		target.i2cFlushBatch();
 

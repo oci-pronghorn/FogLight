@@ -54,7 +54,11 @@ public class ReactiveListenerStage extends PronghornStage {
     protected static final int OVERSAMPLE_STEP = OVERSAMPLE+1;
     
     protected int[] lastDigitalValues;
+    protected long[] lastDigitalTimes;
+    
     protected int[] lastAnalogValues;
+    protected long[] lastAnalogTimes;
+    
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
 
@@ -163,13 +167,13 @@ public class ReactiveListenerStage extends PronghornStage {
         
         System.out.println("setup digitals "+Arrays.toString(hardware.digitalInputs));       
         setupMovingAverages(rollingMovingAveragesDigital, hardware.digitalInputs);
-  
-        
+          
         lastDigitalValues = new int[MAX_CONNECTIONS];
         lastAnalogValues = new int[MAX_CONNECTIONS];
         
-        
-            
+        lastDigitalTimes = new long[MAX_CONNECTIONS];
+        lastAnalogTimes = new long[MAX_CONNECTIONS];
+                    
         oversampledAnalogValues = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP];
         
     }
@@ -332,8 +336,10 @@ public class ReactiveListenerStage extends PronghornStage {
                         int mean = 0/*(int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector])*/;
                         
                         if(value!=lastAnalogValues[connector]){   //TODO: add switch
+                        	long durationMillis = 0==lastAnalogTimes[connector] ? -1 : time-lastAnalogTimes[connector];
                             ((AnalogListener)listener).analogEvent(connector, time, mean, runningValue);
                             lastAnalogValues[connector] = value;
+                            lastAnalogTimes[connector] = time;
                         }
                         
                     }   
@@ -347,8 +353,10 @@ public class ReactiveListenerStage extends PronghornStage {
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_PREVDURATION_25);
                                            
                         if(value!=lastDigitalValues[connector]){  //TODO: add switch   
-                            ((DigitalListener)listener).digitalEvent(connector, time, -1, value);
+                        	long durationMillis = 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector];
+                            ((DigitalListener)listener).digitalEvent(connector, time, durationMillis, value);
                             lastDigitalValues[connector] = value;
+                            lastDigitalTimes[connector] = time;
                         }
                     }   
                 break; 

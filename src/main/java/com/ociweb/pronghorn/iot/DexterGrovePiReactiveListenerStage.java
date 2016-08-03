@@ -53,10 +53,12 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 						MAvgRollerLong.roll(rollingMovingAveragesDigital[connector], tempValue);
 						
 						//only send when it changes, 
-						if(tempValue!=lastDigitalValues[connector]){							
-							((DigitalListener)listener).digitalEvent(register, time, -1, tempValue);
+						if(tempValue!=lastDigitalValues[connector]){				
+							long duration = 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector];
+							((DigitalListener)listener).digitalEvent(register, time, duration, tempValue);
 							logger.debug("Digital event");
 							lastDigitalValues[connector] = tempValue;
+							lastDigitalTimes[connector] = time;
 						}
 					}
 					else if(listener instanceof AnalogListener && addr==4 && length==3){
@@ -86,13 +88,16 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
     							//only send upon change TODO: need to turn and off
     							if (runningValue!=lastAnalogValues[connector]) {
     							    
+    								long duration = 0==lastAnalogTimes[connector] ? -1 : time-lastAnalogTimes[connector];
+    								
     							    int mean = 0;
     							    if (rollingMovingAveragesAnalog[connector].distance>=0) {
     							        mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);
     							    }    							    
     							    
     							    ((AnalogListener)listener).analogEvent(connector, time, mean, runningValue); 
-    							    lastAnalogValues[connector] = runningValue;     
+    							    lastAnalogValues[connector] = runningValue;    
+    							    lastAnalogTimes[connector] = time;
     							}
     						}
                         }

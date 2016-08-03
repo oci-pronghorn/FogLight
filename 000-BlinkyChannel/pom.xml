@@ -133,7 +133,7 @@
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
 
-            <finalName>uberPronghornIoT-lightblink</finalName>  
+            <finalName>uber000-BlinkyChannel</finalName>  
             <appendAssemblyId>false</appendAssemblyId>    
   
           </configuration>
@@ -181,8 +181,8 @@
 	            <lib>${java.cryptographic.extension.classes}</lib>
 	            <lib>${java.secure.socket.extension.classes}</lib>
 	          </libs>
-	          <injar>uberPronghornIoT-lightblink.jar</injar>
-	          <outjar>PronghornIoT-lightblink.jar</outjar>
+	          <injar>uber000-BlinkyChannel.jar</injar>
+	          <outjar>000-BlinkyChannel.jar</outjar>
 	        </configuration>
 	        <dependencies>
 	          <dependency>

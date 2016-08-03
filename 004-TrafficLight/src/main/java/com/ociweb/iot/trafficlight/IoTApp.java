@@ -8,7 +8,6 @@ import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.IoTSetup;
-import com.ociweb.pronghorn.iot.TrafficLight.State;
 
 public class IoTApp implements IoTSetup
 {

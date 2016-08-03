@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.ociweb</groupId>
+  <artifactId>examples</artifactId>
+  <version>1</version>
+  <packaging>pom</packaging>
+ 
+  <modules>
+    <module>000-BlinkyChannel</module>
+    <module>000-BlinkyClass</module>
+    <module>000-BlinkyLambdas</module>
+    <module>000-BlinkyTimer</module>
+    <module>001-LightUsingButton</module>
+    <module>002-Metronome</module>
+    <module>nightLight</module>
+    <module>clock</module>
+  </modules>
+</project>

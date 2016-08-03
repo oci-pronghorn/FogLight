@@ -185,7 +185,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         	PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
         	PipeWriter.publishWrites(i2cResponsePipe);    					
         }else{
-            System.out.println("pipe is full");
+            
+        	logger.warn(" {} Pipe\n is full, can not store i2c read data from address {} connection {} ", i2cResponsePipe, 
+        			    this.inputs[inProgressIdx].address,
+        			    this.inputs[inProgressIdx].register);
+        	            
             inErrorCode[inProgressIdx]=-3;
         }
     }

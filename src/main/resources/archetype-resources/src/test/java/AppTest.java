@@ -5,9 +5,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.ociweb.iot.hardware.TestHardware;
+import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.project.lightblink.IoTApp;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 /**
@@ -29,7 +28,7 @@ public class AppTest {
 	    	
 	    	
 	    	int iterations = 10;
-			while (iterations>0) {
+			while (--iterations >= 0) {
 				    		
 					scheduler.run();
 					

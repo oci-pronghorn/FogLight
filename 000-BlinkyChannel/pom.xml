@@ -171,6 +171,8 @@
 				<option>-keep class com.kenai.jffi.** { *; }</option>
 	            <option>-dontobfuscate</option>
 				<option>-ignorewarnings</option>
+				<option>-dontnote</option>
+                <option>-dontwarn</option>
 				<option>-optimizations code/allocation/</option>
 	          </options>
 	          <obfuscate>false</obfuscate>

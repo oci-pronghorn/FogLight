@@ -11,6 +11,7 @@
     <module>blinkyUsingLambdas</module>
     <module>blinkyUsingQueue</module>
     <module>blinkyUsingTimer</module>
+    <module>lightUsingButton</module>
     <module>metronome</module>
     <module>nightLight</module>
     <module>clock</module>

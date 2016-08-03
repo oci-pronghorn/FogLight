@@ -11,3 +11,5 @@ buildNumber.properties
 .recommenders
 *.iml
 .idea
+/.settings/
+/.project

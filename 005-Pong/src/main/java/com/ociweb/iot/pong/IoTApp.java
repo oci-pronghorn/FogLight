@@ -28,7 +28,8 @@ public class IoTApp implements IoTSetup {
 
 	public void declareConnections(Hardware c) {
 
-		c.useConnectA(AngleSensor, 1);
+		c.useConnectA(AngleSensor, PongConstants.Player1Con);
+		c.useConnectI2C(new UltrasonicRangerTwig(PongConstants.Player2Con));
 
 		c.useTriggerRate(50);
 
@@ -38,12 +39,7 @@ public class IoTApp implements IoTSetup {
 	}    
 
 	public void declareBehavior(DeviceRuntime runtime){
-
-		CommandChannel channel1 = runtime.newCommandChannel();
-		
-		runtime.addStartupListener(()->{
-			Grove_LCD_RGB.begin(channel1);
-		});
+		runtime.registerListener(new PongBehavior(runtime));
 	}
 
 	public static void main(String[] args) {        

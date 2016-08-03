@@ -71,7 +71,7 @@ public class DeviceRuntime {
     private boolean isPi = false;
     private int channelsCount;
     
-    private int DEFAULT_SLEEP_RATE_NS = 10_000_000;   //we will only check for new work 100 times per second to keep CPU usage low.
+    private int defaultSleepRateNS = 10_000_000;   //we will only check for new work 100 times per second to keep CPU usage low.
     
     private static final byte piI2C = 1;
     private static final byte edI2C = 6;
@@ -82,10 +82,6 @@ public class DeviceRuntime {
     public DeviceRuntime() {
         gm = new GraphManager();
      
-        
-        //by default, unless explicitly set the stages will use this sleep rate
-        GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, DEFAULT_SLEEP_RATE_NS);       
-        
     }
 
     
@@ -287,7 +283,7 @@ public class DeviceRuntime {
             stage.setTimeEventSchedule(rate);
             //Since we are using the time schedule we must set the stage to be faster
             long customRate =   (rate*nsPerMS)/NonThreadScheduler.granularityMultiplier;// in ns and guanularityXfaster than clock trigger
-            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, Math.min(customRate,DEFAULT_SLEEP_RATE_NS),stage);
+            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, Math.min(customRate,defaultSleepRateNS),stage);
         }
     }
 
@@ -427,6 +423,15 @@ public class DeviceRuntime {
     private static DeviceRuntime run(IoTSetup app, DeviceRuntime runtime) {
         try {
             app.declareConnections(runtime.getHardware());
+            
+            //TODO: based on the connected twigs we must choose an appropriate default, may need schedule!!!
+            //runtime.defaultSleepRateNS = 100_000;
+            
+            
+            //by default, unless explicitly set the stages will use this sleep rate
+            GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.defaultSleepRateNS);       
+            
+            
             app.declareBehavior(runtime);
             runtime.start();
             runtime.scheduler.startup();

@@ -78,6 +78,8 @@ public class ReactiveListenerStage extends PronghornStage {
             
               int ms   = con[i].movingAverageWindowMS;
               int rate = con[i].responseMS;
+              System.out.println("count "+(ms/rate)+" ms"+ms+"  rate"+rate);
+              
               target[con[i].connection] = new MAvgRollerLong(ms/rate);
               System.out.println("expecting moving average on connection "+con[i].connection);
         }        
@@ -96,6 +98,9 @@ public class ReactiveListenerStage extends PronghornStage {
     }
     
     protected int findStableReading(int tempValue, int connector) { 
+
+        //TODO: add switch to remove this when doing fixed samples.
+
         int offset = updateRunLenghtOfActiveValue(tempValue, connector);
         return findMedian(offset);
     }
@@ -162,6 +167,8 @@ public class ReactiveListenerStage extends PronghornStage {
         
         lastDigitalValues = new int[MAX_CONNECTIONS];
         lastAnalogValues = new int[MAX_CONNECTIONS];
+        
+        
             
         oversampledAnalogValues = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP];
         
@@ -316,9 +323,6 @@ public class ReactiveListenerStage extends PronghornStage {
                         int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31);
                         long time = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11);
                         int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32);
-                        //TODO: remove average.
-                        int average = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_AVERAGE_33);
-
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_PREVDURATION_35);
                                                 
                         int runningValue = findStableReading(value, connector);             
@@ -326,7 +330,11 @@ public class ReactiveListenerStage extends PronghornStage {
                         MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);                                                
                         
                         int mean = 0/*(int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector])*/;
-						((AnalogListener)listener).analogEvent(connector, time, mean, runningValue);
+                        
+                        if(value!=lastAnalogValues[connector]){   //TODO: add switch
+                            ((AnalogListener)listener).analogEvent(connector, time, mean, runningValue);
+                            lastAnalogValues[connector] = value;
+                        }
                         
                     }   
                 break;               
@@ -338,9 +346,10 @@ public class ReactiveListenerStage extends PronghornStage {
                         int value = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22);
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_PREVDURATION_25);
                                            
-                        
-                        ((DigitalListener)listener).digitalEvent(connector, time, value);
-                        
+                        if(value!=lastDigitalValues[connector]){  //TODO: add switch   
+                            ((DigitalListener)listener).digitalEvent(connector, time, value);
+                            lastDigitalValues[connector] = value;
+                        }
                     }   
                 break; 
                 case GroveResponseSchema.MSG_ENCODER_70:

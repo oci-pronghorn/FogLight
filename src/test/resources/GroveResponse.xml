@@ -15,7 +15,6 @@
      <uInt32 name="Connector" id="31"/>
      <uInt64 name="Time" id="11"/>
      <uInt32 name="Value" id="32"/>
-     <uInt32 name="Average" id="33"/>
      <uInt64 name="PrevDuration" id="35"/>
    </template>
    

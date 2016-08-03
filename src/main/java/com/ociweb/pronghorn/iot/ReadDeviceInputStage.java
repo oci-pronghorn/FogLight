@@ -5,12 +5,14 @@ import java.util.Arrays;
 import com.ociweb.iot.grove.GroveTwig;
 import com.ociweb.iot.hardware.HardConnection;
 import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.Util;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.math.PMath;
 
 public class ReadDeviceInputStage extends PronghornStage {
 
@@ -30,7 +32,6 @@ public class ReadDeviceInputStage extends PronghornStage {
 	private IODevice[] scriptTwig;
 
 	private int[][]    movingAverageHistory;
-	private int[]      lastPublished;
 
 	private int[]       rotaryRolling;
 	private int[]       rotationState;
@@ -57,11 +58,30 @@ public class ReadDeviceInputStage extends PronghornStage {
 		this.responsePipe = resposnePipe;
 		this.config = config;
 
+		
+	      
+		//TODO: rewrite using ScriptedSchedule
+//        this.inputs = null==config.analogInputs;
+//        
+//        //.i2cInputs?new I2CConnection[0]:config.i2cInputs;
+//        this.hasInputs = inputs.length>0;
+//        if (this.hasInputs) {
+//            int[] schedulePeriods = new int[inputs.length];
+//            for (int i = 0; i < inputs.length; i++) {
+//                schedulePeriods[i] = inputs[i].responseMS;
+//            }
+//            this.schedule = PMath.buildScriptedSchedule(schedulePeriods);
+//            
+//            GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock*1_000_000)/10 , this); 
+//        }
+		
+		
 		//NOTE: rotary encoder would work best using native hardware and this rate only need
 		//      be faster than 20K because the rotary and the button needs to be polled.
 		//TODO: with a user space GPIO Sysfs or similar driver see of we can remove this work, will save most of the CPU.
 		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 1_000_000, this);
-		GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);        
+		GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);   
+		
 	}
 
 
@@ -79,8 +99,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 		while (--j>=0) {
 			movingAverageHistory[j] = new int[activeSize];            
 		}
-		lastPublished = new int[activeSize];
-
+		
 		rotaryRolling = new int[activeSize];
 		Arrays.fill(rotaryRolling, 0xFFFFFFFF);
 		rotationState = new int[activeSize];
@@ -295,33 +314,19 @@ public class ReadDeviceInputStage extends PronghornStage {
     private void intRead(final short doit) {
 		{
 			int connector = scriptConn[doit];
-			int maTotal = config.maxAnalogMovingAverage();  //TODO: update so each connection can have its own ma
-			boolean useAverageAsTrigger = true;            //TODO: update so some connections send every value
+			int maTotal = config.maxAnalogMovingAverage();
 			int intValue = config.analogRead(connector);
 
 			int i = maTotal-1;
-			long sum = 0;
-			//StringBuilder b = new StringBuilder();
-			while (--i>=0) {
-				//b.append(" ").append(movingAverageHistory[i][doit]);
-				sum += (long)movingAverageHistory[i][doit];
-			}
-			//b.append(" ").append(intValue);
-			sum += (long)intValue;
-			int avg = (int)Math.rint(sum/(float)maTotal);
-
-
-			int sendTrigger = useAverageAsTrigger ? avg : intValue;
-
-			if (lastPublished[doit] != sendTrigger && Pipe.hasRoomForWrite(responsePipe)) {
-				writeInt(responsePipe, connector, config.currentTimeMillis(), intValue, avg);
+		
+			if (Pipe.hasRoomForWrite(responsePipe)) {
+				writeInt(responsePipe, connector, config.currentTimeMillis(), intValue);
 				int j = maTotal-1;
 				while (--j>0) {//must stop before zero because we do copy from previous lower index.
 					movingAverageHistory[j][doit]=movingAverageHistory[j-1][doit];                     
 				}
 				movingAverageHistory[0][doit]=intValue;
-				lastPublished[doit] = sendTrigger;
-
+				
 			} else {
 				//tossing fieldValue but this could be saved to send on next call.
 			}
@@ -329,12 +334,11 @@ public class ReadDeviceInputStage extends PronghornStage {
 	}
 
 
-	private void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue, int average) {
+	private void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue) {
 	    int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ANALOGSAMPLE_30);
         Pipe.addIntValue(connector, responsePipe);
         Pipe.addLongValue(time, responsePipe);
         Pipe.addIntValue(intValue, responsePipe);
-        Pipe.addIntValue(average, responsePipe);
         
         long duration = 0;
         Pipe.addLongValue(duration, responsePipe);            
@@ -349,9 +353,9 @@ public class ReadDeviceInputStage extends PronghornStage {
 		{
 			int connector = scriptConn[doit];
 			int fieldValue = config.digitalRead(connector);
-			if (lastPublished[doit]!=fieldValue &&Pipe.hasRoomForWrite(responsePipe)) {                  
+			if (Pipe.hasRoomForWrite(responsePipe)) {                  
 				writeBit(responsePipe, connector, config.currentTimeMillis(), fieldValue);                  
-				lastPublished[doit]=fieldValue;                          
+				                         
 			} else {
 				//tossing fieldValue but this could be saved to send on next call.
 			}

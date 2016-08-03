@@ -13,6 +13,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
+import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -62,14 +63,14 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
 		this.i2cResponsePipe = i2cResponsePipe;
-
-		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
-		this.hasInputs = inputs.length>0;
 		
 		//force all commands to happen upon publish and release
 		this.supportsBatchedPublish = false;
 		this.supportsBatchedRelease = false;
 
+		
+		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
+		this.hasInputs = inputs.length>0;
 		if (this.hasInputs) {
     		int[] schedulePeriods = new int[inputs.length];
             for (int i = 0; i < inputs.length; i++) {
@@ -133,8 +134,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         timeOut = hardware.currentTimeMillis() + writeTime;
       
                         while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
-        				
-        				int len = this.inputs[inProgressIdx].readBytes;
+        				;
         				workingBuffer[0] = inErrorCode[inProgressIdx];
         				if (-3 == workingBuffer[0]) {
         				    if (PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
@@ -156,7 +156,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         				    }
         				}
 
-        				readI2CData(len);	
+        				readI2CData(this.inputs[inProgressIdx].readBytes);	
         				
         			}
         
@@ -174,11 +174,13 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	}
 
     private void readI2CData(int len) {
-        byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, len); //this is odd and we should reconcider and do it after the pipe check?
-  
+          
         if (PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
         	PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
+
+        	byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, len);
         	PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
+        	
         	PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
         	PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
         	PipeWriter.publishWrites(i2cResponsePipe);    					

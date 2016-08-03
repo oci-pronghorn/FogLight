@@ -1,6 +1,9 @@
 package com.ociweb.pronghorn.iot.i2c.impl;
 
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
+
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +86,10 @@ public class I2CNativeLinuxBacking implements I2CBacking {
     @Override public byte[] read(byte address, byte[] target, int bufferSize) {
         //Check if we need to load the address into memory.
         if (ensureI2CDevice(address)) {
-            c.read(i2cFile, target, bufferSize);//TODO: add retry if we could not do a read on the I2C bus.
+            int result = c.read(i2cFile, target, bufferSize);
+            if (result!=bufferSize) {//did not read so flag this as an error
+                target[0] = -2;
+            }
             return target;
         } else {
             return EMPTY;

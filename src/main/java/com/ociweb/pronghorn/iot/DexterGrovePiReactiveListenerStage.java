@@ -78,14 +78,19 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
     						    logger.error("connection {} bad i2c result array [{}, {}, {}] ",connector,backing[(position+0)&mask],backing[(position+1)&mask],backing[(position+2)&mask]);
     						} else {
     							
-    							int runningValue = findStableReading(tempValue, connector);    						    							
+    							int runningValue = findStableReading(tempValue, connector);   //TODO: need to turn and off 						    							
 
     							//works on PC, works in unit test but fails on PI, not sure why yet.		
-    							//		MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);    							
+    							MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);    							
     							
-    							//only send upon change
+    							//only send upon change TODO: need to turn and off
     							if (runningValue!=lastAnalogValues[connector]) {
-    							    int mean = /*(int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);*/ 0;
+    							    
+    							    int mean = 0;
+    							    if (rollingMovingAveragesAnalog[connector].distance>=0) {
+    							        mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);
+    							    }    							    
+    							    
     							    ((AnalogListener)listener).analogEvent(connector, time, mean, runningValue); 
     							    lastAnalogValues[connector] = runningValue;     
     							}

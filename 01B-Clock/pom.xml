@@ -117,7 +117,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.ociweb.iot.nightlight.IoTApp</mainClass>
+              <mainClass>com.ociweb.iot.track1.IoTApp</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
@@ -149,7 +149,7 @@
         </dependencies>
         <configuration>
           <options>
-            <option>-keep public class com.ociweb.iot.nightlight.IoTApp {
+            <option>-keep public class com.ociweb.iot.track1.IoTApp {
 			    public static void main(java.lang.String[]);
 			}</option>
             <option>-keep class jnr.ffi.** { *; }</option>

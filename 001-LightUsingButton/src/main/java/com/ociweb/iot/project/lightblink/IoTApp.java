@@ -26,7 +26,7 @@ public class IoTApp implements IoTSetup {
         
         final CommandChannel ledChannel = runtime.newCommandChannel(); 
         
-        runtime.addDigitalListener((connection,time,value)->{
+        runtime.addDigitalListener((connection,time,durationMillis, value)->{
         	
             ledChannel.digitalSetValue(5,value);
         	        	

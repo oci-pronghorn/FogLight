@@ -285,20 +285,7 @@ public class ReactiveListenerStage extends PronghornStage {
                     int msgIdx = PipeReader.getMsgIdx(p);
                     switch (msgIdx) {   
                         case I2CResponseSchema.MSG_RESPONSE_10:
-                            if (listener instanceof I2CListener) {
-                                
-                                int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
-                                int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
-                                int time = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
-                                
-                                byte[] backing = PipeReader.readBytesBackingArray(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-                                int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-                                int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-                                int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
-                                
-                                ((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
-                               
-                            }
+						processI2CMessage(listener, p);
                             break;
                         case -1:
                             
@@ -314,6 +301,30 @@ public class ReactiveListenerStage extends PronghornStage {
                     PipeReader.releaseReadLock(p);
         }
     }
+
+	protected void processI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
+		if (listener instanceof I2CListener) {
+			int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
+			int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
+			long time = PipeReader.readLong(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
+
+			byte[] backing = PipeReader.readBytesBackingArray(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
+			int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
+			int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
+			int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
+		    
+		    processI2CEvent(listener, addr, register, time, backing, position, length, mask);
+		   
+		}
+	}
+
+	protected void processI2CEvent(Object listener, int addr, int register, long time, byte[] backing, int position,
+			int length, int mask) {
+		((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
+	}
+	
+    
+    
 
     protected void consumeResponseMessage(Object listener, Pipe<GroveResponseSchema> p) {
         while (PipeReader.tryReadFragment(p)) {                

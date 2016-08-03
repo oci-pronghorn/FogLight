@@ -15,5 +15,6 @@
     <module>002-Metronome</module>
     <module>01A-NightLight</module>
     <module>01B-Clock</module>
+    <module>004-TrafficLight</module>
   </modules>
 </project>

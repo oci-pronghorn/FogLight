@@ -7,13 +7,13 @@
   <packaging>pom</packaging>
  
   <modules>
-    <module>blinkyUsingClass</module>
-    <module>blinkyUsingLambdas</module>
-    <module>blinkyUsingQueue</module>
-    <module>blinkyUsingTimer</module>
-    <module>lightUsingButton</module>
-    <module>metronome</module>
-    <module>nightLight</module>
-    <module>clock</module>
+    <module>000-BlinkyChannel</module>
+    <module>000-BlinkyClass</module>
+    <module>000-BlinkyLambdas</module>
+    <module>000-BlinkyTimer</module>
+    <module>001-LightUsingButton</module>
+    <module>002-Metronome</module>
+    <module>01A-NightLight</module>
+    <module>01B-Clock</module>
   </modules>
 </project>

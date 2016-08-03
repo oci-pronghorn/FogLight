@@ -114,6 +114,9 @@ public class Grove_LCD_RGB implements IODevice{
 	    // set the entry mode
 	    //writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, LCD_ENTRYMODESET | LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT);
 	    target.i2cDelay(LCD_ADDRESS, 1);
+	    
+	    setCursor(target, 0, 0);
+	    target.i2cDelay(LCD_ADDRESS, 1);
 		target.i2cFlushBatch();
 		return true;
 	}

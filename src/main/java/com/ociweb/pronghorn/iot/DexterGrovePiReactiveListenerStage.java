@@ -74,7 +74,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
                             int tempValue =  (high<<8) | (0xFF&low);
                                 
                             int connector = GrovePiConstants.REGISTER_TO_PIN[register];
-                            assert(connector>0) :"bad connector "+connector;
+                            assert(connector>=0) :"bad connector "+connector;
                             
     						if (tempValue<0) {
     						    logger.error("connection {} bad i2c result array [{}, {}, {}] ",connector,backing[(position+0)&mask],backing[(position+1)&mask],backing[(position+2)&mask]);

@@ -39,6 +39,7 @@ public class IoTApp implements IoTSetup
     	c.useTriggerRate(50);
     }
 
+    //TODO: rewrite this a a class, can not be done as two lambddas and be responsvie.
 
     @Override
     public void declareBehavior(DeviceRuntime runtime) {

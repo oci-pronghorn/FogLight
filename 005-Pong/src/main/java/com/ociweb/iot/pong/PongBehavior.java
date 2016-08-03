@@ -1,4 +1,4 @@
-package com.ociweb.pronghorn.iot.pong;
+package com.ociweb.iot.pong;
 
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -22,23 +22,23 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	private long prevStep = 0;
 	
 	public PongBehavior(DeviceRuntime runtime) {
-		pongChannel = runtime.newCommandChannel(); 
+		this.pongChannel = runtime.newCommandChannel(); 
 	}	
 	
 	@Override
 	public void startup() {
 		Grove_LCD_RGB.begin(pongChannel);  
+		Grove_LCD_RGB.commandForColor(pongChannel, 0, 255, 0);
 	}
 
 	@Override
 	public void timeEvent(long time) {
 		if(time>prevStep + PongConstants.GAME_STEP){
-			gameStep();
+			gameStep(pongChannel);
 			prevStep = time;
 		}	
 		paintLCD(pongChannel);
 	}
-
 	
 	@Override
 	public void analogEvent(int connector, long time, int average, int value) {
@@ -56,7 +56,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		Grove_LCD_RGB.writeChar(target, PongConstants.BALL_CHAR);	
 	};
 	
-	private void gameStep(){
+	private void gameStep(CommandChannel target){
 		if(ballCol >= PongConstants.RIGHT_LIMIT || ballCol <= PongConstants.LEFT_LIMIT){
 			ballColDelta = -ballColDelta;
 		}
@@ -65,7 +65,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		}
 		ballRow += ballRowDelta;
 		ballCol += ballColDelta;
-		Grove_LCD_RGB
+		Grove_LCD_RGB.setCustomChar(target, PongConstants.BALL_CHAR, PongConstants.generateBall(ballCol%6, ballRow%9));
 	}
 
 }

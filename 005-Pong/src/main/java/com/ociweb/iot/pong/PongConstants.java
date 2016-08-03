@@ -1,4 +1,4 @@
-package com.ociweb.pronghorn.iot.pong;
+package com.ociweb.iot.pong;
 
 public class PongConstants {
 

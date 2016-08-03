@@ -347,7 +347,7 @@ public class ReactiveListenerStage extends PronghornStage {
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_PREVDURATION_25);
                                            
                         if(value!=lastDigitalValues[connector]){  //TODO: add switch   
-                            ((DigitalListener)listener).digitalEvent(connector, time, value);
+                            ((DigitalListener)listener).digitalEvent(connector, time, -1, value);
                             lastDigitalValues[connector] = value;
                         }
                     }   

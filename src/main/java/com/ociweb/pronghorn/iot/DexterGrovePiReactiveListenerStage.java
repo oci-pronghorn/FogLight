@@ -54,7 +54,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 						
 						//only send when it changes, 
 						if(tempValue!=lastDigitalValues[connector]){							
-							((DigitalListener)listener).digitalEvent(register, time, tempValue);
+							((DigitalListener)listener).digitalEvent(register, time, -1, tempValue);
 							logger.debug("Digital event");
 							lastDigitalValues[connector] = tempValue;
 						}

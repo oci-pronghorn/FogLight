@@ -84,102 +84,7 @@ public class Grove_LCD_RGB implements IODevice{
 	public static boolean isStarted = false;
 
 
-	/**
-	 * <pre>
-	 * Creates a complete byte array that will set the text and color of a Grove RGB
-	 * LCD display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
-	 * which is using chunk sizes of 3 and is being piped to a {@link I2CStage}.
-	 *
-	 * TODO: This function is currently causing the last letter of the text to be dropped
-	 *       when displayed on the Grove RGB LCD; there's currently a work-around that
-	 *       simply appends a space to the incoming text variable, but it's hackish
-	 *       and should be looked into more...
-	 *
-	 * @param text String to display on the Grove RGB LCD.
-	 * @param r 0-255 value for the Red color.
-	 * @param g 0-255 value for the Green color.
-	 * @param b 0-255 value for the Blue color.
-	 *
-	 * @return Formatted byte array which can be passed directly to a
-	 *         {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}.
-	 * </pre>
-	 */
-
-	private static int index = 0;
-	public static boolean displayDemo(CommandChannel target){
-		switch(index){
-		case(0):
-			commandForDisplay(target, true);
-		commandForBlink(target, true);
-		commandForTextAndColor(target, "1", 255, 0, 0);
-		break;
-		case(1):
-			commandForTextAndColor(target, "2", 0, 255, 0);
-		break;
-		case(2):
-			commandForDisplay(target, false);
-		commandForTextAndColor(target, "3", 0, 255, 255);
-		break;
-		case(3):
-			commandForTextAndColor(target, "4", 255, 0, 255);
-		break;
-		case(4):
-			commandForDisplay(target, true);
-		break;
-		case(5):
-			commandForTextAndColor(target, "5", 0, 0, 255);
-		break;
-		}
-		index = (index+1)%6;
-
-		return true;
-	}
-
-	public static void customCharDemo(CommandChannel target){
-		switch(index){
-		case(0):
-			begin(target);
-		commandForColor(target, 0, 255, 0);
-		break;
-		case(1):
-		byte[] block = {
-				0b00000,
-			    0b01010,
-			    0b11111,
-			    0b11111,
-			    0b11111,
-			    0b01110,
-			    0b00100,
-			    0b00000
-		};
-		System.out.println("Setting char: ");
-		setCustomChar(target, 1, block);
-		
-		break;
-		case(2):
-			System.out.println("Done char");
-			commandForText(target, "text string");
-		break;
-		case(3):
-			displayClear(target);
-		//writeUTF8ToRegister(target, LCD_ADDRESS, LCD_SETCGRAMADDR, "a");
-		setCursor(target, 9, 1);
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, 68);
-		//writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
-		target.i2cFlushBatch();
-		break;
-		case(4):
-			displayClear(target);
-		//writeUTF8ToRegister(target, LCD_ADDRESS, LCD_SETCGRAMADDR, "a");
-		System.out.println("writing custom");
-		writeCustomChar(target, 1);
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, 1);
-		//writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
-		target.i2cFlushBatch();
-		break;
-		}
-		index++;
-	}
+	
 
 
 	public static boolean begin(CommandChannel target){
@@ -212,6 +117,27 @@ public class Grove_LCD_RGB implements IODevice{
 		target.i2cFlushBatch();
 		return true;
 	}
+	
+	/**
+	 * <pre>
+	 * Creates a complete byte array that will set the text and color of a Grove RGB
+	 * LCD display when passed to a {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}
+	 * which is using chunk sizes of 3 and is being piped to a {@link I2CStage}.
+	 *
+	 * TODO: This function is currently causing the last letter of the text to be dropped
+	 *       when displayed on the Grove RGB LCD; there's currently a work-around that
+	 *       simply appends a space to the incoming text variable, but it's hackish
+	 *       and should be looked into more...
+	 *
+	 * @param text String to display on the Grove RGB LCD.
+	 * @param r 0-255 value for the Red color.
+	 * @param g 0-255 value for the Green color.
+	 * @param b 0-255 value for the Blue color.
+	 *
+	 * @return Formatted byte array which can be passed directly to a
+	 *         {@link com.ociweb.pronghorn.stage.test.ByteArrayProducerStage}.
+	 * </pre>
+	 */
 	public static boolean commandForTextAndColor(CommandChannel target, String text, int r, int g, int b) {
 		if (!target.i2cIsReady()) {
 			return false;
@@ -334,10 +260,10 @@ public class Grove_LCD_RGB implements IODevice{
 		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_SETCGRAMADDR | (location<<3));
 		target.i2cDelay(LCD_ADDRESS, 1);
 		writeMultipleBytesToRegister(target, LCD_ADDRESS, LCD_SETCGRAMADDR, charMap);
-		target.i2cDelay(LCD_ADDRESS, 2);
+		target.i2cDelay(LCD_ADDRESS, 1);
 		target.i2cFlushBatch();
 		
-		begin(target); //TODO: Seems to be necessary, but shouldn't be
+		//begin(target); //TODO: Seems to be necessary, but shouldn't be
 		return true;
 	}
 

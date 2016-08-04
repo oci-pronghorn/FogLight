@@ -1,5 +1,10 @@
 package com.ociweb.iot.grove;
 
+/*
+ * Constants derived from Seeed LCD with RGB backlight data sheet here:
+ * http://www.seeedstudio.com/wiki/images/0/03/JHD1214Y_YG_1.0.pdf
+ *
+ */
 public class Grove_LCD_RGB_Constants {
 
 	// Device I2C Adress (note this only uses the lower 7 bits)
@@ -65,5 +70,15 @@ public class Grove_LCD_RGB_Constants {
 		public static boolean isStarted = false;
 
 	    protected static final long MS_TO_NS = 1_000_000;
+	    
+	    public static final int SCREEN_CLEAR_DELAY = 1_530_000;
+	    public static final int CURSOR_RETURN_DELAY = 1_530_000;
+	    public static final int INPUT_SET_DELAY = 39_000;
+	    public static final int DISPLAY_SWITCH_DELAY = 39_000;
+	    public static final int SHIFT_DELAY = 39_000;
+	    public static final int FUNCTION_SET_DELAY = 39_000;
+	    public static final int CGRAM_SET_DELAY = 39_000;
+	    public static final int DDRAM_SET_DELAY = 39_000;
+	    public static final int DDRAM_WRITE_DELAY = 43_000;
 
 }

@@ -18,73 +18,13 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  */
 public class Grove_LCD_RGB implements IODevice{ 
 
-	// Device I2C Adress (note this only uses the lower 7 bits)
-	public static int LCD_ADDRESS  =   (0x7c>>1); //  11 1110  0x3E
-	public static final int RGB_ADDRESS  =   (0xc4>>1); // 110 0010  0x62
-
-
-	// color define 
-	public static final int WHITE       =    0;
-	public static final int RED         =    1;
-	public static final int GREEN       =    2;
-	public static final int BLUE        =    3;
-
-	public static final int REG_RED     =    0x04;        // pwm2
-	public static final int REG_GREEN   =    0x03;        // pwm1
-	public static final int REG_BLUE    =    0x02;        // pwm0
-
-	public static final int REG_MODE1    =   0x00;
-	public static final int REG_MODE2    =   0x01;
-	public static final int REG_OUTPUT   =   0x08;
-
-	// commands
-	public static final int LCD_CLEARDISPLAY   =0x01;
-	public static final int LCD_RETURNHOME     =0x02;
-	public static final int LCD_ENTRYMODESET   =0x04;
-	public static final int LCD_DISPLAYCONTROL =0x08;
-	public static final int LCD_CURSORSHIFT    =0x10;
-	public static final int LCD_FUNCTIONSET    =0x20;
-	public static final int LCD_TWO_LINES      =0x28;
-	public static final int LCD_SETCGRAMADDR   =0x40;
-	public static final int LCD_SETDDRAMADDR   =0x80;
-
-	// flags for display entry mode
-	public static final int LCD_ENTRYRIGHT          =0x00;
-	public static final int LCD_ENTRYLEFT           =0x02;
-	public static final int LCD_ENTRYSHIFTINCREMENT =0x01;
-	public static final int LCD_ENTRYSHIFTDECREMENT =0x00;
-
-	// flags for display on/off control
-	public static final int LCD_DISPLAYON  =0x04;
-	public static final int LCD_DISPLAYOFF =0x00;
-	public static final int LCD_CURSORON   =0x02;
-	public static final int LCD_CURSOROFF  =0x00;
-	public static final int LCD_BLINKON    =0x01;
-	public static final int LCD_BLINKOFF   =0x00;
-
-	// Current LCD_DISPLAYCONTROL states
-	private static int LCD_DISPLAY =LCD_DISPLAYON;
-	private static int LCD_CURSOR =LCD_CURSOROFF;
-	private static int LCD_BLINK =LCD_BLINKOFF;
-
-	// flags for display/cursor shift
-	public static final int LCD_DISPLAYMOVE =0x08;
-	public static final int LCD_CURSORMOVE  =0x00;
-	public static final int LCD_MOVERIGHT   =0x04;
-	public static final int LCD_MOVELEFT    =0x00;
-
-	// flags for function set
-	public static final int LCD_8BITMODE =0x10;
-	public static final int LCD_4BITMODE =0x00;
-	public static final int LCD_2LINE =0x08;
-	public static final int LCD_1LINE =0x00;
-	public static final int LCD_5x10DOTS =0x04;
-	public static final int LCD_5x8DOTS =0x00;
 	
 	public static boolean isStarted = false;
-
-    private static final long MS_TO_NS = 1_000_000;
 	
+	// Current LCD_DISPLAYCONTROL states
+			private static int LCD_DISPLAY =Grove_LCD_RGB_Constants.LCD_DISPLAYON;
+			private static int LCD_CURSOR =Grove_LCD_RGB_Constants.LCD_CURSOROFF;
+			private static int LCD_BLINK =Grove_LCD_RGB_Constants.LCD_BLINKOFF;
 
 
 	public static boolean begin(CommandChannel target){
@@ -93,16 +33,16 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 		isStarted = true;
 		
-		writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, LCD_TWO_LINES);
-		target.i2cDelay(LCD_ADDRESS, 5*MS_TO_NS);  // wait more than 4.1ms
+		writeSingleByteToRegister(target, Grove_LCD_RGB_Constants.LCD_ADDRESS, Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, Grove_LCD_RGB_Constants.LCD_TWO_LINES);
+		target.i2cDelay(Grove_LCD_RGB_Constants.LCD_ADDRESS, 5*Grove_LCD_RGB_Constants.MS_TO_NS);  // wait more than 4.1ms
 
 	    // second try
-	    writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, LCD_TWO_LINES);
-	    target.i2cDelay(LCD_ADDRESS, 1*MS_TO_NS);
+	    writeSingleByteToRegister(target, Grove_LCD_RGB_Constants.LCD_ADDRESS, Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, Grove_LCD_RGB_Constants.LCD_TWO_LINES);
+	    target.i2cDelay(Grove_LCD_RGB_Constants.LCD_ADDRESS, 1*Grove_LCD_RGB_Constants.MS_TO_NS);
 
 	    // third go
-	    writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, LCD_TWO_LINES);
-	    target.i2cDelay(LCD_ADDRESS, 1*MS_TO_NS);
+	    writeSingleByteToRegister(target, Grove_LCD_RGB_Constants.LCD_ADDRESS, Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, Grove_LCD_RGB_Constants.LCD_TWO_LINES);
+	    target.i2cDelay(Grove_LCD_RGB_Constants.LCD_ADDRESS, 1*Grove_LCD_RGB_Constants.MS_TO_NS);
 
 
 	    // turn the display on with no cursor or blinking default
@@ -112,11 +52,11 @@ public class Grove_LCD_RGB implements IODevice{
 	    displayClear(target);
 
 	    // set the entry mode
-	    //writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, LCD_ENTRYMODESET | LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT);
-	    target.i2cDelay(LCD_ADDRESS, 1*MS_TO_NS);
+	    //writeSingleByteToRegister(target, Grove_LCD_RGB_Constants.LCD_ADDRESS, LCD_SETDDRAMADDR, LCD_ENTRYMODESET | LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT);
+	    target.i2cDelay(Grove_LCD_RGB_Constants.LCD_ADDRESS, 1*Grove_LCD_RGB_Constants.MS_TO_NS);
 	    
 	    setCursor(target, 0, 0);
-	    target.i2cDelay(LCD_ADDRESS, 1*MS_TO_NS);
+	    target.i2cDelay(Grove_LCD_RGB_Constants.LCD_ADDRESS, 1*Grove_LCD_RGB_Constants.MS_TO_NS);
 		target.i2cFlushBatch();
 		return true;
 	}
@@ -189,12 +129,12 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 
 		if(on){
-			LCD_DISPLAY = LCD_DISPLAYON;
+			LCD_DISPLAY = Grove_LCD_RGB_Constants.LCD_DISPLAYON;
 		}else{
-			LCD_DISPLAY = LCD_DISPLAYOFF;
+			LCD_DISPLAY = Grove_LCD_RGB_Constants.LCD_DISPLAYOFF;
 		}
 		setDisplayControl(target);  
-		target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 1*MS_TO_NS);
+		target.i2cDelay((Grove_LCD_RGB_Constants.LCD_ADDRESS), 1*Grove_LCD_RGB_Constants.MS_TO_NS);
 		target.i2cFlushBatch();
 		return true;
 	}
@@ -212,9 +152,9 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 
 		if(on){
-			LCD_CURSOR = LCD_CURSORON;
+			LCD_CURSOR = Grove_LCD_RGB_Constants.LCD_CURSORON;
 		}else{
-			LCD_CURSOR = LCD_CURSOROFF;
+			LCD_CURSOR = Grove_LCD_RGB_Constants.LCD_CURSOROFF;
 		}
 
 		setDisplayControl(target); 
@@ -236,9 +176,9 @@ public class Grove_LCD_RGB implements IODevice{
 		}
 
 		if(on){
-			LCD_BLINK = LCD_BLINKON;
+			LCD_BLINK = Grove_LCD_RGB_Constants.LCD_BLINKON;
 		}else{
-			LCD_BLINK = LCD_BLINKOFF;
+			LCD_BLINK = Grove_LCD_RGB_Constants.LCD_BLINKOFF;
 		}
 
 		setDisplayControl(target);        
@@ -268,10 +208,10 @@ public class Grove_LCD_RGB implements IODevice{
 			charMap[i] &= 0x1F; //each element contains 5 bits
 		}
 		
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_SETCGRAMADDR | (location<<3));
-		target.i2cDelay(LCD_ADDRESS, 1*MS_TO_NS);
-		writeMultipleBytesToRegister(target, LCD_ADDRESS, LCD_SETCGRAMADDR, charMap);
-		target.i2cDelay(LCD_ADDRESS, 1*MS_TO_NS);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, Grove_LCD_RGB_Constants.LCD_SETCGRAMADDR | (location<<3));
+		target.i2cDelay(Grove_LCD_RGB_Constants.LCD_ADDRESS, 1*Grove_LCD_RGB_Constants.MS_TO_NS);
+		writeMultipleBytesToRegister(target, Grove_LCD_RGB_Constants.LCD_ADDRESS, Grove_LCD_RGB_Constants.LCD_SETCGRAMADDR, charMap);
+		target.i2cDelay(Grove_LCD_RGB_Constants.LCD_ADDRESS, 1*Grove_LCD_RGB_Constants.MS_TO_NS);
 		target.i2cFlushBatch();
 		
 		//begin(target); //TODO: Seems to be necessary, but shouldn't be
@@ -288,8 +228,8 @@ public class Grove_LCD_RGB implements IODevice{
 		if (!target.i2cIsReady()) {
 			return false;
 		}
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, characterIdx);
-		target.i2cDelay(LCD_ADDRESS, 1*MS_TO_NS);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETCGRAMADDR, characterIdx);
+		target.i2cDelay(Grove_LCD_RGB_Constants.LCD_ADDRESS, 1*Grove_LCD_RGB_Constants.MS_TO_NS);
 		target.i2cFlushBatch();
 
 		return true;
@@ -310,7 +250,7 @@ public class Grove_LCD_RGB implements IODevice{
 			return false;
 		}
 	    col = (row == 0 ? col|0x80 : col|0xc0);
-	    writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, col);
+	    writeSingleByteToRegister(target, Grove_LCD_RGB_Constants.LCD_ADDRESS, Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, col);
 	    target.i2cFlushBatch();
 	    return true;
 	}
@@ -324,26 +264,26 @@ public class Grove_LCD_RGB implements IODevice{
 	//////////////////////////////
 
 	private static void setDisplayControl(CommandChannel target){
-		writeSingleByteToRegister(target, LCD_ADDRESS, LCD_SETDDRAMADDR, 
-				LCD_DISPLAYCONTROL | LCD_DISPLAY | LCD_CURSOR | LCD_BLINK);
-		target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 1*MS_TO_NS);
+		writeSingleByteToRegister(target, Grove_LCD_RGB_Constants.LCD_ADDRESS, Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, 
+				Grove_LCD_RGB_Constants.LCD_DISPLAYCONTROL | LCD_DISPLAY | LCD_CURSOR | LCD_BLINK);
+		target.i2cDelay((Grove_LCD_RGB_Constants.LCD_ADDRESS), 1*Grove_LCD_RGB_Constants.MS_TO_NS);
 	}
 	
 	
 
 	private static void showRGBColor(CommandChannel target, int r, int g, int b) {
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 0, 0);
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 1, 0);
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 0x08, 0xaa);
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 4, r);
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 3, g);
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.RGB_ADDRESS)), 2, b);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 0, 0);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 1, 0);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 0x08, 0xaa);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 4, r);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 3, g);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 2, b);
 	}
 
 	private static void displayClear(CommandChannel target) {
 		//clear display
-		writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, LCD_CLEARDISPLAY);
-		target.i2cDelay((Grove_LCD_RGB.LCD_ADDRESS), 2*MS_TO_NS);
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, Grove_LCD_RGB_Constants.LCD_CLEARDISPLAY);
+		target.i2cDelay((Grove_LCD_RGB_Constants.LCD_ADDRESS), 2*Grove_LCD_RGB_Constants.MS_TO_NS);
 
 	}
 
@@ -358,11 +298,11 @@ public class Grove_LCD_RGB implements IODevice{
         for(String line: lines) {
             int p = 0;
             while (p<line.length()) {
-                writeUTF8ToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETCGRAMADDR, line, p, Math.min(steps, line.length()-p) );
+                writeUTF8ToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETCGRAMADDR, line, p, Math.min(steps, line.length()-p) );
                 p+=steps;
             }
             //new line
-            writeSingleByteToRegister(target, ((Grove_LCD_RGB.LCD_ADDRESS)), LCD_SETDDRAMADDR, 0xc0);
+            writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, 0xc0);
         }
 
 	}

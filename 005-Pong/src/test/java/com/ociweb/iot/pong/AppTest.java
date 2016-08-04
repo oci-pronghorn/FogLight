@@ -16,7 +16,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 public class AppTest { 
 
 	
-	 @Ignore
+	 @Test
 	    public void testApp()
 	    {
 	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());	    	
@@ -27,6 +27,7 @@ public class AppTest {
 	    	    	
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    	
+	    	hardware.setI2CValueToRead((byte)4, new byte[]{0,0,0}, 3);
 	    	
 	    	int iterations = 10;
 			while (--iterations >= 0) {

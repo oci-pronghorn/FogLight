@@ -53,13 +53,13 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		case startUp:
 			if(startTime == -1){
 				startTime = time;
-				int[] charIdxs = new int[32];
-				Arrays.fill(charIdxs, 0);
-				Grove_LCD_RGB.writeMultipleChars(pongChannel, charIdxs, 0, 0);
+				byte[] charIdxs = new byte[32];
+				Arrays.fill(charIdxs, (byte)0);
+				//Grove_LCD_RGB.writeMultipleChars(pongChannel, charIdxs, 0, 0);
 			}
 			
-			Grove_LCD_RGB.setCustomChar(pongChannel, 0, PongConstants.waveStates[waveState/3]);
-			waveState = (waveState+1)%9;
+			Grove_LCD_RGB.setCustomChar(pongChannel, 0, PongConstants.waveStates[waveState/4]);
+			waveState = (waveState+1)%12;
 		
 			if(time - startTime >= PongConstants.TITLE_TIME){
 				Grove_LCD_RGB.clearDisplay(pongChannel);

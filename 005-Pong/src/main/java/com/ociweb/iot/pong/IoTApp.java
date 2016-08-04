@@ -34,7 +34,7 @@ public class IoTApp implements IoTSetup {
 		c.useTriggerRate(100);
 
 
-		      c.useConnectA(LightSensor, 1);
+		//c.useConnectA(LightSensor, 1);
 
 	}    
 

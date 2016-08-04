@@ -8,11 +8,11 @@
      <uInt32 name="Value" id="112"/>
   </template>  
    
-  <template name="BlockConnectionMS" id="220"> 
+  <template name="BlockConnection" id="220"> 
      <uInt32 name="Connector" id="111">
      	<copy/>
      </uInt32>
-     <uInt64 name="Duration" id="113"/>  
+     <uInt64 name="DurationNanos" id="13"/>  
   </template>   
   
   <template name="BlockConnectionUntil" id="221"> 
@@ -30,8 +30,8 @@
      <uInt32 name="Value" id="142"/>
   </template>  
 
-  <template name="BlockChannelMS" id="22">
-     <uInt64 name="Duration" id="13"/>     
+  <template name="BlockChannel" id="22">
+     <uInt64 name="DurationNanos" id="13"/>     
   </template>
    
   <template name="BlockChannelUntil" id="23">

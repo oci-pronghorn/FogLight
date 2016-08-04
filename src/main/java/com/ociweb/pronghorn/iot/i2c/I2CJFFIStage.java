@@ -248,29 +248,27 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     			}                                      
     			break;
     
-    			case I2CCommandSchema.MSG_BLOCKCHANNELMS_22:
+    			case I2CCommandSchema.MSG_BLOCKCHANNEL_22:
     			{
-    				blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));            	   
-    				logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
+    				blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));            	   
+    				logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
     			}
     			break;
     
-    			case I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20:
+    			case I2CCommandSchema.MSG_BLOCKCONNECTION_20:
     			{  
-    			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11);
-    				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12);
-    				long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13);
-    				
-    				//TODO: urgent this blocker is picking up the i2c address which is the same for all twigs on the pi.
-    				
-    				connectionBlocker.until(connection, hardware.currentTimeMillis() + duration);
-    				logger.debug("I2C addr {} {} blocked for {} millis  {}", addr, connection, duration, pipe);
+    			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11);
+    				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12);
+    				long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13);
+
+    				blockConnectionDuration(connection, duration);
+    				logger.debug("I2C addr {} {} blocked for {} nanos  {}", addr, connection, duration, pipe);
     			}   
     			break;
     
     			case I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21:
     			{  
-    			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11);
+    			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_CONNECTOR_11);
     				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12);
     				long time = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_TIMEMS_14);
     				connectionBlocker.until(connection, time);

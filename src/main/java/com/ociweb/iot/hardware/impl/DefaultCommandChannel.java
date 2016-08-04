@@ -24,10 +24,10 @@ public class DefaultCommandChannel extends CommandChannel{
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)) {
+			if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220)) {
 
-				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
-				PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, duration);
+				PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111, connector);
+				PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13, duration*MS_TO_NS);
 				
 				PipeWriter.publishWrites(output);
 				
@@ -90,11 +90,11 @@ public class DefaultCommandChannel extends CommandChannel{
 	                //duration
 	                //delay
 	                if (durationMillis>0) {
-	                    if (!PipeWriter.tryWriteFragment(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)) {
+	                    if (!PipeWriter.tryWriteFragment(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220)) {
 	                        throw new RuntimeException("Should not have happend since the pipe was already checked.");
 	                    }
-	                    PipeWriter.writeInt(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
-	                    PipeWriter.writeLong(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, durationMillis);
+	                    PipeWriter.writeInt(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111, connector);
+	                    PipeWriter.writeLong(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13, durationMillis*MS_TO_NS);
 	                    PipeWriter.publishWrites(i2cOutput);
 	                }
 	                
@@ -149,7 +149,7 @@ public class DefaultCommandChannel extends CommandChannel{
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, GroveRequestSchema.MSG_DIGITALSET_110)+
-                                                                                                  Pipe.sizeOf(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
+                                                                                                  Pipe.sizeOf(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220)  ) ) {
 
                 PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_DIGITALSET_110);
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111, connector);
@@ -157,9 +157,9 @@ public class DefaultCommandChannel extends CommandChannel{
 
                 PipeWriter.publishWrites(output);
                 
-                PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, connector);
-                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, msDuration);
+                PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111, connector);
+                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 
                 PipeWriter.publishWrites(output);
                 
@@ -185,15 +185,15 @@ public class DefaultCommandChannel extends CommandChannel{
         try {        
             
             if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, GroveRequestSchema.MSG_ANALOGSET_140)+
-                                                                                                  Pipe.sizeOf(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220)  ) ) {
+                                                                                                  Pipe.sizeOf(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220)  ) ) {
             
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141, ANALOG_BIT|connector);
                 PipeWriter.writeInt(output, GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142, value);
                 PipeWriter.publishWrites(output);
                             
-                PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220);
-                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111, ANALOG_BIT|connector);
-                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113, msDuration);
+                PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220);
+                PipeWriter.writeInt(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111, ANALOG_BIT|connector);
+                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 
                 PipeWriter.publishWrites(output);
                 
@@ -226,9 +226,9 @@ public class DefaultCommandChannel extends CommandChannel{
 
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
-            if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCHANNELMS_22)) {
+            if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(output, GroveRequestSchema.MSG_BLOCKCHANNEL_22)) {
 
-                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13, msDuration);
+                PipeWriter.writeLong(output, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 PipeWriter.publishWrites(output);
                 
                 publishGo(1,pinPipeIdx);

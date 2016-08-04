@@ -474,6 +474,10 @@ public abstract class Hardware {
     public void releaseChannelBlocks(long now) {
         channelBlocker.releaseBlocks(now);
     }
+
+	public long nanoTime() {
+		return System.nanoTime();
+	}
     
 
 

@@ -95,9 +95,50 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	}
 	
 	
-	protected void blockChannelDuration(int activePipe, long timeMillis) {
-	    hardware.blockChannelUntil(( goPipe[activePipe].id ), hardware.currentTimeMillis() + timeMillis );
+	protected void blockChannelDuration(int activePipe, long durationNanos) {
+		
+		long durationMills = durationNanos/1_000_000;
+		long remaningNanos = durationNanos%1_000_000;		
+			    
+	    if (remaningNanos>0) {
+	    	final long start = hardware.nanoTime();
+	    	final long limit = start+remaningNanos;
+	    	while (hardware.nanoTime()<limit) {
+	    		Thread.yield();
+	    		if (Thread.interrupted()) {
+	    			Thread.currentThread().interrupt();
+	    			return;
+	    		}
+	    	}
+	    }
+	    if (durationMills>0) {
+	    	//now pull the current time and wait until ms have passed
+	    	hardware.blockChannelUntil(( goPipe[activePipe].id ), hardware.currentTimeMillis() + durationMills );
+	    }
 	}
+	
+	protected void blockConnectionDuration(int connection, long durationNanos) {
+		
+		long durationMills = durationNanos/1_000_000;
+		long remaningNanos = durationNanos%1_000_000;		
+			    
+	    if (remaningNanos>0) {
+	    	final long start = hardware.nanoTime();
+	    	final long limit = start+remaningNanos;
+	    	while (hardware.nanoTime()<limit) {
+	    		Thread.yield();
+	    		if (Thread.interrupted()) {
+	    			Thread.currentThread().interrupt();
+	    			return;
+	    		}
+	    	}
+	    }
+	    if (durationMills>0) {
+	    	//now pull the current time and wait until ms have passed	    	
+	    	connectionBlocker.until(connection, hardware.currentTimeMillis() + durationMills );
+	    }
+	}
+	
 
     protected boolean processReleasedCommands(long timeout) {
         boolean foundWork;

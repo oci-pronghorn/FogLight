@@ -60,9 +60,11 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112));
 	                    break;
 	                                     	                    
-	                case GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220:
-	                    connectionBlocker.until(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111),
-	                                       hardware.currentTimeMillis() + PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113));                   	                    
+	                case GroveRequestSchema.MSG_BLOCKCONNECTION_220:
+						                	
+						blockConnectionDuration(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111),
+								                PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13));
+		                	
 	                    break;
 	                    
 	                case GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221:
@@ -77,10 +79,10 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142));
 	                    break;
 	                    	                    
-	                case GroveRequestSchema.MSG_BLOCKCHANNELMS_22:
+	                case GroveRequestSchema.MSG_BLOCKCHANNEL_22:
 	                
-                        blockChannelDuration(activePipe,PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
-	                    logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
+                        blockChannelDuration(activePipe,PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
+	                    logger.debug("CommandChannel blocked for {} nanos ",PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
 	                 
 	                break;    
 	                    

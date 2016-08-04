@@ -24,6 +24,7 @@ public abstract class CommandChannel {
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
 
     public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog vs digital
+    protected static final long MS_TO_NS = 1_000_000;
     
     protected DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
     protected int runningI2CCommandCount;
@@ -124,18 +125,18 @@ public abstract class CommandChannel {
 
 
     
-    public void i2cDelay(int targetAddress, int durationMillis) {
+    public void i2cDelay(int targetAddress, long durationNanos) {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             if (++runningI2CCommandCount > maxCommands) {
                 throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
             }
         
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)) {
 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11, targetAddress);
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, targetAddress);
-                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, durationMillis);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11, targetAddress);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12, targetAddress);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, durationNanos);
 
                 PipeWriter.publishWrites(i2cOutput);
 

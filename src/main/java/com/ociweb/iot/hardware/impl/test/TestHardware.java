@@ -39,6 +39,12 @@ public class TestHardware extends Hardware {
         super(gm, new TestI2CBacking());
     }
     
+    
+    public void setI2CValueToRead(byte address, byte[] data, int length) {
+    	TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+    	testBacking.setValueToRead(address, data, length);
+    }
+    
     public void clearI2CWriteCount() {
         TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
         testBacking.clearWriteCount();

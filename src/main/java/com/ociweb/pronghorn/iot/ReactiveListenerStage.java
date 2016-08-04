@@ -153,11 +153,6 @@ public class ReactiveListenerStage extends PronghornStage {
     
     @Override
     public void startup() {
- 
-        if (listener instanceof StartupListener) {
-            ((StartupListener)listener).startup();
-        }
-                
         //Init all the moving averages to the right size
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_SENSORS];
         rollingMovingAveragesDigital = new MAvgRollerLong[MAX_SENSORS];
@@ -176,6 +171,10 @@ public class ReactiveListenerStage extends PronghornStage {
                     
         oversampledAnalogValues = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP];
         
+        //Do last so we complete all the initializations first
+        if (listener instanceof StartupListener) {
+        	((StartupListener)listener).startup();
+        }        
     }
 
     @Override
@@ -186,6 +185,7 @@ public class ReactiveListenerStage extends PronghornStage {
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         
         int p = inputPipes.length;
+        
         while (--p >= 0) {
             //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
 
@@ -279,13 +279,13 @@ public class ReactiveListenerStage extends PronghornStage {
     }
     
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-   
+
         while (PipeReader.tryReadFragment(p)) {                
                     
                     int msgIdx = PipeReader.getMsgIdx(p);
                     switch (msgIdx) {   
                         case I2CResponseSchema.MSG_RESPONSE_10:
-						processI2CMessage(listener, p);
+                        	processI2CMessage(listener, p);
                             break;
                         case -1:
                             
@@ -305,8 +305,8 @@ public class ReactiveListenerStage extends PronghornStage {
 	protected void processI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
 		if (listener instanceof I2CListener) {
 			int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
-			int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
 			long time = PipeReader.readLong(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
+			int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
 
 			byte[] backing = PipeReader.readBytesBackingArray(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 			int position = PipeReader.readBytesPosition(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);

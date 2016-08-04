@@ -128,10 +128,19 @@ public abstract class Hardware {
     /////
     
     protected HardConnection[] growHardConnections(HardConnection[] original, HardConnection toAdd) {
-        int l = original.length;
-        HardConnection[] result = new HardConnection[l+1];
-        System.arraycopy(original, 0, result, 0, l);
-        result[l] = toAdd;
+    	final int len = original.length;
+    	//Validate that what we are adding is safe
+    	int i = len;
+    	while (--i>=0) {
+    		if (original[i].connection == toAdd.connection) {
+    			throw new UnsupportedOperationException("This connection "+toAdd.connection+" already has attachment "+original[i].twig+" so the attachment "+toAdd.twig+" can not be added.");
+    		}
+    	}
+    	
+    	//Grow the array
+        HardConnection[] result = new HardConnection[len+1];
+        System.arraycopy(original, 0, result, 0, len);
+        result[len] = toAdd;
         return result;
     }
     

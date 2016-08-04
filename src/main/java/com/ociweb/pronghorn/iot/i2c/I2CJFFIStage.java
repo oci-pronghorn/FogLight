@@ -38,7 +38,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private byte[] workingBuffer;
 
 	private int inProgressIdx = 0;
-	private byte[] inErrorCode;
 	
 	private long blockStartTime = 0;
 	private int scheduleIdx = 0;
@@ -88,9 +87,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 		workingBuffer = new byte[2048];
 		
-		inErrorCode = new byte[MAX_ADDR];
-		Arrays.fill(inErrorCode, (byte)-2);
-
 		logger.info("Polling "+this.inputs.length+" i2cInput(s)");
 
 		for (int i = 0; i < inputs.length; i++) {
@@ -114,11 +110,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    //never run poll if we have nothing to poll, in that case the array will have a single -1 
 	    if (hasInputs && hasListeners()) {
 	        do {
-        	    long waitTime = blockStartTime -hardware.currentTimeMillis();
+        	    long waitTime = blockStartTime - hardware.currentTimeMillis();
         		if(waitTime>0){
         		   //do commands now while we wait for the next block. 
         		   processReleasedCommands(waitTime);
-        		   waitTime = blockStartTime -hardware.currentTimeMillis();
+        		   waitTime = blockStartTime - hardware.currentTimeMillis();
         		   if (waitTime>0) {
         		       return; //Enough time has not elapsed to start next block on schedule
         		   }
@@ -126,40 +122,46 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         
         		do{
         			inProgressIdx = schedule.script[scheduleIdx];
-        			scheduleIdx = (scheduleIdx+1) % schedule.script.length;
         			
         			if(inProgressIdx != -1) {
         			    
+        				if (!PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) {
+        					//we are going to miss the schedule due to backup in the pipes, this is common when the unit tests run or the user has put in a break point.
+        					processReleasedCommands(40);//if this backup runs long term we never release the commands so we must do it now.
+        					return;//oops the pipe is full so we can not read, postpone this work until the pipe is cleared.
+        				}
+
                         I2CConnection connection = this.inputs[inProgressIdx];
                         timeOut = hardware.currentTimeMillis() + writeTime;
-      
-                        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){};
-        				;
-        				workingBuffer[0] = inErrorCode[inProgressIdx];
-        				if (-3 == workingBuffer[0]) {
-        				    if (PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-                                PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
-                                PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, workingBuffer, 0, 1, Integer.MAX_VALUE);
-                                PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
-                                PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
-                                PipeWriter.publishWrites(i2cResponsePipe);  
-                                workingBuffer[0] = inErrorCode[inProgressIdx] = -2;
-                            }
-        				} 	
-        				
-        				long now = System.nanoTime();
-        				while(System.nanoTime() < now + this.inputs[inProgressIdx].delayAfterRequestNS) {
+     
+
+                        //Write the request to read
+                        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){}
+
+                        long now = System.nanoTime();
+                        long limit = now + this.inputs[inProgressIdx].delayAfterRequestNS;
+        				while(System.nanoTime() < limit) {
         				    Thread.yield();
         				    if (Thread.interrupted()) {
         				        requestShutdown();
         				        return;
         				    }
         				}
+        				
+        				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);						
+        				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
+        				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
 
-        				readI2CData(this.inputs[inProgressIdx].readBytes);	
+        				workingBuffer[0] = -2;
+        				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
+						
+						PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, this.inputs[inProgressIdx].readBytes, Integer.MAX_VALUE);					
+
+						PipeWriter.publishWrites(i2cResponsePipe);	
         				
         			}
-        
+        			//since we exit early if the pipe is full we must not move this forward until now at the bottom of the loop.
+        			scheduleIdx = (scheduleIdx+1) % schedule.script.length;
         		}while(inProgressIdx != -1);
         		blockStartTime += schedule.commonClock;
         		
@@ -173,31 +175,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		return i2cResponsePipe != null;
 	}
 
-    private void readI2CData(int len) {
-          
-        if (PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) { 
-        	PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
-
-        	byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, len);
-        	PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, len, Integer.MAX_VALUE);
-        	
-        	PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
-        	PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
-        	PipeWriter.publishWrites(i2cResponsePipe);    					
-        }else{
-            
-        	logger.warn(" {} Pipe\n is full, can not store i2c read data from address {} connection {} ", i2cResponsePipe, 
-        			    this.inputs[inProgressIdx].address,
-        			    this.inputs[inProgressIdx].register);
-        	            
-            inErrorCode[inProgressIdx]=-3;
-        }
-    }
-
-
-
-
-	protected void processMessagesForPipe(int a) {
+    protected void processMessagesForPipe(int a) {
 		sendOutgoingCommands(a);
 
 	}

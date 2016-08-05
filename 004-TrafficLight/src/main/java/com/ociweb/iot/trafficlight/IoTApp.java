@@ -31,10 +31,10 @@ public class IoTApp implements IoTSetup
     
     @Override
     public void declareConnections(Hardware c) {
-		c.useConnectD(LED, LED_CONNECTION);
-		c.useConnectD(LED, LED2_CONNECTION);
-		c.useConnectD(LED, LED3_CONNECTION);
-		c.useTriggerRate(500);
+		c.connectDigital(LED, LED_CONNECTION);
+		c.connectDigital(LED, LED2_CONNECTION);
+		c.connectDigital(LED, LED3_CONNECTION);
+		c.setTriggerRate(500);
 		c.useI2C();
         
     }

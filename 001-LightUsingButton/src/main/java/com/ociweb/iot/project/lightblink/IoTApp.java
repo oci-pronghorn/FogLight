@@ -17,8 +17,8 @@ public class IoTApp implements IoTSetup {
     
     @Override
     public void declareConnections(Hardware hardware) {
-        hardware.useConnectD(LED, 5);
-        hardware.useConnectD(Button, 6);
+        hardware.connectDigital(LED, 5);
+        hardware.connectDigital(Button, 6);
     }
 
     @Override

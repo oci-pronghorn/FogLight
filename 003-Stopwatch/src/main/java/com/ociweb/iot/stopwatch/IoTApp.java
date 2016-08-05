@@ -34,9 +34,9 @@ public class IoTApp implements IoTSetup
         
     @Override
     public void declareConnections(Hardware c) {
-    	c.useConnectD(Button, BUTTON_CONNECTION);
+    	c.connectDigital(Button, BUTTON_CONNECTION);
     	c.useI2C();
-    	c.useTriggerRate(50);
+    	c.setTriggerRate(50);
     }
 
     //TODO: rewrite this a a class, can not be done as two lambddas and be responsvie.

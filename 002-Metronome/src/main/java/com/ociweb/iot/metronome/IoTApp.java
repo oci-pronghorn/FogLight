@@ -22,10 +22,10 @@ public class IoTApp implements IoTSetup {
     
     @Override
     public void declareConnections(Hardware c) {
-        c.useConnectD(Buzzer, BUZZER_CONNECTION); //could use relay or LED instead of buzzer if desired
-        c.useConnectA(AngleSensor, ROTARY_ANGLE_CONNECTION);
+        c.connectDigital(Buzzer, BUZZER_CONNECTION); //could use relay or LED instead of buzzer if desired
+        c.connectAnalog(AngleSensor, ROTARY_ANGLE_CONNECTION);
         c.useI2C();
-        c.useTriggerRate(40);
+        c.setTriggerRate(40);
     }
 
 

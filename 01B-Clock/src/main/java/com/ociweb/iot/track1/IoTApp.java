@@ -63,10 +63,10 @@ public class IoTApp implements IoTSetup
     @Override
     public void declareConnections(Hardware c) {
     	
-    	c.useConnectA(LightSensor, LIGHT_SENSOR_CONNECTION);
-    	c.useConnectA(AngleSensor, ANGLE_SENSOR_CONNECTION);
+    	c.connectAnalog(LightSensor, LIGHT_SENSOR_CONNECTION);
+    	c.connectAnalog(AngleSensor, ANGLE_SENSOR_CONNECTION);
     	c.useI2C();
-    	c.useTriggerRate(1000);
+    	c.setTriggerRate(1000);
     }
 
 

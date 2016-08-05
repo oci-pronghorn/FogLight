@@ -28,10 +28,10 @@ public class IoTApp implements IoTSetup {
 
 	public void declareConnections(Hardware c) {
 
-		c.useConnectA(AngleSensor, PongConstants.Player1Con);
+		c.connectAnalog(AngleSensor, PongConstants.Player1Con);
 		//c.useConnectI2C(new UltrasonicRangerTwig(PongConstants.Player2Con));
 
-		c.useTriggerRate(100);
+		c.setTriggerRate(100);
 
 
 		//c.useConnectA(LightSensor, 1);

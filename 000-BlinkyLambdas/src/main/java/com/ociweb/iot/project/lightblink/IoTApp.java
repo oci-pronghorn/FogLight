@@ -35,7 +35,7 @@ public class IoTApp implements IoTSetup {
     
     @Override
     public void declareConnections(Hardware c) {
-        c.useConnectD(LED, LED_CONNECTION);
+        c.connectDigital(LED, LED_CONNECTION);
     }
 
     @Override

@@ -46,8 +46,8 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	        Pipe<GroveRequestSchema> pipe = fromCommandChannels[activePipe];
 	        
 	        while (hasReleaseCountRemaining(activePipe) 
-	                && !isChannelBlocked(activePipe)
-	                && !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) 
+	                && isChannelUnBlocked(activePipe)
+	                && isConnectionUnBlocked(Pipe.peekInt(pipe, 1)) 
 	                && PipeReader.tryReadFragment(pipe) ){
 	  	                        
 	            int msgIdx = PipeReader.getMsgIdx(pipe);
@@ -68,8 +68,8 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                    break;
 	                    
 	                case GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221:
-	                    connectionBlocker.until(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111),
-	                                           PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114));
+	                    blockConnectionUntil(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111),
+	                                         PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114));
 	                                                
 	                    break;   
 	                    

@@ -9,6 +9,7 @@ buildNumber.properties
 .mvn/timing.properties
 .metadata
 .recommenders
+pom.xml~
 *.iml
 .idea
 /.settings/

@@ -51,9 +51,6 @@ public abstract class Hardware {
     public boolean configI2C;       //Humidity, LCD need I2C address so..
     public long debugI2CRateLastTime;
     
-    public HardConnection[] multiBitInputs; //Rotary Encoder, and similar
-    public HardConnection[] multiBitOutputs;//Some output that takes more than 1 bit
-    
     public HardConnection[] digitalInputs; //Button, Motion
     public HardConnection[] digitalOutputs;//Relay Buzzer
     
@@ -100,10 +97,7 @@ public abstract class Hardware {
         this.i2cBacking = i2cBacking;
         
         this.configI2C = configI2C; //may be removed.
-        
-        this.multiBitInputs = multiDigitalInput; 
-        //TODO: add multiBitOutputs and support for this new array
-                
+                        
         this.digitalInputs = digitalInputs;
         this.digitalOutputs = digitalOutputs;
         this.pwmOutputs = pwmOutputs;
@@ -157,12 +151,11 @@ public abstract class Hardware {
         }
     }
     
-    //TODO: double check new name  connectAnalog  and confirm before rename.
-    public Hardware useConnectA(IODevice t, int connection) {
-        return useConnectA(t,connection,-1);
+    public Hardware connectAnalog(IODevice t, int connection) {
+        return connectAnalog(t,connection,-1);
     }
     
-    public Hardware useConnectA(IODevice t, int connection, int customRate) {
+    public Hardware connectAnalog(IODevice t, int connection, int customRate) {
     	HardConnection gc = new HardConnection(t,connection,customRate);
         if (t.isInput()) {
             assert(!t.isOutput());
@@ -174,7 +167,7 @@ public abstract class Hardware {
         return this;
     }
     
-    public Hardware useConnectA(IODevice t, int connection, int customRate, int customAverageMS) {
+    public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
         HardConnection gc = new HardConnection(t,connection,customRate, customAverageMS);
         if (t.isInput()) {
             assert(!t.isOutput());
@@ -186,11 +179,11 @@ public abstract class Hardware {
         return this;
     }
     
-    public Hardware useConnectD(IODevice t, int connection) {
-        return useConnectD(t,connection,-1);
+    public Hardware connectDigital(IODevice t, int connection) {
+        return connectDigital(t,connection,-1);
     }
     
-    public Hardware useConnectD(IODevice t, int connection, int customRate) {
+    public Hardware connectDigital(IODevice t, int connection, int customRate) {
     	
         HardConnection gc =new HardConnection(t,connection, customRate);
         
@@ -204,7 +197,7 @@ public abstract class Hardware {
         return this;
     }  
     
-    public Hardware useConnectD(IODevice t, int connection, int customRate, int customAverageMS) {
+    public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
         
         HardConnection gc =new HardConnection(t,connection, customRate, customAverageMS);
         
@@ -221,29 +214,8 @@ public abstract class Hardware {
         return this;
     }  
     
-
-    public Hardware useConnectDs(IODevice t, int ... connections) {
-
-        if (t.isInput()) {
-            assert(!t.isOutput());
-            for(int con:connections) {
-                multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con));
-            }
-            
-          System.out.println("connections "+Arrays.toString(connections));  
-          System.out.println("Encoder here "+Arrays.toString(multiBitInputs));  
-            
-        } else {
-            assert(t.isOutput());
-            for(int con:connections) {
-                multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
-            }
-        }
-        return this;
-        
-    }  
-    
-    public Hardware useConnectI2C(IODevice t){ 
+   
+    public Hardware connectI2C(IODevice t){ 
     	logger.debug("Connecting I2C Device "+t.getClass());
     	if(t.isInput()){
     		assert(!t.isOutput());
@@ -255,7 +227,7 @@ public abstract class Hardware {
     	return this;
     }
     
-    public Hardware useTriggerRate(long rateInMS) {
+    public Hardware setTriggerRate(long rateInMS) {
         timeTriggerRate = rateInMS;
         return this;
     }

@@ -144,7 +144,11 @@ public class ReadDeviceInputStage extends PronghornStage {
 			
 				IODevice twig = config.digitalInputs[i].twig;
 
-				if (twig == GroveTwig.Button) {                    
+				if (twig == GroveTwig.RotaryEncoder) {
+					frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection; //just the low address
+					frequentScriptTwig[frequentScriptLength] = twig;                           
+					frequentScriptLength++; 
+				} else if (twig == GroveTwig.Button) {                    
 					frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection;
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
@@ -157,23 +161,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 				}
 				System.out.println("configured "+twig+" on connection "+config.digitalInputs[i].connection);
 			         
-		}
-
-		i = config.multiBitInputs.length;
-		while (--i>=0) {
-			//config.configurePinsForDigitalInput(config.multiBitInputs[i].connection);
-				if (0!=(i&0x1)) {
-					if ((config.multiBitInputs[i].connection!=(1+config.multiBitInputs[i-1].connection)) ) {
-						throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");                    
-					}      
-					frequentScriptConn[frequentScriptLength] = config.multiBitInputs[i].connection-1;
-					frequentScriptTwig[frequentScriptLength] = config.multiBitInputs[i].twig;
-					frequentScriptLength++; 
-					System.out.println("configured "+config.multiBitInputs[i].twig+" on connection "+(config.multiBitInputs[i].connection-1)+"/"+(config.multiBitInputs[i].connection));
-
-				}
-			
-		}                      
+		}                   
 
 		config.endPinConfiguration();
 

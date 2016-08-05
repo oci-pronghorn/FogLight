@@ -45,13 +45,13 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	@Override
-	public Hardware useConnectA(IODevice t, int connection) {
-		return useConnectA(t,connection, t.response());
+	public Hardware connectAnalog(IODevice t, int connection) {
+		return connectAnalog(t,connection, t.response());
 	}
 
 	@Override
-	public Hardware useConnectA(IODevice t, int connection, int customRate) {
-	    super.useConnectA(t, connection, customRate);
+	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
+	    super.connectAnalog(t, connection, customRate);
 		if(t.isGrove()){
 			if (t.isInput()) {
 				assert(!t.isOutput());
@@ -73,15 +73,29 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	@Override
-	public Hardware useConnectD(IODevice t, int connection) {
-		return useConnectD(t,connection,t.response());
+	public Hardware connectDigital(IODevice t, int connection) {
+		return connectDigital(t,connection,t.response());
 	}
 
 	@Override
-	public Hardware useConnectD(IODevice t, int connection, int customRate) { //TODO: add customRate support
-	    super.useConnectD(t, connection, customRate);
+	public Hardware connectDigital(IODevice t, int connection, int customRate) { //TODO: add customRate support
+	    super.connectDigital(t, connection, customRate);
 		if(t.isGrove()){
-			if (t.isInput()) {
+			
+			if (t.getClass()== GroveTwig.RotaryEncoder.getClass()) {
+			
+				assert(connection==2) : "RotaryEncoders may only be connected to ports 2 and 3 on Pi";
+				
+				byte[] ENCODER_READCMD = {0x01, 11, 0x00, 0x00, 0x00};
+			    byte[] ENCODER_SETUP = {0x01, 16, 0x00, 0x00, 0x00};
+			    byte ENCODER_ADDR = 0x04;
+			    byte ENCODER_BYTESTOREAD = 2;
+			    byte ENCODER_REGISTER = 2;
+				growI2CConnections(i2cInputs, new I2CConnection(t, ENCODER_ADDR, ENCODER_READCMD, ENCODER_BYTESTOREAD, ENCODER_REGISTER, ENCODER_SETUP));
+
+				logger.info("connected Pi encoder");
+
+			} else if (t.isInput()) {
 				assert(!t.isOutput());
 				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
 				byte[] readCmd = {0x01,0x01,(byte)connection,0x00,0x00};
@@ -100,31 +114,6 @@ public class GroveV2PiImpl extends Hardware {
 			System.out.println("GPIO not currently supported");
 		}
 		return this;
-	}  
-
-	@Override
-	public Hardware useConnectDs(IODevice t, int ... connections) {
-		//TODO: add the special grove interrupt support to this
-	    //TODO: not sure this will end up here IODevice now has t.pinsUsed() and this can go on the normal digital method
-	    //TODO: rename all the use methods for digital and analog as we decided.
-		if (t.getClass()== GroveTwig.RotaryEncoder.getClass()) {
-			int[] temp = {2,3};
-			assert(Arrays.equals(connections, temp)) : "RotaryEncoders may only be connected to ports 2 and 3 on Pi";
-			
-			byte[] ENCODER_READCMD = {0x01, 11, 0x00, 0x00, 0x00};
-		    byte[] ENCODER_SETUP = {0x01, 16, 0x00, 0x00, 0x00};
-		    byte ENCODER_ADDR = 0x04;
-		    byte ENCODER_BYTESTOREAD = 2;
-		    byte ENCODER_REGISTER = 2;
-			growI2CConnections(i2cInputs, new I2CConnection(t, ENCODER_ADDR, ENCODER_READCMD, ENCODER_BYTESTOREAD, ENCODER_REGISTER, ENCODER_SETUP));
-
-			logger.info("connected Pi encoder");
-
-		} else {
-			throw new UnsupportedOperationException("You may only connect a RotaryEncoder with useConnectDs on Pi");
-		}
-		return this;
-
 	}  
 
 	public void coldSetup() {
@@ -182,7 +171,6 @@ public class GroveV2PiImpl extends Hardware {
 	public HardConnection[] buildUsedLines() {
 
 		HardConnection[] result = new HardConnection[digitalInputs.length+
-		                                             multiBitInputs.length+
 		                                             digitalOutputs.length+
 		                                             pwmOutputs.length+
 		                                             analogInputs.length+
@@ -191,13 +179,6 @@ public class GroveV2PiImpl extends Hardware {
 		int pos = 0;
 		System.arraycopy(digitalInputs, 0, result, pos, digitalInputs.length);
 		pos+=digitalInputs.length;
-
-		if (0!=(multiBitInputs.length&0x1)) {
-			throw new UnsupportedOperationException("Rotary encoder requires two neighboring digital inputs.");
-		}
-		findDup(result,pos,multiBitInputs, false);
-		System.arraycopy(multiBitInputs, 0, result, pos, multiBitInputs.length);
-		pos+=multiBitInputs.length;
 
 		findDup(result,pos,digitalOutputs, false);
 		System.arraycopy(digitalOutputs, 0, result, pos, digitalOutputs.length);

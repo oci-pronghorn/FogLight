@@ -46,7 +46,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 	private static final int MAX_ADDR = 127;
 
-
+    private Number rate;
 	private long timeOut = 0;
 	private final int writeTime = 5; //it often takes 1 full ms just to contact the linux driver so this value must be a minimum of 3ms.
 
@@ -77,8 +77,12 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
             }
     		this.schedule = PMath.buildScriptedSchedule(schedulePeriods);
     		
-    		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock*1_000_000)/10 , this); 
+    		int customRate = (this.schedule.commonClock*1_000_000)/10;
+			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, customRate , this); 
 		}
+		
+		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, 10);
+		
 	}
 
 	@Override
@@ -159,6 +163,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 						PipeWriter.publishWrites(i2cResponsePipe);	
         				
+        			} else {
+        				if (rate.longValue()>1_000_000) {
+        					processReleasedCommands(rate.longValue()/1_000_000);
+        				}
         			}
         			//since we exit early if the pipe is full we must not move this forward until now at the bottom of the loop.
         			scheduleIdx = (scheduleIdx+1) % schedule.script.length;

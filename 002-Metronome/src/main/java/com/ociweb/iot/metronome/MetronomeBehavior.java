@@ -91,7 +91,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     	
         if (requestedPBM>0) {
 
-            if (activeBPM==0 || (requestedTimeOfNewRate!=0 && System.currentTimeMillis()>requestedTimeOfNewRate+100) ) {
+            if (activeBPM==0 || (requestedTimeOfNewRate!=0 && System.currentTimeMillis()>requestedTimeOfNewRate+200) ) {
             	activeBPM = requestedPBM;
                 base = System.currentTimeMillis(); //this is a standard java they should know. 1970 UMT
                 beatIdx = 0;
@@ -100,7 +100,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
                                     
             long delta = (++beatIdx*60_000)/activeBPM;//will multiple the pre incremental value if do after 
             long until = base + delta;
-            tickCommandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);     
+            tickCommandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION,500_000);     
             tickCommandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
             
 

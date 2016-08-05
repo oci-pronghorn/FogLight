@@ -46,7 +46,7 @@ public class AppTest {
     				long durationMs = (time-lastTime);
     				
     				if (!isFirst) {
-    					assertTrue(durationMs>=500);//first difference may be short because first transition is later due to startup.
+    					assertTrue(Long.toString(durationMs),durationMs>=400);//first difference may be short because first transition is later due to startup.
     				} else {
     					isFirst = false;
     				}

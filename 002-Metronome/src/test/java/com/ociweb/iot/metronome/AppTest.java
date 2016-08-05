@@ -19,7 +19,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 public class AppTest 
 {
     
-    @Ignore
+    @Test
     public void testApp()
     {
         DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
@@ -32,6 +32,7 @@ public class AppTest
 
         hardware.analogWrite(IoTApp.ROTARY_ANGLE_CONNECTION, 970); //970 will give us 200 BPM and a delay of 300 ms       
 
+     
         scheduler.startup();
         
         long lastTime = 0;
@@ -44,8 +45,6 @@ public class AppTest
         long startTime = System.currentTimeMillis();
         while (ticks>0 ) {
 
-        //	hardware.analogWrite(IoTApp.ROTARY_ANGLE_CONNECTION, 971);
-        	
             scheduler.run();
             
     		long time = hardware.getFirstTime(IoTApp.BUZZER_CONNECTION);
@@ -61,8 +60,9 @@ public class AppTest
     	    				//due to assertions and garbage when unit tests are run we can not be so strict here
     	    				int overheadForTesting = 12;
     	    				
-    	    				assertTrue(durationMs+" at "+time, durationMs>=(300-overheadForTesting));
-    	    				assertTrue(durationMs+" at "+time, durationMs<=(300+overheadForTesting));
+    	    				int window = 300;
+    	    				assertTrue(durationMs+" at "+time, durationMs>=(window-overheadForTesting));
+    	    				assertTrue(durationMs+" at "+time, durationMs<=(window+overheadForTesting));
     	    				
 	    			    } else {
 	    			        isMetronomeRunning = true;

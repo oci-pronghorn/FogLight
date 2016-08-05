@@ -49,12 +49,13 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private static final int BBM_VALUES      = 1+BBM_FASTEST-BBM_SLOWEST;
     private static final int MAX_ANGLE_VALUE = 1024;
     
+    private long requestedTimeOfNewRate;
+    private int  requestedPBM;
+    
     private long base;
     private int beatIdx; 
     private int activeBPM;
     
-    private long timeOfNewValue;
-    private int tempBPM;
     private int showingBPM;
     
     public MetronomeBehavior(DeviceRuntime runtime) {
@@ -78,37 +79,27 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
   
     //later in the deck, do the publish subsribe 
             int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation      
-            if (newBPM != tempBPM) {                
-            	
-            	timeOfNewValue = System.currentTimeMillis();
-            	tempBPM = newBPM;
-            	
-            } else {
-            	if (System.currentTimeMillis()-timeOfNewValue>333) {
-            		if (tempBPM != activeBPM) {
-            			
-            			activeBPM = tempBPM;
-            			base = 0; //reset signal  
-            			
-            		}            		
-            	}            	
-            } 
+            if (newBPM != activeBPM) {                
+            	requestedPBM = newBPM;
+            	requestedTimeOfNewRate = time;         	
+            }
     }    
 
     @Override
     public void message(CharSequence topic, PayloadReader payload) {
         
     	
-        if (activeBPM>0) {
+        if (requestedPBM>0) {
 
-            if (0==base) {
+            if (activeBPM==0 || (requestedTimeOfNewRate!=0 && System.currentTimeMillis()>requestedTimeOfNewRate+100) ) {
+            	activeBPM = requestedPBM;
                 base = System.currentTimeMillis(); //this is a standard java they should know. 1970 UMT
                 beatIdx = 0;
+                requestedTimeOfNewRate = 0;
             }                
                                     
             long delta = (++beatIdx*60_000)/activeBPM;//will multiple the pre incremental value if do after 
             long until = base + delta;
-            
             tickCommandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION);     
             tickCommandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
             
@@ -126,31 +117,31 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
 
     @Override
     public void timeEvent(long time) {
-       if (tempBPM != showingBPM) {
+       if (requestedPBM != showingBPM) {
                       
            String tempo;
-           if (tempBPM<108){
-        	   if(tempBPM<66){
-        	       tempo = tempBPM<60 ? "Largo" : "Larghetto";
+           if (requestedPBM<108){
+        	   if(requestedPBM<66){
+        	       tempo = requestedPBM<60 ? "Largo" : "Larghetto";
         	   } else{
-        	       tempo = tempBPM<76 ? "Adagio" : "Andante";
+        	       tempo = requestedPBM<76 ? "Adagio" : "Andante";
         	   }
            }else{
-        	   if(tempBPM<168){
-        	       tempo = tempBPM<120 ? "Moderato" : "Allegro";
+        	   if(requestedPBM<168){
+        	       tempo = requestedPBM<120 ? "Moderato" : "Allegro";
         	   } else {
-        	       tempo = tempBPM<200 ? "Presto" : "Prestissimo";
+        	       tempo = requestedPBM<200 ? "Presto" : "Prestissimo";
         	   }
            }
            
-           String bpm = Integer.toString(tempBPM);
-           if (tempBPM<100) {
+           String bpm = Integer.toString(requestedPBM);
+           if (requestedPBM<100) {
                bpm = "0"+bpm;
            }
            
            //second channel is used so we are left waiting for one cycle of the ticks before we can update.
            if (Grove_LCD_RGB.commandForText(screenCommandChannel, bpm+"-"+tempo)) {
-               showingBPM = tempBPM;
+               showingBPM = requestedPBM;
            }
            
        }

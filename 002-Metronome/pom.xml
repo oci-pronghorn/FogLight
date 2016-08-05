@@ -133,7 +133,7 @@
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
 
-            <finalName>uber002-Metronme</finalName>  
+            <finalName>uber002-Metronome</finalName>  
             <appendAssemblyId>false</appendAssemblyId>    
   
           </configuration>
@@ -181,8 +181,8 @@
 	            <lib>${java.cryptographic.extension.classes}</lib>
 	            <lib>${java.secure.socket.extension.classes}</lib>
 	          </libs>
-	          <injar>uber002-Metronme.jar</injar>
-	          <outjar>002-Metronme</outjar>
+	          <injar>uber002-Metronome.jar</injar>
+	          <outjar>002-Metronome.jar</outjar>
 	        </configuration>
 	        <dependencies>
 	          <dependency>

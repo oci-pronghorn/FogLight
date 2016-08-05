@@ -95,7 +95,7 @@ public abstract class CommandChannel {
     public abstract boolean digitalSetValue(int connector, int value);
     public abstract boolean digitalSetValueAndBlock(int connector, int value, long durationMilli);
     public abstract boolean digitalPulse(int connector);
-    public abstract boolean digitalPulse(int connector, long durationMilli);
+    public abstract boolean digitalPulse(int connector, long durationNanos);
     public abstract boolean analogSetValue(int connector, int value);
     public abstract boolean analogSetValueAndBlock(int connector, int value, long durationMilli);
 

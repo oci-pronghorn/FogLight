@@ -125,10 +125,10 @@ public class PiCommandChannel extends CommandChannel{
 
 
     @Override
-    public boolean digitalPulse(int connector, long durationMillis) {
+    public boolean digitalPulse(int connector, long durationNanos) {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
-            int msgCount = durationMillis > 0 ? 3 : 2;
+            int msgCount = durationNanos > 0 ? 3 : 2;
             assert( Pipe.getPublishBatchSize(i2cOutput)==0);
     
             if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, msgCount * Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) &&
@@ -150,14 +150,14 @@ public class PiCommandChannel extends CommandChannel{
                 PipeWriter.publishWrites(i2cOutput);
                 
                 //delay
-                if (durationMillis>0) {
+                if (durationNanos>0) {
                     if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)) {
                         throw new RuntimeException("Should not have happend since the pipe was already checked.");
                     }
                     
                     PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11, connector);
                     PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12, groveAddr);
-                    PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, durationMillis);
+                    PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, durationNanos);
                     PipeWriter.publishWrites(i2cOutput);
                 }
                 

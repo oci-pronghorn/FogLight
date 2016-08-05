@@ -68,11 +68,11 @@ public class DefaultCommandChannel extends CommandChannel{
 	public boolean digitalPulse(int connector) {
 	    return digitalPulse(connector, 0);
 	}
-	public boolean digitalPulse(int connector, long durationMillis) {
+	public boolean digitalPulse(int connector, long durationNanos) {
 
 	        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 	        try {
-	            int msgCount = durationMillis > 0 ? 3 : 2;
+	            int msgCount = durationNanos > 0 ? 3 : 2;
 	            
 	            if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 2 * Pipe.sizeOf(i2cOutput, GroveRequestSchema.MSG_DIGITALSET_110)) && 
 	                PipeWriter.hasRoomForWrite(goPipe) ) {           
@@ -89,12 +89,12 @@ public class DefaultCommandChannel extends CommandChannel{
 	                
 	                //duration
 	                //delay
-	                if (durationMillis>0) {
+	                if (durationNanos>0) {
 	                    if (!PipeWriter.tryWriteFragment(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220)) {
 	                        throw new RuntimeException("Should not have happend since the pipe was already checked.");
 	                    }
 	                    PipeWriter.writeInt(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111, connector);
-	                    PipeWriter.writeLong(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13, durationMillis*MS_TO_NS);
+	                    PipeWriter.writeLong(i2cOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13, durationNanos);
 	                    PipeWriter.publishWrites(i2cOutput);
 	                }
 	                

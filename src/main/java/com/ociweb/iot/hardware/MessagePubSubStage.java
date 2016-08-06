@@ -60,7 +60,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
        this.totalSubscriberLists = 0;
        this.subscriptionPipeLookup = subscriptionPipeLookup;
 
-       this.currentState = hardware.beginningState.ordinal();
+       this.currentState = null==hardware.beginningState ? -1 :hardware.beginningState.ordinal();
        
     }
     

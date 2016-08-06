@@ -74,7 +74,7 @@ public class IoTApp implements IoTSetup
     public void declareBehavior(DeviceRuntime runtime) {
             	    	
     	final CommandChannel rgbLightChannel = runtime.newCommandChannel();
-    	runtime.addAnalogListener((connection, time, average, value)->{    	    
+    	runtime.addAnalogListener((connection, time, durationMillis, average, value)->{    	    
     		switch(connection) {
 	    		case LIGHT_SENSOR_CONNECTION:
 	    			

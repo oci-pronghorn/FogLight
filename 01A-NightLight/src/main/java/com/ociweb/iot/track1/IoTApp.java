@@ -43,7 +43,7 @@ public class IoTApp implements IoTSetup
     	
     	
     	final CommandChannel lcdScreenChannel = runtime.newCommandChannel();
-    	runtime.addAnalogListener((connection, time, average, value)->{
+    	runtime.addAnalogListener((connection, time, durationMillis, average, value)->{
  
     	    
     	    System.out.println("connection "+connection+" value "+value);

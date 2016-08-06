@@ -125,7 +125,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	}
 
 	@Override
-	public void analogEvent(int connector, long time, int average, int value) {
+	public void analogEvent(int connector, long time, long durationMillis, int average, int value) {
 		player1Loc = (value-4)/68; //value 0-15
 	}
 

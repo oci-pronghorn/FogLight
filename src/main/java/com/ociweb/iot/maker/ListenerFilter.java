@@ -53,5 +53,34 @@ public interface ListenerFilter {
 	 */
 	ListenerFilter addSubscription(CharSequence topic); 
 	
+	/**
+	 * For StateChangeListener reduce notifications.
+	 * @param states
+	 * @return
+	 */
+	<E extends Enum<E>> ListenerFilter includeStateChangeTo(E ... states); 
+
+	/**
+	 * For StateChangeListener reduce notifications.
+	 * @param states
+	 * @return
+	 */
+	<E extends Enum<E>> ListenerFilter excludeStateChangeTo(E ... states); 
+
+	/**
+	 * For StateChangeListener reduce notifications.
+	 * @param states
+	 * @return
+	 */
+	<E extends Enum<E>> ListenerFilter includeStateChangeFrom(E ... states); 
+	
+	/**
+	 * For StateChangeListener reduce notifications.
+	 * @param states
+	 * @return
+	 */
+	<E extends Enum<E>> ListenerFilter excludeStateChangeFrom(E ... states); 
+	
+	
 	
 }

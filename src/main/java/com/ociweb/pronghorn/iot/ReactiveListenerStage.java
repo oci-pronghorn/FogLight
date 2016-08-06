@@ -72,6 +72,11 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     private int[] excludedDigitals;//if null then no values are excluded
     private int[] includedI2Cs;//if null then all values are accepted
     private int[] excludedI2Cs;//if null then no values are excluded
+    private long[] includedToStates;
+    private long[] includedFromStates;
+    private long[] excludedToStates;
+    private long[] excludedFromStates;
+		
     /////////////////////
     
     
@@ -255,10 +260,13 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 case MessageSubscription.MSG_STATECHANGED_71:
                 	if (listener instanceof StateChangeListener) {
                 		
-                		Enum oldState = states[PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8)];
-                		Enum newState = states[PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9)];
-                			
-						((StateChangeListener)listener).stateChange(oldState, newState);
+                		int oldOrdinal = PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8);
+                		int newOrdinal = PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9);
+                		if (isIncluded(newOrdinal, includedToStates) && isIncluded(oldOrdinal, includedFromStates) &&
+                			isNotExcluded(newOrdinal, excludedToStates) && isNotExcluded(oldOrdinal, excludedFromStates) ) {			                			
+                			((StateChangeListener)listener).stateChange(states[oldOrdinal], states[newOrdinal]);
+                		}
+						
                 	}
                     break;
                 case -1:
@@ -274,8 +282,11 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
             PipeReader.releaseReadLock(p);
         }
     }
+        
 
-    private void processTimeEvents(Object listener) {
+	
+
+	private void processTimeEvents(Object listener) {
         //if we do have a clock schedule
         if (0 != timeRate) {
             if (listener instanceof TimeListener) {
@@ -414,8 +425,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		if (isIncluded(connector, includedDigitals) && isNotExcluded(connector, excludedDigitals)) {
 
 			if(value!=lastDigitalValues[connector]){  //TODO: add switch   
-				long durationMillis = 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector];
-				dListener.digitalEvent(connector, time, durationMillis, value);
+				dListener.digitalEvent(connector, time, 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector], value);
 			    lastDigitalValues[connector] = value;
 			    lastDigitalTimes[connector] = time;
 			}
@@ -430,20 +440,34 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 			
 			MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);                                                
 			
-			int mean = -1;
+			int mean = runningValue;
 			if (MAvgRollerLong.isValid(rollingMovingAveragesAnalog[connector])) {
 				mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);
 			}
 			
 			if(value!=lastAnalogValues[connector]){   //TODO: add switch
-				long durationMillis = 0==lastAnalogTimes[connector] ? -1 : time-lastAnalogTimes[connector];
-				aListener.analogEvent(connector, time, mean, runningValue);
+				aListener.analogEvent(connector, time, 0==lastAnalogTimes[connector] ? Long.MAX_VALUE : time-lastAnalogTimes[connector], mean, runningValue);
 			    lastAnalogValues[connector] = value;
 			    lastAnalogTimes[connector] = time;
 			}
 		}
 	}
         
+    
+    private boolean isNotExcluded(int newOrdinal, long[] excluded) {
+    	if (null!=excluded) {
+    		return 0 == (excluded[newOrdinal>>6] & (1L<<(newOrdinal & 0x3F)));			
+		}
+		return true;
+	}
+
+	private boolean isIncluded(int newOrdinal, long[] included) {
+		if (null!=included) {			
+			return 0 != (included[newOrdinal>>6] & (1L<<(newOrdinal & 0x3F)));
+		}
+		return true;
+	}
+	
 	private boolean isNotExcluded(int connector, int[] excluded) {
 		if (null!=excluded) {
 			int e = excluded.length;
@@ -527,11 +551,15 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
 	@Override
 	public ListenerFilter addSubscription(CharSequence topic) {		
-		if (!startupCompleted) {
+		if (!startupCompleted && listener instanceof PubSubListener) {
 			hardware.addStartupSubscription(topic, System.identityHashCode(this));		
 			return this;
 		} else {
-			throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("Call addSubscription on CommandChanel to modify subscriptions at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of PubSubListener in order to call this method.");
+	    	}
 		}
 	}
 
@@ -561,7 +589,89 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
 	    	}
 	    }
+	}
+
+	@Override
+	public <E extends Enum<E>> ListenerFilter includeStateChangeTo(E ... state) {	
+		if (!startupCompleted && listener instanceof StateChangeListener) {
+			includedToStates = buildMaskArray(state);
+			return this;
+		} else {
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of StateChangeListener in order to call this method.");
+	    	}
+		}
+	}
+
+	@Override
+	public <E extends Enum<E>> ListenerFilter excludeStateChangeTo(E ... state) {
+		if (!startupCompleted && listener instanceof StateChangeListener) {
+			excludedToStates = buildMaskArray(state);
+			return this;
+		} else {
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of StateChangeListener in order to call this method.");
+	    	}
+		}
+	}
+
+	@Override
+	public <E extends Enum<E>> ListenerFilter includeStateChangeFrom(E ... state) {
+		if (!startupCompleted && listener instanceof StateChangeListener) {
+			includedFromStates = buildMaskArray(state);
+			return this;
+		} else {
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of StateChangeListener in order to call this method.");
+	    	}
+		}
+	}
+
+	@Override
+	public <E extends Enum<E>> ListenerFilter excludeStateChangeFrom(E ... state) {
+		if (!startupCompleted && listener instanceof StateChangeListener) {
+			excludedFromStates = buildMaskArray(state);
+			return this;
+		} else {
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of StateChangeListener in order to call this method.");
+	    	}
+		}
 	} 
+	
+	private <E extends Enum<E>> long[] buildMaskArray(E[] state) {
+		int maxOrdinal = findMaxOrdinal(state);
+		int a = maxOrdinal >> 6;
+		int b = maxOrdinal & 0x3F;		
+		int longsCount = a+(b==0?0:1);
+		
+		long[] array = new long[longsCount];
+				
+		int i = state.length;
+		while (--i>=0) {			
+			int ordinal = state[i].ordinal();			
+			array[ordinal>>6] |=  1L << (ordinal & 0x3F);			
+		}
+		return array;
+	}
+
+	private <E extends Enum<E>> int findMaxOrdinal(E[] state) {
+		int maxOrdinal = -1;
+		int i = state.length;
+		while (--i>=0) {
+			maxOrdinal = Math.max(maxOrdinal, state[i].ordinal());
+		}
+		return maxOrdinal;
+	}
+
     
     
 }

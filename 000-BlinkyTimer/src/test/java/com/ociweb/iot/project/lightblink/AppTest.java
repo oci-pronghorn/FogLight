@@ -59,8 +59,8 @@ public class AppTest {
 	    	}
 	    	
 	    	long avg = sum/(testSize-1);
-	    	assertTrue(Long.toString(avg),avg>=498);
-			assertTrue(Long.toString(avg),avg<=502);
+	    	assertTrue(Long.toString(avg),avg>=490);
+			assertTrue(Long.toString(avg),avg<=510);
 	 	    	
 	    }
 }

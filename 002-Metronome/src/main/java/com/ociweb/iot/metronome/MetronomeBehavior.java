@@ -49,8 +49,8 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private static final int BBM_VALUES      = 1+BBM_FASTEST-BBM_SLOWEST;
     private static final int MAX_ANGLE_VALUE = 1024;
     
-    private long requestedTimeOfNewRate;
     private int  requestedPBM;
+    private long requestDuration;
     
     private long base;
     private int beatIdx; 
@@ -75,14 +75,9 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
 
     //we will talk about override
     @Override
-    public void analogEvent(int connector, long time, int average, int value) {
-  
-    //later in the deck, do the publish subsribe 
-            int newBPM =  BBM_SLOWEST + ((BBM_VALUES*value)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation      
-            if (newBPM != activeBPM) {                
-            	requestedPBM = newBPM;
-            	requestedTimeOfNewRate = time;         	
-            }
+    public void analogEvent(int connector, long time, long durationMillis, int average, int value) {  	    
+    	requestedPBM=  BBM_SLOWEST + ((BBM_VALUES*average)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation      
+        requestDuration = durationMillis;    
     }    
 
     @Override
@@ -91,11 +86,10 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     	
         if (requestedPBM>0) {
 
-            if (activeBPM==0 || (requestedTimeOfNewRate!=0 && System.currentTimeMillis()>requestedTimeOfNewRate+200) ) {
+            if (activeBPM != requestedPBM && requestDuration > 200 ) {
             	activeBPM = requestedPBM;
                 base = System.currentTimeMillis(); //this is a standard java they should know. 1970 UMT
                 beatIdx = 0;
-                requestedTimeOfNewRate = 0;
             }                
                                     
             long delta = (++beatIdx*60_000)/activeBPM;//will multiple the pre incremental value if do after 

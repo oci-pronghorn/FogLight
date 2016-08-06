@@ -159,43 +159,43 @@ public class DeviceRuntime {
     }
     
     
-    public RotaryListener addRotaryListener(RotaryListener listener) {
-        return (RotaryListener)registerListener(listener);
+    public ListenerFilter addRotaryListener(RotaryListener listener) {
+        return registerListener(listener);
     }
     
-    public StartupListener addStartupListener(StartupListener listener) {
-        return (StartupListener)registerListener(listener);
+    public ListenerFilter addStartupListener(StartupListener listener) {
+        return registerListener(listener);
     }
         
-    public AnalogListener addAnalogListener(AnalogListener listener) {
-        return (AnalogListener)registerListener(listener);
+    public ListenerFilter addAnalogListener(AnalogListener listener) {
+        return registerListener(listener);
     }
     
-    public DigitalListener addDigitalListener(DigitalListener listener) {
-        return (DigitalListener)registerListener(listener);
+    public ListenerFilter addDigitalListener(DigitalListener listener) {
+        return registerListener(listener);
     }
     
-    public TimeListener addTimeListener(TimeListener listener) {
-        return (TimeListener)registerListener(listener);
+    public ListenerFilter addTimeListener(TimeListener listener) {
+        return registerListener(listener);
     }
         
-    public I2CListener addI2CListener(I2CListener listener) {
-        return (I2CListener)registerListener(listener);
+    public ListenerFilter addI2CListener(I2CListener listener) {
+        return registerListener(listener);
     }
     
-    public PubSubListener addPubSubListener(PubSubListener listener) {
-        return (PubSubListener)registerListener(listener);
+    public ListenerFilter addPubSubListener(PubSubListener listener) {
+        return registerListener(listener);
     }
 
     public <E extends Enum<E>> StateChangeListener<E> addStateChangeListener(StateChangeListener<E> listener) {
         return (StateChangeListener<E>)registerListener(listener);
     }
     
-    public Object addListener(Object listener) {
+    public ListenerFilter addListener(Object listener) {
         return registerListener(listener);
     }
     
-    public Object registerListener(Object listener) {
+    public ListenerFilter registerListener(Object listener) {
         
         List<Pipe<?>> pipesForListenerConsumption = new ArrayList<Pipe<?>>(); 
         
@@ -229,16 +229,13 @@ public class DeviceRuntime {
         Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
         Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
 
-        configureStageRate(listener,hardware.createReactiveListener(gm, listener, inputPipes, outputPipes));
+        ReactiveListenerStage reactiveListener = hardware.createReactiveListener(gm, listener, inputPipes, outputPipes);
+		configureStageRate(listener,reactiveListener);
         
         Pipe<MessageSubscription>[] subsPipes = GraphManager.allPipesOfType(gm, MessageSubscription.instance);
         assert(-1==testId || subsPipes[subPipeIdx].id==testId) : "GraphManager has returned the pipes out of the expected order";
         
-        if (testId != -1 &&  subsPipes[subPipeIdx].id==testId && subsPipes.length>3) {
-            System.err.println("TESTED, NOW REMOVE THIS BLOCK **********************");
-        }
-        
-        return listener;
+        return reactiveListener;
         
     }
 

@@ -10,6 +10,7 @@ import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.ListenerFilter;
 import com.ociweb.iot.maker.PayloadReader;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RestListener;
@@ -26,7 +27,7 @@ import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
-public class ReactiveListenerStage extends PronghornStage {
+public class ReactiveListenerStage extends PronghornStage implements ListenerFilter {
 
     protected final Object              listener;
     
@@ -44,7 +45,7 @@ public class ReactiveListenerStage extends PronghornStage {
     
     protected MAvgRollerLong[] rollingMovingAveragesAnalog;
     protected MAvgRollerLong[] rollingMovingAveragesDigital;    
-    
+    private boolean startupCompleted;
     
     protected int[] oversampledAnalogValues;
 
@@ -61,6 +62,18 @@ public class ReactiveListenerStage extends PronghornStage {
     protected long[] lastAnalogTimes;
     
     private final Enum[] states;
+    
+    /////////////////////
+    //Listener Filters
+    /////////////////////    
+    private int[] includedAnalogs;//if null then all values are accepted
+    private int[] excludedAnalogs;//if null then no values are excluded
+    private int[] includedDigitals;//if null then all values are accepted
+    private int[] excludedDigitals;//if null then no values are excluded
+    private int[] includedI2Cs;//if null then all values are accepted
+    private int[] excludedI2Cs;//if null then no values are excluded
+    /////////////////////
+    
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
 
@@ -179,6 +192,7 @@ public class ReactiveListenerStage extends PronghornStage {
         if (listener instanceof StartupListener) {
         	((StartupListener)listener).startup();
         }        
+        startupCompleted=true;
     }
 
     @Override
@@ -326,16 +340,11 @@ public class ReactiveListenerStage extends PronghornStage {
 			int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 			int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 		    
-		    processI2CEvent(listener, addr, register, time, backing, position, length, mask);
+		    commonI2CEventProcessing((I2CListener)listener, addr, register, time, backing, position, length, mask);
 		   
 		}
 	}
 
-	protected void processI2CEvent(Object listener, int addr, int register, long time, byte[] backing, int position,
-			int length, int mask) {
-		((I2CListener)listener).i2cEvent(addr, register, time, backing, position, length, mask);
-	}
-	
     
     
 
@@ -346,42 +355,21 @@ public class ReactiveListenerStage extends PronghornStage {
             switch (msgIdx) {   
 
                 case GroveResponseSchema.MSG_ANALOGSAMPLE_30:
-                    if (listener instanceof AnalogListener) {
-                        
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31);
-                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32);
-                        long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_PREVDURATION_35);
-                                                
-                        int runningValue = findStableReading(value, connector);             
-                        
-                        MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);                                                
-                        
-                        int mean = 0/*(int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector])*/;
-                        
-                        if(value!=lastAnalogValues[connector]){   //TODO: add switch
-                        	long durationMillis = 0==lastAnalogTimes[connector] ? -1 : time-lastAnalogTimes[connector];
-                            ((AnalogListener)listener).analogEvent(connector, time, mean, runningValue);
-                            lastAnalogValues[connector] = value;
-                            lastAnalogTimes[connector] = time;
-                        }
+                    if (listener instanceof AnalogListener) {                        
+                        commonAnalogEventProcessing(PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31),
+                        				            PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11), 
+                        				            PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32), 
+                        				            (AnalogListener)listener);
                         
                     }   
                 break;               
                 case GroveResponseSchema.MSG_DIGITALSAMPLE_20:
                     
                     if (listener instanceof DigitalListener) {
-                        int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21);
-                        long time = PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_TIME_11);
-                        int value = PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22);
-                        long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_PREVDURATION_25);
-                                           
-                        if(value!=lastDigitalValues[connector]){  //TODO: add switch   
-                        	long durationMillis = 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector];
-                            ((DigitalListener)listener).digitalEvent(connector, time, durationMillis, value);
-                            lastDigitalValues[connector] = value;
-                            lastDigitalTimes[connector] = time;
-                        }
+                        commonDigitalEventProcessing(PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21), 
+                        		                     PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_TIME_11), 
+                        		                     PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22), 
+                        		                     (DigitalListener)listener);
                     }   
                 break; 
                 case GroveResponseSchema.MSG_ENCODER_70:
@@ -411,8 +399,169 @@ public class ReactiveListenerStage extends PronghornStage {
             //done reading message off pipe
             PipeReader.releaseReadLock(p);
         }
-    } 
+    }
+    
 
+	protected void commonI2CEventProcessing(I2CListener listener, int addr, int register, long time, byte[] backing, int position, int length, int mask) {
+		if (isIncluded(addr, includedI2Cs) && isNotExcluded(addr, excludedI2Cs)) {
+			listener.i2cEvent(addr, register, time, backing, position, length, mask);
+		}
+	}
+	    
+    
+	protected void commonDigitalEventProcessing(int connector, long time, int value, DigitalListener dListener) {
+		
+		if (isIncluded(connector, includedDigitals) && isNotExcluded(connector, excludedDigitals)) {
+
+			if(value!=lastDigitalValues[connector]){  //TODO: add switch   
+				long durationMillis = 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector];
+				dListener.digitalEvent(connector, time, durationMillis, value);
+			    lastDigitalValues[connector] = value;
+			    lastDigitalTimes[connector] = time;
+			}
+		}
+	}
+
+	protected void commonAnalogEventProcessing(int connector, long time, int value, AnalogListener aListener) {
+		
+		if (isIncluded(connector, includedAnalogs) && isNotExcluded(connector, excludedAnalogs)) {
+			
+			int runningValue = findStableReading(value, connector);             
+			
+			MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);                                                
+			
+			int mean = -1;
+			if (MAvgRollerLong.isValid(rollingMovingAveragesAnalog[connector])) {
+				mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);
+			}
+			
+			if(value!=lastAnalogValues[connector]){   //TODO: add switch
+				long durationMillis = 0==lastAnalogTimes[connector] ? -1 : time-lastAnalogTimes[connector];
+				aListener.analogEvent(connector, time, mean, runningValue);
+			    lastAnalogValues[connector] = value;
+			    lastAnalogTimes[connector] = time;
+			}
+		}
+	}
+        
+	private boolean isNotExcluded(int connector, int[] excluded) {
+		if (null!=excluded) {
+			int e = excluded.length;
+			while (--e>=0) {
+				if (excluded[e]==connector) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean isIncluded(int connector, int[] included) {
+		if (null!=included) {
+			int i = included.length;
+			while (--i>=0) {
+				if (included[i]==connector) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return true;
+	}
+	
+	@Override
+	public ListenerFilter includeAnalogConnections(int... connections) {
+		if (!startupCompleted && listener instanceof AnalogListener) {
+			includedAnalogs = connections;
+			return this;
+		} else {
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
+	    	}
+		}
+	}
+
+	@Override
+	public ListenerFilter excludeAnalogConnections(int... connections) {
+		if (!startupCompleted && listener instanceof AnalogListener) {
+			excludedAnalogs = connections;
+			return this;
+		} else {
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
+	    	}
+		}
+	}
+
+	@Override
+	public ListenerFilter includeDigitalConnections(int... connections) {
+		if (!startupCompleted && listener instanceof DigitalListener) {
+			includedDigitals = connections;
+			return this;
+		} else {
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
+	    	}
+		}
+	}
+
+	@Override
+	public ListenerFilter excludeDigitalConnections(int... connections) {
+		if (!startupCompleted && listener instanceof DigitalListener) {
+			excludedDigitals = connections;
+			return this;
+	    } else {
+	    	if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
+	    	}
+	    }
+	}
+
+	@Override
+	public ListenerFilter addSubscription(CharSequence topic) {		
+		if (!startupCompleted) {
+			hardware.addStartupSubscription(topic, System.identityHashCode(this));		
+			return this;
+		} else {
+			throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+		}
+	}
+
+	@Override
+	public ListenerFilter includeI2CConnections(int... connections) {
+		if (!startupCompleted && listener instanceof I2CListener) {
+			includedI2Cs = connections;
+			return this;
+		} else {
+			if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
+	    	}
+		}
+	}
+
+	@Override
+	public ListenerFilter excludeI2CConnections(int... connections) {
+		if (!startupCompleted && listener instanceof I2CListener) {
+			excludedI2Cs = connections;
+			return this;
+	    } else {
+	    	if (startupCompleted) {
+	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
+	    	} else {
+	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
+	    	}
+	    }
+	} 
     
     
 }

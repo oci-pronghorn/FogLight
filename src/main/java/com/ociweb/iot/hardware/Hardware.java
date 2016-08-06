@@ -34,6 +34,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -81,13 +82,18 @@ public abstract class Hardware {
     Enum<?> beginningState;
     
     
+    /////////////////
+    ///Pipes for initial startup declared subscriptions. (Not part of graph)
+    private final int maxStartupSubs = 64;
+    private final int maxTopicLengh  = 128;
+    private Pipe<MessagePubSub> tempPipeOfStartupSubscriptions;
+    /////////////////
+    /////////////////
     
-    //TODO: ma per field with max defined here., 
-    //TODO: publish with or with out ma??
+    private ReentrantLock devicePinConfigurationLock = new ReentrantLock();
     
-    //only publish when the moving average changes
     
-    private ReentrantLock lock = new ReentrantLock();
+    
     
     public Hardware(GraphManager gm, I2CBacking i2cBacking) {
         this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
@@ -105,6 +111,8 @@ public abstract class Hardware {
         this.pwmOutputs = pwmOutputs;
         this.analogInputs = analogInputs;
         this.gm = gm;
+        
+        this.getTempPipeOfStartupSubscriptions().initBuffers();
     }
 
     public <E extends Enum<E>> boolean isValidState(E state) {
@@ -262,7 +270,7 @@ public abstract class Hardware {
 
     public void beginPinConfiguration() {
         try {
-            if (!lock.tryLock(PIN_SETUP_TIMEOUT, TimeUnit.SECONDS)) {
+            if (!devicePinConfigurationLock.tryLock(PIN_SETUP_TIMEOUT, TimeUnit.SECONDS)) {
                 throw new RuntimeException("One of the stages was not able to complete startup due to pin configuration issues.");
             }
         } catch (InterruptedException e) {
@@ -271,7 +279,7 @@ public abstract class Hardware {
     }
     
     public void endPinConfiguration() {
-       lock.unlock();
+       devicePinConfigurationLock.unlock();
     }
     
     public abstract int digitalRead(int connector); //Platform specific
@@ -478,6 +486,36 @@ public abstract class Hardware {
 
 	public Enum[] getStates() {
 		return null==beginningState? new Enum[0] : beginningState.getClass().getEnumConstants();
+	}
+
+	public void addStartupSubscription(CharSequence topic, int systemHash) {
+		
+		Pipe<MessagePubSub> pipe = getTempPipeOfStartupSubscriptions();
+		
+		if (PipeWriter.tryWriteFragment(pipe, MessagePubSub.MSG_SUBSCRIBE_100)) {
+			PipeWriter.writeUTF8(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_TOPIC_1, topic);
+			PipeWriter.writeInt(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4, systemHash);
+			PipeWriter.publishWrites(pipe);
+		} else {
+			throw new UnsupportedOperationException("Limited number of startup subscriptions "+maxStartupSubs+" encountered.");
+		}
+	}
+
+	private Pipe<MessagePubSub> getTempPipeOfStartupSubscriptions() {
+		if (null==tempPipeOfStartupSubscriptions) {
+			
+		    final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, maxStartupSubs,maxTopicLengh);   
+		    tempPipeOfStartupSubscriptions = new Pipe<MessagePubSub>(messagePubSubConfig);
+			
+		}		
+		
+		return tempPipeOfStartupSubscriptions;
+	}
+
+	Pipe<MessagePubSub> consumeStartupSubscriptions() {
+		Pipe<MessagePubSub> result = tempPipeOfStartupSubscriptions;
+		tempPipeOfStartupSubscriptions = null;//no longer needed
+		return result;
 	}
     
 

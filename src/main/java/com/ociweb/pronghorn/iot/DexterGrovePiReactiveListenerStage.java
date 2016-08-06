@@ -47,16 +47,8 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 				int connector = GrovePiConstants.REGISTER_TO_PIN[register];
 				assert(connector!=-1);
 
-				MAvgRollerLong.roll(rollingMovingAveragesDigital[connector], tempValue);
+				commonDigitalEventProcessing(connector, time,tempValue, (DigitalListener)listener);
 
-				//only send when it changes, 
-				if(tempValue!=lastDigitalValues[connector]){				
-					long duration = 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector];
-					((DigitalListener)listener).digitalEvent(register, time, duration, tempValue);
-					logger.debug("Digital event");
-					lastDigitalValues[connector] = tempValue;
-					lastDigitalTimes[connector] = time;
-				}
 			}
 			else if(listener instanceof AnalogListener && addr==4 && length==3){
 
@@ -69,33 +61,13 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
 				} else {
 					int tempValue =  (high<<8) | (0xFF&low);
-
 					int connector = GrovePiConstants.REGISTER_TO_PIN[register];
 					assert(connector>=0) :"bad connector "+connector;
 
 					if (tempValue<0) {
 						logger.error("connection {} bad i2c result array [{}, {}, {}] ",connector,backing[(position+0)&mask],backing[(position+1)&mask],backing[(position+2)&mask]);
-					} else {
-
-						int runningValue = findStableReading(tempValue, connector);   //TODO: need to turn and off 						    							
-
-						//works on PC, works in unit test but fails on PI, not sure why yet.		
-						MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);    							
-
-						//only send upon change TODO: need to turn and off
-						if (runningValue!=lastAnalogValues[connector]) {
-
-							long duration = 0==lastAnalogTimes[connector] ? -1 : time-lastAnalogTimes[connector];
-
-							int mean = 0;
-							if (rollingMovingAveragesAnalog[connector].distance>=0) {
-								mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);
-							}    							    
-
-							((AnalogListener)listener).analogEvent(connector, time, mean, runningValue); 
-							lastAnalogValues[connector] = runningValue;    
-							lastAnalogTimes[connector] = time;
-						}
+					} else {						
+						commonAnalogEventProcessing(connector, time, tempValue, (AnalogListener)listener);
 					}
 				}
 			}else if(listener instanceof RotaryListener && addr==4 && length==2){
@@ -103,7 +75,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 				int tempValue = (((int)tempArray[0])<<8) | (0xFF&((int)tempArray[1]));
 				((RotaryListener)listener).rotaryEvent(register, time, tempValue, 0, 0);
 			} else if (listener instanceof I2CListener){ //must be last so we only do this if one of the more specific conditions were not met first.
-				super.processI2CEvent(listener, addr, register, time, backing, position, length, mask);;
+				super.commonI2CEventProcessing((I2CListener)listener, addr, register, time, backing, position, length, mask);;
 				logger.debug("Creating I2C event");
 			}
 		}

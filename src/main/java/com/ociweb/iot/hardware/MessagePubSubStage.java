@@ -21,7 +21,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
     private final Pipe<MessageSubscription>[] outgoingMessagePipes;
     
     private static final int estimatedTopicLength = 100;
-    private static final int maxLists = 10; //TODO: make this grow later
+    private static final int maxLists = 10; //TODO: make this grow as needed based on growing count of subscriptions.
     private final int subscriberListSize;
     private short[] subscriberLists;
     private int totalSubscriberLists;
@@ -32,8 +32,18 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
     private IntHashTable subscriptionPipeLookup;
     
     private int[] pendingPublish;
+    
+    enum PubType {
+    	Message, State;
+    }
+    
+    private PubType pendingDeliveryType;
+        
     private int pendingPublishCount;
     private int pendingReleaseCountIdx;
+
+    private int currentState;
+    private int newState;
     
     public MessagePubSubStage(GraphManager gm, IntHashTable subscriptionPipeLookup, Hardware hardware, Pipe<MessagePubSub>[] incomingSubsAndPubsPipe,
                               Pipe<TrafficReleaseSchema>[] goPipe,
@@ -50,6 +60,8 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
        this.totalSubscriberLists = 0;
        this.subscriptionPipeLookup = subscriptionPipeLookup;
 
+       this.currentState = hardware.beginningState.ordinal();
+       
     }
     
     @Override
@@ -60,21 +72,34 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         Arrays.fill(this.subscriberLists, (short)-1);
         this.trie = new TrieParser(maxLists * estimatedTopicLength );
         this.trieReader = new TrieParserReader();
+
         this.pendingPublish = new int[subscriberListSize];
     }
     
 
     @Override
     public void run() {
+    	if (incomingSubsAndPubsPipe.length==0) {
+    		return;//hack for case when there are none, TODO: must stop this earlier so this check is not needed.
+    	}
+    	
         if (pendingPublishCount>0) { //must do these first.
+        	int limit = pendingPublishCount;
+        	pendingPublishCount = 0;//set to zero to collect the new failed values
+        	Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[pendingReleaseCountIdx];
             
-            int limit = pendingPublishCount;
-            pendingPublishCount = 0;//set to zero to collect the new failed values
-            
-            Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[pendingReleaseCountIdx];
-            for(int i = 0; i<limit; i++) {
-                copyToSubscriber(pipe, pendingPublish[i]);                
-            }
+        	switch(pendingDeliveryType) {
+	        	case Message:
+	        		for(int i = 0; i<limit; i++) {
+	        			copyToSubscriber(pipe, pendingPublish[i]);                
+	        		}
+	        		break;
+	        	case State:
+	        		for(int i = 0; i<limit; i++) {
+	        			copyToSubscriber(currentState, newState, pendingPublish[i]);                
+	        		}
+	        		break;
+        	}
             if (pendingPublishCount>0) {
                 return;//try again later
             } else {
@@ -92,9 +117,6 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         //TODO: still need to add support for +
         //TODO: still need to add support for #
         
-        if (incomingSubsAndPubsPipe.length==0) {
-            return;//hack for case when there are none, TODO: must stop this earlier so this check is not needed.
-        }
         
         Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[a];
         while (hasReleaseCountRemaining(a) &&
@@ -103,6 +125,22 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
             
             int msgIdx = PipeReader.getMsgIdx(pipe);
             switch (msgIdx)  {
+            	case MessagePubSub.MSG_CHANGESTATE_70:
+            		
+            		newState = PipeReader.readInt(pipe, MessagePubSub.MSG_CHANGESTATE_70_FIELD_ORDINAL_7);
+            		
+            		//NOTE: this is sent to all outgoing pipes, some may not want state but are only here for listening to particular topics.
+            		//      This might be improved in the future if needed by capturing the list of only those pipes connected to instances of StateChangeListeners.
+                	for(int i = 0; i<outgoingMessagePipes.length; i++) {
+                		copyToSubscriber(currentState, newState, i);
+                	}
+            		
+            		 if (pendingPublishCount>0) {
+                     	 pendingDeliveryType = PubType.State;
+                         pendingReleaseCountIdx = a; //keep so this is only cleared after we have had successful transmit to all subscribers.
+                         return;//must try again later
+                     }  
+            		break;
                 case MessagePubSub.MSG_PUBLISH_103:
                     {
                         
@@ -114,11 +152,13 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
                         
                         int listIdx = (int) TrieParserReader.query(trieReader, trie, backing, pos, len, mask);
                         if (listIdx>=0) {
-                            for(int i = listIdx; i<(listIdx+subscriberListSize) && (-1 != subscriberLists[i]); i++) {
-                                copyToSubscriber(pipe, subscriberLists[i]);                                
-                            }
-                            
+                        	final int limit = listIdx+subscriberListSize;
+                        	for(int i = listIdx; i<limit && (-1 != subscriberLists[i]); i++) {
+                        		copyToSubscriber(pipe, subscriberLists[i]);                                
+                        	}
+                                                	
                             if (pendingPublishCount>0) {
+                            	pendingDeliveryType = PubType.Message;
                                 pendingReleaseCountIdx = a; //keep so this is only cleared after we have had successful transmit to all subscribers.
                                 return;//must try again later
                             }                            
@@ -185,4 +225,17 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         }
     }
 
+    private void copyToSubscriber(int oldOrdinal, int newOrdinal, int pipeIdx) {
+        Pipe<MessageSubscription> outPipe = outgoingMessagePipes[pipeIdx];
+        if (PipeWriter.tryWriteFragment(outPipe, MessageSubscription.MSG_STATECHANGED_71)) {
+            
+        	PipeWriter.writeInt(outPipe, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8, oldOrdinal);
+        	PipeWriter.writeInt(outPipe, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9, newOrdinal);
+        	            
+            PipeWriter.publishWrites(outPipe);
+        } else {
+        	pendingPublish[pendingPublishCount++] = pipeIdx;                                     
+        }
+    }
+    
 }

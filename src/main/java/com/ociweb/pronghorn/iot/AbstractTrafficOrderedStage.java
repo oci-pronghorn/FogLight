@@ -232,13 +232,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 							    if (mostRecentBlockedConnection>=0) {
 							    	//we have a connection we are blocking on.
 							    	activeBlocks[mostRecentBlockedConnection] = a;
-							    }
-							    
-							    
-							    
-							    //TODO: delete this return..and above startloopat set???
-							    
-							    return true; //a poll may happen here but no other commands will happen until this is completed.								
+							    }								
 							}							
 						}
 					}

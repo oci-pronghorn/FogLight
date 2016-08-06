@@ -55,20 +55,38 @@ public class DeviceRuntime {
     private final int i2cDefaultLength = 300;
     private final int i2cDefaultMaxPayload = 16;
     
+    /////////////
+    //Pipes for requesting GPIO operations both Analog and Digital
     private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
+    
+    ////////////
+    ///Pipes for writing to I2C bus
     private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);    
+    
+    ////////////
+    ///Pipes for subscribing to and sending messages this is MQTT, StateChanges and many others
     private final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, defaultCommandChannelLength,defaultCommandChannelMaxPayload); 
+   
+    ////////////
+    //Each of the above pipes are paired with TrafficOrder pipe to group commands togetehr in atomic groups and to enforce order across the pipes.
     private final PipeConfig<TrafficOrderSchema> goPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, defaultCommandChannelLength); 
     
-
+    ///////////
+    ///Pipes containing response data from the I2C bus, this primarily is polled at a fixed rate on startup
     private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
+    
+    //////////
+    //Pipes containing response data from the GPIO pins both digital and analog, this is primarily polled at a fixed rate on startup.
     private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);   
+        
+    /////////
+    //Pipes for receiving messages, this includes MQTT, State and many others
     private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
+    
+        
     
     private int subscriptionPipeIdx = 0; //this implementation is dependent upon graphManager returning the pipes in the order created!
     
-    private boolean isEdison = false;
-    private boolean isPi = false;
     private int channelsCount;
     
     private int defaultSleepRateNS = 10_000_000;   //we will only check for new work 100 times per second to keep CPU usage low.
@@ -104,13 +122,11 @@ public class DeviceRuntime {
 
     	    i2cBacking = Hardware.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
-	            this.isEdison = true;
 	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
 	            System.out.println("Detected running on Edison");
 	        } else {
 	        	i2cBacking = Hardware.getI2CBacking(piI2C);
 	    	    if (null != i2cBacking) {
-	    	        this.isPi = true;
 	    	        this.hardware = new GroveV2PiImpl(gm, i2cBacking);
 	    	        System.out.println("Detected running on Pi");
 	    	    }
@@ -171,6 +187,10 @@ public class DeviceRuntime {
         return (PubSubListener)registerListener(listener);
     }
 
+    public <E extends Enum<E>> StateChangeListener<E> addStateChangeListener(StateChangeListener<E> listener) {
+        return (StateChangeListener<E>)registerListener(listener);
+    }
+    
     public Object addListener(Object listener) {
         return registerListener(listener);
     }

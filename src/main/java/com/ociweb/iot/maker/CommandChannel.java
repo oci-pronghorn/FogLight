@@ -3,6 +3,8 @@ package com.ociweb.iot.maker;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.MessagePubSubStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
@@ -42,9 +44,9 @@ public abstract class CommandChannel {
     protected final int pinPipeIdx = 0; 
     protected final int i2cPipeIdx = 1;
     protected final int subPipeIdx = 2;
-    
+    private Hardware hardware;
         
-    protected CommandChannel(GraphManager gm, 
+    protected CommandChannel(GraphManager gm, Hardware hardware,
                              Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub,  //avoid adding more and see how they can be combined.
                              Pipe<TrafficOrderSchema> goPipe) {
        this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};
@@ -55,8 +57,7 @@ public abstract class CommandChannel {
        if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
            throw new UnsupportedOperationException("maxCommands too large or pipe is too small, pipe size must be at least "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
        }
-       
-       
+       this.hardware = hardware;
        this.output = output;
     }
     
@@ -191,7 +192,7 @@ public abstract class CommandChannel {
     }
     
     public boolean subscribe(CharSequence topic, PubSubListener listener) {
-        if (PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100)) {
+        if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100)) {
             
             PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4, System.identityHashCode(listener));
             PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_TOPIC_1, topic);
@@ -210,7 +211,7 @@ public abstract class CommandChannel {
     }
     
     public boolean unsubscribe(CharSequence topic, PubSubListener listener) {
-        if (PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101)) {
+        if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101)) {
             
             PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4, System.identityHashCode(listener));
             PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101_FIELD_TOPIC_1, topic);
@@ -225,9 +226,29 @@ public abstract class CommandChannel {
     }
 
     
+    
+    public <E extends Enum<E>> boolean changeStateTo(E state) {
+    	 assert(hardware.isValidState(state));
+    	 if (!hardware.isValidState(state)) {
+    		 throw new UnsupportedOperationException("no match "+state.getClass());
+    	 }
+    	
+    	 if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_CHANGESTATE_70)) {
+
+    		 PipeWriter.writeInt(messagePubSub, MessagePubSub.MSG_CHANGESTATE_70_FIELD_ORDINAL_7,  state.ordinal());
+             PipeWriter.publishWrites(messagePubSub);
+             
+             publishGo(1,subPipeIdx);
+    		 return true;
+    	 }
+
+    	return false;
+    	
+    }    
+    
     public PayloadWriter openTopic(CharSequence topic) {
         
-        if (PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_PUBLISH_103)) {
+        if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_PUBLISH_103)) {
         
             if (null==payloadWriterPool) {
                 lazyInitOfPool(); //must be after the listener has init all the pipes., TODO: could be done when we assign the lister, if we do.

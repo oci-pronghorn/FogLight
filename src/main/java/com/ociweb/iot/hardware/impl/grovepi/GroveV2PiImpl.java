@@ -41,7 +41,7 @@ public class GroveV2PiImpl extends Hardware {
 	@Override
 	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
 		this.commandIndex++;
-		return new PiCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);	
+		return new PiCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);	
 	}
 
 	@Override

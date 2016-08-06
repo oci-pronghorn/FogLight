@@ -130,7 +130,7 @@ public class TestHardware extends Hardware {
     
     @Override
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {    
-       return new DefaultCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);   //TODO: urgent rename as DefaultCommadnChannel     
+       return new DefaultCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, orderPipe);   //TODO: urgent rename as DefaultCommadnChannel     
     }
     
     @Override

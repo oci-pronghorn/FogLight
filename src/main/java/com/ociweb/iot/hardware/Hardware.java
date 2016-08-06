@@ -78,6 +78,8 @@ public abstract class Hardware {
 
     private static final Logger logger = LoggerFactory.getLogger(Hardware.class);
 
+    Enum<?> beginningState;
+    
     
     
     //TODO: ma per field with max defined here., 
@@ -105,6 +107,14 @@ public abstract class Hardware {
         this.gm = gm;
     }
 
+    public <E extends Enum<E>> boolean isValidState(E state) {
+    	
+    	if (null!=beginningState) {
+    		return beginningState.getClass()==state.getClass();    		
+    	}
+    	return false;
+    }
+    
     
     public static I2CBacking getI2CBacking(byte deviceNum) {
         try {
@@ -224,6 +234,11 @@ public abstract class Hardware {
     		assert(!t.isInput());
     		i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
     	}
+    	return this;
+    }
+    
+    public <E extends Enum<E>>Hardware startStateMachineWith(E state) {   	
+    	beginningState = state;	
     	return this;
     }
     
@@ -387,6 +402,7 @@ public abstract class Hardware {
                                           Pipe<TrafficAckSchema>[] masterMsgackIn, 
                                           Pipe<MessageSubscription>[] subscriptionPipes) {
         
+    	
         new MessagePubSubStage(this.gm, subscriptionPipeLookup, this, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
        
         
@@ -459,8 +475,11 @@ public abstract class Hardware {
 	public long nanoTime() {
 		return System.nanoTime();
 	}
-    
 
+	public Enum[] getStates() {
+		return null==beginningState? new Enum[0] : beginningState.getClass().getEnumConstants();
+	}
+    
 
     
 }

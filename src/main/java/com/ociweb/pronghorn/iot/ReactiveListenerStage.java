@@ -16,6 +16,7 @@ import com.ociweb.iot.maker.RestListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.iot.maker.TimeListener;
+import com.ociweb.iot.maker.StateChangeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
@@ -59,6 +60,7 @@ public class ReactiveListenerStage extends PronghornStage {
     protected int[] lastAnalogValues;
     protected long[] lastAnalogTimes;
     
+    private final Enum[] states;
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
 
@@ -69,6 +71,8 @@ public class ReactiveListenerStage extends PronghornStage {
         this.inputPipes = inputPipes;
         this.outputPipes = outputPipes;       
         this.hardware = hardware;
+        
+        this.states = hardware.getStates();
         
         //force all commands to happen upon publish and release
         this.supportsBatchedPublish = false;
@@ -217,22 +221,31 @@ public class ReactiveListenerStage extends PronghornStage {
             int msgIdx = PipeReader.getMsgIdx(p);
             switch (msgIdx) {
                 case MessageSubscription.MSG_PUBLISH_103:
-                    
-                    workspace.setLength(0);
-                    CharSequence topic = PipeReader.readUTF8(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1, workspace);               
-                    
-                    if (null==payloadReader) {
-                        payloadReader = new PayloadReader(p); 
+                    if (listener instanceof PubSubListener) {
+	                    workspace.setLength(0);
+	                    CharSequence topic = PipeReader.readUTF8(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1, workspace);               
+	                    
+	                    if (null==payloadReader) {
+	                        payloadReader = new PayloadReader(p); 
+	                    }
+	                    
+	                    payloadReader.openHighLevelAPIField(MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
+	
+	//                    if (! payloadReader.markSupported() ) {
+	//                        logger.warn("we need mark to be suppported for payloads in pubsub and http."); //TODO: need to implement mark, urgent.                      
+	//                    }
+	                    
+	                    ((PubSubListener)listener).message(topic, payloadReader);
                     }
-                    
-                    payloadReader.openHighLevelAPIField(MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
-
-//                    if (! payloadReader.markSupported() ) {
-//                        logger.warn("we need mark to be suppported for payloads in pubsub and http."); //TODO: need to implement mark, urgent.                      
-//                    }
-                    
-                    ((PubSubListener)listener).message(topic, payloadReader);
-                    
+                    break;
+                case MessageSubscription.MSG_STATECHANGED_71:
+                	if (listener instanceof StateChangeListener) {
+                		
+                		Enum oldState = states[PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8)];
+                		Enum newState = states[PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9)];
+                			
+						((StateChangeListener)listener).stateChange(oldState, newState);
+                	}
                     break;
                 case -1:
                     

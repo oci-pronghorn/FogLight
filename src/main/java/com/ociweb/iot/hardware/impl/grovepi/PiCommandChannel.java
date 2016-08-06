@@ -3,6 +3,7 @@ package com.ociweb.iot.hardware.impl.grovepi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -22,8 +23,8 @@ public class PiCommandChannel extends CommandChannel{
 
 	
 
-	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
-		super(gm, output, i2cOutput, messagePubSub, goPipe); 
+	public PiCommandChannel(GraphManager gm, Hardware hardware, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
+		super(gm, hardware, output, i2cOutput, messagePubSub, goPipe); 
 		this.i2cPipeIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital
 
 	}

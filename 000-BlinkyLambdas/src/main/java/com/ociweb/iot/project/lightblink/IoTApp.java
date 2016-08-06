@@ -42,19 +42,21 @@ public class IoTApp implements IoTSetup {
     public void declareBehavior(DeviceRuntime runtime) {
         
         final CommandChannel blinkerChannel = runtime.newCommandChannel(); 
-        final PubSubListener blinker = runtime.addPubSubListener(
-                (topic,payload)->{           
-                    int value = payload.readInt();
-                    blinkerChannel.digitalSetValueAndBlock(LED_CONNECTION, value, PAUSE);               
-                    blinkerChannel.openTopic(TOPIC).writeInt( 1==value ? 0 : 1 ).publish();
-                    
-                }); 
+        
+        final PubSubListener listener = (topic,payload)->{           
+		    int value = payload.readInt();
+		    blinkerChannel.digitalSetValueAndBlock(LED_CONNECTION, value, PAUSE);               
+		    blinkerChannel.openTopic(TOPIC).writeInt( 1==value ? 0 : 1 ).publish();
+		    
+		};
+		
+		runtime.addPubSubListener(listener); 
                 
         final CommandChannel startupChannel = runtime.newCommandChannel(); 
         runtime.addStartupListener(
                 ()->{
                 	System.out.println("startup started");
-                    startupChannel.subscribe(TOPIC, blinker);
+                    startupChannel.subscribe(TOPIC, listener);
                     startupChannel.openTopic(TOPIC).writeInt( 1 ).publish();
                 });        
     }  

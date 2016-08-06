@@ -26,7 +26,7 @@ public class AppTest {
     	    	
     	TestHardware hardware = (TestHardware)runtime.getHardware();
     
-    	int iterations = 10;
+    	int iterations = 4;
     	boolean isFirst = true;
     	
     	int expected = 0;

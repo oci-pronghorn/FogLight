@@ -1,7 +1,7 @@
 package com.ociweb.iot.stopwatch;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.GroveTwig.Button;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -10,9 +10,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
 
 public class IoTApp implements IoTSetup

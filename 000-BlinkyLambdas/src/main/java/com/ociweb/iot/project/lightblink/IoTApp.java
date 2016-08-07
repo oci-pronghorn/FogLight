@@ -17,11 +17,10 @@ package com.ociweb.iot.project.lightblink;
 
 import static com.ociweb.iot.grove.GroveTwig.LED;
 
-import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
-import com.ociweb.iot.maker.PubSubListener;
 
 public class IoTApp implements IoTSetup {
     

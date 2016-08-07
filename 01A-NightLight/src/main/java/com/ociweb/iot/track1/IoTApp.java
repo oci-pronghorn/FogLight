@@ -5,9 +5,9 @@ import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 import static com.ociweb.iot.grove.GroveTwig.LightSensor;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
 
 

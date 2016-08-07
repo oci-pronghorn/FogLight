@@ -1,13 +1,11 @@
 package com.ociweb.iot.metronome;
 
 
+import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 import static com.ociweb.iot.grove.GroveTwig.Buzzer;
 
-import static com.ociweb.iot.grove.GroveTwig.Button;
-import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
-
-import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
 
 public class IoTApp implements IoTSetup {

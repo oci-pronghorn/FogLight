@@ -1,12 +1,12 @@
 package com.ociweb.iot.trafficlight;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.GroveTwig.LED;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.hardware.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
 
 public class IoTApp implements IoTSetup

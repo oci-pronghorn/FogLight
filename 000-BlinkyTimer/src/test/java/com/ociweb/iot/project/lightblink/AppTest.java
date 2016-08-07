@@ -38,7 +38,7 @@ public class AppTest {
 	    		scheduler.run();
 	    		
 	    		long time = hardware.getLastTime(IoTApp.LED_CONNECTION);
-	    		if (0!=time) {
+	    		if (0 != time) {
 	    			iterations--;
 	    			assertEquals(expected, hardware.digitalRead(IoTApp.LED_CONNECTION));
 	    			expected = 1&(expected+1);
@@ -46,8 +46,8 @@ public class AppTest {
 	    			if (0!=lastTime) {
 	    				long durationMs = (time-lastTime);
 	    				sum+=durationMs;
-	    				assertTrue(Long.toString(durationMs),durationMs>=480);
-	    				assertTrue(Long.toString(durationMs),durationMs<=520);
+	    				assertTrue(Long.toString(durationMs),durationMs>=470);
+	    				assertTrue(Long.toString(durationMs),durationMs<=530);
 	    			}
 	    			
 	    			lastTime = time;
@@ -60,7 +60,7 @@ public class AppTest {
 	    	
 	    	long avg = sum/(testSize-1);
 	    	assertTrue(Long.toString(avg),avg>=490);
-			assertTrue(Long.toString(avg),avg<=510);
+			assertTrue(Long.toString(avg),avg<=1000);
 	 	    	
 	    }
 }

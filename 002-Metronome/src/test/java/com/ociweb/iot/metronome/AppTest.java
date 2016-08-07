@@ -28,6 +28,8 @@ public class AppTest
         TestHardware hardware = (TestHardware)runtime.getHardware();
 
         scheduler.setSingleStepMode(true);
+        scheduler.setMinimumStepDurationMS(0);
+        
         hardware.clearI2CWriteCount();
 
         hardware.analogWrite(IoTApp.ROTARY_ANGLE_CONNECTION, 970); //970 will give us 200 BPM and a delay of 300 ms       
@@ -36,7 +38,7 @@ public class AppTest
         scheduler.startup();
         
         long lastTime = 0;
-        int ticks = 4;
+        int ticks = 5;
         
         hardware.clearCaputuredFirstTimes();
         hardware.clearCaputuredHighs();
@@ -44,9 +46,9 @@ public class AppTest
         
         long startTime = System.currentTimeMillis();
         while (ticks>0 ) {
-
+        	
             scheduler.run();
-            
+                        
     		long time = hardware.getFirstTime(IoTApp.BUZZER_CONNECTION);
     		if (0!=time) {
     			int high = hardware.getCapturedHigh(IoTApp.BUZZER_CONNECTION);
@@ -58,10 +60,10 @@ public class AppTest
     	    				long durationMs = (time-lastTime);
     	    								
     	    				//due to assertions and garbage when unit tests are run we can not be so strict here
-    	    				int overheadForTesting = 12;
+    	    				int overheadForTesting = 10;
     	    				
     	    				int window = 300;
-    	    				assertTrue(durationMs+" at "+time, durationMs>=(window-overheadForTesting));
+    	    				assertTrue(durationMs+" at "+time, durationMs>=(window-overheadForTesting));    	    				
     	    				assertTrue(durationMs+" at "+time, durationMs<=(window+overheadForTesting));
     	    				
 	    			    } else {
@@ -87,7 +89,7 @@ public class AppTest
             hardware.outputLastI2CWrite(System.out, c--).append("\n");
         }
         
-  //      assertEquals("Did not find all the ticks.",0, ticks);
+        assertEquals("Did not find all the ticks.",0, ticks);
         
         scheduler.shutdown();
         scheduler.awaitTermination(10, TimeUnit.SECONDS);

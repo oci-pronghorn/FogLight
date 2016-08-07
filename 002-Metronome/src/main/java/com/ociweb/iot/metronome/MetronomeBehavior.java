@@ -76,7 +76,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     //we will talk about override
     @Override
     public void analogEvent(int connector, long time, long durationMillis, int average, int value) {  	    
-    	requestedPBM=  BBM_SLOWEST + ((BBM_VALUES*average)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation      
+    	requestedPBM=  BBM_SLOWEST + ((BBM_VALUES*average)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation  
         requestDuration = durationMillis;    
     }    
 
@@ -86,7 +86,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     	
         if (requestedPBM>0) {
 
-            if (activeBPM != requestedPBM && requestDuration > 200 ) {
+            if (activeBPM != requestedPBM && (requestDuration > 200 || activeBPM==0) ) {
             	activeBPM = requestedPBM;
                 base = System.currentTimeMillis(); //this is a standard java they should know. 1970 UMT
                 beatIdx = 0;

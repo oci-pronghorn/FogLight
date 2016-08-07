@@ -3,7 +3,7 @@ package ${package};
 
 import static com.ociweb.iot.grove.GroveTwig.*;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.IoTSetup;

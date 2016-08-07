@@ -3,7 +3,7 @@ package com.ociweb.iot.maker;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.MessagePubSubStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -44,9 +44,9 @@ public abstract class CommandChannel {
     protected final int pinPipeIdx = 0; 
     protected final int i2cPipeIdx = 1;
     protected final int subPipeIdx = 2;
-    private Hardware hardware;
+    private HardwareImpl hardware;
         
-    protected CommandChannel(GraphManager gm, Hardware hardware,
+    protected CommandChannel(GraphManager gm, HardwareImpl hardware,
                              Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub,  //avoid adding more and see how they can be combined.
                              Pipe<TrafficOrderSchema> goPipe) {
        this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};

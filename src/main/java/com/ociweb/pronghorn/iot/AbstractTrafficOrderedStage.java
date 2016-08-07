@@ -7,7 +7,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
@@ -25,7 +25,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	private final Pipe<TrafficReleaseSchema>[] goPipe;
 	private final Pipe<TrafficAckSchema>[] ackPipe;
 
-	protected final Hardware hardware;
+	protected final HardwareImpl hardware;
 	private Blocker connectionBlocker;
 		
 	protected int[] activeCounts;	
@@ -61,7 +61,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	 * @param ccToAdOut
 	 */
 	public AbstractTrafficOrderedStage(GraphManager graphManager, 
-			Hardware hardware,
+			HardwareImpl hardware,
 			Pipe<?>[] output,
 			Pipe<TrafficReleaseSchema>[] goPipe, Pipe<TrafficAckSchema>[] ackPipe, Pipe<?> ... otherResponse ) {
 

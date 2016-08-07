@@ -6,7 +6,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -33,7 +33,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private ScriptedSchedule schedule;
 
 	private I2CConnection[] inputs = null;
-	private final boolean hasInputs;
 	
 	private byte[] workingBuffer;
 
@@ -57,7 +56,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
 			Pipe<TrafficAckSchema>[] ackPipe, 
 			Pipe<I2CResponseSchema> i2cResponsePipe,
-			Hardware hardware) { 
+			HardwareImpl hardware) { 
 		super(graphManager, hardware, i2cPayloadPipes, goPipe, ackPipe, i2cResponsePipe); 
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
@@ -66,18 +65,19 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		//force all commands to happen upon publish and release
 		this.supportsBatchedPublish = false;
 		this.supportsBatchedRelease = false;
-
 		
-		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
-		this.hasInputs = inputs.length>0;
-		if (this.hasInputs) {
+		this.inputs = hardware.getI2CInputs();
+		
+		if (this.hardware.hasI2CInputs()) {
     		int[] schedulePeriods = new int[inputs.length];
             for (int i = 0; i < inputs.length; i++) {
                 schedulePeriods[i] = inputs[i].responseMS;
             }
     		this.schedule = PMath.buildScriptedSchedule(schedulePeriods);
-    		
-    		int customRate = (this.schedule.commonClock*1_000_000)/10;
+		}
+
+		if (null!=this.schedule) {
+			int customRate = (this.schedule.commonClock*1_000_000)/10;
 			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, customRate , this); 
 		}
 		
@@ -109,7 +109,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	public void run() {
 	
 	    //never run poll if we have nothing to poll, in that case the array will have a single -1 
-	    if (hasInputs && hasListeners()) {
+	    if (hardware.hasI2CInputs() && hasListeners()) {
 	        do {
         	    long waitTime = blockStartTime - hardware.currentTimeMillis();
         		if(waitTime>0){

@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.grove.GroveTwig;
-import com.ociweb.iot.hardware.HardConnection;
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareConnection;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
@@ -26,7 +26,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 
-public class GroveV2PiImpl extends Hardware {
+public class GroveV2PiImpl extends HardwareImpl {
 
 	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
 
@@ -45,12 +45,12 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	@Override
-	public Hardware connectAnalog(IODevice t, int connection) {
+	public HardwareImpl connectAnalog(IODevice t, int connection) {
 		return connectAnalog(t,connection, t.response());
 	}
 
 	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
+	public HardwareImpl connectAnalog(IODevice t, int connection, int customRate) {
 	    super.connectAnalog(t, connection, customRate);
 		if(t.isGrove()){
 			if (t.isInput()) {
@@ -73,12 +73,12 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 	@Override
-	public Hardware connectDigital(IODevice t, int connection) {
+	public HardwareImpl connectDigital(IODevice t, int connection) {
 		return connectDigital(t,connection,t.response());
 	}
 
 	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate) { //TODO: add customRate support
+	public HardwareImpl connectDigital(IODevice t, int connection, int customRate) { //TODO: add customRate support
 	    super.connectDigital(t, connection, customRate);
 		if(t.isGrove()){
 			
@@ -154,7 +154,7 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 
-	static void findDup(HardConnection[] base, int baseLimit, HardConnection[] items, boolean mapAnalogs) {
+	static void findDup(HardwareConnection[] base, int baseLimit, HardwareConnection[] items, boolean mapAnalogs) {
 		int i = items.length;
 		while (--i>=0) {
 			int j = baseLimit;
@@ -168,9 +168,9 @@ public class GroveV2PiImpl extends Hardware {
 		}     
 	}
 
-	public HardConnection[] buildUsedLines() {
+	public HardwareConnection[] buildUsedLines() {
 
-		HardConnection[] result = new HardConnection[digitalInputs.length+
+		HardwareConnection[] result = new HardwareConnection[digitalInputs.length+
 		                                             digitalOutputs.length+
 		                                             pwmOutputs.length+
 		                                             analogInputs.length+

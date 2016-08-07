@@ -3,7 +3,7 @@ package com.ociweb.iot.hardware.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -35,7 +35,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	public DirectHardwareAnalogDigitalOutputStage(GraphManager graphManager, 
 	                                Pipe<GroveRequestSchema>[] ccToAdOut,
 	                                Pipe<TrafficReleaseSchema>[] goPipe,
-	                                Pipe<TrafficAckSchema>[] ackPipe, Hardware hardware) {
+	                                Pipe<TrafficAckSchema>[] ackPipe, HardwareImpl hardware) {
 	
 		super(graphManager, hardware, ccToAdOut, goPipe, ackPipe);
 		this.fromCommandChannels = ccToAdOut;

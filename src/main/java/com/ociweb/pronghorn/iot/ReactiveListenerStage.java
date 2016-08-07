@@ -5,8 +5,8 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.HardConnection;
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareConnection;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -37,7 +37,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     protected long                      timeTrigger;
     protected long                      timeRate;   
     
-    protected Hardware					hardware;
+    protected HardwareImpl					hardware;
   
     private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStage.class); 
     
@@ -58,6 +58,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     protected int[] lastDigitalValues;
     protected long[] lastDigitalTimes;
     
+    protected boolean[] sendEveryAnalogValue;
     protected int[] lastAnalogValues;
     protected long[] lastAnalogTimes;
     
@@ -80,7 +81,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     /////////////////////
     
     
-    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
+    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 
         
         super(graphManager, inputPipes, outputPipes);
@@ -98,7 +99,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 
     }
 
-    private void setupMovingAverages(MAvgRollerLong[] target, HardConnection[] con) {
+    private void setupMovingAverages(MAvgRollerLong[] target, HardwareConnection[] con) {
         int i = con.length;
         while (--i >= 0) {
             
@@ -124,11 +125,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     }
     
     protected int findStableReading(int tempValue, int connector) { 
-
-        //TODO: add switch to remove this when doing fixed samples.
-
-        int offset = updateRunLenghtOfActiveValue(tempValue, connector);
-        return findMedian(offset);
+        return findMedian(updateRunLenghtOfActiveValue(tempValue, connector));
     }
 
     
@@ -179,14 +176,19 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_SENSORS];
         rollingMovingAveragesDigital = new MAvgRollerLong[MAX_SENSORS];
         
-        System.out.println("setup analogs "+Arrays.toString(hardware.analogInputs));
-        setupMovingAverages(rollingMovingAveragesAnalog, hardware.analogInputs);
-        
-        System.out.println("setup digitals "+Arrays.toString(hardware.digitalInputs));       
-        setupMovingAverages(rollingMovingAveragesDigital, hardware.digitalInputs);
+        setupMovingAverages(rollingMovingAveragesAnalog, hardware.getAnalogInputs());
+              
+        setupMovingAverages(rollingMovingAveragesDigital, hardware.getDigitalInputs());
           
         lastDigitalValues = new int[MAX_CONNECTIONS];
         lastAnalogValues = new int[MAX_CONNECTIONS];
+        
+        sendEveryAnalogValue = new boolean[MAX_CONNECTIONS];
+        int a = hardware.getAnalogInputs().length;
+        while (--a>=0) {
+        	HardwareConnection con = hardware.getAnalogInputs()[a];
+        	sendEveryAnalogValue[con.connection] = con.sendEveryValue;        	
+        }
         
         lastDigitalTimes = new long[MAX_CONNECTIONS];
         lastAnalogTimes = new long[MAX_CONNECTIONS];
@@ -436,7 +438,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		
 		if (isIncluded(connector, includedAnalogs) && isNotExcluded(connector, excludedAnalogs)) {
 			
-			int runningValue = findStableReading(value, connector);             
+			int runningValue = sendEveryAnalogValue[connector] ? value : findStableReading(value, connector);             
 			
 			MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);                                                
 			
@@ -445,10 +447,19 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 				mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);
 			}
 			
-			if(value!=lastAnalogValues[connector]){   //TODO: add switch
+			if (sendEveryAnalogValue[connector]) {
+				
 				aListener.analogEvent(connector, time, 0==lastAnalogTimes[connector] ? Long.MAX_VALUE : time-lastAnalogTimes[connector], mean, runningValue);
-			    lastAnalogValues[connector] = value;
-			    lastAnalogTimes[connector] = time;
+				lastAnalogTimes[connector] = time;   
+				
+			} else {								
+				if(value!=lastAnalogValues[connector]){   //TODO: add switch
+					
+					aListener.analogEvent(connector, time, 0==lastAnalogTimes[connector] ? Long.MAX_VALUE : time-lastAnalogTimes[connector], mean, runningValue);
+				   
+					lastAnalogValues[connector] = value;
+				    lastAnalogTimes[connector] = time;
+				}
 			}
 		}
 	}

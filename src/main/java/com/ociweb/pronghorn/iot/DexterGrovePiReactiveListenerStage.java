@@ -3,8 +3,8 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.HardConnection;
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareConnection;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
@@ -22,7 +22,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
 	private static final Logger logger = LoggerFactory.getLogger(DexterGrovePiReactiveListenerStage.class);
 
-	public DexterGrovePiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, Hardware hardware) {
+	public DexterGrovePiReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 		super(graphManager, listener, inputPipes, outputPipes, hardware);
 	}
 

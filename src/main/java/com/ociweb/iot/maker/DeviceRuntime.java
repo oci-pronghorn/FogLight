@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GroveV2PiImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -44,7 +44,7 @@ public class DeviceRuntime {
      */
     private static final Logger logger = LoggerFactory.getLogger(DeviceRuntime.class);
     
-    protected Hardware hardware;
+    protected HardwareImpl hardware;
     
     private StageScheduler scheduler;
     private final GraphManager gm;
@@ -103,7 +103,7 @@ public class DeviceRuntime {
     }
 
     
-    public Hardware getHardware(){
+    public HardwareImpl getHardware(){
     	if(this.hardware==null){
     	    
             ///////////////
@@ -120,12 +120,12 @@ public class DeviceRuntime {
     	    
     	    I2CBacking i2cBacking = null;
 
-    	    i2cBacking = Hardware.getI2CBacking(edI2C);
+    	    i2cBacking = HardwareImpl.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
 	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
 	            System.out.println("Detected running on Edison");
 	        } else {
-	        	i2cBacking = Hardware.getI2CBacking(piI2C);
+	        	i2cBacking = HardwareImpl.getI2CBacking(piI2C);
 	    	    if (null != i2cBacking) {
 	    	        this.hardware = new GroveV2PiImpl(gm, i2cBacking);
 	    	        System.out.println("Detected running on Pi");

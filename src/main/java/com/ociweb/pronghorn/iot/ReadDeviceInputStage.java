@@ -3,8 +3,8 @@ package com.ociweb.pronghorn.iot;
 import java.util.Arrays;
 
 import com.ociweb.iot.grove.GroveTwig;
-import com.ociweb.iot.hardware.HardConnection;
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareConnection;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.Util;
@@ -50,9 +50,9 @@ public class ReadDeviceInputStage extends PronghornStage {
 	private static final short DO_INT_READ    = 2;    
 
 	private final Pipe<GroveResponseSchema> responsePipe;    
-	final Hardware config;
+	final HardwareImpl config;
 
-	public ReadDeviceInputStage(GraphManager graphManager, Pipe<GroveResponseSchema> resposnePipe, Hardware config) {
+	public ReadDeviceInputStage(GraphManager graphManager, Pipe<GroveResponseSchema> resposnePipe, HardwareImpl config) {
 		super(graphManager, NONE, resposnePipe);
 
 		this.responsePipe = resposnePipe;
@@ -126,40 +126,40 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		int i;
 
-		i = config.analogInputs.length;
+		i = config.getAnalogInputs().length;
 		while (--i>=0) {
 			//config.configurePinsForAnalogInput(config.analogInputs[i].connection);
 				int idx = Util.reverseBits(sliceCount++);
-				scriptConn[idx] = config.analogInputs[i].connection;
+				scriptConn[idx] = config.getAnalogInputs()[i].connection;
 
 				scriptTask[idx] = DO_INT_READ;
-				scriptTwig[idx] = config.analogInputs[i].twig;
-				System.out.println("configured "+config.analogInputs[i].twig+" on connection "+config.analogInputs[i].connection);
+				scriptTwig[idx] = config.getAnalogInputs()[i].twig;
+				System.out.println("configured "+config.getAnalogInputs()[i].twig+" on connection "+config.getAnalogInputs()[i].connection);
 			
 		}
 
-		i = config.digitalInputs.length;
+		i = config.getDigitalInputs().length;
 		while (--i>=0) {
 			//config.configurePinsForDigitalInput(config.digitalInputs[i].connection);
 			
-				IODevice twig = config.digitalInputs[i].twig;
+				IODevice twig = config.getDigitalInputs()[i].twig;
 
 				if (twig == GroveTwig.RotaryEncoder) {
-					frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection; //just the low address
+					frequentScriptConn[frequentScriptLength] = config.getDigitalInputs()[i].connection; //just the low address
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
 				} else if (twig == GroveTwig.Button) {                    
-					frequentScriptConn[frequentScriptLength] = config.digitalInputs[i].connection;
+					frequentScriptConn[frequentScriptLength] = config.getDigitalInputs()[i].connection;
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
 				} else {                               
 					int idx = Util.reverseBits(sliceCount++);
-					scriptConn[idx] = config.digitalInputs[i].connection;
+					scriptConn[idx] = config.getDigitalInputs()[i].connection;
 
 					scriptTask[idx] = DO_BIT_READ;
 					scriptTwig[idx] = twig;                    
 				}
-				System.out.println("configured "+twig+" on connection "+config.digitalInputs[i].connection);
+				System.out.println("configured "+twig+" on connection "+config.getDigitalInputs()[i].connection);
 			         
 		}                   
 

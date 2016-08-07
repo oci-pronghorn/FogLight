@@ -45,7 +45,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
     private int currentState;
     private int newState;
     
-    public MessagePubSubStage(GraphManager gm, IntHashTable subscriptionPipeLookup, Hardware hardware, Pipe<MessagePubSub>[] incomingSubsAndPubsPipe,
+    public MessagePubSubStage(GraphManager gm, IntHashTable subscriptionPipeLookup, HardwareImpl hardware, Pipe<MessagePubSub>[] incomingSubsAndPubsPipe,
                               Pipe<TrafficReleaseSchema>[] goPipe,
                               Pipe<TrafficAckSchema>[] ackPipe, 
                               Pipe<MessageSubscription>[] outgoingMessagePipes) {

@@ -13,6 +13,7 @@ import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
@@ -42,24 +43,24 @@ import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.Blocker;
 
-public abstract class Hardware {
+public abstract class HardwareImpl implements Hardware {
     
     private static final int PIN_SETUP_TIMEOUT = 3; //in seconds
-    public static final int MAX_MOVING_AVERAGE_SUPPORTED = 101;
+    private static final int MAX_MOVING_AVERAGE_SUPPORTED = 101; //TOOD: is this still needed, remove???
     
-    private static final HardConnection[] EMPTY = new HardConnection[0];
+    private static final HardwareConnection[] EMPTY = new HardwareConnection[0];
     
-    public boolean configI2C;       //Humidity, LCD need I2C address so..
-    public long debugI2CRateLastTime;
+    protected boolean configI2C;       //Humidity, LCD need I2C address so..
+    protected long debugI2CRateLastTime;
     
-    public HardConnection[] digitalInputs; //Button, Motion
-    public HardConnection[] digitalOutputs;//Relay Buzzer
+    protected HardwareConnection[] digitalInputs; //Button, Motion
+    protected HardwareConnection[] digitalOutputs;//Relay Buzzer
     
-    public HardConnection[] analogInputs;  //Light, UV, Moisture
-    public HardConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
+    protected HardwareConnection[] analogInputs;  //Light, UV, Moisture
+    protected HardwareConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     
-    public I2CConnection[] i2cInputs;
-    public I2CConnection[] i2cOutputs;
+    protected I2CConnection[] i2cInputs;
+    protected I2CConnection[] i2cOutputs;
     
     private long timeTriggerRate;
     private Blocker channelBlocker;
@@ -77,7 +78,7 @@ public abstract class Hardware {
 
     public final I2CBacking i2cBacking;
 
-    private static final Logger logger = LoggerFactory.getLogger(Hardware.class);
+    private static final Logger logger = LoggerFactory.getLogger(HardwareImpl.class);
 
     Enum<?> beginningState;
     
@@ -95,12 +96,12 @@ public abstract class Hardware {
     
     
     
-    public Hardware(GraphManager gm, I2CBacking i2cBacking) {
+    public HardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
         this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
     }
     
-    protected Hardware(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
-            HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs) {
+    protected HardwareImpl(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
+            HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
         
         this.i2cBacking = i2cBacking;
         
@@ -139,7 +140,7 @@ public abstract class Hardware {
     /////
     /////
     
-    protected HardConnection[] growHardConnections(HardConnection[] original, HardConnection toAdd) {
+    protected HardwareConnection[] growHardwareConnections(HardwareConnection[] original, HardwareConnection toAdd) {
     	final int len = original.length;
     	//Validate that what we are adding is safe
     	int i = len;
@@ -150,7 +151,7 @@ public abstract class Hardware {
     	}
     	
     	//Grow the array
-        HardConnection[] result = new HardConnection[len+1];
+        HardwareConnection[] result = new HardwareConnection[len+1];
         System.arraycopy(original, 0, result, 0, len);
         result[len] = toAdd;
         return result;
@@ -174,25 +175,29 @@ public abstract class Hardware {
     }
     
     public Hardware connectAnalog(IODevice t, int connection, int customRate) {
-    	HardConnection gc = new HardConnection(t,connection,customRate);
+    	HardwareConnection gc = new HardwareConnection(t,connection,customRate);
         if (t.isInput()) {
             assert(!t.isOutput());
-            analogInputs = growHardConnections(analogInputs, gc);
+            analogInputs = growHardwareConnections(analogInputs, gc);
         } else {
             assert(t.isOutput());
-            pwmOutputs = growHardConnections(pwmOutputs, gc);
+            pwmOutputs = growHardwareConnections(pwmOutputs, gc);
         }
         return this;
     }
     
     public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
-        HardConnection gc = new HardConnection(t,connection,customRate, customAverageMS);
+    	return connectAnalog(t, connection, customRate, customAverageMS, false);
+    }
+    
+    public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+        HardwareConnection gc = new HardwareConnection(t,connection,customRate, customAverageMS, everyValue);
         if (t.isInput()) {
             assert(!t.isOutput());
-            analogInputs = growHardConnections(analogInputs, gc);
+            analogInputs = growHardwareConnections(analogInputs, gc);
         } else {
             assert(t.isOutput());
-            pwmOutputs = growHardConnections(pwmOutputs, gc);
+            pwmOutputs = growHardwareConnections(pwmOutputs, gc);
         }
         return this;
     }
@@ -203,31 +208,35 @@ public abstract class Hardware {
     
     public Hardware connectDigital(IODevice t, int connection, int customRate) {
     	
-        HardConnection gc =new HardConnection(t,connection, customRate);
+        HardwareConnection gc =new HardwareConnection(t,connection, customRate);
         
         if (t.isInput()) {
             assert(!t.isOutput());
-            digitalInputs = growHardConnections(digitalInputs, gc);
+            digitalInputs = growHardwareConnections(digitalInputs, gc);
         } else {
             assert(t.isOutput());
-            digitalOutputs = growHardConnections(digitalOutputs, gc);
+            digitalOutputs = growHardwareConnections(digitalOutputs, gc);
         }
         return this;
     }  
     
     public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
+        return connectDigital(t,connection,customRate,customAverageMS);
+    }
+    
+    public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
         
-        HardConnection gc =new HardConnection(t,connection, customRate, customAverageMS);
+        HardwareConnection gc =new HardwareConnection(t,connection, customRate, customAverageMS, everyValue);
         
         if (t.isInput()) {
             assert(!t.isOutput());
-            digitalInputs = growHardConnections(digitalInputs, gc);
+            digitalInputs = growHardwareConnections(digitalInputs, gc);
             
             
             
         } else {
             assert(t.isOutput());
-            digitalOutputs = growHardConnections(digitalOutputs, gc);
+            digitalOutputs = growHardwareConnections(digitalOutputs, gc);
         }
         return this;
     }  
@@ -245,7 +254,7 @@ public abstract class Hardware {
     	return this;
     }
     
-    public <E extends Enum<E>>Hardware startStateMachineWith(E state) {   	
+    public <E extends Enum<E>> Hardware startStateMachineWith(E state) {   	
     	beginningState = state;	
     	return this;
     }
@@ -253,10 +262,6 @@ public abstract class Hardware {
     public Hardware setTriggerRate(long rateInMS) {
         timeTriggerRate = rateInMS;
         return this;
-    }
-    
-    public long getTriggerRate() {
-        return timeTriggerRate;
     }
     
     public Hardware useI2C() {
@@ -267,6 +272,10 @@ public abstract class Hardware {
     /////
     /////
 
+    
+    public long getTriggerRate() {
+    	return timeTriggerRate;
+    }
 
     public void beginPinConfiguration() {
         try {
@@ -516,6 +525,22 @@ public abstract class Hardware {
 		Pipe<MessagePubSub> result = tempPipeOfStartupSubscriptions;
 		tempPipeOfStartupSubscriptions = null;//no longer needed
 		return result;
+	}
+
+	public boolean hasI2CInputs() {
+		return this.i2cInputs!=null && this.i2cInputs.length>0;
+	}
+
+	public I2CConnection[] getI2CInputs() {
+		return null==i2cInputs?new I2CConnection[0]:i2cInputs;
+	}
+	
+	public HardwareConnection[] getAnalogInputs() {
+		return analogInputs;
+	}
+    
+	public HardwareConnection[] getDigitalInputs() {
+		return digitalInputs;
 	}
     
 

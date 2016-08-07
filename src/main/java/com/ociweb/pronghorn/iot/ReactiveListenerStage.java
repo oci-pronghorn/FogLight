@@ -79,7 +79,8 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     private long[] excludedFromStates;
 		
     /////////////////////
-    
+    private Number stageRate;
+    private final GraphManager graphManager;
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 
@@ -92,11 +93,11 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         this.hardware = hardware;
         
         this.states = hardware.getStates();
+        this.graphManager = graphManager;
+                   
+        //allow for shutdown upon shutdownRequest we have new content
+        GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
         
-        //force all commands to happen upon publish and release
-        this.supportsBatchedPublish = false;
-        this.supportsBatchedRelease = false;                
-                
     }
 
     private void setupMovingAverages(MAvgRollerLong[] target, HardwareConnection[] con) {
@@ -195,6 +196,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                     
         oversampledAnalogValues = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP];
         
+        stageRate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
+        
+        
         //Do last so we complete all the initializations first
         if (listener instanceof StartupListener) {
         	((StartupListener)listener).startup();
@@ -286,17 +290,27 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     }
         
 
-	
+	private static final long MS_to_NS = 1_000_000;
 
 	private void processTimeEvents(Object listener) {
         //if we do have a clock schedule
         if (0 != timeRate) {
             if (listener instanceof TimeListener) {
-                long now = hardware.currentTimeMillis();
-                if (now >= timeTrigger) {
-                        ((TimeListener)listener).timeEvent(now);
-                        timeTrigger += timeRate;
+                            	
+                long timeToWait = (timeTrigger-hardware.currentTimeMillis())*MS_to_NS;
+                if (null!=stageRate && timeToWait >= stageRate.longValue()) { //if its not near, leave
+                	return;
                 }
+                while (hardware.currentTimeMillis()<timeTrigger) {
+                	Thread.yield();
+                	if (Thread.interrupted()) {
+                		Thread.currentThread().interrupt();
+                		return;
+                	}
+                }
+                ((TimeListener)listener).timeEvent(timeTrigger);
+                timeTrigger += timeRate;
+                
             }
         }
     }

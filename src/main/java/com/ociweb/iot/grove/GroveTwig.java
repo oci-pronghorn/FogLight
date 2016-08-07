@@ -62,11 +62,21 @@ public enum GroveTwig implements IODevice {
             return true;
         }
         
+        @Override
+        public int range() {
+            return 1;
+        }
+        
     },
     MotionSensor(){
         @Override
         public boolean isInput() {
             return true;
+        }
+
+        @Override
+        public int range() {
+            return 1;
         }
     },
     RotaryEncoder() {

@@ -13,6 +13,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.math.PMath;
+import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
 public class ReadDeviceInputStage extends PronghornStage {
 
@@ -24,12 +25,6 @@ public class ReadDeviceInputStage extends PronghornStage {
 	//script defines which port must be read or write on each cycle
 	//when the rotary encoder is used it is checked on every cycle
 
-	//  4   read type  (bit or integer or rotary or ...
-	// 12   read/write pin
-	// other id?
-	private int[]       scriptConn;
-	private int[]       scriptTask; 
-	private IODevice[] scriptTwig;
 
 	private int[][]    movingAverageHistory;
 
@@ -44,44 +39,41 @@ public class ReadDeviceInputStage extends PronghornStage {
 	private int         frequentScriptLength = 0;
 
 	private long        cycles = 0;
-
-	private static final short DO_NOTHING     = 0;
-	private static final short DO_BIT_READ    = 1;
-	private static final short DO_INT_READ    = 2;    
+	
+	private int inProgressIdx = 0;
+	private int scheduleIdx = 0;
+   
+	protected static final long MS_TO_NS = 1_000_000;
 
 	private final Pipe<GroveResponseSchema> responsePipe;    
-	final HardwareImpl config;
+	final HardwareImpl hardware;
+	private final ScriptedSchedule schedule;
+	private HardwareConnection[] adConnections;
 
-	public ReadDeviceInputStage(GraphManager graphManager, Pipe<GroveResponseSchema> resposnePipe, HardwareImpl config) {
+	private long blockStartTime = 0;
+	private Number rate;
+	
+	public ReadDeviceInputStage(GraphManager graphManager, Pipe<GroveResponseSchema> resposnePipe, HardwareImpl hardware) {
 		super(graphManager, NONE, resposnePipe);
 
 		this.responsePipe = resposnePipe;
-		this.config = config;
+		this.hardware = hardware;
 
+		this.adConnections = hardware.combinedADConnections();
+		this.schedule = hardware.buildADPollSchedule();
 		
-	      
-		//TODO: rewrite using ScriptedSchedule
-//        this.inputs = null==config.analogInputs;
-//        
-//        //.i2cInputs?new I2CConnection[0]:config.i2cInputs;
-//        this.hasInputs = inputs.length>0;
-//        if (this.hasInputs) {
-//            int[] schedulePeriods = new int[inputs.length];
-//            for (int i = 0; i < inputs.length; i++) {
-//                schedulePeriods[i] = inputs[i].responseMS;
-//            }
-//            this.schedule = PMath.buildScriptedSchedule(schedulePeriods);
-//            
-//            GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock*1_000_000)/10 , this); 
-//        }
+		System.out.println("Direct schedule: "+this.schedule);
 		
+		assert(null!=schedule) : "should not have been called, there are no inputs configured";
+
+		if (null != this.schedule) {
+			assert(0==(this.schedule.commonClock%10)) : "must be divisible by 10";
+			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/10L , this); 
+		}
 		
-		//NOTE: rotary encoder would work best using native hardware and this rate only need
-		//      be faster than 20K because the rotary and the button needs to be polled.
-		//TODO: with a user space GPIO Sysfs or similar driver see of we can remove this work, will save most of the CPU.
-		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 1_000_000, this);
 		GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);   
-		
+				
+		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
 	}
 
 
@@ -90,11 +82,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 		//polling thread must be of the highest priority
 		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
-		scriptConn = new int[activeSize];
-		scriptTask = new int[activeSize];
-		scriptTwig = new GroveTwig[activeSize];  
-
-		int j = config.maxAnalogMovingAverage()-1;
+		int j = hardware.maxAnalogMovingAverage()-1;
 		movingAverageHistory = new int[j][]; 
 		while (--j>=0) {
 			movingAverageHistory[j] = new int[activeSize];            
@@ -122,103 +110,100 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		//configure each sensor
 
-		config.beginPinConfiguration();
+		hardware.beginPinConfiguration();
 
 		int i;
 
-		i = config.getAnalogInputs().length;
-		while (--i>=0) {
-			//config.configurePinsForAnalogInput(config.analogInputs[i].connection);
-				int idx = Util.reverseBits(sliceCount++);
-				scriptConn[idx] = config.getAnalogInputs()[i].connection;
-
-				scriptTask[idx] = DO_INT_READ;
-				scriptTwig[idx] = config.getAnalogInputs()[i].twig;
-				System.out.println("configured "+config.getAnalogInputs()[i].twig+" on connection "+config.getAnalogInputs()[i].connection);
-			
-		}
-
-		i = config.getDigitalInputs().length;
+		i = hardware.getDigitalInputs().length;
 		while (--i>=0) {
 			//config.configurePinsForDigitalInput(config.digitalInputs[i].connection);
 			
-				IODevice twig = config.getDigitalInputs()[i].twig;
+				IODevice twig = hardware.getDigitalInputs()[i].twig;
 
 				if (twig == GroveTwig.RotaryEncoder) {
-					frequentScriptConn[frequentScriptLength] = config.getDigitalInputs()[i].connection; //just the low address
+					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].connection; //just the low address
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
 				} else if (twig == GroveTwig.Button) {                    
-					frequentScriptConn[frequentScriptLength] = config.getDigitalInputs()[i].connection;
+					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].connection;
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
 				} else {                               
-					int idx = Util.reverseBits(sliceCount++);
-					scriptConn[idx] = config.getDigitalInputs()[i].connection;
-
-					scriptTask[idx] = DO_BIT_READ;
-					scriptTwig[idx] = twig;                    
+					int idx = Util.reverseBits(sliceCount++);                   
 				}
-				System.out.println("configured "+twig+" on connection "+config.getDigitalInputs()[i].connection);
+				System.out.println("configured "+twig+" on connection "+hardware.getDigitalInputs()[i].connection);
 			         
 		}                   
 
-		config.endPinConfiguration();
+		hardware.endPinConfiguration(); //TODO: questionalble, should move else where.
 
-		if (sliceCount>=16) {
-			throw new UnsupportedOperationException("The grove base board does not support this many connections.");
-		}
+		blockStartTime = hardware.nanoTime();//critical Pronghorn contract ensure this start is called by the same thread as run
 	}
 
 
 	@Override
 	public void run() {
-		cycles++; 
+		
+		do{
+		    long waitTime = blockStartTime - hardware.nanoTime();
+     		if(waitTime>0){
+     			if (null==rate || (waitTime > 2*rate.longValue())) {				
+     				return; //Enough time has not elapsed to start next block on schedule
+     			} else {
+     				while (hardware.nanoTime()<blockStartTime){
+     					Thread.yield();
+     					if (Thread.interrupted()) {
+     						requestShutdown();
+     						return;
+     					}
+     				}    				
+     			}
+     		}
+     		
+     		
+			inProgressIdx = schedule.script[scheduleIdx];			
+			if(inProgressIdx != -1) {
+				
+				if (!Pipe.hasRoomForWrite(responsePipe)) {
+					return;//try again later, no room on output pipe.
+				}
 
-		//These are the sensors we must check on every single pass
-		//TODO: should refactor so this is part of the Twig interface and we need not hard code.
-		int j = frequentScriptLength;
-		while (--j>=0) {
-
-			int connector = frequentScriptConn[j];
-			switch ((GroveTwig)frequentScriptTwig[j]) {
-			case Button:
-				readButton(j, connector);                    
-				break;
-			case RotaryEncoder:
-				readRotaryEncoder(j, connector);                    
-				break;
-			default:
-				throw new UnsupportedOperationException(frequentScriptTwig[j].toString());
-			}                        
-		} 
-
-		//These are the sensors we can check less frequently and do a few on each pass
-		final short doit =  (short)(++activeIdx&activeIdxMask);
-
-		switch(scriptTask[doit]) {
-		case DO_NOTHING:
-			break;
-		case DO_BIT_READ:
-			bitRead(doit);
-			break;
-		case DO_INT_READ:
-			intRead(doit);   
-			break;
-		default:
-			throw new UnsupportedOperationException(Integer.toString(scriptTask[doit]));
-		}
-
+				HardwareConnection hc = adConnections[inProgressIdx];
+				int connector = hc.connection;
+				
+				if (hc.twig.pinsUsed()>1) {
+					//rotary encoder
+					//low level write
+					readRotaryEncoder(connector, connector, hardware.currentTimeMillis()); //TODO: hack for now, needs more testing.
+				} else if (1==hc.twig.range()) {
+					//digital read
+					int fieldValue = hardware.digitalRead(connector);
+					//low level write
+					writeBit(responsePipe, connector, hardware.currentTimeMillis(), fieldValue);
+										
+				} else {
+					//analog read
+   				    int intValue = hardware.analogRead(connector);
+					//low level write
+					writeInt(responsePipe, connector, hardware.currentTimeMillis(), intValue);	
+				}
+								
+			}
+			//since we exit early if the pipe is full we must not move this forward until now at the bottom of the loop.
+			scheduleIdx = (scheduleIdx+1) % schedule.script.length;
+		}while(inProgressIdx != -1);
+		blockStartTime += schedule.commonClock;
+		
 	}
 
 
-	private void readRotaryEncoder(int j, int connector) {
+	private void readRotaryEncoder(int j, int connector, long timeMS) {
 		byte rotaryPoll=3;
 		int maxCycles = 80; //what if stuck in middle must detect.
 		do {
 			//TODO: how do we know we have these two on the same clock?
-			int r1  = config.digitalRead(connector); 
-			int r2  = config.digitalRead(connector+1); 
+			int r1  = hardware.digitalRead(connector); 
+			int r2  = hardware.digitalRead(connector+1); 
 
 			rotaryPoll = (byte)((r1<<1)|r2);
 
@@ -245,7 +230,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		if (frequentScriptLastPublished[j]!=rotationState[j] && Pipe.hasRoomForWrite(responsePipe)) {
 			int speed = (int)Math.min( (cycles - rotationLastCycle[j]), Integer.MAX_VALUE);
-			writeRotation(responsePipe, connector, config.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
+			writeRotation(responsePipe, connector, hardware.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
 
 			frequentScriptLastPublished[j] = rotationState[j];
 			rotationLastCycle[j] = cycles;
@@ -269,20 +254,7 @@ public class ReadDeviceInputStage extends PronghornStage {
     }
 
 
-    private void readButton(int j, int connector) {
-		//read and xmit
-		int fieldValue = config.digitalRead(connector);
-		if (frequentScriptLastPublished[j]!=fieldValue && Pipe.hasRoomForWrite(responsePipe)) {   
-		    
-			writeBit(responsePipe, connector, config.currentTimeMillis(), fieldValue);
-			
-			
-			frequentScriptLastPublished[j]=fieldValue;
-		} else {
-			//tossing fieldValue but this could be saved to send on next call.
-		}
-	}
-	
+   	
 
 	private void writeBit(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int bitValue) {
 	    
@@ -299,28 +271,7 @@ public class ReadDeviceInputStage extends PronghornStage {
     }
 
 
-    private void intRead(final short doit) {
-		{
-			int connector = scriptConn[doit];
-			int maTotal = config.maxAnalogMovingAverage();
-			int intValue = config.analogRead(connector);
-
-			int i = maTotal-1;
-		
-			if (Pipe.hasRoomForWrite(responsePipe)) {
-				writeInt(responsePipe, connector, config.currentTimeMillis(), intValue);
-				int j = maTotal-1;
-				while (--j>0) {//must stop before zero because we do copy from previous lower index.
-					movingAverageHistory[j][doit]=movingAverageHistory[j-1][doit];                     
-				}
-				movingAverageHistory[0][doit]=intValue;
-				
-			} else {
-				//tossing fieldValue but this could be saved to send on next call.
-			}
-		}
-	}
-
+ 
 
 	private void writeInt(Pipe<GroveResponseSchema> responsePipe, int connector, long time, int intValue) {
 	    int size = Pipe.addMsgIdx(responsePipe, GroveResponseSchema.MSG_ANALOGSAMPLE_30);
@@ -336,19 +287,6 @@ public class ReadDeviceInputStage extends PronghornStage {
         
     }
 
-
-    private void bitRead(final short doit) {
-		{
-			int connector = scriptConn[doit];
-			int fieldValue = config.digitalRead(connector);
-			if (Pipe.hasRoomForWrite(responsePipe)) {                  
-				writeBit(responsePipe, connector, config.currentTimeMillis(), fieldValue);                  
-				                         
-			} else {
-				//tossing fieldValue but this could be saved to send on next call.
-			}
-		}
-	}
 
 	private static final boolean doesNotMatchLastPollValue(byte rotaryPoll, int rotaryRolling) {
 		return rotaryPoll != (0x3 & rotaryRolling);

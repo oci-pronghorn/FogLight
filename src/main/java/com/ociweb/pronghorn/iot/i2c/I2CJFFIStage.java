@@ -20,7 +20,6 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.Blocker;
-import com.ociweb.pronghorn.util.math.PMath;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
 public class I2CJFFIStage extends AbstractTrafficOrderedStage {
@@ -37,9 +36,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private byte[] workingBuffer;
 
 	private int inProgressIdx = 0;
+	private int scheduleIdx = 0;
 	
 	private long blockStartTime = 0;
-	private int scheduleIdx = 0;
 
 	private boolean awaitingResponse = false;
 
@@ -68,20 +67,16 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		
 		this.inputs = hardware.getI2CInputs();
 		
-		if (this.hardware.hasI2CInputs()) {
-    		int[] schedulePeriods = new int[inputs.length];
-            for (int i = 0; i < inputs.length; i++) {
-                schedulePeriods[i] = inputs[i].responseMS;
-            }
-    		this.schedule = PMath.buildScriptedSchedule(schedulePeriods);
+		if (this.hardware.hasI2CInputs()) {			
+			this.schedule = this.hardware.buildI2CPollSchedule();    		
 		}
 
 		if (null!=this.schedule) {
-			int customRate = (this.schedule.commonClock*1_000_000)/10;
-			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, customRate , this); 
+			assert(0==(this.schedule.commonClock%10)) : "must be divisible by 10";
+			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/10 , this); 
 		}
 		
-		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, 10);
+		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
 		
 	}
 
@@ -101,7 +96,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 		logger.info("proposed schedule: {} ",schedule);
 
-		blockStartTime = hardware.currentTimeMillis();
+		blockStartTime = hardware.nanoTime();//critical Pronghorn contract ensure this start is called by the same thread as run
 	}
 
 
@@ -111,15 +106,21 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    //never run poll if we have nothing to poll, in that case the array will have a single -1 
 	    if (hardware.hasI2CInputs() && hasListeners()) {
 	        do {
-        	    long waitTime = blockStartTime - hardware.currentTimeMillis();
-        		if(waitTime>0){
-        		   //do commands now while we wait for the next block. 
-        		   processReleasedCommands(waitTime);
-        		   waitTime = blockStartTime - hardware.currentTimeMillis();
-        		   if (waitTime>0) {
-        		       return; //Enough time has not elapsed to start next block on schedule
-        		   }
-        		}
+			    long waitTime = blockStartTime - hardware.nanoTime();
+	     		if(waitTime>0){
+	     			if (null==rate || (waitTime > 2*rate.longValue())) {    				
+	     				processReleasedCommands(waitTime);
+	     				return; //Enough time has not elapsed to start next block on schedule
+	     			} else {
+	     				while (hardware.nanoTime()<blockStartTime){
+	     					Thread.yield();
+	     					if (Thread.interrupted()) {
+	     						requestShutdown();
+	     						return;
+	     					}
+	     				}    				
+	     			}
+	     		}
         
         		do{
         			inProgressIdx = schedule.script[scheduleIdx];

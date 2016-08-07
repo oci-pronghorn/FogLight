@@ -33,9 +33,12 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 	private int hitPoints;
     private final GraphManager graphManager;
-    protected long msNearWindow;
+ 
     private int startLoopAt = -1;
     private int mostRecentBlockedConnection = -1;
+    
+    protected static final long MS_TO_NS = 1_000_000;
+    private Number rate;
     
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTrafficOrderedStage.class);
 
@@ -87,23 +90,22 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		activeBlocks = new int[MAX_DEVICES];
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
 		Arrays.fill(activeBlocks, -1);
-		
-		Number nsPollWindow = (Number)GraphManager.getNota(graphManager, this,  GraphManager.SCHEDULE_RATE, 10_000_000);
-		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*4f)/1_000_000f);
-		logger.info("near window size for ordered stage: {} ",msNearWindow);
+	
 		startLoopAt = activeCounts.length;
+		
+		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
 	}
 
 	@Override
 	public void run() {
-		processReleasedCommands(10_000);		
+		processReleasedCommands(null==rate || (rate.longValue()<2_000_000)? 100 : (rate.longValue()/1_000_000));		
 	}
 	
 	
 	protected void blockChannelDuration(int activePipe, long durationNanos) {
 		
-		long durationMills = durationNanos/1_000_000;
-		long remaningNanos = durationNanos%1_000_000;		
+		final long durationMills = durationNanos/1_000_000;
+		final long remaningNanos = durationNanos%1_000_000;		
 			    
 	    if (remaningNanos>0) {
 	    	final long start = hardware.nanoTime();
@@ -155,9 +157,9 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		mostRecentBlockedConnection = connection;
 	}
 
-
-	
     protected boolean processReleasedCommands(long timeout) {
+   	
+    	
         boolean foundWork;
 		int[] localActiveCounts = activeCounts;
 		long timeLimit = hardware.currentTimeMillis()+timeout;
@@ -201,7 +203,8 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 					mostRecentBlockedConnection = -1;//clear in case it gets set.
 					int startCount = localActiveCounts[a];
 					//NOTE: this lock does not prevent other ordered stages from making progress, just this one since it holds the required resource
-			           
+	
+
 					//This method must be called at all times to poll I2C
 					processMessagesForPipe(a);											
 
@@ -244,7 +247,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 				startLoopAt = activeCounts.length;
 			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
 			//we also check for 'near' work but only when there is no found work since its more expensive
-		} while (foundWork || connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),msNearWindow));
+		} while (foundWork || (connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),timeout)));
 		return true;
     }
 

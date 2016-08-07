@@ -42,6 +42,8 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.Blocker;
+import com.ociweb.pronghorn.util.math.PMath;
+import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
 public abstract class HardwareImpl implements Hardware {
     
@@ -77,6 +79,9 @@ public abstract class HardwareImpl implements Hardware {
     protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 
     public final I2CBacking i2cBacking;
+	
+	private static final long MS_TO_NS = 1_000_000;
+	
 
     private static final Logger logger = LoggerFactory.getLogger(HardwareImpl.class);
 
@@ -406,9 +411,20 @@ public abstract class HardwareImpl implements Hardware {
         
         //only build and connect gpio responses if it is used
         if (responsePipes.length>0) {
-            Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
+            
+        	if (!hasDigitalOrAnalogInputs()) {
+        		//we have listeners but there are no inputs connected.
+        		
+        		//TODO: must check even earlier to remove these.
+        		
+        	}
+        	
+        	Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
             SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
-            createADInputStage(masterResponsePipe);        
+            createADInputStage(masterResponsePipe);
+            
+            
+            
         }
         
     }
@@ -542,7 +558,56 @@ public abstract class HardwareImpl implements Hardware {
 	public HardwareConnection[] getDigitalInputs() {
 		return digitalInputs;
 	}
+
+	public ScriptedSchedule buildI2CPollSchedule() {
+		I2CConnection[] localInputs = getI2CInputs();
+		long[] schedulePeriods = new long[localInputs.length];
+		for (int i = 0; i < localInputs.length; i++) {
+		    schedulePeriods[i] = localInputs[i].responseMS*MS_TO_NS;
+		}
+		return PMath.buildScriptedSchedule(schedulePeriods);
+	
+	}
     
+	public boolean hasDigitalOrAnalogInputs() {
+		return (analogInputs.length+digitalInputs.length)>0;
+	}
+	
+	public HardwareConnection[] combinedADConnections() {
+		HardwareConnection[] localAInputs = getAnalogInputs();
+		HardwareConnection[] localDInputs = getDigitalInputs();
+				
+		int totalCount = localAInputs.length + localDInputs.length;
+		
+		HardwareConnection[] results = new HardwareConnection[totalCount];
+		System.arraycopy(localAInputs, 0, results, 0,                   localAInputs.length);
+		System.arraycopy(localDInputs, 0, results, localAInputs.length, localDInputs.length);
+				
+		return results;
+	}
+
+	public ScriptedSchedule buildADPollSchedule() {
+		HardwareConnection[] localAInputs = getAnalogInputs();
+		HardwareConnection[] localDInputs = getDigitalInputs();
+				
+		int totalCount = localAInputs.length + localDInputs.length;
+		if (0==totalCount) {
+			return null;
+		}
+		
+		long[] schedulePeriods = new long[totalCount];
+		int j = 0;
+		for (int i = 0; i < localAInputs.length; i++) {
+		    schedulePeriods[j++] = localAInputs[i].responseMS*MS_TO_NS;
+		}
+		for (int i = 0; i < localDInputs.length; i++) {
+		    schedulePeriods[j++] = localDInputs[i].responseMS*MS_TO_NS;
+		}
+		//analogs then the digitals
+		
+		return PMath.buildScriptedSchedule(schedulePeriods);
+		
+	}
 
     
 }

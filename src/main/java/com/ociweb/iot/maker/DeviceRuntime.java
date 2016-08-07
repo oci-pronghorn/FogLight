@@ -200,10 +200,10 @@ public class DeviceRuntime {
         List<Pipe<?>> pipesForListenerConsumption = new ArrayList<Pipe<?>>(); 
         
         
-        if (this.hardware.isListeningToI2C(listener)) {
+        if (this.hardware.isListeningToI2C(listener) && this.hardware.hasI2CInputs()) {
             pipesForListenerConsumption.add(new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x()));   //must double since used by splitter         
         }
-        if (this.hardware.isListeningToPins(listener)) {
+        if (this.hardware.isListeningToPins(listener) && this.hardware.hasDigitalOrAnalogInputs()) {
             pipesForListenerConsumption.add(new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x()));  //must double since used by splitter
         }
         
@@ -259,7 +259,9 @@ public class DeviceRuntime {
                 logger.error("A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.", new UnsupportedOperationException());
                 return false;
         } 
-        //keep so this is detected later if used
+        //keep so this is detected later if use;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        
+        
         IntHashTable.setItem(cmdChannelUsageChecker, hash, 42);
         return true;
     }
@@ -300,7 +302,8 @@ public class DeviceRuntime {
             stage.setTimeEventSchedule(rate);
             //Since we are using the time schedule we must set the stage to be faster
             long customRate =   (rate*nsPerMS)/NonThreadScheduler.granularityMultiplier;// in ns and guanularityXfaster than clock trigger
-            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, Math.min(customRate,defaultSleepRateNS),stage);
+            long appliedRate = Math.min(customRate,defaultSleepRateNS);
+            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, appliedRate, stage);
         }
     }
 
@@ -421,6 +424,7 @@ public class DeviceRuntime {
         hardware.isInUnitTest = true;
         try {
             app.declareConnections(runtime.getHardware());
+            establishDefaultRate(runtime); 
             app.declareBehavior(runtime);
             runtime.start();
             //for test we do not call startup and wait instead for this to be done by test.
@@ -440,15 +444,7 @@ public class DeviceRuntime {
     private static DeviceRuntime run(IoTSetup app, DeviceRuntime runtime) {
         try {
             app.declareConnections(runtime.getHardware());
-            
-            //TODO: based on the connected twigs we must choose an appropriate default, may need schedule!!!
-            //runtime.defaultSleepRateNS = 100_000;
-            
-            
-            //by default, unless explicitly set the stages will use this sleep rate
-            GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.defaultSleepRateNS);       
-            
-            
+            establishDefaultRate(runtime);
             app.declareBehavior(runtime);
             runtime.start();
             runtime.scheduler.startup();
@@ -458,6 +454,18 @@ public class DeviceRuntime {
         }
         return runtime;
     }
+
+
+	private static void establishDefaultRate(DeviceRuntime runtime) {
+		
+		//NOTE: this must be a prime factor of all things going on !!
+		
+		//TODO: based on the connected twigs we must choose an appropriate default, may need schedule!!!
+		//runtime.defaultSleepRateNS = 100_000;
+		            
+		//by default, unless explicitly set the stages will use this sleep rate
+		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.defaultSleepRateNS);
+	}
     
     
 }

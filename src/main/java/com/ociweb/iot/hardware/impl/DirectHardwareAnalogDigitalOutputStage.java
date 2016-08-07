@@ -55,13 +55,11 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	            switch(msgIdx){
 	                                
 	                case GroveRequestSchema.MSG_DIGITALSET_110:
-	                    
 	                    hardware.digitalWrite(PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111), 
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112));
 	                    break;
 	                                     	                    
 	                case GroveRequestSchema.MSG_BLOCKCONNECTION_220:
-						                	
 						blockConnectionDuration(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111),
 								                PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13));
 		                	

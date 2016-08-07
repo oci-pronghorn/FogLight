@@ -103,7 +103,9 @@ public class TestHardware extends HardwareImpl {
 
     @Override
     public int analogRead(int connector) {
-        return pinData[connector];
+    	int noise = Math.random()<.1 ? 1 : 0;
+    	
+        return pinData[connector] + noise;
     }
 
     @Override

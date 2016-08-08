@@ -45,6 +45,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		Grove_LCD_RGB.commandForColor(pongChannel, 0, 255, 0);
 
 		System.out.println("setup complete");
+		
 	}
 
 	@Override
@@ -55,7 +56,11 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 				startTime = time;
 				byte[] charIdxs = new byte[32];
 				Arrays.fill(charIdxs, (byte)0);
-				//Grove_LCD_RGB.writeMultipleChars(pongChannel, charIdxs, 0, 0);
+				for (int i = 0; i < 6; i++) {
+					charIdxs[i+5] = (byte)" Pong ".toCharArray()[i];
+					charIdxs[i+21] = (byte)"      ".toCharArray()[i];
+				}
+				Grove_LCD_RGB.writeMultipleChars(pongChannel, charIdxs, 0, 0);
 			}
 			
 			Grove_LCD_RGB.setCustomChar(pongChannel, 0, PongConstants.waveStates[waveState/4]);

@@ -72,7 +72,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		this.inputs = null==hardware.i2cInputs?new I2CConnection[0]:hardware.i2cInputs;
 		this.hasInputs = inputs.length>0;
 		if (this.hasInputs) {
-    		int[] schedulePeriods = new int[inputs.length];
+    		long[] schedulePeriods = new long[inputs.length];
             for (int i = 0; i < inputs.length; i++) {
                 schedulePeriods[i] = inputs[i].responseMS;
             }

@@ -298,7 +298,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
             if (listener instanceof TimeListener) {
                             	
                 long timeToWait = (timeTrigger-hardware.currentTimeMillis())*MS_to_NS;
-                if (null!=stageRate && timeToWait >= stageRate.longValue()) { //if its not near, leave
+                if (null!=stageRate && (timeToWait >= stageRate.longValue())) { //if its not near, leave
                 	return;
                 }
                 while (hardware.currentTimeMillis()<timeTrigger) {
@@ -314,6 +314,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
             }
         }
     }
+
 
     private void consumeRestMessage(Object listener2, Pipe<?> p) {
         if (null!= p) {

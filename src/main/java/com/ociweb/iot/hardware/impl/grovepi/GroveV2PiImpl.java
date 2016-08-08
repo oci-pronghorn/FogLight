@@ -1,7 +1,5 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +11,7 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
@@ -71,6 +70,37 @@ public class GroveV2PiImpl extends HardwareImpl {
 		}
 		return this;
 	}
+	
+	//////////////////////////////////  connectAnalog ...
+	////TODO: THESE METHODS ARE A COMPLETE DISASTER
+	///        WE NEED TO EXTRACT THE COMMON LOGIC AND NOT FORCE LEAF CLASSES TO IMPLMENT EVERY SINGLE SIGNATURE.
+	//////////////////////////////////////
+	
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		
+		super.connectAnalog(t, connection, customRate, customAverageMS, everyValue);
+		if(t.isGrove()){
+			if (t.isInput()) {
+				assert(!t.isOutput());
+				connection = GrovePiConstants.ANALOG_PIN_TO_REGISTER[connection];
+				byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
+				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};				
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection, setup, customRate, everyValue));
+			} else {
+				assert(t.isOutput());
+				assert(!t.isInput());
+				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
+				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection, setup, customRate, everyValue));
+			}
+		}else{
+			throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
+		}
+		return this;
+		
+		
+	}
 
 	@Override
 	public HardwareImpl connectDigital(IODevice t, int connection) {
@@ -91,7 +121,7 @@ public class GroveV2PiImpl extends HardwareImpl {
 			    byte ENCODER_ADDR = 0x04;
 			    byte ENCODER_BYTESTOREAD = 2;
 			    byte ENCODER_REGISTER = 2;
-				growI2CConnections(i2cInputs, new I2CConnection(t, ENCODER_ADDR, ENCODER_READCMD, ENCODER_BYTESTOREAD, ENCODER_REGISTER, ENCODER_SETUP));
+			    i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t, ENCODER_ADDR, ENCODER_READCMD, ENCODER_BYTESTOREAD, ENCODER_REGISTER, ENCODER_SETUP));
 
 				logger.info("connected Pi encoder");
 
@@ -167,7 +197,12 @@ public class GroveV2PiImpl extends HardwareImpl {
 			}
 		}     
 	}
-
+	
+	@Override
+	public boolean hasI2CInputs() {
+		return super.hasI2CInputs()|super.hasDigitalOrAnalogInputs();
+	}
+	
 	public HardwareConnection[] buildUsedLines() {
 
 		HardwareConnection[] result = new HardwareConnection[digitalInputs.length+

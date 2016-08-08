@@ -80,7 +80,7 @@ public abstract class HardwareImpl implements Hardware {
 
     public final I2CBacking i2cBacking;
 	
-	private static final long MS_TO_NS = 1_000_000;
+	protected static final long MS_TO_NS = 1_000_000;
 	
 
     private static final Logger logger = LoggerFactory.getLogger(HardwareImpl.class);
@@ -135,7 +135,7 @@ public abstract class HardwareImpl implements Hardware {
             return new I2CNativeLinuxBacking(deviceNum);
         } catch (Throwable t) {
             //avoid non error case that is used to detect which hardware is running.
-            if (!t.getMessage().contains("Could not open")) {
+            if ((null==t.getMessage()) || !t.getMessage().contains("Could not open")) {
                 logger.error("unable to find binary bindings ", t);
             }
             return null;
@@ -448,8 +448,13 @@ public abstract class HardwareImpl implements Hardware {
 
     protected void createI2COutputInputStage(Pipe<I2CCommandSchema>[] i2cPipes,
             Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn, Pipe<I2CResponseSchema> masterI2CResponsePipe) {
-        //NOTE: if this throws we should use the Java one here instead.
-        I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
+        
+    	if (hasI2CInputs()) {
+    		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
+    	} else {
+    		//TODO: build an output only version of this stage because there is nothing to read
+    		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
+    	}
     }
 
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
@@ -565,6 +570,7 @@ public abstract class HardwareImpl implements Hardware {
 		for (int i = 0; i < localInputs.length; i++) {
 		    schedulePeriods[i] = localInputs[i].responseMS*MS_TO_NS;
 		}
+		System.out.println("known I2C rates: "+Arrays.toString(schedulePeriods));
 		return PMath.buildScriptedSchedule(schedulePeriods);
 	
 	}

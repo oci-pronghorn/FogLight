@@ -33,7 +33,7 @@ public enum GroveTwig implements IODevice {
         }
                 
         public int response() {
-            return 5;
+            return 2;
         }
     },
     AngleSensor(){

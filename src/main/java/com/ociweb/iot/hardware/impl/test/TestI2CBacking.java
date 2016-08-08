@@ -92,7 +92,7 @@ public class TestI2CBacking implements I2CBacking{
 	        	for(int i = 1; i<length; i++) {
 	        		
 	        		byte b = message[i];
-	        		if (b<=32 && (b!=0xA && b!=0xD)) { //line feed and cr should not be shown as numbers
+	        		if (b<=0xF && (b!=0xA && b!=0xD)) { //line feed and cr should not be shown as numbers
 							Appendables.appendHexDigits(System.out, b).append(',');
 	        		} else {
 	        			    System.out.append((char)b);

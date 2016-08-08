@@ -135,32 +135,27 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
                         I2CConnection connection = this.inputs[inProgressIdx];
                         timeOut = hardware.currentTimeMillis() + writeTime;
-     
 
                         //Write the request to read
                         while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){}
 
                         long now = System.nanoTime();
                         long limit = now + this.inputs[inProgressIdx].delayAfterRequestNS;
-        				while(System.nanoTime() < limit) {
-        				    Thread.yield();
-        				    if (Thread.interrupted()) {
-        				        requestShutdown();
-        				        return;
-        				    }
+        				while(System.nanoTime() < limit) { 
+        					//do nothing in here, this is very short and we must get off the bus as fast as possible.
         				}
-        				
+        				workingBuffer[0] = -2;
+        				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
+ 				
         				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);						
         				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
         				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
-
-        				workingBuffer[0] = -2;
-        				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
 						
 						PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, this.inputs[inProgressIdx].readBytes, Integer.MAX_VALUE);					
 
 						PipeWriter.publishWrites(i2cResponsePipe);	
-        				
+
+						
         			} else {
         				if (rate.longValue()>2_000_000) {
         					processReleasedCommands(rate.longValue()/1_000_000);
@@ -173,6 +168,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         		
 	        } while (true);
 	    } else {
+	    	
+	    	//System.err.println("nothing to poll, should choose a simpler design");
+	    	
 	        processReleasedCommands(10);
 	    }
 	}

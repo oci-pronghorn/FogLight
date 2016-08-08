@@ -2,6 +2,8 @@ package com.ociweb.iot.grove;
 
 public class Grove_LCD_RGB_Patterns {
 	
+	
+	
 	//suits
 
 	public static final byte[] spade = {
@@ -138,7 +140,7 @@ public class Grove_LCD_RGB_Patterns {
 			0b00000,
 			0b00100,
 			0b01110,
-			0b11111,
+			0b10101,
 			0b00100,
 			0b00100,
 			0b00000,
@@ -149,7 +151,7 @@ public class Grove_LCD_RGB_Patterns {
 			0b00000,
 			0b00100,
 			0b00100,
-			0b11111,
+			0b10101,
 			0b01110,
 			0b00100,
 			0b00000,
@@ -159,9 +161,9 @@ public class Grove_LCD_RGB_Patterns {
 	public static final byte[] leftArrow = {
 			0b00000,
 			0b00100,
-			0b01100,
+			0b01000,
 			0b11111,
-			0b01100,
+			0b01000,
 			0b00100,
 			0b00000,
 			0b00000,	
@@ -170,9 +172,9 @@ public class Grove_LCD_RGB_Patterns {
 	public static final byte[] rightArrow = {
 			0b00000,
 			0b00100,
-			0b00110,
+			0b00010,
 			0b11111,
-			0b00110,
+			0b00010,
 			0b00100,
 			0b00000,
 			0b00000,	

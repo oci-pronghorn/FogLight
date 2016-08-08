@@ -3,7 +3,7 @@ package com.ociweb.pronghorn.iot.i2c;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -34,9 +34,9 @@ public class I2CStage extends PronghornStage {
     private int    bytesToSendPosition;
     private int    bytesToSendMask;
     private int    bytesToSendReleaseSize;
-    public Hardware config;
+    public HardwareImpl config;
     
-    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] requests, Hardware config) {
+    public I2CStage(GraphManager gm, Pipe<I2CCommandSchema>[] requests, HardwareImpl config) {
         super(gm, requests, NONE);
 
         this.requests = requests;

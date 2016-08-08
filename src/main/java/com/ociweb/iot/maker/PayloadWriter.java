@@ -62,8 +62,7 @@ public class PayloadWriter {
         writer.closeHighLevelField(MessagePubSub.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
         PipeWriter.publishWrites(pipe);
         
-        int count = 1;
-        commandChannel.publishGo(count,commandChannel.subPipeIdx);        
+        commandChannel.publishGo(1,commandChannel.subPipeIdx);        
         commandChannel.payloadWriterPool.release(key);
         
     }

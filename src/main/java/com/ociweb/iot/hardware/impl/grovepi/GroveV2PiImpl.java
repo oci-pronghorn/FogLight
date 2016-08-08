@@ -1,18 +1,17 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.grove.GroveTwig;
-import com.ociweb.iot.hardware.HardConnection;
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareConnection;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
@@ -26,7 +25,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 
-public class GroveV2PiImpl extends Hardware {
+public class GroveV2PiImpl extends HardwareImpl {
 
 	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
 
@@ -41,17 +40,17 @@ public class GroveV2PiImpl extends Hardware {
 	@Override
 	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
 		this.commandIndex++;
-		return new PiCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);	
+		return new PiCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);	
 	}
 
 	@Override
-	public Hardware useConnectA(IODevice t, int connection) {
-		return useConnectA(t,connection, t.response());
+	public HardwareImpl connectAnalog(IODevice t, int connection) {
+		return connectAnalog(t,connection, t.response());
 	}
 
 	@Override
-	public Hardware useConnectA(IODevice t, int connection, int customRate) {
-	    super.useConnectA(t, connection, customRate);
+	public HardwareImpl connectAnalog(IODevice t, int connection, int customRate) {
+	    super.connectAnalog(t, connection, customRate);
 		if(t.isGrove()){
 			if (t.isInput()) {
 				assert(!t.isOutput());
@@ -71,17 +70,62 @@ public class GroveV2PiImpl extends Hardware {
 		}
 		return this;
 	}
-
+	
+	//////////////////////////////////  connectAnalog ...
+	////TODO: THESE METHODS ARE A COMPLETE DISASTER
+	///        WE NEED TO EXTRACT THE COMMON LOGIC AND NOT FORCE LEAF CLASSES TO IMPLMENT EVERY SINGLE SIGNATURE.
+	//////////////////////////////////////
+	
 	@Override
-	public Hardware useConnectD(IODevice t, int connection) {
-		return useConnectD(t,connection,t.response());
+	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		
+		super.connectAnalog(t, connection, customRate, customAverageMS, everyValue);
+		if(t.isGrove()){
+			if (t.isInput()) {
+				assert(!t.isOutput());
+				connection = GrovePiConstants.ANALOG_PIN_TO_REGISTER[connection];
+				byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
+				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00};				
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection, setup, customRate, everyValue));
+			} else {
+				assert(t.isOutput());
+				assert(!t.isInput());
+				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
+				byte[] setup = {0x01, 0x05, (byte)connection,0x01,0x00};
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection, setup, customRate, everyValue));
+			}
+		}else{
+			throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
+		}
+		return this;
+		
+		
 	}
 
 	@Override
-	public Hardware useConnectD(IODevice t, int connection, int customRate) { //TODO: add customRate support
-	    super.useConnectD(t, connection, customRate);
+	public HardwareImpl connectDigital(IODevice t, int connection) {
+		return connectDigital(t,connection,t.response());
+	}
+
+	@Override
+	public HardwareImpl connectDigital(IODevice t, int connection, int customRate) { //TODO: add customRate support
+	    super.connectDigital(t, connection, customRate);
 		if(t.isGrove()){
-			if (t.isInput()) {
+			
+			if (t.getClass()== GroveTwig.RotaryEncoder.getClass()) {
+			
+				assert(connection==2) : "RotaryEncoders may only be connected to ports 2 and 3 on Pi";
+				
+				byte[] ENCODER_READCMD = {0x01, 11, 0x00, 0x00, 0x00};
+			    byte[] ENCODER_SETUP = {0x01, 16, 0x00, 0x00, 0x00};
+			    byte ENCODER_ADDR = 0x04;
+			    byte ENCODER_BYTESTOREAD = 2;
+			    byte ENCODER_REGISTER = 2;
+			    i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t, ENCODER_ADDR, ENCODER_READCMD, ENCODER_BYTESTOREAD, ENCODER_REGISTER, ENCODER_SETUP));
+
+				logger.info("connected Pi encoder");
+
+			} else if (t.isInput()) {
 				assert(!t.isOutput());
 				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
 				byte[] readCmd = {0x01,0x01,(byte)connection,0x00,0x00};
@@ -100,31 +144,6 @@ public class GroveV2PiImpl extends Hardware {
 			System.out.println("GPIO not currently supported");
 		}
 		return this;
-	}  
-
-	@Override
-	public Hardware useConnectDs(IODevice t, int ... connections) {
-		//TODO: add the special grove interrupt support to this
-	    //TODO: not sure this will end up here IODevice now has t.pinsUsed() and this can go on the normal digital method
-	    //TODO: rename all the use methods for digital and analog as we decided.
-		if (t.getClass()== GroveTwig.RotaryEncoder.getClass()) {
-			int[] temp = {2,3};
-			assert(Arrays.equals(connections, temp)) : "RotaryEncoders may only be connected to ports 2 and 3 on Pi";
-			
-			byte[] ENCODER_READCMD = {0x01, 11, 0x00, 0x00, 0x00};
-		    byte[] ENCODER_SETUP = {0x01, 16, 0x00, 0x00, 0x00};
-		    byte ENCODER_ADDR = 0x04;
-		    byte ENCODER_BYTESTOREAD = 2;
-		    byte ENCODER_REGISTER = 2;
-			growI2CConnections(i2cInputs, new I2CConnection(t, ENCODER_ADDR, ENCODER_READCMD, ENCODER_BYTESTOREAD, ENCODER_REGISTER, ENCODER_SETUP));
-
-			logger.info("connected Pi encoder");
-
-		} else {
-			throw new UnsupportedOperationException("You may only connect a RotaryEncoder with useConnectDs on Pi");
-		}
-		return this;
-
 	}  
 
 	public void coldSetup() {
@@ -165,7 +184,7 @@ public class GroveV2PiImpl extends Hardware {
 	}
 
 
-	static void findDup(HardConnection[] base, int baseLimit, HardConnection[] items, boolean mapAnalogs) {
+	static void findDup(HardwareConnection[] base, int baseLimit, HardwareConnection[] items, boolean mapAnalogs) {
 		int i = items.length;
 		while (--i>=0) {
 			int j = baseLimit;
@@ -178,11 +197,15 @@ public class GroveV2PiImpl extends Hardware {
 			}
 		}     
 	}
+	
+	@Override
+	public boolean hasI2CInputs() {
+		return super.hasI2CInputs()|super.hasDigitalOrAnalogInputs();
+	}
+	
+	public HardwareConnection[] buildUsedLines() {
 
-	public HardConnection[] buildUsedLines() {
-
-		HardConnection[] result = new HardConnection[digitalInputs.length+
-		                                             multiBitInputs.length+
+		HardwareConnection[] result = new HardwareConnection[digitalInputs.length+
 		                                             digitalOutputs.length+
 		                                             pwmOutputs.length+
 		                                             analogInputs.length+
@@ -191,13 +214,6 @@ public class GroveV2PiImpl extends Hardware {
 		int pos = 0;
 		System.arraycopy(digitalInputs, 0, result, pos, digitalInputs.length);
 		pos+=digitalInputs.length;
-
-		if (0!=(multiBitInputs.length&0x1)) {
-			throw new UnsupportedOperationException("Rotary encoder requires two neighboring digital inputs.");
-		}
-		findDup(result,pos,multiBitInputs, false);
-		System.arraycopy(multiBitInputs, 0, result, pos, multiBitInputs.length);
-		pos+=multiBitInputs.length;
 
 		findDup(result,pos,digitalOutputs, false);
 		System.arraycopy(digitalOutputs, 0, result, pos, digitalOutputs.length);

@@ -3,6 +3,7 @@ package com.ociweb.iot.hardware.impl.grovepi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -22,8 +23,8 @@ public class PiCommandChannel extends CommandChannel{
 
 	
 
-	public PiCommandChannel(GraphManager gm, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
-		super(gm, output, i2cOutput, messagePubSub, goPipe); 
+	public PiCommandChannel(GraphManager gm, HardwareImpl hardware, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe, byte commandIndex) { 
+		super(gm, hardware, output, i2cOutput, messagePubSub, goPipe); 
 		this.i2cPipeIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital
 
 	}
@@ -43,11 +44,11 @@ public class PiCommandChannel extends CommandChannel{
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {            
 
-			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
+			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)) {
 
-			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11, connector);
-				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, groveAddr);
-				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, duration);
+			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11, connector);
+				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12, groveAddr);
+				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, duration*MS_TO_NS);
 
 				PipeWriter.publishWrites(i2cOutput);
 
@@ -125,10 +126,10 @@ public class PiCommandChannel extends CommandChannel{
 
 
     @Override
-    public boolean digitalPulse(int connector, long durationMillis) {
+    public boolean digitalPulse(int connector, long durationNanos) {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
-            int msgCount = durationMillis > 0 ? 3 : 2;
+            int msgCount = durationNanos > 0 ? 3 : 2;
             assert( Pipe.getPublishBatchSize(i2cOutput)==0);
     
             if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, msgCount * Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) &&
@@ -150,14 +151,14 @@ public class PiCommandChannel extends CommandChannel{
                 PipeWriter.publishWrites(i2cOutput);
                 
                 //delay
-                if (durationMillis>0) {
-                    if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
+                if (durationNanos>0) {
+                    if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)) {
                         throw new RuntimeException("Should not have happend since the pipe was already checked.");
                     }
                     
-                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11, connector);
-                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, groveAddr);
-                    PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, durationMillis);
+                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11, connector);
+                    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12, groveAddr);
+                    PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, durationNanos);
                     PipeWriter.publishWrites(i2cOutput);
                 }
                 
@@ -230,7 +231,7 @@ public class PiCommandChannel extends CommandChannel{
         try {
     
             if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 
-                                        Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)
+                                        Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)
                                         )) { 
 
                 if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
@@ -246,13 +247,13 @@ public class PiCommandChannel extends CommandChannel{
                 PipeWriter.publishWrites(i2cOutput);
                 
                 
-                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)) {
                     throw new RuntimeException();
                 }
                 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11, connector);
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, groveAddr);
-                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, msDuration);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11, connector);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12, groveAddr);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 PipeWriter.publishWrites(i2cOutput);
 
                 publishGo(2,i2cPipeIdx);
@@ -274,7 +275,7 @@ public class PiCommandChannel extends CommandChannel{
         try {
     
             if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 
-                                        Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)
+                                        Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)
                                         )) { 
 
                 if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
@@ -290,13 +291,13 @@ public class PiCommandChannel extends CommandChannel{
                 PipeWriter.publishWrites(i2cOutput);
                 
                 
-                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20)) {
+                if (!PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)) {
                     throw new RuntimeException();
                 }
                 
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_CONNECTOR_11, ANALOG_BIT|connector);
-                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_ADDRESS_12, groveAddr);
-                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONMS_20_FIELD_DURATION_13, msDuration);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11, ANALOG_BIT|connector);
+                PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12, groveAddr);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 PipeWriter.publishWrites(i2cOutput);
 
                 publishGo(2,i2cPipeIdx);
@@ -317,9 +318,9 @@ public class PiCommandChannel extends CommandChannel{
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {            
 
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNELMS_22)) {
+            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22)) {
 
-                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13, msDuration);
+                PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 PipeWriter.publishWrites(i2cOutput);
 
                 publishGo(1,i2cPipeIdx);

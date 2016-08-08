@@ -5,7 +5,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -19,7 +19,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 
-public class TestHardware extends Hardware {
+public class TestHardware extends HardwareImpl {
 
     private static final int MAX_PINS = 127;
     
@@ -37,6 +37,12 @@ public class TestHardware extends Hardware {
     
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking());
+    }
+    
+    
+    public void setI2CValueToRead(byte address, byte[] data, int length) {
+    	TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+    	testBacking.setValueToRead(address, data, length);
     }
     
     public void clearI2CWriteCount() {
@@ -97,7 +103,9 @@ public class TestHardware extends Hardware {
 
     @Override
     public int analogRead(int connector) {
-        return pinData[connector];
+    	int noise = Math.random()<.1 ? 1 : 0;
+    	
+        return pinData[connector] + noise;
     }
 
     @Override
@@ -124,7 +132,7 @@ public class TestHardware extends Hardware {
     
     @Override
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {    
-       return new DefaultCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);   //TODO: urgent rename as DefaultCommadnChannel     
+       return new DefaultCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, orderPipe);   //TODO: urgent rename as DefaultCommadnChannel     
     }
     
     @Override

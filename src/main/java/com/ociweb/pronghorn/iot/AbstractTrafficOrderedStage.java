@@ -7,7 +7,8 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -19,20 +20,25 @@ import com.ociweb.pronghorn.util.Blocker;
 
 public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
-	private final int MAX_DEVICES = 256; //do not know of any hardware yet with more connections than this.
+	private final int MAX_DEVICES = 127; //do not know of any hardware yet with more connections than this.
 
 	private final Pipe<TrafficReleaseSchema>[] goPipe;
 	private final Pipe<TrafficAckSchema>[] ackPipe;
 
-	protected final Hardware hardware;
-	protected Blocker connectionBlocker;
+	protected final HardwareImpl hardware;
+	private Blocker connectionBlocker;
 		
 	protected int[] activeCounts;	
+	private int[] activeBlocks;
 
 	private int hitPoints;
     private final GraphManager graphManager;
-    protected long msNearWindow;
+ 
     private int startLoopAt = -1;
+    private int mostRecentBlockedConnection = -1;
+    
+    protected static final long MS_TO_NS = 1_000_000;
+    private Number rate;
     
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTrafficOrderedStage.class);
 
@@ -58,7 +64,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	 * @param ccToAdOut
 	 */
 	public AbstractTrafficOrderedStage(GraphManager graphManager, 
-			Hardware hardware,
+			HardwareImpl hardware,
 			Pipe<?>[] output,
 			Pipe<TrafficReleaseSchema>[] goPipe, Pipe<TrafficAckSchema>[] ackPipe, Pipe<?> ... otherResponse ) {
 
@@ -81,25 +87,79 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	    
 		connectionBlocker = new Blocker(MAX_DEVICES);
 		activeCounts = new int[goPipe.length];
+		activeBlocks = new int[MAX_DEVICES];
 		Arrays.fill(activeCounts, -1); //0 indicates, need to ack, -1 indicates done and ready for more
-		
-		Number nsPollWindow = (Number)GraphManager.getNota(graphManager, this,  GraphManager.SCHEDULE_RATE, 10_000_000);
-		msNearWindow = (long)Math.ceil((nsPollWindow.longValue()*4f)/1_000_000f);
-		logger.info("near window size for ordered stage: {} ",msNearWindow);
+		Arrays.fill(activeBlocks, -1);
+	
 		startLoopAt = activeCounts.length;
+		
+		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
 	}
 
 	@Override
 	public void run() {
-		processReleasedCommands(10_000);		
+		processReleasedCommands(null==rate || (rate.longValue()<2_000_000)? 100 : (rate.longValue()/1_000_000));		
 	}
 	
 	
-	protected void blockChannelDuration(int activePipe, long timeMillis) {
-	    hardware.blockChannelUntil(( goPipe[activePipe].id ), hardware.currentTimeMillis() + timeMillis );
+	protected void blockChannelDuration(int activePipe, long durationNanos) {
+		
+		final long durationMills = durationNanos/1_000_000;
+		final long remaningNanos = durationNanos%1_000_000;		
+			    
+	    if (remaningNanos>0) {
+	    	final long start = hardware.nanoTime();
+	    	final long limit = start+remaningNanos;
+	    	while (hardware.nanoTime()<limit) {
+	    		Thread.yield();
+	    		if (Thread.interrupted()) {
+	    			Thread.currentThread().interrupt();
+	    			return;
+	    		}
+	    	}
+	    }
+	    if (durationMills>0) {
+	    	//now pull the current time and wait until ms have passed
+	    	hardware.blockChannelUntil(( goPipe[activePipe].id ), hardware.currentTimeMillis() + durationMills );
+	    }
+	}
+	
+	protected void blockConnectionDuration(int connection, long durationNanos) {
+		
+		long durationMills = durationNanos/1_000_000;
+		long remaningNanos = durationNanos%1_000_000;		
+			    
+	    if (remaningNanos>0) {
+	    	final long start = hardware.nanoTime();
+	    	final long limit = start+remaningNanos;
+	    	while (hardware.nanoTime()<limit) {
+	    		Thread.yield();
+	    		if (Thread.interrupted()) {
+	    			Thread.currentThread().interrupt();
+	    			return;
+	    		}
+	    	}
+	    }
+	    if (durationMills>0) {
+	    	//now pull the current time and wait until ms have passed	    	
+	    	connectionBlocker.until(connection, hardware.currentTimeMillis() + durationMills );
+	    }
+	}
+	
+
+	protected boolean isConnectionUnBlocked(int connection) {
+		return !connectionBlocker.isBlocked(connection);
+	}
+	
+
+	protected void blockConnectionUntil(int connection, long time) {
+		connectionBlocker.until(connection, time);
+		mostRecentBlockedConnection = connection;
 	}
 
     protected boolean processReleasedCommands(long timeout) {
+   	
+    	
         boolean foundWork;
 		int[] localActiveCounts = activeCounts;
 		long timeLimit = hardware.currentTimeMillis()+timeout;
@@ -121,49 +181,82 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 				    }
 				    
 				    //must clear these before calling processMessages, 
-				    connectionBlocker.releaseBlocks(now);				    
+				    //this is the only place we can call release on the connectionBlocker because we
+				    //must also enforce which pipe gets the released resource first to ensure atomic operations
+				    int releasedConnection = -1;
+				    while (-1 != (releasedConnection = connectionBlocker.nextReleased(now, -1))) {   
+				    	
+				    	int pipeId = activeBlocks[releasedConnection];
+				    	if (pipeId>=0) {
+				    		a = pipeId;//run from here, its the only one that can continue after the block.
+				    		activeBlocks[releasedConnection] = -1;
+				    		break;//release the rest on the next iteration since this atomic is preventing further progress
+				    	}				    	
+					}				    
+				    
 				    
 					//pull all known the values into the active counts array
 					if (-1==localActiveCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
-						readNextCount(a); 
-						foundWork = true;
+						readNextCount(a);
 					}
-
+				
+					mostRecentBlockedConnection = -1;//clear in case it gets set.
 					int startCount = localActiveCounts[a];
-										
-			           
-					//This method must be called at all times to poll I2C
-					processMessagesForPipe(a);
-					
-					logger.debug("ProcessMessagesForPipe called in output stages");
-					if (localActiveCounts[a]>0) {
-					    //unable to finish group, try again later, this is critical so that callers can
-					    //interact and then block knowing nothing else can get between the commands.
-					    startLoopAt = a+1;
-					    return true; //a poll may happen here but no other commands will happen until this is completed.
-					} else {
-					    foundWork |= (localActiveCounts[a]!=startCount);//work was done if progress was made					    
-					}					
+					//NOTE: this lock does not prevent other ordered stages from making progress, just this one since it holds the required resource
+	
 
-					//send any acks that are outstanding
-					if (startCount > 0 && 0==localActiveCounts[a]) {
-					    logger.debug("send ack back to {}",a);					    
-					    if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
-							publishWrites(ackPipe[a]);
-							localActiveCounts[a] = -1;
-							foundWork = true;
-						}//this will try again later since we did not clear it to -1
+					//This method must be called at all times to poll I2C
+					processMessagesForPipe(a);											
+
+					//send any acks that are outstanding, we did all the work
+					if (startCount>0) {
+						//there was some work to be done
+						if (0==localActiveCounts[a]) {
+						    logger.debug("send ack back to {}",a);					    
+						    if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
+								publishWrites(ackPipe[a]);
+								localActiveCounts[a] = -1;
+								foundWork = true; //keep running may find something else 
+							}//this will try again later since we did not clear it to -1
+						} else {							
+							if (localActiveCounts[a]==startCount) {
+								//we did none of the work
+							} else {		
+								foundWork = true;
+								//we did some of the work
+							    //unable to finish group, try again later, this is critical so that callers can
+							    //interact and then block knowing nothing else can get between the commands.
+							    
+							    //would only happen if
+							    // 1. the release has arrived in its pipe before the needed data
+							    // 2. this sequence contains a block in the middle (eg a pulse with a non zero time)
+							    //    In this second case we have "blocked" all other usages of this connection therefore we only need to ensure
+							    //    this pipe (a) is the one to resume when the lock is released.
+							    if (mostRecentBlockedConnection>=0) {
+							    	//we have a connection we are blocking on.
+							    	activeBlocks[mostRecentBlockedConnection] = a;
+							    }								
+							}							
+						}
 					}
+					
+					
+					
+					
 				} 
 				startLoopAt = activeCounts.length;
 			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
 			//we also check for 'near' work but only when there is no found work since its more expensive
-		} while (foundWork || connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),msNearWindow));
+		} while (foundWork || (connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),timeout)));
 		return true;
     }
 
     protected boolean isChannelBlocked(int a) {
         return hardware.isChannelBlocked( goPipe[a].id );
+    }
+    
+    protected boolean isChannelUnBlocked(int a) {
+        return !hardware.isChannelBlocked( goPipe[a].id );
     }
 
 	protected abstract void processMessagesForPipe(int a);

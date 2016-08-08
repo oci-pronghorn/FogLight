@@ -13,6 +13,7 @@ import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
@@ -34,34 +35,34 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.Blocker;
+import com.ociweb.pronghorn.util.math.PMath;
+import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
-public abstract class Hardware {
+public abstract class HardwareImpl implements Hardware {
     
     private static final int PIN_SETUP_TIMEOUT = 3; //in seconds
-    public static final int MAX_MOVING_AVERAGE_SUPPORTED = 101;
+    private static final int MAX_MOVING_AVERAGE_SUPPORTED = 101; //TOOD: is this still needed, remove???
     
-    private static final HardConnection[] EMPTY = new HardConnection[0];
+    private static final HardwareConnection[] EMPTY = new HardwareConnection[0];
     
-    public boolean configI2C;       //Humidity, LCD need I2C address so..
-    public long debugI2CRateLastTime;
+    protected boolean configI2C;       //Humidity, LCD need I2C address so..
+    protected long debugI2CRateLastTime;
     
-    public HardConnection[] multiBitInputs; //Rotary Encoder, and similar
-    public HardConnection[] multiBitOutputs;//Some output that takes more than 1 bit
+    protected HardwareConnection[] digitalInputs; //Button, Motion
+    protected HardwareConnection[] digitalOutputs;//Relay Buzzer
     
-    public HardConnection[] digitalInputs; //Button, Motion
-    public HardConnection[] digitalOutputs;//Relay Buzzer
+    protected HardwareConnection[] analogInputs;  //Light, UV, Moisture
+    protected HardwareConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
     
-    public HardConnection[] analogInputs;  //Light, UV, Moisture
-    public HardConnection[] pwmOutputs;    //Servo   //(only 3, 5, 6, 9, 10, 11 when on edison)
-    
-    public I2CConnection[] i2cInputs;
-    public I2CConnection[] i2cOutputs;
+    protected I2CConnection[] i2cInputs;
+    protected I2CConnection[] i2cOutputs;
     
     private long timeTriggerRate;
     private Blocker channelBlocker;
@@ -78,46 +79,63 @@ public abstract class Hardware {
     protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 
     public final I2CBacking i2cBacking;
+	
+	protected static final long MS_TO_NS = 1_000_000;
+	
 
-    private static final Logger logger = LoggerFactory.getLogger(Hardware.class);
+    private static final Logger logger = LoggerFactory.getLogger(HardwareImpl.class);
 
+    Enum<?> beginningState;
     
     
-    //TODO: ma per field with max defined here., 
-    //TODO: publish with or with out ma??
+    /////////////////
+    ///Pipes for initial startup declared subscriptions. (Not part of graph)
+    private final int maxStartupSubs = 64;
+    private final int maxTopicLengh  = 128;
+    private Pipe<MessagePubSub> tempPipeOfStartupSubscriptions;
+    /////////////////
+    /////////////////
     
-    //only publish when the moving average changes
+    private ReentrantLock devicePinConfigurationLock = new ReentrantLock();
     
-    private ReentrantLock lock = new ReentrantLock();
     
-    public Hardware(GraphManager gm, I2CBacking i2cBacking) {
+    
+    
+    public HardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
         this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
     }
     
-    protected Hardware(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardConnection[] multiDigitalInput,
-            HardConnection[] digitalInputs, HardConnection[] digitalOutputs, HardConnection[] pwmOutputs, HardConnection[] analogInputs) {
+    protected HardwareImpl(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
+            HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
         
         this.i2cBacking = i2cBacking;
         
         this.configI2C = configI2C; //may be removed.
-        
-        this.multiBitInputs = multiDigitalInput; 
-        //TODO: add multiBitOutputs and support for this new array
-                
+                        
         this.digitalInputs = digitalInputs;
         this.digitalOutputs = digitalOutputs;
         this.pwmOutputs = pwmOutputs;
         this.analogInputs = analogInputs;
         this.gm = gm;
+        
+        this.getTempPipeOfStartupSubscriptions().initBuffers();
     }
 
+    public <E extends Enum<E>> boolean isValidState(E state) {
+    	
+    	if (null!=beginningState) {
+    		return beginningState.getClass()==state.getClass();    		
+    	}
+    	return false;
+    }
+    
     
     public static I2CBacking getI2CBacking(byte deviceNum) {
         try {
             return new I2CNativeLinuxBacking(deviceNum);
         } catch (Throwable t) {
             //avoid non error case that is used to detect which hardware is running.
-            if (!t.getMessage().contains("Could not open")) {
+            if ((null==t.getMessage()) || !t.getMessage().contains("Could not open")) {
                 logger.error("unable to find binary bindings ", t);
             }
             return null;
@@ -127,11 +145,20 @@ public abstract class Hardware {
     /////
     /////
     
-    protected HardConnection[] growHardConnections(HardConnection[] original, HardConnection toAdd) {
-        int l = original.length;
-        HardConnection[] result = new HardConnection[l+1];
-        System.arraycopy(original, 0, result, 0, l);
-        result[l] = toAdd;
+    protected HardwareConnection[] growHardwareConnections(HardwareConnection[] original, HardwareConnection toAdd) {
+    	final int len = original.length;
+    	//Validate that what we are adding is safe
+    	int i = len;
+    	while (--i>=0) {
+    		if (original[i].connection == toAdd.connection) {
+    			throw new UnsupportedOperationException("This connection "+toAdd.connection+" already has attachment "+original[i].twig+" so the attachment "+toAdd.twig+" can not be added.");
+    		}
+    	}
+    	
+    	//Grow the array
+        HardwareConnection[] result = new HardwareConnection[len+1];
+        System.arraycopy(original, 0, result, 0, len);
+        result[len] = toAdd;
         return result;
     }
     
@@ -148,93 +175,79 @@ public abstract class Hardware {
         }
     }
     
-    //TODO: double check new name  connectAnalog  and confirm before rename.
-    public Hardware useConnectA(IODevice t, int connection) {
-        return useConnectA(t,connection,-1);
+    public Hardware connectAnalog(IODevice t, int connection) {
+        return connectAnalog(t,connection,-1);
     }
     
-    public Hardware useConnectA(IODevice t, int connection, int customRate) {
-    	HardConnection gc = new HardConnection(t,connection,customRate);
+    public Hardware connectAnalog(IODevice t, int connection, int customRate) {
+    	HardwareConnection gc = new HardwareConnection(t,connection,customRate);
         if (t.isInput()) {
             assert(!t.isOutput());
-            analogInputs = growHardConnections(analogInputs, gc);
+            analogInputs = growHardwareConnections(analogInputs, gc);
         } else {
             assert(t.isOutput());
-            pwmOutputs = growHardConnections(pwmOutputs, gc);
+            pwmOutputs = growHardwareConnections(pwmOutputs, gc);
         }
         return this;
     }
     
-    public Hardware useConnectA(IODevice t, int connection, int customRate, int customAverageMS) {
-        HardConnection gc = new HardConnection(t,connection,customRate, customAverageMS);
+    public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
+    	return connectAnalog(t, connection, customRate, customAverageMS, false);
+    }
+    
+    public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+        HardwareConnection gc = new HardwareConnection(t,connection,customRate, customAverageMS, everyValue);
         if (t.isInput()) {
             assert(!t.isOutput());
-            analogInputs = growHardConnections(analogInputs, gc);
+            analogInputs = growHardwareConnections(analogInputs, gc);
         } else {
             assert(t.isOutput());
-            pwmOutputs = growHardConnections(pwmOutputs, gc);
+            pwmOutputs = growHardwareConnections(pwmOutputs, gc);
         }
         return this;
     }
     
-    public Hardware useConnectD(IODevice t, int connection) {
-        return useConnectD(t,connection,-1);
+    public Hardware connectDigital(IODevice t, int connection) {
+        return connectDigital(t,connection,-1);
     }
     
-    public Hardware useConnectD(IODevice t, int connection, int customRate) {
+    public Hardware connectDigital(IODevice t, int connection, int customRate) {
     	
-        HardConnection gc =new HardConnection(t,connection, customRate);
+        HardwareConnection gc =new HardwareConnection(t,connection, customRate);
         
         if (t.isInput()) {
             assert(!t.isOutput());
-            digitalInputs = growHardConnections(digitalInputs, gc);
+            digitalInputs = growHardwareConnections(digitalInputs, gc);
         } else {
             assert(t.isOutput());
-            digitalOutputs = growHardConnections(digitalOutputs, gc);
+            digitalOutputs = growHardwareConnections(digitalOutputs, gc);
         }
         return this;
     }  
     
-    public Hardware useConnectD(IODevice t, int connection, int customRate, int customAverageMS) {
+    public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
+        return connectDigital(t,connection,customRate,customAverageMS);
+    }
+    
+    public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
         
-        HardConnection gc =new HardConnection(t,connection, customRate, customAverageMS);
+        HardwareConnection gc =new HardwareConnection(t,connection, customRate, customAverageMS, everyValue);
         
         if (t.isInput()) {
             assert(!t.isOutput());
-            digitalInputs = growHardConnections(digitalInputs, gc);
+            digitalInputs = growHardwareConnections(digitalInputs, gc);
             
             
             
         } else {
             assert(t.isOutput());
-            digitalOutputs = growHardConnections(digitalOutputs, gc);
+            digitalOutputs = growHardwareConnections(digitalOutputs, gc);
         }
         return this;
     }  
     
-
-    public Hardware useConnectDs(IODevice t, int ... connections) {
-
-        if (t.isInput()) {
-            assert(!t.isOutput());
-            for(int con:connections) {
-                multiBitInputs = growHardConnections(multiBitInputs, new HardConnection(t,con));
-            }
-            
-          System.out.println("connections "+Arrays.toString(connections));  
-          System.out.println("Encoder here "+Arrays.toString(multiBitInputs));  
-            
-        } else {
-            assert(t.isOutput());
-            for(int con:connections) {
-                multiBitOutputs = growHardConnections(multiBitOutputs, new HardConnection(t,con));
-            }
-        }
-        return this;
-        
-    }  
-    
-    public Hardware useConnectI2C(IODevice t){ 
+   
+    public Hardware connectI2C(IODevice t){ 
     	logger.debug("Connecting I2C Device "+t.getClass());
     	if(t.isInput()){
     		assert(!t.isOutput());
@@ -246,13 +259,14 @@ public abstract class Hardware {
     	return this;
     }
     
-    public Hardware useTriggerRate(long rateInMS) {
-        timeTriggerRate = rateInMS;
-        return this;
+    public <E extends Enum<E>> Hardware startStateMachineWith(E state) {   	
+    	beginningState = state;	
+    	return this;
     }
     
-    public long getTriggerRate() {
-        return timeTriggerRate;
+    public Hardware setTriggerRate(long rateInMS) {
+        timeTriggerRate = rateInMS;
+        return this;
     }
     
     public Hardware useI2C() {
@@ -263,10 +277,14 @@ public abstract class Hardware {
     /////
     /////
 
+    
+    public long getTriggerRate() {
+    	return timeTriggerRate;
+    }
 
     public void beginPinConfiguration() {
         try {
-            if (!lock.tryLock(PIN_SETUP_TIMEOUT, TimeUnit.SECONDS)) {
+            if (!devicePinConfigurationLock.tryLock(PIN_SETUP_TIMEOUT, TimeUnit.SECONDS)) {
                 throw new RuntimeException("One of the stages was not able to complete startup due to pin configuration issues.");
             }
         } catch (InterruptedException e) {
@@ -275,7 +293,7 @@ public abstract class Hardware {
     }
     
     public void endPinConfiguration() {
-       lock.unlock();
+       devicePinConfigurationLock.unlock();
     }
     
     public abstract int digitalRead(int connector); //Platform specific
@@ -393,9 +411,20 @@ public abstract class Hardware {
         
         //only build and connect gpio responses if it is used
         if (responsePipes.length>0) {
-            Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
+            
+        	if (!hasDigitalOrAnalogInputs()) {
+        		//we have listeners but there are no inputs connected.
+        		
+        		//TODO: must check even earlier to remove these.
+        		
+        	}
+        	
+        	Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
             SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
-            createADInputStage(masterResponsePipe);        
+            createADInputStage(masterResponsePipe);
+            
+            
+            
         }
         
     }
@@ -406,6 +435,7 @@ public abstract class Hardware {
                                           Pipe<TrafficAckSchema>[] masterMsgackIn, 
                                           Pipe<MessageSubscription>[] subscriptionPipes) {
         
+    	
         new MessagePubSubStage(this.gm, subscriptionPipeLookup, this, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
        
         
@@ -418,8 +448,13 @@ public abstract class Hardware {
 
     protected void createI2COutputInputStage(Pipe<I2CCommandSchema>[] i2cPipes,
             Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn, Pipe<I2CResponseSchema> masterI2CResponsePipe) {
-        //NOTE: if this throws we should use the Java one here instead.
-        I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
+        
+    	if (hasI2CInputs()) {
+    		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
+    	} else {
+    		//TODO: build an output only version of this stage because there is nothing to read
+    		I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
+    	}
     }
 
     protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
@@ -474,8 +509,111 @@ public abstract class Hardware {
     public void releaseChannelBlocks(long now) {
         channelBlocker.releaseBlocks(now);
     }
-    
 
+	public long nanoTime() {
+		return System.nanoTime();
+	}
+
+	public Enum[] getStates() {
+		return null==beginningState? new Enum[0] : beginningState.getClass().getEnumConstants();
+	}
+
+	public void addStartupSubscription(CharSequence topic, int systemHash) {
+		
+		Pipe<MessagePubSub> pipe = getTempPipeOfStartupSubscriptions();
+		
+		if (PipeWriter.tryWriteFragment(pipe, MessagePubSub.MSG_SUBSCRIBE_100)) {
+			PipeWriter.writeUTF8(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_TOPIC_1, topic);
+			PipeWriter.writeInt(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4, systemHash);
+			PipeWriter.publishWrites(pipe);
+		} else {
+			throw new UnsupportedOperationException("Limited number of startup subscriptions "+maxStartupSubs+" encountered.");
+		}
+	}
+
+	private Pipe<MessagePubSub> getTempPipeOfStartupSubscriptions() {
+		if (null==tempPipeOfStartupSubscriptions) {
+			
+		    final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, maxStartupSubs,maxTopicLengh);   
+		    tempPipeOfStartupSubscriptions = new Pipe<MessagePubSub>(messagePubSubConfig);
+			
+		}		
+		
+		return tempPipeOfStartupSubscriptions;
+	}
+
+	Pipe<MessagePubSub> consumeStartupSubscriptions() {
+		Pipe<MessagePubSub> result = tempPipeOfStartupSubscriptions;
+		tempPipeOfStartupSubscriptions = null;//no longer needed
+		return result;
+	}
+
+	public boolean hasI2CInputs() {
+		return this.i2cInputs!=null && this.i2cInputs.length>0;
+	}
+
+	public I2CConnection[] getI2CInputs() {
+		return null==i2cInputs?new I2CConnection[0]:i2cInputs;
+	}
+	
+	public HardwareConnection[] getAnalogInputs() {
+		return analogInputs;
+	}
+    
+	public HardwareConnection[] getDigitalInputs() {
+		return digitalInputs;
+	}
+
+	public ScriptedSchedule buildI2CPollSchedule() {
+		I2CConnection[] localInputs = getI2CInputs();
+		long[] schedulePeriods = new long[localInputs.length];
+		for (int i = 0; i < localInputs.length; i++) {
+		    schedulePeriods[i] = localInputs[i].responseMS*MS_TO_NS;
+		}
+		System.out.println("known I2C rates: "+Arrays.toString(schedulePeriods));
+		return PMath.buildScriptedSchedule(schedulePeriods);
+	
+	}
+    
+	public boolean hasDigitalOrAnalogInputs() {
+		return (analogInputs.length+digitalInputs.length)>0;
+	}
+	
+	public HardwareConnection[] combinedADConnections() {
+		HardwareConnection[] localAInputs = getAnalogInputs();
+		HardwareConnection[] localDInputs = getDigitalInputs();
+				
+		int totalCount = localAInputs.length + localDInputs.length;
+		
+		HardwareConnection[] results = new HardwareConnection[totalCount];
+		System.arraycopy(localAInputs, 0, results, 0,                   localAInputs.length);
+		System.arraycopy(localDInputs, 0, results, localAInputs.length, localDInputs.length);
+				
+		return results;
+	}
+
+	public ScriptedSchedule buildADPollSchedule() {
+		HardwareConnection[] localAInputs = getAnalogInputs();
+		HardwareConnection[] localDInputs = getDigitalInputs();
+				
+		int totalCount = localAInputs.length + localDInputs.length;
+		if (0==totalCount) {
+			return null;
+		}
+		
+		long[] schedulePeriods = new long[totalCount];
+		int j = 0;
+		for (int i = 0; i < localAInputs.length; i++) {
+		    schedulePeriods[j++] = localAInputs[i].responseMS*MS_TO_NS;
+		}
+		for (int i = 0; i < localDInputs.length; i++) {
+		    schedulePeriods[j++] = localDInputs[i].responseMS*MS_TO_NS;
+		}
+		//analogs then the digitals
+		
+		return PMath.buildScriptedSchedule(schedulePeriods);
+		
+	}
 
     
 }

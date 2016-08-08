@@ -3,6 +3,9 @@ package com.ociweb.iot.hardware.impl.test;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.util.Appendables;
 
@@ -15,6 +18,7 @@ public class TestI2CBacking implements I2CBacking{
     public static final int MAX_BACK_SIZE =  1<<MAX_BACK_BITS;
     public static final int MAX_BACK_MASK =  MAX_BACK_SIZE-1;
     
+    private static final Logger logger = LoggerFactory.getLogger(TestI2CBacking.class);
     
     private long[]   lastWriteTime;
     private byte[]   lastWriteAddress;
@@ -44,15 +48,20 @@ public class TestI2CBacking implements I2CBacking{
     }
     
     
-    public void setValuetoRead(byte address, byte[] data, int length) {
+    public void setValueToRead(byte address, byte[] data, int length) {
         responses[address] = data;
         responseLengths[address] = length;
     }
         
     
     @Override
-    public byte[] read(byte address, byte[] target, int length) {        
-        System.arraycopy(responses[address], 0, target, 0, Math.min(length, responseLengths[address]));
+    public byte[] read(byte address, byte[] target, int length) {
+    	if (null != responses[address]) {    		
+    		System.arraycopy(responses[address], 0, target, 0, Math.min(length, responseLengths[address]));
+    	} else {
+    		//for this case the developer did not provide test data
+    		logger.warn("Test hardware was asked for I2C read on address {} but nothing was prepared to be sent back. call hardware.setI2CValueToRead((byte){},data,len) to prevent this warning.", address,address);
+    	}
         return target;
         
     }
@@ -78,7 +87,25 @@ public class TestI2CBacking implements I2CBacking{
 
     protected void consoleSimulationLCD(byte address, byte[] message, int length) {
         if (62==address & '@'==message[0]) {
-            System.out.print(new String(message, 1, length-1));
+            
+        	try {
+	        	for(int i = 1; i<length; i++) {
+	        		
+	        		byte b = message[i];
+	        		if (b<=0xF && (b!=0xA && b!=0xD)) { //line feed and cr should not be shown as numbers
+							Appendables.appendHexDigits(System.out, b).append(',');
+	        		} else {
+	        			    System.out.append((char)b);
+	        		}
+	        		
+	        	}
+        	} catch (IOException e) {
+        		throw new RuntimeException(e);
+        	}
+ 
+            
+            
+            
             newLineNeeded = true;
         } else {
             if (62==address & -128==message[0] & -64==message[1] & 2==length) {

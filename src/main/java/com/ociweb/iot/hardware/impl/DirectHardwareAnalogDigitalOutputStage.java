@@ -3,7 +3,7 @@ package com.ociweb.iot.hardware.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -35,7 +35,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	public DirectHardwareAnalogDigitalOutputStage(GraphManager graphManager, 
 	                                Pipe<GroveRequestSchema>[] ccToAdOut,
 	                                Pipe<TrafficReleaseSchema>[] goPipe,
-	                                Pipe<TrafficAckSchema>[] ackPipe, Hardware hardware) {
+	                                Pipe<TrafficAckSchema>[] ackPipe, HardwareImpl hardware) {
 	
 		super(graphManager, hardware, ccToAdOut, goPipe, ackPipe);
 		this.fromCommandChannels = ccToAdOut;
@@ -46,8 +46,8 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	        Pipe<GroveRequestSchema> pipe = fromCommandChannels[activePipe];
 	        
 	        while (hasReleaseCountRemaining(activePipe) 
-	                && !isChannelBlocked(activePipe)
-	                && !connectionBlocker.isBlocked(Pipe.peekInt(pipe, 1)) 
+	                && isChannelUnBlocked(activePipe)
+	                && isConnectionUnBlocked(Pipe.peekInt(pipe, 1)) 
 	                && PipeReader.tryReadFragment(pipe) ){
 	  	                        
 	            int msgIdx = PipeReader.getMsgIdx(pipe);
@@ -55,19 +55,19 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	            switch(msgIdx){
 	                                
 	                case GroveRequestSchema.MSG_DIGITALSET_110:
-	                    
 	                    hardware.digitalWrite(PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111), 
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112));
 	                    break;
 	                                     	                    
-	                case GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220:
-	                    connectionBlocker.until(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_CONNECTOR_111),
-	                                       hardware.currentTimeMillis() + PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONMS_220_FIELD_DURATION_113));                   	                    
+	                case GroveRequestSchema.MSG_BLOCKCONNECTION_220:
+						blockConnectionDuration(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111),
+								                PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13));
+		                	
 	                    break;
 	                    
 	                case GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221:
-	                    connectionBlocker.until(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111),
-	                                           PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114));
+	                    blockConnectionUntil(PipeReader.readInt(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111),
+	                                         PipeReader.readLong(pipe,GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114));
 	                                                
 	                    break;   
 	                    
@@ -77,10 +77,10 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142));
 	                    break;
 	                    	                    
-	                case GroveRequestSchema.MSG_BLOCKCHANNELMS_22:
+	                case GroveRequestSchema.MSG_BLOCKCHANNEL_22:
 	                
-                        blockChannelDuration(activePipe,PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
-	                    logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNELMS_22_FIELD_DURATION_13));
+                        blockChannelDuration(activePipe,PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
+	                    logger.debug("CommandChannel blocked for {} nanos ",PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
 	                 
 	                break;    
 	                    

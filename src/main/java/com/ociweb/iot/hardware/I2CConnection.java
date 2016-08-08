@@ -9,9 +9,12 @@ public class I2CConnection extends HardwareConnection {
     public final byte[] setup;			//setup bytes sent to initialize communications
     public final long delayAfterRequestNS; //delay between read request and i2c.read
     
-    
     public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup) {
-        super(twig, twig.response(), HardConnection.DEFAULT_AVERAGE);
+    	this(twig,address,readCmd,readBytes,register,setup,false);
+    }
+    
+    public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, boolean everyValue) {
+        super(twig, -1, twig.response(), HardwareConnection.DEFAULT_AVERAGE, everyValue);
         this.address = address;
         this.readCmd = readCmd;
         this.readBytes = readBytes;
@@ -20,17 +23,19 @@ public class I2CConnection extends HardwareConnection {
         this.delayAfterRequestNS = 80_000; //TODO: + additional delay known by twig
     }
     
-
     public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS) {
-    	super(twig, responseMS, HardConnection.DEFAULT_AVERAGE);
+    	this(twig,address,readCmd,readBytes,register,setup,responseMS,false);
+    }
+    
+    public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS, boolean everyValue) {
+    	super(twig, -1, responseMS, HardwareConnection.DEFAULT_AVERAGE, everyValue);
         this.address = address;
         this.readCmd = readCmd;
         this.readBytes = readBytes;
         this.register = register;
         this.setup = setup;
         this.delayAfterRequestNS = 80_000; //TODO: + additional delay known by twig
-    }
-    
+    }  
 
     
     @Override

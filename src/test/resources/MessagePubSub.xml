@@ -17,5 +17,8 @@
      <byteVector name="Payload" id="3"/>
    </template>   
    
-   
+   <template name="ChangeState" id="70">
+     <uInt32 name="Ordinal" id="7"/>
+   </template>    
+      
 </templates>

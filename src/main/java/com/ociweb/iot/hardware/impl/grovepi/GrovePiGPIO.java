@@ -1,6 +1,6 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
-import com.ociweb.iot.hardware.HardConnection;
+import com.ociweb.iot.hardware.HardwareConnection;
 
 /**
  * @author Brandon Sanders [brandon@alicorn.io]
@@ -12,7 +12,7 @@ public class GrovePiGPIO {
     public static final GrovePiPinManager gpioOutputEnablePins = new GrovePiPinManager(GrovePiConstants.OUTPUT_ENABLE);
     public static final GrovePiPinManager gpioPullupEnablePins = new GrovePiPinManager(GrovePiConstants.PULL_UP_ENABLE);
     
-    public static void ensureAllLinuxDevices(final HardConnection[] usedLines) {
+    public static void ensureAllLinuxDevices(final HardwareConnection[] usedLines) {
     	System.out.println("I reach here");
         int j = usedLines.length;
         while (--j >= 0) {
@@ -24,7 +24,7 @@ public class GrovePiGPIO {
         }
     }
 
-    public static void removeAllLinuxDevices(final HardConnection[] usedLines) {
+    public static void removeAllLinuxDevices(final HardwareConnection[] usedLines) {
         int j = usedLines.length;
         while (--j >= 0) {
             final int i = usedLines[j].connection;

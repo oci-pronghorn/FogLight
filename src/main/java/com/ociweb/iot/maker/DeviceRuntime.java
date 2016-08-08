@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GroveV2PiImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -44,7 +44,7 @@ public class DeviceRuntime {
      */
     private static final Logger logger = LoggerFactory.getLogger(DeviceRuntime.class);
     
-    protected Hardware hardware;
+    protected HardwareImpl hardware;
     
     private StageScheduler scheduler;
     private final GraphManager gm;
@@ -55,20 +55,38 @@ public class DeviceRuntime {
     private final int i2cDefaultLength = 300;
     private final int i2cDefaultMaxPayload = 16;
     
+    /////////////
+    //Pipes for requesting GPIO operations both Analog and Digital
     private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
+    
+    ////////////
+    ///Pipes for writing to I2C bus
     private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);    
+    
+    ////////////
+    ///Pipes for subscribing to and sending messages this is MQTT, StateChanges and many others
     private final PipeConfig<MessagePubSub> messagePubSubConfig = new PipeConfig<MessagePubSub>(MessagePubSub.instance, defaultCommandChannelLength,defaultCommandChannelMaxPayload); 
+   
+    ////////////
+    //Each of the above pipes are paired with TrafficOrder pipe to group commands togetehr in atomic groups and to enforce order across the pipes.
     private final PipeConfig<TrafficOrderSchema> goPipeConfig = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, defaultCommandChannelLength); 
     
-
+    ///////////
+    ///Pipes containing response data from the I2C bus, this primarily is polled at a fixed rate on startup
     private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
+    
+    //////////
+    //Pipes containing response data from the GPIO pins both digital and analog, this is primarily polled at a fixed rate on startup.
     private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);   
+        
+    /////////
+    //Pipes for receiving messages, this includes MQTT, State and many others
     private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
+    
+        
     
     private int subscriptionPipeIdx = 0; //this implementation is dependent upon graphManager returning the pipes in the order created!
     
-    private boolean isEdison = false;
-    private boolean isPi = false;
     private int channelsCount;
     
     private int defaultSleepRateNS = 10_000_000;   //we will only check for new work 100 times per second to keep CPU usage low.
@@ -85,7 +103,7 @@ public class DeviceRuntime {
     }
 
     
-    public Hardware getHardware(){
+    public HardwareImpl getHardware(){
     	if(this.hardware==null){
     	    
             ///////////////
@@ -102,15 +120,13 @@ public class DeviceRuntime {
     	    
     	    I2CBacking i2cBacking = null;
 
-    	    i2cBacking = Hardware.getI2CBacking(edI2C);
+    	    i2cBacking = HardwareImpl.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
-	            this.isEdison = true;
 	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
 	            System.out.println("Detected running on Edison");
 	        } else {
-	        	i2cBacking = Hardware.getI2CBacking(piI2C);
+	        	i2cBacking = HardwareImpl.getI2CBacking(piI2C);
 	    	    if (null != i2cBacking) {
-	    	        this.isPi = true;
 	    	        this.hardware = new GroveV2PiImpl(gm, i2cBacking);
 	    	        System.out.println("Detected running on Pi");
 	    	    }
@@ -143,47 +159,51 @@ public class DeviceRuntime {
     }
     
     
-    public RotaryListener addRotaryListener(RotaryListener listener) {
-        return (RotaryListener)registerListener(listener);
-    }
-    
-    public StartupListener addStartupListener(StartupListener listener) {
-        return (StartupListener)registerListener(listener);
-    }
-        
-    public AnalogListener addAnalogListener(AnalogListener listener) {
-        return (AnalogListener)registerListener(listener);
-    }
-    
-    public DigitalListener addDigitalListener(DigitalListener listener) {
-        return (DigitalListener)registerListener(listener);
-    }
-    
-    public TimeListener addTimeListener(TimeListener listener) {
-        return (TimeListener)registerListener(listener);
-    }
-        
-    public I2CListener addI2CListener(I2CListener listener) {
-        return (I2CListener)registerListener(listener);
-    }
-    
-    public PubSubListener addPubSubListener(PubSubListener listener) {
-        return (PubSubListener)registerListener(listener);
-    }
-
-    public Object addListener(Object listener) {
+    public ListenerFilter addRotaryListener(RotaryListener listener) {
         return registerListener(listener);
     }
     
-    public Object registerListener(Object listener) {
+    public ListenerFilter addStartupListener(StartupListener listener) {
+        return registerListener(listener);
+    }
+        
+    public ListenerFilter addAnalogListener(AnalogListener listener) {
+        return registerListener(listener);
+    }
+    
+    public ListenerFilter addDigitalListener(DigitalListener listener) {
+        return registerListener(listener);
+    }
+    
+    public ListenerFilter addTimeListener(TimeListener listener) {
+        return registerListener(listener);
+    }
+        
+    public ListenerFilter addI2CListener(I2CListener listener) {
+        return registerListener(listener);
+    }
+    
+    public ListenerFilter addPubSubListener(PubSubListener listener) {
+        return registerListener(listener);
+    }
+
+    public <E extends Enum<E>> StateChangeListener<E> addStateChangeListener(StateChangeListener<E> listener) {
+        return (StateChangeListener<E>)registerListener(listener);
+    }
+    
+    public ListenerFilter addListener(Object listener) {
+        return registerListener(listener);
+    }
+    
+    public ListenerFilter registerListener(Object listener) {
         
         List<Pipe<?>> pipesForListenerConsumption = new ArrayList<Pipe<?>>(); 
         
         
-        if (this.hardware.isListeningToI2C(listener)) {
+        if (this.hardware.isListeningToI2C(listener) && this.hardware.hasI2CInputs()) {
             pipesForListenerConsumption.add(new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x()));   //must double since used by splitter         
         }
-        if (this.hardware.isListeningToPins(listener)) {
+        if (this.hardware.isListeningToPins(listener) && this.hardware.hasDigitalOrAnalogInputs()) {
             pipesForListenerConsumption.add(new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x()));  //must double since used by splitter
         }
         
@@ -209,16 +229,13 @@ public class DeviceRuntime {
         Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
         Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
 
-        configureStageRate(listener,hardware.createReactiveListener(gm, listener, inputPipes, outputPipes));
+        ReactiveListenerStage reactiveListener = hardware.createReactiveListener(gm, listener, inputPipes, outputPipes);
+		configureStageRate(listener,reactiveListener);
         
         Pipe<MessageSubscription>[] subsPipes = GraphManager.allPipesOfType(gm, MessageSubscription.instance);
         assert(-1==testId || subsPipes[subPipeIdx].id==testId) : "GraphManager has returned the pipes out of the expected order";
         
-        if (testId != -1 &&  subsPipes[subPipeIdx].id==testId && subsPipes.length>3) {
-            System.err.println("TESTED, NOW REMOVE THIS BLOCK **********************");
-        }
-        
-        return listener;
+        return reactiveListener;
         
     }
 
@@ -242,7 +259,9 @@ public class DeviceRuntime {
                 logger.error("A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.", new UnsupportedOperationException());
                 return false;
         } 
-        //keep so this is detected later if used
+        //keep so this is detected later if use;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        
+        
         IntHashTable.setItem(cmdChannelUsageChecker, hash, 42);
         return true;
     }
@@ -283,7 +302,8 @@ public class DeviceRuntime {
             stage.setTimeEventSchedule(rate);
             //Since we are using the time schedule we must set the stage to be faster
             long customRate =   (rate*nsPerMS)/NonThreadScheduler.granularityMultiplier;// in ns and guanularityXfaster than clock trigger
-            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, Math.min(customRate,defaultSleepRateNS),stage);
+            long appliedRate = Math.min(customRate,defaultSleepRateNS);
+            GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, appliedRate, stage);
         }
     }
 
@@ -404,6 +424,7 @@ public class DeviceRuntime {
         hardware.isInUnitTest = true;
         try {
             app.declareConnections(runtime.getHardware());
+            establishDefaultRate(runtime); 
             app.declareBehavior(runtime);
             runtime.start();
             //for test we do not call startup and wait instead for this to be done by test.
@@ -423,15 +444,7 @@ public class DeviceRuntime {
     private static DeviceRuntime run(IoTSetup app, DeviceRuntime runtime) {
         try {
             app.declareConnections(runtime.getHardware());
-            
-            //TODO: based on the connected twigs we must choose an appropriate default, may need schedule!!!
-            //runtime.defaultSleepRateNS = 100_000;
-            
-            
-            //by default, unless explicitly set the stages will use this sleep rate
-            GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.defaultSleepRateNS);       
-            
-            
+            establishDefaultRate(runtime);
             app.declareBehavior(runtime);
             runtime.start();
             runtime.scheduler.startup();
@@ -441,6 +454,18 @@ public class DeviceRuntime {
         }
         return runtime;
     }
+
+
+	private static void establishDefaultRate(DeviceRuntime runtime) {
+		
+		//NOTE: this must be a prime factor of all things going on !!
+		
+		//TODO: based on the connected twigs we must choose an appropriate default, may need schedule!!!
+		//runtime.defaultSleepRateNS = 100_000;
+		            
+		//by default, unless explicitly set the stages will use this sleep rate
+		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.defaultSleepRateNS);
+	}
     
     
 }

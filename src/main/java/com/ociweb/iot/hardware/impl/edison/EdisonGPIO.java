@@ -1,6 +1,6 @@
 package com.ociweb.iot.hardware.impl.edison;
 
-import com.ociweb.iot.hardware.HardConnection;
+import com.ociweb.iot.hardware.HardwareConnection;
 
 public class EdisonGPIO {
 
@@ -15,7 +15,7 @@ public class EdisonGPIO {
     public static final EdisonPinManager shieldControl = new EdisonPinManager(EdisonConstants.SHIELD_CONTROL);
     public static final EdisonPinManager pwmPins = new EdisonPinManager(EdisonConstants.PWM_PINS);
     
-    public static void ensureAllLinuxDevices(HardConnection[] usedLines) {
+    public static void ensureAllLinuxDevices(HardwareConnection[] usedLines) {
 
         shieldControl.ensureDevice(0); //tri statebyte
         //create the edision later write mode 
@@ -45,7 +45,7 @@ public class EdisonGPIO {
         gpioOutputEnablePins.ensureDevice(13);
         
     }
-    public static void removeAllLinuxDevices(HardConnection[] usedLines) {
+    public static void removeAllLinuxDevices(HardwareConnection[] usedLines) {
         shieldControl.removeDevice(0); //tri state
         shieldControl.removeDevice(1); //shield reset
     

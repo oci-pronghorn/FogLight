@@ -3,8 +3,8 @@ package com.ociweb.iot.hardware.impl.edison;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.hardware.HardConnection;
-import com.ociweb.iot.hardware.Hardware;
+import com.ociweb.iot.hardware.HardwareConnection;
+import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
@@ -16,10 +16,10 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class GroveV3EdisonImpl extends Hardware {
+public class GroveV3EdisonImpl extends HardwareImpl {
 	
 	private final static Logger logger = LoggerFactory.getLogger(GroveV3EdisonImpl.class);
-    private HardConnection[] usedLines;
+    private HardwareConnection[] usedLines;
     
     //pwm supports the same range and duty values for multiple platforms,  The frequencies are "near" each other but not yet the same.
     private int pwmBitsShift = 12; //the absolute minimum range for Edison is 1<<12 or 4096 this prevents the user from hitting this value.
@@ -29,7 +29,7 @@ public class GroveV3EdisonImpl extends Hardware {
     }
     
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
-		return new DefaultCommandChannel(gm, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
+		return new DefaultCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, orderPipe);
 	}
     
     public void coldSetup() {
@@ -163,7 +163,7 @@ public class GroveV3EdisonImpl extends Hardware {
 	    EdisonPinManager.digitalWrite(connector, value, EdisonGPIO.gpioLinuxPins);
 	}
 	
-    static void findDup(HardConnection[] base, int baseLimit, HardConnection[] items, boolean mapAnalogs) {
+    static void findDup(HardwareConnection[] base, int baseLimit, HardwareConnection[] items, boolean mapAnalogs) {
         int i = items.length;
         while (--i>=0) {
             int j = baseLimit;
@@ -175,10 +175,9 @@ public class GroveV3EdisonImpl extends Hardware {
         }     
     }
 
-    public HardConnection[] buildUsedLines() {
+    public HardwareConnection[] buildUsedLines() {
         
-        HardConnection[] result = new HardConnection[digitalInputs.length+
-                                 multiBitInputs.length+
+        HardwareConnection[] result = new HardwareConnection[digitalInputs.length+
                                  digitalOutputs.length+
                                  pwmOutputs.length+
                                  analogInputs.length+
@@ -187,13 +186,6 @@ public class GroveV3EdisonImpl extends Hardware {
         int pos = 0;
         System.arraycopy(digitalInputs, 0, result, pos, digitalInputs.length);
         pos+=digitalInputs.length;
-        
-        if (0!=(multiBitInputs.length&0x1)) {
-            throw new UnsupportedOperationException("Rotery encoder requires two neighboring digital inputs.");
-        }
-        findDup(result,pos,multiBitInputs, false);
-        System.arraycopy(multiBitInputs, 0, result, pos, multiBitInputs.length);
-        pos+=multiBitInputs.length;
                 
         findDup(result,pos,digitalOutputs, false);
         System.arraycopy(digitalOutputs, 0, result, pos, digitalOutputs.length);
@@ -206,7 +198,7 @@ public class GroveV3EdisonImpl extends Hardware {
         findDup(result,pos,analogInputs, true);
         int j = analogInputs.length;
         while (--j>=0) {
-            result[pos++] = new HardConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection]);
+            result[pos++] = new HardwareConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection]);
         }
         
         if (configI2C) {

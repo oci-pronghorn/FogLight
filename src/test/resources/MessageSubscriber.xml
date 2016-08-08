@@ -5,6 +5,10 @@
      <string name="Topic" id="1" charset="unicode"/>
      <byteVector name="Payload" id="3"/>
    </template>   
-  
+       
+   <template name="StateChanged" id="71">
+     <uInt32 name="OldOrdinal" id="8"/>
+     <uInt32 name="NewOrdinal" id="9"/>     
+   </template> 
    
 </templates>

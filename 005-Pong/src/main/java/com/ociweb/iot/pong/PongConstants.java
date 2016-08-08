@@ -16,7 +16,7 @@ public class PongConstants {
 	public static final int PADDLE_2_UP_CHAR = 3;
 	public static final int PADDLE_2_DOWN_CHAR = 4;
 
-	public static final int LEFT_LIMIT = PADDLE_1_COL*6+3;
+	public static final int LEFT_LIMIT = PADDLE_1_COL*6+4;
 	public static final int RIGHT_LIMIT = PADDLE_2_COL*6+3;
 	public static final int UP_LIMIT = 1;
 	public static final int DOWN_LIMIT = 16;

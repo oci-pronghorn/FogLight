@@ -30,6 +30,10 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	private long startTime = -1;
 	private int waveState = 0; 
 	
+	private long scoreTime = -1;
+	private int player1Score = 0;
+	private int player2Score = 0;
+	
 	private enum GameState {
 		startUp, playing, score
 	};
@@ -54,37 +58,46 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		case startUp:
 			if(startTime == -1){
 				startTime = time;
-				byte[] charIdxs = new byte[32];
-				Arrays.fill(charIdxs, (byte)0);
+				byte[] charIdxs = new byte[32]; //32 chars on screen
+				Arrays.fill(charIdxs, (byte)0);  //fill screen with first custom character
 				for (int i = 0; i < 6; i++) {
-					charIdxs[i+5] = (byte)" Pong ".toCharArray()[i];
+					charIdxs[i+5] = (byte)" Pong ".toCharArray()[i]; //write title in middle of screen
 					charIdxs[i+21] = (byte)"      ".toCharArray()[i];
 				}
-				Grove_LCD_RGB.writeMultipleChars(pongChannel, charIdxs, 0, 0);
+				Grove_LCD_RGB.writeMultipleChars(pongChannel, charIdxs, 0, 0); //actually write the chars to the screen
 			}
 			
-			Grove_LCD_RGB.setCustomChar(pongChannel, 0, PongConstants.waveStates[waveState/4]);
+			Grove_LCD_RGB.setCustomChar(pongChannel, 0, PongConstants.waveStates[waveState/4]); // create waves
 			waveState = (waveState+1)%12;
 		
 			if(time - startTime >= PongConstants.TITLE_TIME){
 				Grove_LCD_RGB.clearDisplay(pongChannel);
 				drawPaddles();
-				gameState = GameState.playing;
+				gameState = GameState.score; //start playing
 			}
 			break;
+			
 		case playing:
 			if(ballCol >= PongConstants.RIGHT_LIMIT){
 				ballColDelta = -1;
-			}else if(ballCol <= PongConstants.LEFT_LIMIT){
-				ballColDelta = 1;
 			}
+			// bounce off the top and bottom
 			if(ballRow >= PongConstants.DOWN_LIMIT){
 				ballRowDelta = -1;
 			}else if(ballRow <= PongConstants.UP_LIMIT){
 				ballRowDelta = 1;
 			}
+			if(ballCol <=PongConstants.LEFT_LIMIT){
+				if(ballRow>=player1Loc-1 && ballRow<=player1Loc+3){
+					ballColDelta = 1;
+				}else{
+					gameState = GameState.score;
+					player1Score++;
+				}
+			}
 			ballRow += ballRowDelta;
 			ballCol += ballColDelta;
+			
 
 			//calculate ball character location
 			int oldBallRow = currentBallRow;
@@ -99,7 +112,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 			}
 			
 			//set chars to char maps
-			if(currentBallCol == PongConstants.PADDLE_1_COL){
+			if(currentBallCol == PongConstants.PADDLE_1_COL){ //if ball exists inside 
 				if(currentBallRow == 0){
 					Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_1_UP_CHAR, generateBallAndPaddleMap(ballCol, ballRow, player1Loc));
 					Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_1_DOWN_CHAR, generatePaddleMap(player1Loc-9));
@@ -120,13 +133,25 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 					Grove_LCD_RGB.writeChar(pongChannel, PongConstants.BALL_CHAR);
 			}
 			break;
+			
 		case score:
+			if(scoreTime == -1){
+				Grove_LCD_RGB.writeMultipleChars(pongChannel, (player1Score+"-"+player2Score).getBytes(), 11, 1);
+				scoreTime = time;
+			}
+			
+			int secondsLeft = (int) (3-(time-scoreTime)/1000);
+			Grove_LCD_RGB.writeMultipleChars(pongChannel, (""+secondsLeft).getBytes(), 6, 0);
+			
+			if(time-scoreTime>3000){
+				scoreTime = -1;
+				ballRow = 0;
+				ballCol = 7*6;
+				gameState = GameState.playing;
+			}
 			
 			break;
 		}
-		//motion of the ball
-		
-		
 	}
 
 	@Override

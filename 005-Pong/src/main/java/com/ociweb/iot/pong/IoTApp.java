@@ -14,7 +14,7 @@ public class IoTApp implements IoTSetup {
 		c.connectAnalog(AngleSensor, PongConstants.Player1Con);
 		//c.useConnectI2C(new UltrasonicRangerTwig(PongConstants.Player2Con));
 
-		c.setTriggerRate(100);
+		c.setTriggerRate(50);
 
 
 		//c.useConnectA(LightSensor, 1);

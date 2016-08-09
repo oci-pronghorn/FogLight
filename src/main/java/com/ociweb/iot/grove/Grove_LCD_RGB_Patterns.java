@@ -179,5 +179,29 @@ public class Grove_LCD_RGB_Patterns {
 			0b00000,
 			0b00000,	
 	};
-
+	
+	
+	//Patterns
+	
+	public static final byte[] dithered = {
+			0b10101,
+			0b01010,
+			0b10101,
+			0b01010,
+			0b10101,
+			0b01010,
+			0b10101,
+			0b01010
+	};
+	
+	public static final byte[] blocked = {
+			0b11111,
+			0b11111,
+			0b11111,
+			0b11111,
+			0b11111,
+			0b11111,
+			0b11111,
+			0b11111
+	};
 }

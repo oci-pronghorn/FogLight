@@ -25,14 +25,14 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 
-public class GroveV2PiImpl extends HardwareImpl {
+public class GrovePiHardwareImpl extends HardwareImpl {
 
-	private static final Logger logger = LoggerFactory.getLogger(GroveV2PiImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(GrovePiHardwareImpl.class);
 
 	private byte commandIndex = -1;
 
 
-	public GroveV2PiImpl(GraphManager gm, I2CBacking i2cBacking) {
+	public GrovePiHardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
 		super(gm, i2cBacking);
 	}
 
@@ -44,25 +44,20 @@ public class GroveV2PiImpl extends HardwareImpl {
 	}
 
 	@Override
-	public HardwareImpl connectAnalog(IODevice t, int connection) {
-		return connectAnalog(t,connection, t.response());
-	}
-
-	@Override
 	public HardwareImpl connectAnalog(IODevice t, int connection, int customRate) {
 	    super.connectAnalog(t, connection, customRate);
 		if(t.isGrove()){
 			if (t.isInput()) {
 				assert(!t.isOutput());
 				connection = GrovePiConstants.ANALOG_PIN_TO_REGISTER[connection];
-				byte[] temp = {0x01,0x03,(byte)connection,0x00,0x00};
-				byte[] setup = {0x01, 0x05, (byte)connection,0x00,0x00}; //TODO: make more readable
+				byte[] temp = {GrovePiConstants.START_BYTE,GrovePiConstants.ANALOG_READ,(byte)connection,0x00,0x00};
+				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.INPUT,0x00}; //TODO: make more readable
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,(byte)4,temp,(byte)3,connection, setup, customRate));
 			} else {
 				assert(t.isOutput());
 				assert(!t.isInput());
 				connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
-				byte[] setup = {0x01, 0x05, (byte)connection, 0x01, 0x00};
+				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.OUTPUT,0x00};
 				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection, setup, customRate));
 			}
 		}else{
@@ -103,11 +98,6 @@ public class GroveV2PiImpl extends HardwareImpl {
 	}
 
 	@Override
-	public HardwareImpl connectDigital(IODevice t, int connection) {
-		return connectDigital(t,connection,t.response());
-	}
-
-	@Override
 	public HardwareImpl connectDigital(IODevice t, int connection, int customRate) { //TODO: add customRate support
 	    super.connectDigital(t, connection, customRate);
 		if(t.isGrove()){
@@ -141,105 +131,60 @@ public class GroveV2PiImpl extends HardwareImpl {
 				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,(byte)4,null,0,connection,setup,customRate));
 			}
 		}else{
-			System.out.println("GPIO not currently supported");
+			throw new UnsupportedOperationException("GPIO not yet supported");
 		}
 		return this;
 	}  
 
+	@Override
 	public void coldSetup() {
 		//usedLines = buildUsedLines();
 		//GrovePiGPIO.ensureAllLinuxDevices(usedLines);
 	}
 
-	public void cleanup() {
-		//GrovePiGPIO.removeAllLinuxDevices(usedLines);
-	}
-
+	@Override
 	public void beginPinConfiguration() {
 		//super.beginPinConfiguration();        
 	}
 
+	@Override
 	public void endPinConfiguration() {
 		//super.endPinConfiguration();
 	}
 
+	@Override
 	public int digitalRead(int connector) { 
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("GPIO not yet supported");
 	}
 
-	//TODO: Since there's no ADC built into the Pi, we can only read HI or LO.
+	@Override
 	public int analogRead(int connector) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("Pi has no analog capabilities");
 	}
 
 
 	@Override
 	public void analogWrite(int connector, int value) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("Pi has no analog capabilities");
 	}
 
 	//Now using the JFFI stage
+	@Override
 	public void digitalWrite(int connector, int value) {
-		System.out.println("GPIO not currently supported on Pi");
-	}
-
-
-	static void findDup(HardwareConnection[] base, int baseLimit, HardwareConnection[] items, boolean mapAnalogs) {
-		int i = items.length;
-		while (--i>=0) {
-			int j = baseLimit;
-			while (--j>=0) {
-				//TODO: Will probably have undesired side effects.
-				//                if (mapAnalogs ? base[j].connection == GrovePiConstants.ANALOG_CONNECTOR_TO_PIN[items[i].connection] :  base[j]==items[i]) {
-				if (mapAnalogs ? false : base[j] == items[i]) {
-					throw new UnsupportedOperationException("Connector "+items[i]+" is assigned more than once.");
-				}
-			}
-		}     
+		throw new UnsupportedOperationException("GPIO not yet supported");
 	}
 	
 	@Override
 	public boolean hasI2CInputs() {
 		return super.hasI2CInputs()|super.hasDigitalOrAnalogInputs();
 	}
-	
-	public HardwareConnection[] buildUsedLines() {
 
-		HardwareConnection[] result = new HardwareConnection[digitalInputs.length+
-		                                             digitalOutputs.length+
-		                                             pwmOutputs.length+
-		                                             analogInputs.length+
-		                                             (configI2C?2:0)];
-
-		int pos = 0;
-		System.arraycopy(digitalInputs, 0, result, pos, digitalInputs.length);
-		pos+=digitalInputs.length;
-
-		findDup(result,pos,digitalOutputs, false);
-		System.arraycopy(digitalOutputs, 0, result, pos, digitalOutputs.length);
-		pos+=digitalOutputs.length;
-
-		findDup(result,pos,pwmOutputs, false);
-		System.arraycopy(pwmOutputs, 0, result, pos, pwmOutputs.length);
-		pos+=pwmOutputs.length;
-
-		if (configI2C) {
-			findDup(result,pos,GrovePiConstants.i2cPins, false);
-			System.arraycopy(GrovePiConstants.i2cPins, 0, result, pos, GrovePiConstants.i2cPins.length);
-			pos+=GrovePiConstants.i2cPins.length;
-		}
-
-		return result;
-	}
-
-	public boolean isListeningToI2C(Object listener) {
-		return listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener;
-	}
-
+	@Override
 	public boolean isListeningToPins(Object listener) {
 		return false;//TODO: we have no support for this yet
 	}
 
+	@Override
     public ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
         return new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, this); 
     }

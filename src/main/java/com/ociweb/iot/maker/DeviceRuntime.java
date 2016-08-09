@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
-import com.ociweb.iot.hardware.impl.grovepi.GroveV2PiImpl;
+import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -127,7 +127,7 @@ public class DeviceRuntime {
 	        } else {
 	        	i2cBacking = HardwareImpl.getI2CBacking(piI2C);
 	    	    if (null != i2cBacking) {
-	    	        this.hardware = new GroveV2PiImpl(gm, i2cBacking);
+	    	        this.hardware = new GrovePiHardwareImpl(gm, i2cBacking);
 	    	        System.out.println("Detected running on Pi");
 	    	    }
     	        else {

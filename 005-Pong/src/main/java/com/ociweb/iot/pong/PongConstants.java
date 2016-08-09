@@ -66,12 +66,4 @@ public class PongConstants {
 	};
 
 
-
-
-
-
-	//	public static byte[] generateLeftPaddle(int col, int row){
-	//		
-	//	}
-
 }

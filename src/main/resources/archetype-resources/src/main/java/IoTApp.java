@@ -14,13 +14,11 @@ public class IoTApp implements IoTSetup
     //Connection constants 
     ///////////////////////
     // // by using constants such as these you can easily use the right value to reference where the sensor was plugged in
-    
-    //private static final int ROTARY_A_CONNECTION = 1;
-    //private static final int ROTARY_B_CONNECTION = 2;    
+      
     //private static final int BUTTON_CONNECTION = 4;
+	//private static final int LED_CONNECTION = 5;
     //private static final int RELAY_CONNECTION = 6;
-    //private static final int LIGHT_SENSOR_CONNECTION = 2;
-    //private static final int LED_CONNECTION = 5;
+    //private static final int LIGHT_SENSOR_CONNECTION = 0;
        
     
     public static void main( String[] args ) {
@@ -35,12 +33,11 @@ public class IoTApp implements IoTSetup
         ///////////////////////////
         
         // // specify each of the connections on the harware, eg which component is plugged into which connection.        
-        
-        //c.useConnectDs(RotaryEncoder, ROTARY_A_CONNECTION, ROTARY_B_CONNECTION);        
-        //c.useConnectD(Button, BUTTON_CONNECTION); 
-        //c.useConnectD(Relay, RELAY_CONNECTION);         
-        //c.useConnectA(LightSensor, LIGHT_SENSOR_CONNECTION); 
-        //c.useConnectA(LED, LED_CONNECTION);        
+              
+        //c.connectDigital(Button, BUTTON_CONNECTION); 
+        //c.connectDigital(Relay, RELAY_CONNECTION);         
+        //c.connectAnalog(LightSensor, LIGHT_SENSOR_CONNECTION); 
+        //c.connectAnalog(LED, LED_CONNECTION);        
         //c.useI2C();
         
     }

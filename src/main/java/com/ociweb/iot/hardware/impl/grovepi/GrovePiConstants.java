@@ -13,6 +13,8 @@ import com.ociweb.iot.hardware.HardwareConnection;
  * @author Alex Herriott
  */
 public class GrovePiConstants {
+	
+	public static final byte BOARD_ADDR = 0x04;
     
     public static final byte START_BYTE = 0x01;
     public static final byte DIGITAL_READ = 0x01;

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -162,6 +163,38 @@ public class TestHardware extends HardwareImpl {
     public ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
         return new ReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
     }
+
+
+	@Override
+	protected void connectDigitalOutput(IODevice t, int connection, int customRate, int customAverageMS,
+			boolean everyValue) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	protected void connectDigitalInput(IODevice t, int connection, int customRate, int customAverageMS,
+			boolean everyValue) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	protected void connectAnalogOutput(IODevice t, int connection, int customRate, int customAverageMS,
+			boolean everyValue) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	protected void connectAnalogInput(IODevice t, int connection, int customRate, int customAverageMS,
+			boolean everyValue) {
+		// TODO Auto-generated method stub
+		
+	}
 
     
 }

@@ -110,7 +110,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		//configure each sensor
 
-		hardware.beginPinConfiguration();
+		//hardware.beginPinConfiguration();
 
 		int i;
 
@@ -135,7 +135,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 			         
 		}                   
 
-		hardware.endPinConfiguration(); //TODO: questionalble, should move else where.
+		//hardware.endPinConfiguration(); //TODO: questionalble, should move else where.
 
 		blockStartTime = hardware.nanoTime();//critical Pronghorn contract ensure this start is called by the same thread as run
 	}

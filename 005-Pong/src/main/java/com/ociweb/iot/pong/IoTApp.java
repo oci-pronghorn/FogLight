@@ -12,13 +12,14 @@ public class IoTApp implements IoTSetup {
 	public void declareConnections(Hardware c) {
 
 		c.connectAnalog(AngleSensor, PongConstants.Player1Con);
+		c.connectAnalog(AngleSensor, PongConstants.Player2Con);
 		//c.useConnectI2C(new UltrasonicRangerTwig(PongConstants.Player2Con));
 
 //		c.connectI2C(GroveLCDRGB)  TODO: begin logic goes here.
 //		c.useI2C();
 		
-		c.setTriggerRate(50);
-	//TOOD: 	c.startStateMachineWith(GameStage.???)
+		c.setTriggerRate(100);
+	//TODO: 	c.startStateMachineWith(GameStage.???)
 
 
 		//c.useConnectA(LightSensor, 1);

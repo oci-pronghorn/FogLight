@@ -74,6 +74,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		if (null!=this.schedule) {
 			assert(0==(this.schedule.commonClock%10)) : "must be divisible by 10";
 			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/10 , this); 
+		}else{
+			logger.info("Schedule is null");
 		}
 		
 		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);

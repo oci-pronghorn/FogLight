@@ -233,10 +233,40 @@ public abstract class HardwareImpl implements Hardware {
 		return this;
 	}  
 
-	protected abstract void connectDigitalOutput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue);
-	protected abstract void connectDigitalInput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue);
-	protected abstract void connectAnalogOutput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue);
-	protected abstract void connectAnalogInput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue);
+	protected void connectAnalogOutput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		if(customAverageMS > 0){
+			pwmOutputs = growHardwareConnections(pwmOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
+		}else{
+			pwmOutputs = growHardwareConnections(pwmOutputs, new HardwareConnection(t,connection, customRate));
+		}
+	}
+
+	protected void connectAnalogInput(IODevice t, int connection, int customRate, int customAverageMS,
+			boolean everyValue) {
+		if(customAverageMS > 0){
+			analogInputs = growHardwareConnections(analogInputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
+		}else{
+			analogInputs = growHardwareConnections(analogInputs, new HardwareConnection(t,connection, customRate));
+		}
+	}
+
+	protected void connectDigitalOutput(IODevice t, int connection, int customRate, int customAverageMS,
+			boolean everyValue) {
+		if(customAverageMS > 0){
+			digitalOutputs = growHardwareConnections(digitalOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
+		}else{
+			digitalOutputs = growHardwareConnections(digitalOutputs, new HardwareConnection(t,connection, customRate));
+		}
+	}
+
+	protected void connectDigitalInput(IODevice t, int connection, int customRate, int customAverageMS,
+			boolean everyValue) {
+		if(customAverageMS > 0){
+			digitalInputs = growHardwareConnections(digitalInputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
+		}else{
+			digitalInputs = growHardwareConnections(digitalInputs, new HardwareConnection(t,connection, customRate));
+		}
+	}
 
 	public Hardware connectI2C(IODevice t){ 
 		logger.debug("Connecting I2C Device "+t.getClass());
@@ -571,10 +601,12 @@ public abstract class HardwareImpl implements Hardware {
 
 	public ScriptedSchedule buildI2CPollSchedule() {
 		I2CConnection[] localInputs = getI2CInputs();
+		System.out.println(localInputs.length);
 		long[] schedulePeriods = new long[localInputs.length];
 		for (int i = 0; i < localInputs.length; i++) {
 			schedulePeriods[i] = localInputs[i].responseMS*MS_TO_NS;
 		}
+		logger.info(""+schedulePeriods.length);
 		System.out.println("known I2C rates: "+Arrays.toString(schedulePeriods));
 		return PMath.buildScriptedSchedule(schedulePeriods);
 

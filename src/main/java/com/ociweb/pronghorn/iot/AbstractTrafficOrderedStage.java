@@ -159,7 +159,6 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
     protected boolean processReleasedCommands(long timeout) {
    	
-    	
         boolean foundWork;
 		int[] localActiveCounts = activeCounts;
 		long timeLimit = hardware.currentTimeMillis()+timeout;

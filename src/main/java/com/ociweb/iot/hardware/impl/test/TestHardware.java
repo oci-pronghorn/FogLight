@@ -164,37 +164,5 @@ public class TestHardware extends HardwareImpl {
         return new ReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
     }
 
-
-	@Override
-	protected void connectDigitalOutput(IODevice t, int connection, int customRate, int customAverageMS,
-			boolean everyValue) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	protected void connectDigitalInput(IODevice t, int connection, int customRate, int customAverageMS,
-			boolean everyValue) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	protected void connectAnalogOutput(IODevice t, int connection, int customRate, int customAverageMS,
-			boolean everyValue) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	protected void connectAnalogInput(IODevice t, int connection, int customRate, int customAverageMS,
-			boolean everyValue) {
-		// TODO Auto-generated method stub
-		
-	}
-
     
 }

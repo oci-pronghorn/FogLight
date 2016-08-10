@@ -367,7 +367,7 @@ public abstract class HardwareImpl implements Hardware {
 	static final boolean debug = false;
 
 	public void shutdown() {
-		// TODO The caller would like to stop the operating system cold, need platform specific call?
+		//can be overridden by specific hardware impl if shutdown is supported.
 	}
 
 
@@ -390,77 +390,64 @@ public abstract class HardwareImpl implements Hardware {
 		assert(orderPipes.length == i2cPipes.length);
 		assert(orderPipes.length == requestPipes.length);
 
+		int eventSchemas = 3;
+		int commandChannelCount = orderPipes.length;
+		
+		int TYPE_PIN = 0;
+		int TYPE_I2C = 1;
+		int TYPE_MSG = 2;
+				
 
-		int t = orderPipes.length;
+		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][commandChannelCount];
+		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][commandChannelCount];
 
-		Pipe<TrafficReleaseSchema>[]          masterI2CgoOut = new Pipe[t];
-		Pipe<TrafficAckSchema>[]              masterI2CackIn = new Pipe[t]; 
+		long timeout = 20_000; //20 seconds
 
-		Pipe<TrafficReleaseSchema>[]          masterPINgoOut = new Pipe[t];
-		Pipe<TrafficAckSchema>[]              masterPINackIn = new Pipe[t]; 
-
-		Pipe<TrafficReleaseSchema>[]          masterMsggoOut = new Pipe[t];
-		Pipe<TrafficAckSchema>[]              masterMsgackIn = new Pipe[t]; 
-
-
-
+		int t = commandChannelCount;
 		while (--t>=0) {
 
-			Pipe<TrafficReleaseSchema> i2cGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
-			Pipe<TrafficReleaseSchema> pinGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
-			Pipe<TrafficReleaseSchema> msgGoPipe = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
-
-			Pipe<TrafficAckSchema> i2cAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
-			Pipe<TrafficAckSchema> pinAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
-			Pipe<TrafficAckSchema> msgAckPipe = new Pipe<TrafficAckSchema>(ackPipesConfig);
-
-			masterI2CgoOut[t] = i2cGoPipe;
-			masterI2CackIn[t] = i2cAckPipe;
-
-			masterPINgoOut[t] = pinGoPipe;
-			masterPINackIn[t] = pinAckPipe;            
-
-			masterMsggoOut[t] = msgGoPipe;
-			masterMsgackIn[t] = msgAckPipe;  
-
-			Pipe<TrafficReleaseSchema>[] goOut = new Pipe[]{pinGoPipe, i2cGoPipe, msgGoPipe};
-			Pipe<TrafficAckSchema>[] ackIn = new Pipe[]{pinAckPipe, i2cAckPipe, msgAckPipe};
-			long timeout = 20_000; //20 seconds
+			int p = eventSchemas;//major command requests that can come from commandChannels
+			Pipe<TrafficReleaseSchema>[] goOut = new Pipe[p];
+			Pipe<TrafficAckSchema>[] ackIn = new Pipe[p];
+			while (--p>=0) {
+				masterGoOut[p][t] = goOut[p] = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
+				masterAckIn[p][t] = ackIn[p]=new Pipe<TrafficAckSchema>(ackPipesConfig);								
+			}
+			
 			TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut);
 
 		}
 
-		createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
+		/////////
+		//always create the pub sub and state managment stage
+		/////////
+		createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterGoOut[TYPE_MSG], masterAckIn[TYPE_MSG], subscriptionPipes);
 
-		createADOutputStage(requestPipes, masterPINgoOut, masterPINackIn);
-
+		//////////////////
 		//only build and connect I2C if it is used for either in or out  
+		//////////////////
 		Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
 		if (i2cResponsePipes.length>0) {
 			masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
 			SplitterStage i2cResponseSplitter = new SplitterStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
 		}
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
-			createI2COutputInputStage(i2cPipes, masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);
+			createI2COutputInputStage(i2cPipes, masterGoOut[TYPE_I2C], masterAckIn[TYPE_I2C], masterI2CResponsePipe);
 		}
 
-		//only build and connect gpio responses if it is used
+		//////////////
+		//only build and connect gpio input responses if it is used
+		//////////////
 		if (responsePipes.length>0) {
-
-			if (!hasDigitalOrAnalogInputs()) {
-				//we have listeners but there are no inputs connected.
-
-				//TODO: must check even earlier to remove these.
-
-			}
-
 			Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
 			SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
 			createADInputStage(masterResponsePipe);
-
-
-
 		}
+		
+		///////////////
+		//must always create output stage 
+		///////////////
+		createADOutputStage(requestPipes, masterGoOut[TYPE_PIN], masterAckIn[TYPE_PIN]);
 
 	}
 

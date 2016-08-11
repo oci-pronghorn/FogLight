@@ -1,10 +1,7 @@
 package com.ociweb.pronghorn.iot.i2c;
 
 /**
- * Represents a generic backing for the GrovePi's I2C lines.
- *
- * TODO: This interface and all of the Grove Pi I2C code can be generified
- *       to work with any device and reduce code duplication.
+ * Represents a generic backing for embedded I2C communication.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */

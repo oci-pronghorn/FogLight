@@ -1,9 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ociweb.iot.archetype</groupId>
   <artifactId>PronghornIoT-Archetype</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>Archetype - PronghornIoT-Archetype</name>
   <url>http://maven.apache.org</url>
   
@@ -12,6 +11,7 @@
     <connection>scm:git:git://github.com/oci-pronghorn/PronghornIoT-Archetype.git</connection>
     <url>https://github.com/oci-pronghorn/PronghornIoT-Archetype</url>
     <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/PronghornIoT-Archetype.git</developerConnection>
+    <tag>PronghornIoT-Archetype-0.0.1</tag>
   </scm>
   
   <distributionManagement>

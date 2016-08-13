@@ -6,17 +6,21 @@
     <name>Pronghorn IoT</name>
     <artifactId>PronghornIoT</artifactId>
 
+    <properties>
+  		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+  
     <dependencies>
         <dependency>
             <groupId>com.ociweb</groupId>
             <artifactId>Pronghorn</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.7</version>
+            <version>1.7.12</version>
         </dependency>
 
         <dependency>
@@ -29,14 +33,37 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.8.1</version>
+            <version>4.12</version>
             <type>jar</type>
             <scope>test</scope>
             <optional>false</optional>
         </dependency>
     </dependencies>
 
+  <scm>
+    <connection>scm:git:git://github.com/oci-pronghorn/PronghornIoT.git</connection>
+    <url>https://github.com/oci-pronghorn/PronghornIoT</url>
+    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/PronghornIoT.git</developerConnection>
+  </scm>
+    
+  <distributionManagement>
+    <repository>
+      <id>cloudbees.release</id>
+      <url>dav:https://repository-pronghorn.forge.cloudbees.com/release</url>
+    </repository>
+  </distributionManagement>
+  
     <profiles>
+        <profile>
+	        <id>disable-java8-doclint</id>
+	        <activation>
+	            <jdk>[1.8,)</jdk>
+	        </activation>
+	        <properties>
+	            <additionalparam>-Xdoclint:none</additionalparam>
+	        </properties>
+	    </profile>
+	    
         <profile>
             <id>default</id>
             <activation>
@@ -60,27 +87,52 @@
             </build>
         </profile>
 
-        <!-- TODO: Temporary for testing JDK1.7 builds on the Pi. -->
-        <profile>
-            <id>jre7</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.2</version>
-                        <configuration>
-                            <source>1.7</source>
-                            <target>1.7</target>
-                            <encoding>UTF-8</encoding>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 
+  <repositories>
+    
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+      <id>repository-pronghorn.forge.cloudbees.com-snapshot</id>
+      <name>Snapshot Repo for Pronghorn</name>
+      <url>https://repository-pronghorn.forge.cloudbees.com/snapshot</url>
+      <layout>default</layout>
+    </repository>
+    
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>repository-pronghorn.forge.cloudbees.com-release</id>
+      <name>Release Repo for Pronghorn</name>
+      <url>https://repository-pronghorn.forge.cloudbees.com/release</url>
+      <layout>default</layout>
+    </repository>
+        
+  </repositories>
+  
     <build>
+    
+       <extensions>
+			<extension>
+			<groupId>org.apache.maven.wagon</groupId>
+			<artifactId>wagon-webdav-jackrabbit</artifactId>
+			<version>2.2</version>
+			</extension>
+  	   </extensions>
+    
         <plugins>
           <plugin>
 	        <groupId>org.apache.maven.plugins</groupId>
@@ -162,28 +214,5 @@
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </snapshots>
-            <id>repository-pronghorn.forge.cloudbees.com</id>
-            <name>Active Repo for Pronghorn</name>
-            <!-- Looking for the release jar? This project is under active development.
-                 Please consider getting involved and sponsoring the completion of Pronghorn.
-                 mailto:info@ociweb.com;?subject=Pronghorn%20Sponsor%20Inquiry
-             -->
-            <url>http://repository-pronghorn.forge.cloudbees.com/snapshot/</url>
-            <layout>default</layout>
-        </repository>
-        <repository>
-         <id>bukkit-repo</id>
-         <url>http://repo.bukkit.org/content/groups/public/</url>
-       </repository>
-    </repositories>
+
 </project>

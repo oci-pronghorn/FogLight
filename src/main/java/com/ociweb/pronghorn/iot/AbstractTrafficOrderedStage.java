@@ -61,7 +61,6 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	 * @param hardware
 	 * @param goPipe
 	 * @param ackPipe
-	 * @param ccToAdOut
 	 */
 	public AbstractTrafficOrderedStage(GraphManager graphManager, 
 			HardwareImpl hardware,

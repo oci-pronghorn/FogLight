@@ -218,7 +218,6 @@ public class Grove_LCD_RGB implements IODevice{
 	 * @param target CommandChannel to send command on
 	 * @param location location 0-7 to store the charmap in the LCD
 	 * @param charMap Array of 8 bytes. Each byte is a row. Least significant 5 bits determines values within row
-	 * @return
 	 */
 	public static boolean setCustomChar(CommandChannel target, int location,  byte charMap[]){
 		if (!target.i2cIsReady()) {
@@ -250,7 +249,6 @@ public class Grove_LCD_RGB implements IODevice{
 	 * @param characterIdx Index of the character
 	 * @param row TODO
 	 * @param col TODO
-	 * @return
 	 */
 	public static boolean writeChar(CommandChannel target, int characterIdx, int col, int row){
 		if (!target.i2cIsReady()) {

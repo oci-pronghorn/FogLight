@@ -396,6 +396,7 @@ public abstract class HardwareImpl implements Hardware {
 		int TYPE_PIN = 0;
 		int TYPE_I2C = 1;
 		int TYPE_MSG = 2;
+		int TYPE_NET = 3;
 				
 
 		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][commandChannelCount];
@@ -445,7 +446,7 @@ public abstract class HardwareImpl implements Hardware {
 		}
 		
 		///////////////
-		//must always create output stage 
+		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
 		///////////////
 		createADOutputStage(requestPipes, masterGoOut[TYPE_PIN], masterAckIn[TYPE_PIN]);
 
@@ -510,7 +511,6 @@ public abstract class HardwareImpl implements Hardware {
 
 	/**
 	 * access to system time.  This method is required so it can be monitored and simulated by unit tests.
-	 * @return
 	 */
 	public long currentTimeMillis() {
 		return System.currentTimeMillis();

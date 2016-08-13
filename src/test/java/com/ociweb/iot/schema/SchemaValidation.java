@@ -4,8 +4,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
@@ -13,12 +11,28 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
+import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
+import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
+import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class SchemaValidation {
 
     
+    @Test
+    public void messageNetRequestSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/NetRequest.xml", NetRequestSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(NetRequestSchema.instance));
+    }
+	
+    @Test
+    public void messageNetResponseSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/NetResponse.xml", NetResponseSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(NetResponseSchema.instance));
+    }
+	
     @Test
     public void messagePubSubSchemaFROMTest() {
         assertTrue(FROMValidation.testForMatchingFROMs("/MessagePubSub.xml", MessagePubSub.instance));

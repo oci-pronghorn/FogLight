@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+
+
+   <template name="HTTPGet" id="100">
+     <string name="URL" id="2" charset="unicode"/>
+   </template>
+   
+   <template name="HTTPPost" id="101">
+     <string name="URL" id="2" charset="unicode"/>
+     <byteVector name="Payload" id="3"/>
+   </template>   
+  
+      
+</templates>

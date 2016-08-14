@@ -6,6 +6,9 @@
   <name>Archetype - PronghornIoT-Archetype</name>
   <url>http://maven.apache.org</url>
   
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
   
   <scm>
     <connection>scm:git:git://github.com/oci-pronghorn/PronghornIoT-Archetype.git</connection>

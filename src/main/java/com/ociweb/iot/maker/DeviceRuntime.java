@@ -420,6 +420,9 @@ public class DeviceRuntime {
 
     public static DeviceRuntime test(IoTSetup app) {        
         DeviceRuntime runtime = new DeviceRuntime();
+        //force hardware to TestHardware regardless of where or what platform its run on.
+        //this is done because this is the test() method and must behave the same everywhere.
+        runtime.hardware = new TestHardware(runtime.gm);
         TestHardware hardware = (TestHardware)runtime.getHardware();
         hardware.isInUnitTest = true;
         try {

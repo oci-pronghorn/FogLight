@@ -19,7 +19,7 @@
     <dependency>
       <groupId>com.ociweb</groupId>
       <artifactId>PronghornIoT</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -41,6 +41,7 @@
     </dependency>
   </dependencies>
   <repositories>
+    
     <repository>
       <releases>
         <enabled>false</enabled>
@@ -50,10 +51,27 @@
         <updatePolicy>always</updatePolicy>
         <checksumPolicy>warn</checksumPolicy>
       </snapshots>
-      <id>repository-pronghorn.forge.cloudbees.com</id>
-      <name>Active Repo for Pronghorn</name>
-      <url>http://repository-pronghorn.forge.cloudbees.com/snapshot/</url>
+      <id>repository-pronghorn.forge.cloudbees.com-snapshot</id>
+      <name>Snapshot Repo for Pronghorn</name>
+      <url>https://repository-pronghorn.forge.cloudbees.com/snapshot</url>
+      <layout>default</layout>
     </repository>
+    
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>repository-pronghorn.forge.cloudbees.com-release</id>
+      <name>Release Repo for Pronghorn</name>
+      <url>https://repository-pronghorn.forge.cloudbees.com/release</url>
+      <layout>default</layout>
+    </repository>
+        
   </repositories>
   <build>
     <plugins>

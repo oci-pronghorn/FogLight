@@ -17,25 +17,38 @@
     </java.secure.socket.extension.classes>
    </properties>
   
-   <repositories>    
-	    <repository>
-	      <releases>
-	        <enabled>false</enabled>
-	      </releases>
-	      <snapshots>
-	        <enabled>true</enabled>
-	        <updatePolicy>always</updatePolicy>
-	        <checksumPolicy>warn</checksumPolicy>
-	      </snapshots>
-	      <id>repository-pronghorn.forge.cloudbees.com</id>
-	      <name>Active Repo for Pronghorn</name>
-	      <!-- Looking for the release jar? This project is under active development.
-	           Please consider getting involved and sponsoring the completion of Pronghorn.
-	           mailto:info@ociweb.com;?subject=Pronghorn%20Sponsor%20Inquiry
-	       -->
-	      <url>http://repository-pronghorn.forge.cloudbees.com/snapshot/</url>
-	      <layout>default</layout>
-	    </repository>
+  <repositories>
+    
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+      <id>repository-pronghorn.forge.cloudbees.com-snapshot</id>
+      <name>Snapshot Repo for Pronghorn</name>
+      <url>https://repository-pronghorn.forge.cloudbees.com/snapshot</url>
+      <layout>default</layout>
+    </repository>
+    
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>repository-pronghorn.forge.cloudbees.com-release</id>
+      <name>Release Repo for Pronghorn</name>
+      <url>https://repository-pronghorn.forge.cloudbees.com/release</url>
+      <layout>default</layout>
+    </repository>
+        
   </repositories>
   
   
@@ -43,7 +56,7 @@
   		<dependency>
 	  		<groupId>com.ociweb</groupId>
 	  		<artifactId>PronghornIoT</artifactId>
-	  		<version>0.0.1-SNAPSHOT</version>
+	  		<version>0.0.1</version>
     	</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

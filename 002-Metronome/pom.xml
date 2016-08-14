@@ -15,6 +15,7 @@
     <java.secure.socket.extension.classes>
       ${java.home}/lib/jsse.jar
     </java.secure.socket.extension.classes>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
    </properties>
   
   <repositories>

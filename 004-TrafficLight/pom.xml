@@ -20,7 +20,7 @@
     <dependency>
       <groupId>com.ociweb</groupId>
       <artifactId>PronghornIoT</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -88,6 +88,14 @@
         </configuration>
       </plugin>
       <plugin>
+	   <groupId>org.apache.maven.plugins</groupId>
+	   <artifactId>maven-jar-plugin</artifactId>
+	   <version>2.4</version>
+	   <configuration>
+	     <forceCreation>true</forceCreation>
+	   </configuration>
+ 	 </plugin>
+     <plugin>
         <artifactId>maven-source-plugin</artifactId>
         <version>2.4</version>
         <executions>
@@ -176,6 +184,8 @@
             <option>-keep class com.kenai.jffi.** { *; }</option>
             <option>-dontobfuscate</option>
             <option>-ignorewarnings</option>
+            <option>-dontnote</option>
+            <option>-dontwarn</option>
             <option>-optimizations code/allocation/</option>
           </options>
           <obfuscate>false</obfuscate>

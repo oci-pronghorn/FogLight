@@ -20,7 +20,7 @@
     <dependency>
       <groupId>com.ociweb</groupId>
       <artifactId>PronghornIoT</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -86,6 +86,14 @@
           <source>1.8</source>
           <target>1.8</target>
         </configuration>
+      </plugin>
+      <plugin>
+		   <groupId>org.apache.maven.plugins</groupId>
+		   <artifactId>maven-jar-plugin</artifactId>
+		   <version>2.4</version>
+		   <configuration>
+		     <forceCreation>true</forceCreation>
+		   </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-source-plugin</artifactId>

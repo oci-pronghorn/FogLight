@@ -117,7 +117,7 @@ public class TestHardware extends HardwareImpl {
         if (0==firstTime[connector]) {
             firstTime[connector]=lastProvidedTime;
         }
-        logger.info("digital connection {} set to {} at {}",connector,value,lastProvidedTime);
+        logger.debug("digital connection {} set to {} at {}",connector,value,lastProvidedTime);
     }
 
     @Override
@@ -128,7 +128,7 @@ public class TestHardware extends HardwareImpl {
         if (0==firstTime[connector]) {
             firstTime[connector]=lastProvidedTime;
         }        
-        logger.info("analog connection {} set to {} at {}",connector,value,lastProvidedTime);
+        logger.debug("analog connection {} set to {} at {}",connector,value,lastProvidedTime);
     }
     
     @Override

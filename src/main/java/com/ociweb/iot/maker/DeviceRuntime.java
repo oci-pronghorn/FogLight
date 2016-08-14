@@ -348,9 +348,9 @@ public class DeviceRuntime {
                    
                    Object rate = GraphManager.getNota(gm, i, GraphManager.SCHEDULE_RATE, null);
                    if (null == rate) {
-                       logger.info("{} is running without breaks",s);
+                       logger.debug("{} is running without breaks",s);
                    } else  {
-                       logger.info("{} is running at rate of {}",s,rate);
+                       logger.debug("{} is running at rate of {}",s,rate);
                    }
                }
                

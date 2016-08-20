@@ -2,14 +2,12 @@
  * blinkerChannel is a CommandChannel created to transport data. 
  * Data is published to the channel. When  the blinkerChannel is
  * subscribed to the channel, the published data can also be accessed 
- * by playload.writeInt()from the channel.
+ * by playload.writeBoolean()from the channel.
  * <p>
  * Lambda expressions are introduced in Java 8 to facilitate functional 
  * programming. A Lambda expression is usually written using syntax 
  * (argument) -> (body). 
  * <p>
- * The writeInt( 1==value ? 0 : 1 ).publish() allows the data to alternate
- * between 0 and 1
  */
 
 

@@ -103,12 +103,13 @@ public class TrafficCopStage extends PronghornStage {
             }
             assert(goPendingOnPipe!=-1);
             
-            //check if following messages can be merged to the current release message, if its a release for the same pipe as the current active
-            while ((Pipe.peekInt(primaryIn, 2)==goPendingOnPipe) && PipeReader.tryReadFragment(primaryIn)) {
-            	assert(PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11) == ackExpectedOn);
-            	goPendingOnPipeCount += PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12);
-            	PipeReader.releaseReadLock(primaryIn); 
-            }
+            //TODO: fix this is stopping metronome in releaes code.
+//            //check if following messages can be merged to the current release message, if its a release for the same pipe as the current active
+//            while ((Pipe.peekInt(primaryIn, 2)==goPendingOnPipe) && PipeReader.tryReadFragment(primaryIn)) {
+//            	assert(PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11) == ackExpectedOn);
+//            	goPendingOnPipeCount += PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12);
+//            	PipeReader.releaseReadLock(primaryIn); 
+//            }
             
             /////////////////////////////////////////////////////////
             //check third for room to send the pending go release message

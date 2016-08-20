@@ -70,14 +70,14 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		if (this.hardware.hasI2CInputs()) {			
 			this.schedule = this.hardware.buildI2CPollSchedule();    		
 		} else {
-			logger.warn("skipped buildI2CPollSchedule has no i2c inputs" );
+			logger.debug("skipped buildI2CPollSchedule has no i2c inputs" );
 		}
 
 		if (null!=this.schedule) {
 			assert(0==(this.schedule.commonClock%10)) : "must be divisible by 10";
 			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/10 , this); 
 		}else{
-			logger.info("Schedule is null");
+			logger.debug("Schedule is null");
 		}
 		
 		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);

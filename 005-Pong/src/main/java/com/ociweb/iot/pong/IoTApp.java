@@ -5,14 +5,15 @@ import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
+import static com.ociweb.iot.maker.Port.*;
 
 
 public class IoTApp implements IoTSetup {
 
 	public void declareConnections(Hardware c) {
 
-		c.connectAnalog(AngleSensor, PongConstants.Player1Con);
-		c.connectAnalog(AngleSensor, PongConstants.Player2Con);
+		c.connect(AngleSensor, PongConstants.Player1Con);
+		c.connect(AngleSensor, PongConstants.Player2Con);
 		//c.useConnectI2C(new UltrasonicRangerTwig(PongConstants.Player2Con));
 
 //		c.connectI2C(GroveLCDRGB)  TODO: begin logic goes here.

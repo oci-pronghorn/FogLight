@@ -27,8 +27,8 @@ public class AppTest {
 	    	
 	    	hardware.clearI2CWriteCount();
 	    	
-	    	hardware.analogWrite(IoTApp.ANGLE_SENSOR_CONNECTION, 512);
-	    	hardware.analogWrite(IoTApp.LIGHT_SENSOR_CONNECTION, 300);
+	    	hardware.write(IoTApp.ANGLE_SENSOR_PORT, 512);
+	    	hardware.write(IoTApp.LIGHT_SENSOR_PORT, 300);
 	    	
 	    	
 	    	

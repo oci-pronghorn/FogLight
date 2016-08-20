@@ -14,10 +14,13 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements IoTSetup
 {
-	private static final int BUTTON_CONNECTION = 4; //long press clear, short press start/top
+	public static final Port BUTTON_CONNECTION = D3; //long press clear, short press start/top
 	
 	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 	
@@ -34,7 +37,7 @@ public class IoTApp implements IoTSetup
         
     @Override
     public void declareConnections(Hardware c) {
-    	c.connectDigital(Button, BUTTON_CONNECTION);
+    	c.connect(Button, BUTTON_CONNECTION);
     	c.useI2C();
     	c.setTriggerRate(50);
     }

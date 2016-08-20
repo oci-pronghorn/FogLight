@@ -7,18 +7,23 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.maker.Port.*;
 
 
 public class IoTApp implements IoTSetup {
            
+	public static Port LED_PORT = D4;
+	
     public static void main( String[] args) {
         DeviceRuntime.run(new IoTApp());
     }    
     
     @Override
     public void declareConnections(Hardware hardware) {
-        hardware.connectDigital(LED, 5);
-        hardware.connectDigital(Button, 6);
+        hardware.connect(LED, LED_PORT);
+        hardware.connect(Button, D3);
     }
 
     @Override
@@ -28,7 +33,7 @@ public class IoTApp implements IoTSetup {
         
         runtime.addDigitalListener((connection,time,durationMillis, value)->{
         	
-            ledChannel.digitalSetValue(5,value);
+            ledChannel.setValue(LED_PORT,value);
         	        	
         });
               

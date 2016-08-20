@@ -7,11 +7,14 @@ import static com.ociweb.iot.grove.GroveTwig.Buzzer;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements IoTSetup {
     
-    public static final int ROTARY_ANGLE_CONNECTION = 1;
-    public static final int BUZZER_CONNECTION = 2;    
+    public static final Port ROTARY_ANGLE_PORT = A1;
+    public static final Port BUZZER_PORT = D2;    
     
     public static void main( String[] args ) {
         DeviceRuntime.run(new IoTApp());
@@ -20,8 +23,8 @@ public class IoTApp implements IoTSetup {
     
     @Override
     public void declareConnections(Hardware c) {
-        c.connectDigital(Buzzer, BUZZER_CONNECTION); //could use relay or LED instead of buzzer if desired
-        c.connectAnalog(AngleSensor, ROTARY_ANGLE_CONNECTION, 100);
+        c.connect(Buzzer, BUZZER_PORT); //could use relay or LED instead of buzzer if desired
+        c.connect(AngleSensor, ROTARY_ANGLE_PORT, 100);
         c.useI2C();
         c.setTriggerRate(200);
     }

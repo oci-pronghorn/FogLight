@@ -6,6 +6,7 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.PayloadReader;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.iot.maker.TimeListener;
@@ -75,7 +76,10 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
 
     //we will talk about override
     @Override
-    public void analogEvent(int connector, long time, long durationMillis, int average, int value) {  	    
+    public void analogEvent(Port port, long time, long durationMillis, int average, int value) {  
+    	
+    	System.out.println("xxx event "+time+"  "+port+" "+value);
+    	
     	requestedPBM=  BBM_SLOWEST + ((BBM_VALUES*average)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation  
         requestDuration = durationMillis;    
     }    
@@ -94,8 +98,8 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
                                     
             long delta = (++beatIdx*60_000)/activeBPM;//will multiple the pre incremental value if do after 
             long until = base + delta;
-            tickCommandChannel.digitalPulse(IoTApp.BUZZER_CONNECTION,500_000);     
-            tickCommandChannel.blockUntil(IoTApp.BUZZER_CONNECTION, until); //mark connection as blocked until
+            tickCommandChannel.digitalPulse(IoTApp.BUZZER_PORT,500_000);     
+            tickCommandChannel.blockUntil(IoTApp.BUZZER_PORT, until); //mark connection as blocked until
             
 
             if (beatIdx==activeBPM) {

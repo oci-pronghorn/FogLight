@@ -9,7 +9,8 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
-
+import com.ociweb.iot.maker.Port;
+import static com.ociweb.iot.maker.Port.*;
 
 /**
  * As it gets dark the back light of the LCD comes on.
@@ -18,8 +19,8 @@ import com.ociweb.iot.maker.IoTSetup;
 
 public class IoTApp implements IoTSetup
 {
-	public static final int LIGHT_SENSOR_CONNECTION = 2;
-	public static final int ANGLE_SENSOR_CONNECTION = 1;
+	public static final Port LIGHT_SENSOR_PORT = A2;
+	public static final Port ANGLE_SENSOR_PORT = A1;
 	    
 	int brightness = 255;
 	
@@ -31,8 +32,8 @@ public class IoTApp implements IoTSetup
     @Override
     public void declareConnections(Hardware c) {
     	
-    	c.connectAnalog(LightSensor, LIGHT_SENSOR_CONNECTION);
-    	c.connectAnalog(AngleSensor, ANGLE_SENSOR_CONNECTION);
+    	c.connect(LightSensor, LIGHT_SENSOR_PORT);
+    	c.connect(AngleSensor, ANGLE_SENSOR_PORT);
     	c.useI2C();
     }
 
@@ -43,13 +44,10 @@ public class IoTApp implements IoTSetup
     	
     	
     	final CommandChannel lcdScreenChannel = runtime.newCommandChannel();
-    	runtime.addAnalogListener((connection, time, durationMillis, average, value)->{
+    	runtime.addAnalogListener((port, time, durationMillis, average, value)->{
  
-    	    
-    	    System.out.println("connection "+connection+" value "+value);
-    	    
-    		switch(connection) {
-	    		case LIGHT_SENSOR_CONNECTION:
+    		switch(port) {
+	    		case A2: assert(port == LIGHT_SENSOR_PORT);
 	    			
 	    			int leadingZeros =  Integer.numberOfLeadingZeros(value)- (32-10); //value is only 10 bits max
 
@@ -59,7 +57,7 @@ public class IoTApp implements IoTSetup
 	    				    			
 	    			break;
 	    		
-	    		case ANGLE_SENSOR_CONNECTION:
+	    		case A1: assert(port == ANGLE_SENSOR_PORT);
 	    			
 	    		    brightness = ((AngleSensor.range()/2) * value)/AngleSensor.range();    	
 	    			

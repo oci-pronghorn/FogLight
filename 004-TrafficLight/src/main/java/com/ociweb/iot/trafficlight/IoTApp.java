@@ -8,12 +8,13 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
-
+import com.ociweb.iot.maker.Port;
+import static com.ociweb.iot.maker.Port.*;
 public class IoTApp implements IoTSetup
 {
-	private static final int LED3_CONNECTION = 3;
-	private static final int LED_CONNECTION = 5;
-	private static final int LED2_CONNECTION = 6;
+	private static final Port LED3_PORT = D3;
+	private static final Port LED1_PORT = D7;
+	private static final Port LED2_PORT = D8;
 	private static long prevTime =0;
 	private enum State {
 		REDLIGHT(1200), GREENLIGHT(1000),YELLOWLIGHT(200);
@@ -31,9 +32,9 @@ public class IoTApp implements IoTSetup
     
     @Override
     public void declareConnections(Hardware c) {
-		c.connectDigital(LED, LED_CONNECTION);
-		c.connectDigital(LED, LED2_CONNECTION);
-		c.connectDigital(LED, LED3_CONNECTION);
+		c.connect(LED, LED1_PORT);
+		c.connect(LED, LED2_PORT);
+		c.connect(LED, LED3_PORT);
 		c.setTriggerRate(500);
 		c.useI2C();
         
@@ -52,9 +53,9 @@ public class IoTApp implements IoTSetup
 
 			switch(state){
 			case YELLOWLIGHT:
-				channel1.digitalSetValue(6, 0);
-				channel1.digitalSetValue(5, 1);
-				channel1.digitalSetValue(3, 0);
+				channel1.setValue(LED1_PORT, 0);
+				channel1.setValue(LED2_PORT, 1);
+				channel1.setValue(LED3_PORT, 0);
 				Grove_LCD_RGB.commandForTextAndColor(channellcd,"YELLOW", 255, 255, 0);
 				if(time-prevTime>=state.getTime()){
 					state = State.REDLIGHT;
@@ -62,9 +63,9 @@ public class IoTApp implements IoTSetup
 				}
 				break;
 			case REDLIGHT:
-				channel1.digitalSetValue(6, 1);
-				channel1.digitalSetValue(5, 0);
-				channel1.digitalSetValue(3, 0);
+				channel1.setValue(LED1_PORT, 1);
+				channel1.setValue(LED2_PORT, 0);
+				channel1.setValue(LED3_PORT, 0);
 				Grove_LCD_RGB.commandForTextAndColor(channellcd, "RED", 255, 0, 0);
 				if(time-prevTime>=state.getTime()){
 					state = State.GREENLIGHT;
@@ -72,9 +73,9 @@ public class IoTApp implements IoTSetup
 				}
 				break;
 			case GREENLIGHT:
-				channel1.digitalSetValue(6, 0);
-				channel1.digitalSetValue(5, 0);
-				channel1.digitalSetValue(3, 1);
+				channel1.setValue(LED1_PORT, 0);
+				channel1.setValue(LED2_PORT, 0);
+				channel1.setValue(LED3_PORT, 1);
 				Grove_LCD_RGB.commandForTextAndColor(channellcd, "GREEN",0, 255, 0);
 				if(time-prevTime>=state.getTime()){
 					state = State.YELLOWLIGHT;

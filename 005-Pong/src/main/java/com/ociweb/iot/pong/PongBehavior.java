@@ -3,6 +3,7 @@ package com.ociweb.iot.pong;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.iot.maker.StateChangeListener;
 import com.ociweb.iot.maker.TimeListener;
@@ -197,10 +198,10 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 
 	
 	@Override
-	public void analogEvent(int connector, long time, long durationMillis, int average, int value) {
-		if(connector == PongConstants.Player1Con){
+	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
+		if(port == PongConstants.Player1Con){
 			player1Loc = (value-4)/68; //maps 1024 to 0-15
-		}else if(connector == PongConstants.Player2Con){
+		}else if(port == PongConstants.Player2Con){
 			player2Loc = (value-4)/68;
 		}
 	}

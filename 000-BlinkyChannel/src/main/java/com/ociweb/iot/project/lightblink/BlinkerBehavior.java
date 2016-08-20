@@ -18,7 +18,7 @@ public class BlinkerBehavior implements TimeListener {
 	public void timeEvent(long arg0) {
 		
 		//keep adding commands if more can be accepted
-		while (commandChannel.digitalSetValueAndBlock(IoTApp.LED_CONNECTION, state, PAUSE)) {
+		while (commandChannel.setValueAndBlock(IoTApp.LED_PORT, state, PAUSE)) {
    		 	state = (1==state ? 0 : 1);
    	    }   	
 		

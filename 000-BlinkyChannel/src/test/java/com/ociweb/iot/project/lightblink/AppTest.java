@@ -36,10 +36,10 @@ public class AppTest {
     		
     		scheduler.run();
     		
-    		long time = hardware.getLastTime(IoTApp.LED_CONNECTION);
+    		long time = hardware.getLastTime(IoTApp.LED_PORT);
     		if (0!=time) {
     			iterations--;
-    			assertEquals(expected, hardware.digitalRead(IoTApp.LED_CONNECTION));
+    			assertEquals(expected, hardware.read(IoTApp.LED_PORT));
     			expected = 1&(expected+1);
     			
     			if (0!=lastTime) {

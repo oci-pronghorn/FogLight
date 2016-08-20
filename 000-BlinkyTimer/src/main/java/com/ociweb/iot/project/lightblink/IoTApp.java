@@ -6,19 +6,23 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements IoTSetup {
     
-    static final int LED_CONNECTION = 5;
     private static final int PAUSE = 500;
            
+    public static final Port LED_PORT = D4;
+    
     public static void main( String[] args) {
         DeviceRuntime.run(new IoTApp());
     }    
     
     @Override
     public void declareConnections(Hardware c) {
-        c.connectDigital(LED, LED_CONNECTION);
+        c.connect(LED, LED_PORT);
         c.setTriggerRate(PAUSE*2);
     }
 
@@ -29,8 +33,8 @@ public class IoTApp implements IoTSetup {
         
         runtime.addTimeListener((time)->{
         	
-        	blinkerChannel.digitalSetValueAndBlock(LED_CONNECTION, 1, PAUSE);
-        	blinkerChannel.digitalSetValue(LED_CONNECTION, 0);
+        	blinkerChannel.setValueAndBlock(LED_PORT, 1, PAUSE);
+        	blinkerChannel.setValue(LED_PORT, 0);
         	        	
         });
               

@@ -37,7 +37,7 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	@Override
 	public void message(CharSequence topic, PayloadReader payload) {
 		 int value = payload.readInt();
-         blinkerChannel.digitalSetValueAndBlock(IoTApp.LED_CONNECTION, value, PAUSE);               
+         blinkerChannel.setValueAndBlock(IoTApp.LED_PORT, value, PAUSE);               
          blinkerChannel.openTopic(TOPIC).writeInt( 1==value ? 0 : 1 ).publish();
     }
 

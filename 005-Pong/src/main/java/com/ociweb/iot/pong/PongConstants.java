@@ -1,11 +1,13 @@
 package com.ociweb.iot.pong;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB_Patterns;
+import com.ociweb.iot.maker.Port;
+import static com.ociweb.iot.maker.Port.*;
 
 public class PongConstants {
 
-	public static final int Player1Con = 1;
-	public static final int Player2Con = 2;
+	public static final Port Player1Con = A1;
+	public static final Port Player2Con = A2;
 
 	public static final int PADDLE_1_COL = 1;
 	public static final int PADDLE_2_COL = 8;

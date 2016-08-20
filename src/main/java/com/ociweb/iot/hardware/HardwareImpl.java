@@ -16,6 +16,7 @@ import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.TrafficCopStage;
@@ -229,10 +230,8 @@ public abstract class HardwareImpl implements Hardware {
 		return timeTriggerRate;
 	}
 
-	public abstract int digitalRead(int connector); //Platform specific
-	public abstract int analogRead(int connector); //Platform specific
-	public abstract void digitalWrite(int connector, int value); //Platform specific
-	public abstract void analogWrite(int connector, int value); //Platform specific
+	public abstract int read(Port port); //Platform specific
+	public abstract void write(Port port, int value); //Platform specific
 	public abstract ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes);
 
 	public int maxAnalogMovingAverage() {
@@ -572,5 +571,55 @@ public abstract class HardwareImpl implements Hardware {
 		return connection;
 	}
 
+	
+
+	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
+		
+		if (0 != (port.mask&Port.IS_ANALOG)) {
+			return internalConnectAnalog(t, port.port, customRateMS, customAvgWindowMS, everyValue);			
+		}
+		
+		if (0 != (port.mask&Port.IS_DIGITAL)) {
+			return internalConnectDigital(t, port.port, customRateMS, customAvgWindowMS, everyValue);			
+		}
+		
+		return this;
+	}
+
+	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS) {
+		
+		if (0 != (port.mask&Port.IS_ANALOG)) {
+			return internalConnectAnalog(t, port.port, customRateMS, customAvgWindowMS, false);			
+		}
+		
+		if (0 != (port.mask&Port.IS_DIGITAL)) {
+			return internalConnectDigital(t, port.port, customRateMS, customAvgWindowMS, false);			
+		}
+		
+		return this;
+	}
+
+	public Hardware connect(IODevice t, Port port, int customRateMS) {
+		
+		if (port.isAnalog()) {
+			return internalConnectAnalog(t, port.port, customRateMS, -1, false);			
+		} else {
+			return internalConnectDigital(t, port.port, customRateMS, -1, false);			
+		}
+		
+	}
+	
+	public Hardware connect(IODevice t, Port port) {
+		
+		if (0 != (port.mask&Port.IS_ANALOG)) {
+			return internalConnectAnalog(t, port.port, -1, -1, false);			
+		}
+		
+		if (0 != (port.mask&Port.IS_DIGITAL)) {
+			return internalConnectDigital(t, port.port, -1, -1, false);			
+		}
+		
+		return this;
+	}
 
 }

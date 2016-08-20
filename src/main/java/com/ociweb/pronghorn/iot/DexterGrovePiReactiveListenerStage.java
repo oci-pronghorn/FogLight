@@ -9,6 +9,7 @@ import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -48,7 +49,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 				int connector = GrovePiConstants.REGISTER_TO_PORT[register];
 				assert(connector!=-1);
 
-				commonDigitalEventProcessing(connector, time,tempValue, (DigitalListener)listener);
+				commonDigitalEventProcessing(Port.DIGITALS[connector], time,tempValue, (DigitalListener)listener);
 
 			}
 			else if(listener instanceof AnalogListener && addr==4 && length==3){
@@ -68,13 +69,13 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 					if (tempValue<0) {
 						logger.error("connection {} bad i2c result array [{}, {}, {}] ",connector,backing[(position+0)&mask],backing[(position+1)&mask],backing[(position+2)&mask]);
 					} else {						
-						commonAnalogEventProcessing(connector, time, tempValue, (AnalogListener)listener);
+						commonAnalogEventProcessing(Port.ANALOGS[connector], time, tempValue, (AnalogListener)listener);
 					}
 				}
 			}else if(listener instanceof RotaryListener && addr==4 && length==2){
 				byte[] tempArray = {backing[(position+0)&mask], backing[(position+1)&mask]};
 				int tempValue = (((int)tempArray[0])<<8) | (0xFF&((int)tempArray[1]));
-				((RotaryListener)listener).rotaryEvent(register, time, tempValue, 0, 0);
+				((RotaryListener)listener).rotaryEvent(Port.DIGITALS[register], time, tempValue, 0, 0);
 			} else if (listener instanceof I2CListener){ //must be last so we only do this if one of the more specific conditions were not met first.
 				super.commonI2CEventProcessing((I2CListener)listener, addr, register, time, backing, position, length, mask);;
 				logger.debug("Creating I2C event");

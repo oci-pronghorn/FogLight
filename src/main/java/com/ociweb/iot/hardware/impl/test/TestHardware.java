@@ -11,6 +11,7 @@ import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -20,6 +21,8 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
+
+import static com.ociweb.iot.maker.Port.*;
 
 public class TestHardware extends HardwareImpl {
 
@@ -87,51 +90,35 @@ public class TestHardware extends HardwareImpl {
         Arrays.fill(lastTime, 0);
     }
     
-    public int getCapturedHigh(int connector) {
-        return pinHighValues[connector];
+    public int getCapturedHigh(Port port) {
+        return pinHighValues[port.port];
     }    
     
-    public long getFirstTime(int connector) {
-        return firstTime[connector];
+    public long getFirstTime(Port  port) {
+        return firstTime[port.port];
     }    
     
-    public long getLastTime(int connector) {
-        return lastTime[connector];
+    public long getLastTime(Port port) {
+        return lastTime[port.port];
     }  
     
     @Override
-    public int digitalRead(int connector) {
-        return pinData[connector];
+    public int read(Port port) {
+        return pinData[port.port] + (port.isAnalog() ? (Math.random()<.1 ? 1 : 0) : 0); //adding noise for analog values
     }
 
-    @Override
-    public int analogRead(int connector) {
-    	int noise = Math.random()<.1 ? 1 : 0;
-    	
-        return pinData[connector] + noise;
-    }
 
     @Override
-    public void digitalWrite(int connector, int value) {
-        pinHighValues[connector] = Math.max(pinHighValues[connector], value);
-        pinData[connector]=value;
-        lastTime[connector] = lastProvidedTime;
-        if (0==firstTime[connector]) {
-            firstTime[connector]=lastProvidedTime;
+    public void write(Port port, int value) {
+        pinHighValues[port.port] = Math.max(pinHighValues[port.port], value);
+        pinData[port.port]=value;
+        lastTime[port.port] = lastProvidedTime;
+        if (0==firstTime[port.port]) {
+            firstTime[port.port]=lastProvidedTime;
         }
-        logger.debug("digital connection {} set to {} at {}",connector,value,lastProvidedTime);
+        logger.debug("port {} set to {} at {}",port,value,lastProvidedTime);
     }
 
-    @Override
-    public void analogWrite(int connector, int value) {
-        pinHighValues[connector] = Math.max(pinHighValues[connector], value);
-        pinData[connector]=value;
-        lastTime[connector] = lastProvidedTime;
-        if (0==firstTime[connector]) {
-            firstTime[connector]=lastProvidedTime;
-        }        
-        logger.debug("analog connection {} set to {} at {}",connector,value,lastProvidedTime);
-    }
     
     @Override
     public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {    
@@ -166,44 +153,5 @@ public class TestHardware extends HardwareImpl {
         return new ReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
     }
 
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection) {
-		return internalConnectAnalog(t, connection, -1, -1, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
-		return internalConnectAnalog(t, connection, customRate, -1, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
-		return internalConnectAnalog(t, connection, customRate, customAverageMS, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		return internalConnectAnalog(t, connection, customRate, customAverageMS, everyValue);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection) {
-		return internalConnectDigital(t, connection, -1, -1, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate) {
-		return internalConnectDigital(t, connection, customRate, -1, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
-		return internalConnectDigital(t, connection, customRate, customAverageMS, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS,	boolean everyValue) {
-		return internalConnectDigital(t, connection, customRate, customAverageMS, everyValue);
-	}
     
 }

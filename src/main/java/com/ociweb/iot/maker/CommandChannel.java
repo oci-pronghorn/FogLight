@@ -1,10 +1,8 @@
 package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.MessagePubSubStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
@@ -14,6 +12,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Pool;
+import static com.ociweb.iot.maker.Port.*;
 
 public abstract class CommandChannel {
 
@@ -89,16 +88,16 @@ public abstract class CommandChannel {
     }
     
     public abstract boolean block(long msDuration);
-    public abstract boolean digitalBlock(int connector, long durationMilli);
-    public abstract boolean analogBlock(int connector, long durationMilli);
     
-    public abstract boolean blockUntil(int connector, long time);
-    public abstract boolean digitalSetValue(int connector, int value);
-    public abstract boolean digitalSetValueAndBlock(int connector, int value, long durationMilli);
-    public abstract boolean digitalPulse(int connector);
-    public abstract boolean digitalPulse(int connector, long durationNanos);
-    public abstract boolean analogSetValue(int connector, int value);
-    public abstract boolean analogSetValueAndBlock(int connector, int value, long durationMilli);
+    public abstract boolean block(Port port, long durationMilli);
+    
+    public abstract boolean blockUntil(Port port, long time);
+    
+    public abstract boolean setValue(Port port, int value);
+    public abstract boolean setValueAndBlock(Port port, int value, long durationMilli);
+    
+    public abstract boolean digitalPulse(Port port);
+    public abstract boolean digitalPulse(Port port, long durationNanos);
 
     public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";

@@ -13,6 +13,7 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
@@ -46,24 +47,13 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	} 
     
 	@Override
-	public int digitalRead(int connector) { 
+	public int read(Port port) { 
 		throw new UnsupportedOperationException("GPIO not yet supported");
 	}
 
-	@Override
-	public int analogRead(int connector) {
-		throw new UnsupportedOperationException("Pi has no analog capabilities");
-	}
-
 
 	@Override
-	public void analogWrite(int connector, int value) {
-		throw new UnsupportedOperationException("Pi has no analog capabilities");
-	}
-
-	//Now using the JFFI stage
-	@Override
-	public void digitalWrite(int connector, int value) {
+	public void write(Port port, int value) {
 		throw new UnsupportedOperationException("GPIO not yet supported");
 	}
 	
@@ -144,46 +134,6 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		return (byte)GrovePiConstants.REGISTER_TO_PORT[connection];
 	}
 	
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection) {
-		return internalConnectAnalog(t, connection, t.response(), -1, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
-		return internalConnectAnalog(t, connection, customRate, -1, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
-		return internalConnectAnalog(t, connection, customRate, customAverageMS, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		return internalConnectAnalog(t, connection, customRate, customAverageMS, everyValue);
-	}
-
-	
-	@Override
-	public Hardware connectDigital(IODevice t, int connection) {
-		return internalConnectDigital(t, connection, t.response(), -1, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate) {
-		return internalConnectDigital(t, connection, customRate, -1, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
-		return internalConnectDigital(t, connection, customRate, customAverageMS, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS,	boolean everyValue) {
-		return internalConnectDigital(t, connection, customRate, customAverageMS, everyValue);
-	}
 
 }
 

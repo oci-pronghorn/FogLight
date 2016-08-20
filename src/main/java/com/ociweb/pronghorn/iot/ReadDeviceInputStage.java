@@ -8,6 +8,7 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.Util;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -174,16 +175,16 @@ public class ReadDeviceInputStage extends PronghornStage {
 				if (hc.twig.pinsUsed()>1) {
 					//rotary encoder
 					//low level write
-					readRotaryEncoder(connector, connector, hardware.currentTimeMillis()); //TODO: hack for now, needs more testing.
+					readRotaryEncoder(connector, Port.DIGITALS[connector], hardware.currentTimeMillis()); //TODO: hack for now, needs more testing.
 				} else if (1==hc.twig.range()) {
 					//digital read
-					int fieldValue = hardware.digitalRead(connector);
+					int fieldValue = hardware.read(Port.DIGITALS[connector]);
 					//low level write
 					writeBit(responsePipe, connector, hardware.currentTimeMillis(), fieldValue);
 										
 				} else {
 					//analog read
-   				    int intValue = hardware.analogRead(connector);
+   				    int intValue = hardware.read(Port.DIGITALS[connector]);
 					//low level write
 					writeInt(responsePipe, connector, hardware.currentTimeMillis(), intValue);	
 				}
@@ -197,13 +198,13 @@ public class ReadDeviceInputStage extends PronghornStage {
 	}
 
 
-	private void readRotaryEncoder(int j, int connector, long timeMS) {
+	private void readRotaryEncoder(int j, Port port, long timeMS) {
 		byte rotaryPoll=3;
 		int maxCycles = 80; //what if stuck in middle must detect.
 		do {
 			//TODO: how do we know we have these two on the same clock?
-			int r1  = hardware.digitalRead(connector); 
-			int r2  = hardware.digitalRead(connector+1); 
+			int r1  = hardware.read(port); 
+			int r2  = hardware.read(Port.DIGITALS[port.port+1]); 
 
 			rotaryPoll = (byte)((r1<<1)|r2);
 
@@ -230,7 +231,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		if (frequentScriptLastPublished[j]!=rotationState[j] && Pipe.hasRoomForWrite(responsePipe)) {
 			int speed = (int)Math.min( (cycles - rotationLastCycle[j]), Integer.MAX_VALUE);
-			writeRotation(responsePipe, connector, hardware.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
+			writeRotation(responsePipe, port.port, hardware.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
 
 			frequentScriptLastPublished[j] = rotationState[j];
 			rotationLastCycle[j] = cycles;

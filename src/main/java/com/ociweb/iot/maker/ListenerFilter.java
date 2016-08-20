@@ -7,37 +7,37 @@ public interface ListenerFilter {
 	 * Only the listed connections.
 	 * @param connections
 	 */
-	ListenerFilter includeAnalogConnections(int ... connections);
+	ListenerFilter includeAnalogConnections(Port ... ports);
 	
 	/**
 	 * All known connections except for those listed.
 	 * @param connections
 	 */
-	ListenerFilter excludeAnalogConnections(int ... connections);
+	ListenerFilter excludeAnalogConnections(Port ... ports);
 	
 	/**
 	 * Only the listed connections.
 	 * @param connections
 	 */
-	ListenerFilter includeDigitalConnections(int ... connections);
+	ListenerFilter includeDigitalConnections(Port ... ports);
 	
 	/**
 	 * All known connections except for those listed.
 	 * @param connections
 	 */
-	ListenerFilter excludeDigitalConnections(int ... connections);
+	ListenerFilter excludeDigitalConnections(Port ... ports);
 
 	/**
 	 * Only the listed connections.
 	 * @param connections
 	 */
-	ListenerFilter includeI2CConnections(int ... connections);
+	ListenerFilter includeI2CConnections(int ... addresses);
 	
 	/**
 	 * All known connections except for those listed.
 	 * @param connections
 	 */
-	ListenerFilter excludeI2CConnections(int ... connections);
+	ListenerFilter excludeI2CConnections(int ... addresses);
 	
 	
 	/**

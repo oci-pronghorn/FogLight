@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -55,7 +56,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	            switch(msgIdx){
 	                                
 	                case GroveRequestSchema.MSG_DIGITALSET_110:
-	                    hardware.digitalWrite(PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111), 
+	                    hardware.write(Port.DIGITALS[PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_CONNECTOR_111)], 
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_DIGITALSET_110_FIELD_VALUE_112));
 	                    break;
 	                                     	                    
@@ -73,7 +74,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                    
 	                case GroveRequestSchema.MSG_ANALOGSET_140:
 	                    
-	                    hardware.analogWrite(PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141), 
+	                    hardware.write(Port.ANALOGS[PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141)], 
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142));
 	                    break;
 	                    	                    

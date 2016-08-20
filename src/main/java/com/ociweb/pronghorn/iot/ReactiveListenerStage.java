@@ -12,6 +12,7 @@ import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.ListenerFilter;
 import com.ociweb.iot.maker.PayloadReader;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RestListener;
 import com.ociweb.iot.maker.RotaryListener;
@@ -65,10 +66,10 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     /////////////////////
     //Listener Filters
     /////////////////////    
-    private int[] includedAnalogs;//if null then all values are accepted
-    private int[] excludedAnalogs;//if null then no values are excluded
-    private int[] includedDigitals;//if null then all values are accepted
-    private int[] excludedDigitals;//if null then no values are excluded
+    private Port[] includedAnalogs;//if null then all values are accepted
+    private Port[] excludedAnalogs;//if null then no values are excluded
+    private Port[] includedDigitals;//if null then all values are accepted
+    private Port[] excludedDigitals;//if null then no values are excluded
     private int[] includedI2Cs;//if null then all values are accepted
     private int[] excludedI2Cs;//if null then no values are excluded
     private long[] includedToStates;
@@ -325,7 +326,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 int msgIdx = PipeReader.getMsgIdx(p);
                 
                 //no need to check instance of since this was registered and we have a pipe
-                ((RestListener)listener).restRequest(1, null, null);
+                ((RestListener)listener).restRequest(1, null);
                 
                 //done reading message off pipe
                 PipeReader.releaseReadLock(p);
@@ -385,7 +386,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
                 case GroveResponseSchema.MSG_ANALOGSAMPLE_30:
                     if (listener instanceof AnalogListener) {                        
-                        commonAnalogEventProcessing(PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31),
+                        commonAnalogEventProcessing(Port.ANALOGS[PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31)],
                         				            PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11), 
                         				            PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32), 
                         				            (AnalogListener)listener);
@@ -395,7 +396,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 case GroveResponseSchema.MSG_DIGITALSAMPLE_20:
                     
                     if (listener instanceof DigitalListener) {
-                        commonDigitalEventProcessing(PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21), 
+                        commonDigitalEventProcessing(Port.DIGITALS[PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21)], 
                         		                     PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_TIME_11), 
                         		                     PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22), 
                         		                     (DigitalListener)listener);
@@ -411,7 +412,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                         int speed = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_SPEED_74);
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_PREVDURATION_75);
                         
-                        ((RotaryListener)listener).rotaryEvent(connector, time, value, delta, speed);
+                        ((RotaryListener)listener).rotaryEvent(Port.DIGITALS[connector], time, value, delta, speed);
                                             
                     }   
                 break;
@@ -438,43 +439,43 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 	    
     
-	protected void commonDigitalEventProcessing(int connector, long time, int value, DigitalListener dListener) {
+	protected void commonDigitalEventProcessing(Port port, long time, int value, DigitalListener dListener) {
 		
-		if (isIncluded(connector, includedDigitals) && isNotExcluded(connector, excludedDigitals)) {
+		if (isIncluded(port, includedDigitals) && isNotExcluded(port, excludedDigitals)) {
 
-			if(value!=lastDigitalValues[connector]){  //TODO: add switch   
-				dListener.digitalEvent(connector, time, 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector], value);
-			    lastDigitalValues[connector] = value;
-			    lastDigitalTimes[connector] = time;
+			if(value!=lastDigitalValues[port.port]){  //TODO: add switch   
+				dListener.digitalEvent(port, time, 0==lastDigitalTimes[port.port] ? -1 : time-lastDigitalTimes[port.port], value);
+			    lastDigitalValues[port.port] = value;
+			    lastDigitalTimes[port.port] = time;
 			}
 		}
 	}
 
-	protected void commonAnalogEventProcessing(int connector, long time, int value, AnalogListener aListener) {
+	protected void commonAnalogEventProcessing(Port port, long time, int value, AnalogListener aListener) {
 		
-		if (isIncluded(connector, includedAnalogs) && isNotExcluded(connector, excludedAnalogs)) {
+		if (isIncluded(port, includedAnalogs) && isNotExcluded(port, excludedAnalogs)) {
 			
-			int runningValue = sendEveryAnalogValue[connector] ? value : findStableReading(value, connector);             
+			int runningValue = sendEveryAnalogValue[port.port] ? value : findStableReading(value, port.port);             
 			
-			MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);                                                
+			MAvgRollerLong.roll(rollingMovingAveragesAnalog[port.port], runningValue);                                                
 			
 			int mean = runningValue;
-			if (MAvgRollerLong.isValid(rollingMovingAveragesAnalog[connector])) {
-				mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);
+			if (MAvgRollerLong.isValid(rollingMovingAveragesAnalog[port.port])) {
+				mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[port.port]);
 			}
 			
-			if (sendEveryAnalogValue[connector]) {
+			if (sendEveryAnalogValue[port.port]) {
 				
-				aListener.analogEvent(connector, time, 0==lastAnalogTimes[connector] ? Long.MAX_VALUE : time-lastAnalogTimes[connector], mean, runningValue);
-				lastAnalogTimes[connector] = time;   
+				aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
+				lastAnalogTimes[port.port] = time;   
 				
 			} else {								
-				if(value!=lastAnalogValues[connector]){   //TODO: add switch
+				if(value!=lastAnalogValues[port.port]){   //TODO: add switch
 					
-					aListener.analogEvent(connector, time, 0==lastAnalogTimes[connector] ? Long.MAX_VALUE : time-lastAnalogTimes[connector], mean, runningValue);
+					aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
 				   
-					lastAnalogValues[connector] = value;
-				    lastAnalogTimes[connector] = time;
+					lastAnalogValues[port.port] = value;
+				    lastAnalogTimes[port.port] = time;
 				}
 			}
 		}
@@ -495,11 +496,11 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		return true;
 	}
 	
-	private boolean isNotExcluded(int connector, int[] excluded) {
+	private <T> boolean isNotExcluded(T port, T[] excluded) {
 		if (null!=excluded) {
 			int e = excluded.length;
 			while (--e>=0) {
-				if (excluded[e]==connector) {
+				if (excluded[e]==port) {
 					return false;
 				}
 			}
@@ -507,11 +508,36 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		return true;
 	}
 
-	private boolean isIncluded(int connector, int[] included) {
+	private boolean isNotExcluded(int a, int[] excluded) {
+		if (null!=excluded) {
+			int e = excluded.length;
+			while (--e>=0) {
+				if (excluded[e]==a) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	private <T> boolean isIncluded(T port, T[] included) {
 		if (null!=included) {
 			int i = included.length;
 			while (--i>=0) {
-				if (included[i]==connector) {
+				if (included[i]==port) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return true;
+	}
+	
+	private boolean isIncluded(int a, int[] included) {
+		if (null!=included) {
+			int i = included.length;
+			while (--i>=0) {
+				if (included[i]==a) {
 					return true;
 				}
 			}
@@ -521,9 +547,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 	
 	@Override
-	public ListenerFilter includeAnalogConnections(int... connections) {
+	public ListenerFilter includeAnalogConnections(Port ... ports) {
 		if (!startupCompleted && listener instanceof AnalogListener) {
-			includedAnalogs = connections;
+			includedAnalogs = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -535,9 +561,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter excludeAnalogConnections(int... connections) {
+	public ListenerFilter excludeAnalogConnections(Port ... ports) {
 		if (!startupCompleted && listener instanceof AnalogListener) {
-			excludedAnalogs = connections;
+			excludedAnalogs = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -549,9 +575,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter includeDigitalConnections(int... connections) {
+	public ListenerFilter includeDigitalConnections(Port ... ports) {
 		if (!startupCompleted && listener instanceof DigitalListener) {
-			includedDigitals = connections;
+			includedDigitals = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -563,9 +589,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter excludeDigitalConnections(int... connections) {
+	public ListenerFilter excludeDigitalConnections(Port ... ports) {
 		if (!startupCompleted && listener instanceof DigitalListener) {
-			excludedDigitals = connections;
+			excludedDigitals = ports;
 			return this;
 	    } else {
 	    	if (startupCompleted) {
@@ -591,9 +617,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter includeI2CConnections(int... connections) {
+	public ListenerFilter includeI2CConnections(int ... addresses) {
 		if (!startupCompleted && listener instanceof I2CListener) {
-			includedI2Cs = connections;
+			includedI2Cs = addresses;
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -605,9 +631,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter excludeI2CConnections(int... connections) {
+	public ListenerFilter excludeI2CConnections(int... addresses) {
 		if (!startupCompleted && listener instanceof I2CListener) {
-			excludedI2Cs = connections;
+			excludedI2Cs = addresses;
 			return this;
 	    } else {
 	    	if (startupCompleted) {

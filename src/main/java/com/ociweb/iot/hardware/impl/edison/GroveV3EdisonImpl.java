@@ -9,6 +9,7 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -128,24 +129,26 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	}
 
 	@Override
-	public int digitalRead(int connector) {        
-		return EdisonPinManager.digitalRead(connector);
+	public int read(Port port) {        
+		return port.isAnalog() ? EdisonPinManager.analogRead(port.port): EdisonPinManager.digitalRead(port.port);
 	}
 
-	@Override
-	public int analogRead(int connector) {
-		return EdisonPinManager.analogRead(connector);
-	}    
 
 	@Override
-	public void analogWrite(int connector, int value) {
-
-		assert((CommandChannel.ANALOG_BIT&connector) != 0): "expected analog connection"; 
-
-		connector = connector - CommandChannel.ANALOG_BIT;
-		assert(isInPWMRange(connector,value)) : "Unsupported call"; 
-		EdisonPinManager.writePWMDuty(connector, value << pwmBitsShift);
+	public void write(Port port, int value) {
+		
+		if (port.isAnalog()) {
+			
+			assert(isInPWMRange(port.port,value)) : "Unsupported call"; 
+			EdisonPinManager.writePWMDuty(port.port, value << pwmBitsShift);		
+			
+		} else {
+			
+			assert(0==value || 1==value);    
+			EdisonPinManager.digitalWrite(port.port, value, EdisonGPIO.gpioLinuxPins);
+		}
 	}
+
 
 	private boolean isInPWMRange(int connector, int value) {
 		for (int i = 0; i < pwmOutputs.length; i++) {
@@ -162,61 +165,12 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	}
 
 
-	@Override
-	public void digitalWrite(int connector, int value) {
-		assert((CommandChannel.ANALOG_BIT&connector) == 0): "expected digital connection"; 
-
-		assert(0==value || 1==value);    
-		EdisonPinManager.digitalWrite(connector, value, EdisonGPIO.gpioLinuxPins);
-	}
-
 
 
 	@Override
 	public ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
 		return new ReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
 	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection) {
-		return internalConnectAnalog(t, connection, -1, -1, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
-		return internalConnectAnalog(t, connection, customRate, -1, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
-		return internalConnectAnalog(t, connection, customRate, customAverageMS, false);
-	}
-
-	@Override
-	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		return internalConnectAnalog(t, connection, customRate, customAverageMS, everyValue);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection) {
-		return internalConnectDigital(t, connection, -1, -1, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate) {
-		return internalConnectDigital(t, connection, customRate, -1, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
-		return internalConnectDigital(t, connection, customRate, customAverageMS, false);
-	}
-
-	@Override
-	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS,	boolean everyValue) {
-		return internalConnectDigital(t, connection, customRate, customAverageMS, everyValue);
-	}
-
 	
 
 }

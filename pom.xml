@@ -224,4 +224,6 @@
     </build>
 
 
+    <description>Pronghorn Embedded Toolkit (PET)</description>
+    <url>https://github.com/oci-pronghorn/PronghornIoT</url>
 </project>

@@ -117,7 +117,7 @@ public class GrovePiConstants {
         40
     };
     
-    public static final int[] DIGITAL_PIN_TO_REGISTER = new int[] {
+    public static final int[] DIGITAL_PORT_TO_REGISTER = new int[] {
     		0,
     		1,
     		2,
@@ -129,13 +129,13 @@ public class GrovePiConstants {
     		8,
     };
     
-    public static final int[] ANALOG_PIN_TO_REGISTER = new int[] {
+    public static final int[] ANALOG_PORT_TO_REGISTER = new int[] {
     		14,
     		15,
     		16	
     };
     
-    public static final int[] REGISTER_TO_PIN = new int[] {
+    public static final int[] REGISTER_TO_PORT = new int[] {
     		0,
     		1,
     		2,

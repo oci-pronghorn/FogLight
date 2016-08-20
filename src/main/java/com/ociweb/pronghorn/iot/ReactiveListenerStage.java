@@ -41,15 +41,13 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
   
     private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStage.class); 
     
-    private static final int MAX_SENSORS = 32;
-    
     protected MAvgRollerLong[] rollingMovingAveragesAnalog;
     protected MAvgRollerLong[] rollingMovingAveragesDigital;    
     private boolean startupCompleted;
     
     protected int[] oversampledAnalogValues;
 
-    private static final int MAX_CONNECTIONS = 10;
+    private static final int MAX_PORTS = 10;
     
     //for analog values returns the one with the longest run within the last n samples
     protected static final int OVERSAMPLE = 3; //  (COUNT), SAMPLE1, ... SAMPLEn
@@ -100,7 +98,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         
     }
 
-    private void setupMovingAverages(MAvgRollerLong[] target, HardwareConnection[] con) {
+    private void setupMovingAverages(HardwareImpl hardware, MAvgRollerLong[] target, HardwareConnection[] con) {
         int i = con.length;
         while (--i >= 0) {
             
@@ -108,8 +106,8 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
               int rate = con[i].responseMS;
               System.out.println("count "+(ms/rate)+" ms"+ms+"  rate"+rate);
               
-              target[con[i].connection] = new MAvgRollerLong(ms/rate);
-              System.out.println("expecting moving average on connection "+con[i].connection);
+              target[hardware.convertToPort(con[i].register)] = new MAvgRollerLong(ms/rate);
+              System.out.println("expecting moving average on connection "+con[i].register);
         }        
     }
     
@@ -174,27 +172,30 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     @Override
     public void startup() {
         //Init all the moving averages to the right size
-        rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_SENSORS];
-        rollingMovingAveragesDigital = new MAvgRollerLong[MAX_SENSORS];
+        rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_PORTS];
+        rollingMovingAveragesDigital = new MAvgRollerLong[MAX_PORTS];
         
-        setupMovingAverages(rollingMovingAveragesAnalog, hardware.getAnalogInputs());
+        setupMovingAverages(hardware, rollingMovingAveragesAnalog, hardware.getAnalogInputs());
               
-        setupMovingAverages(rollingMovingAveragesDigital, hardware.getDigitalInputs());
+        setupMovingAverages(hardware, rollingMovingAveragesDigital, hardware.getDigitalInputs());
           
-        lastDigitalValues = new int[MAX_CONNECTIONS];
-        lastAnalogValues = new int[MAX_CONNECTIONS];
+        lastDigitalValues = new int[MAX_PORTS];
+        lastAnalogValues = new int[MAX_PORTS];
         
-        sendEveryAnalogValue = new boolean[MAX_CONNECTIONS];
+        sendEveryAnalogValue = new boolean[MAX_PORTS];
         int a = hardware.getAnalogInputs().length;
         while (--a>=0) {
+        	
         	HardwareConnection con = hardware.getAnalogInputs()[a];
-        	sendEveryAnalogValue[con.connection] = con.sendEveryValue;        	
+        	
+        	sendEveryAnalogValue[hardware.convertToPort(con.register)] = con.sendEveryValue;   
+        	
         }
         
-        lastDigitalTimes = new long[MAX_CONNECTIONS];
-        lastAnalogTimes = new long[MAX_CONNECTIONS];
+        lastDigitalTimes = new long[MAX_PORTS];
+        lastAnalogTimes = new long[MAX_PORTS];
                     
-        oversampledAnalogValues = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP];
+        oversampledAnalogValues = new int[MAX_PORTS*OVERSAMPLE_STEP];
         
         stageRate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
         

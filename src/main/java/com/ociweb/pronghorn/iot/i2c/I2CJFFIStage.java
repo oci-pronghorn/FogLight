@@ -69,6 +69,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		
 		if (this.hardware.hasI2CInputs()) {			
 			this.schedule = this.hardware.buildI2CPollSchedule();    		
+		} else {
+			logger.warn("skipped buildI2CPollSchedule has no i2c inputs" );
 		}
 
 		if (null!=this.schedule) {
@@ -88,17 +90,21 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 		workingBuffer = new byte[2048];
 		
-		logger.info("Polling "+this.inputs.length+" i2cInput(s)");
+		logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
 
 		for (int i = 0; i < inputs.length; i++) {
 			timeOut = hardware.currentTimeMillis() + writeTime;
 			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
-			logger.info("I2C setup {} complete",inputs[i].address);
+			logger.debug("I2C setup {} complete",inputs[i].address);
 		}
 
-		logger.info("proposed schedule: {} ",schedule);
+		logger.debug("proposed schedule: {} ",schedule);
 
 		blockStartTime = hardware.nanoTime();//critical Pronghorn contract ensure this start is called by the same thread as run
+		
+		if (!hasListeners()) {
+			logger.debug("No listeners are attached to I2C");
+		}
 	}
 
 

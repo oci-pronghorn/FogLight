@@ -31,9 +31,11 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	private byte commandIndex = -1;
 
+	//TODO: urgent need for unit tests here, this custom pi logic is easily broken.
 
 	public GrovePiHardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
 		super(gm, i2cBacking);
+		System.out.println("You are running on the GrovePi hardware.");
 	}
 
 
@@ -43,68 +45,6 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		return new PiCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);	
 	} 
     
-	@Override
-	protected void connectAnalogOutput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		if(t.isGrove()){
-    		connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
-			byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.OUTPUT,0x00};				
-			if(customAverageMS > 0){
-				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,null,0,connection, setup, customRate, everyValue)); //TODO:i2cConnection needs to support customAverageMS
-			}else{
-				i2cOutputs = growI2CConnections(i2cInputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,null,0,connection, setup, customRate));	
-			} //TODO:i2cConnection needs to support customAverageMS
-    	}else{
-    		throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
-    	}
-	}
-    
-	@Override
-	protected void connectAnalogInput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		if(t.isGrove()){
-    		connection = GrovePiConstants.ANALOG_PIN_TO_REGISTER[connection];
-			byte[] readCmd = {GrovePiConstants.START_BYTE,GrovePiConstants.ANALOG_READ,(byte)connection,0x00,0x00};
-			byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.INPUT,0x00};				
-			if(customAverageMS > 0){
-				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,connection, setup, customRate, everyValue)); //TODO:i2cConnection needs to support customAverageMS
-			}else{
-				i2cOutputs = growI2CConnections(i2cInputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,connection, setup, customRate));	
-			}
-    	}else{
-    		throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
-    	}
-	}
-    
-	@Override
-	protected void connectDigitalOutput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		if(t.isGrove()){
-    		connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
-			byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.OUTPUT,0x00};				
-			if(customAverageMS > 0){
-				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,null,0,connection, setup, customRate, everyValue)); //TODO:i2cConnection needs to support customAverageMS
-			}else{
-				i2cOutputs = growI2CConnections(i2cInputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,null,0,connection, setup, customRate));	
-			}
-		}else{
-    		throw new UnsupportedOperationException("GPIO not yet supported");
-    	}
-	}
-    
-	@Override
-	protected void connectDigitalInput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		if(t.isGrove()){
-    		connection = GrovePiConstants.DIGITAL_PIN_TO_REGISTER[connection];
-			byte[] readCmd = {GrovePiConstants.START_BYTE,GrovePiConstants.DIGITAL_READ,(byte)connection,0x00,0x00};
-			byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.INPUT,0x00};	
-			if(customAverageMS > 0){
-				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)1,connection, setup, customRate, everyValue));
-			}else{
-				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)1,connection, setup, customRate));
-			}
-    	}else{
-    		throw new UnsupportedOperationException("GPIO not yet supported");
-    	}
-	}
-
 	@Override
 	public int digitalRead(int connector) { 
 		throw new UnsupportedOperationException("GPIO not yet supported");
@@ -129,18 +69,121 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	
 	@Override
 	public boolean hasI2CInputs() {
-		return super.hasI2CInputs()|super.hasDigitalOrAnalogInputs();
+		if (super.hasDigitalOrAnalogInputs()) {
+			assert(super.hasI2CInputs()) : "if pi has d/a inputs then it must also have i2c inputs by definition.";
+		}
+		return super.hasI2CInputs() | super.hasDigitalOrAnalogInputs();
 	}
 
 	@Override
 	public boolean isListeningToPins(Object listener) {
 		return false;//TODO: we have no support for this yet
 	}
+	
+	@Override
+	public boolean isListeningToI2C(Object listener) {
+		return listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener;
+	}
 
 	@Override
     public ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
         return new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, this); 
     }
+
+	@Override
+	protected Hardware internalConnectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		if (t.isInput()) {
+			if(t.isGrove()){
+	    		connection = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection];
+				byte[] readCmd = {GrovePiConstants.START_BYTE,GrovePiConstants.ANALOG_READ,(byte)connection,0x00,0x00};
+				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.INPUT,0x00};				
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,connection, setup, customRate, customAverageMS, everyValue)); //TODO:i2cConnection needs to support customAverageMS
+				
+	    	}else{
+	    		throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
+	    	}
+		} else {
+			if(t.isGrove()){
+	    		connection = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection];
+				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.OUTPUT,0x00};				
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,null,0,connection, setup, customRate, customAverageMS, everyValue));
+				
+	    	}else{
+	    		throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
+	    	}
+		}
+		return super.internalConnectAnalog(t, connection, customRate, customAverageMS, everyValue);
+	}
+
+	protected Hardware internalConnectDigital(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		if (t.isInput()) {
+			if (t.isGrove()) {
+				connection = GrovePiConstants.DIGITAL_PORT_TO_REGISTER[connection];
+				byte[] readCmd = { GrovePiConstants.START_BYTE, GrovePiConstants.DIGITAL_READ, (byte) connection, 0x00,
+						0x00 };
+				byte[] setup = { GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte) connection,	GrovePiConstants.INPUT, 0x00 };
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t, GrovePiConstants.BOARD_ADDR,readCmd, (byte) 1, connection, setup, customRate, customAverageMS, everyValue));	
+			} else {
+				throw new UnsupportedOperationException("GPIO not yet supported");
+			}
+
+		} else {
+			if (t.isGrove()) {
+				connection = GrovePiConstants.DIGITAL_PORT_TO_REGISTER[connection];
+				byte[] setup = { GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte) connection,	GrovePiConstants.OUTPUT, 0x00 };
+				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t, GrovePiConstants.BOARD_ADDR, null,	0, connection, setup, customRate, customAverageMS, everyValue)); 
+			} else {
+				throw new UnsupportedOperationException("GPIO not yet supported");
+			}
+
+		}
+		return super.internalConnectDigital(t, connection, customRate, customAverageMS, everyValue);
+	}
+	
+	public byte convertToPort(byte connection) {
+		return (byte)GrovePiConstants.REGISTER_TO_PORT[connection];
+	}
+	
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection) {
+		return internalConnectAnalog(t, connection, t.response(), -1, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
+		return internalConnectAnalog(t, connection, customRate, -1, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
+		return internalConnectAnalog(t, connection, customRate, customAverageMS, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		return internalConnectAnalog(t, connection, customRate, customAverageMS, everyValue);
+	}
+
+	
+	@Override
+	public Hardware connectDigital(IODevice t, int connection) {
+		return internalConnectDigital(t, connection, t.response(), -1, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate) {
+		return internalConnectDigital(t, connection, customRate, -1, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
+		return internalConnectDigital(t, connection, customRate, customAverageMS, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS,	boolean everyValue) {
+		return internalConnectDigital(t, connection, customRate, customAverageMS, everyValue);
+	}
 
 }
 

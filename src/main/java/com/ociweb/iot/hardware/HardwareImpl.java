@@ -148,8 +148,8 @@ public abstract class HardwareImpl implements Hardware {
 		//Validate that what we are adding is safe
 		int i = len;
 		while (--i>=0) {
-			if (original[i].connection == toAdd.connection) {
-				throw new UnsupportedOperationException("This connection "+toAdd.connection+" already has attachment "+original[i].twig+" so the attachment "+toAdd.twig+" can not be added.");
+			if (original[i].register == toAdd.register) {
+				throw new UnsupportedOperationException("This connection "+toAdd.register+" already has attachment "+original[i].twig+" so the attachment "+toAdd.twig+" can not be added.");
 			}
 		}
 
@@ -173,100 +173,29 @@ public abstract class HardwareImpl implements Hardware {
 		}
 	}
 
-	public Hardware connectAnalog(IODevice t, int connection) {
-		return connectAnalog(t,connection,-1);
-	}
 
-	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
+
+	protected Hardware internalConnectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
 		if (t.isInput()) {
 			assert(!t.isOutput());
-			connectAnalogInput(t, connection, customRate, -1, false);
-		} else {
-			assert(t.isOutput());
-			connectAnalogOutput(t, connection, customRate, -1, false);
-		}
-		return this;
-	}  
-
-	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
-		return connectAnalog(t,connection,customRate,customAverageMS, true); 
-	}
-
-	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		if (t.isInput()) {
-			assert(!t.isOutput());
-			connectAnalogInput(t, connection, customRate, customAverageMS, everyValue);
-		} else {
-			assert(t.isOutput());
-			connectAnalogOutput(t, connection, customRate, customAverageMS, everyValue);
-		}
-		return this;
-	}  
-
-	public Hardware connectDigital(IODevice t, int connection) {
-		return connectDigital(t,connection,-1);
-	}
-
-	public Hardware connectDigital(IODevice t, int connection, int customRate) {
-		if (t.isInput()) {
-			assert(!t.isOutput());
-			connectDigitalInput(t, connection, customRate, -1, false);
-		} else {
-			assert(t.isOutput());
-			connectDigitalOutput(t, connection, customRate, -1, false);
-		}
-		return this;
-	}  
-
-	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
-		return connectDigital(t,connection,customRate,customAverageMS, true); 
-	}
-
-	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		if (t.isInput()) {
-			assert(!t.isOutput());
-			connectDigitalInput(t, connection, customRate, customAverageMS, everyValue);
-		} else {
-			assert(t.isOutput());
-			connectDigitalOutput(t, connection, customRate, customAverageMS, everyValue);
-		}
-		return this;
-	}  
-
-	protected void connectAnalogOutput(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		if(customAverageMS > 0){
-			pwmOutputs = growHardwareConnections(pwmOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
-		}else{
-			pwmOutputs = growHardwareConnections(pwmOutputs, new HardwareConnection(t,connection, customRate));
-		}
-	}
-
-	protected void connectAnalogInput(IODevice t, int connection, int customRate, int customAverageMS,
-			boolean everyValue) {
-		if(customAverageMS > 0){
 			analogInputs = growHardwareConnections(analogInputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
-		}else{
-			analogInputs = growHardwareConnections(analogInputs, new HardwareConnection(t,connection, customRate));
+		} else {
+			assert(t.isOutput());
+			pwmOutputs = growHardwareConnections(pwmOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
 		}
-	}
+		return this;
+	}  
 
-	protected void connectDigitalOutput(IODevice t, int connection, int customRate, int customAverageMS,
-			boolean everyValue) {
-		if(customAverageMS > 0){
-			digitalOutputs = growHardwareConnections(digitalOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
-		}else{
-			digitalOutputs = growHardwareConnections(digitalOutputs, new HardwareConnection(t,connection, customRate));
-		}
-	}
-
-	protected void connectDigitalInput(IODevice t, int connection, int customRate, int customAverageMS,
-			boolean everyValue) {
-		if(customAverageMS > 0){
+	protected Hardware internalConnectDigital(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		if (t.isInput()) {
+			assert(!t.isOutput());
 			digitalInputs = growHardwareConnections(digitalInputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
-		}else{
-			digitalInputs = growHardwareConnections(digitalInputs, new HardwareConnection(t,connection, customRate));
+		} else {
+			assert(t.isOutput());
+			digitalOutputs = growHardwareConnections(digitalOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
 		}
-	}
+		return this;
+	}  
 
 	public Hardware connectI2C(IODevice t){ 
 		logger.debug("Connecting I2C Device "+t.getClass());
@@ -338,7 +267,7 @@ public abstract class HardwareImpl implements Hardware {
 		findDup(result,pos,analogInputs, true);
 		int j = analogInputs.length;
 		while (--j>=0) {
-			result[pos++] = new HardwareConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].connection]);
+			result[pos++] = new HardwareConnection(analogInputs[j].twig,(int) EdisonConstants.ANALOG_CONNECTOR_TO_PIN[analogInputs[j].register]);
 		}
 
 		if (configI2C) {
@@ -355,7 +284,7 @@ public abstract class HardwareImpl implements Hardware {
 		while (--i>=0) {
 			int j = baseLimit;
 			while (--j>=0) {
-				if (mapAnalogs ? base[j].connection ==  EdisonConstants.ANALOG_CONNECTOR_TO_PIN[items[i].connection] :  base[j]==items[i]) {
+				if (mapAnalogs ? base[j].register ==  EdisonConstants.ANALOG_CONNECTOR_TO_PIN[items[i].register] :  base[j]==items[i]) {
 					throw new UnsupportedOperationException("Connector "+items[i]+" is assigned more than once.");
 				}
 			}
@@ -588,7 +517,7 @@ public abstract class HardwareImpl implements Hardware {
 
 	public ScriptedSchedule buildI2CPollSchedule() {
 		I2CConnection[] localInputs = getI2CInputs();
-		System.out.println(localInputs.length);
+		System.out.println("Found "+localInputs.length+" i2c inputs to read from.");
 		long[] schedulePeriods = new long[localInputs.length];
 		for (int i = 0; i < localInputs.length; i++) {
 			schedulePeriods[i] = localInputs[i].responseMS*MS_TO_NS;
@@ -637,6 +566,10 @@ public abstract class HardwareImpl implements Hardware {
 
 		return PMath.buildScriptedSchedule(schedulePeriods);
 
+	}
+
+	public byte convertToPort(byte connection) {
+		return connection;
 	}
 
 

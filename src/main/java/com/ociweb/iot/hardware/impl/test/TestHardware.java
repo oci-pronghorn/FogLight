@@ -10,6 +10,7 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -38,6 +39,7 @@ public class TestHardware extends HardwareImpl {
     
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking());
+        System.out.println("You are running on the test hardware.");
     }
     
     
@@ -164,5 +166,44 @@ public class TestHardware extends HardwareImpl {
         return new ReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
     }
 
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection) {
+		return internalConnectAnalog(t, connection, -1, -1, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
+		return internalConnectAnalog(t, connection, customRate, -1, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
+		return internalConnectAnalog(t, connection, customRate, customAverageMS, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		return internalConnectAnalog(t, connection, customRate, customAverageMS, everyValue);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection) {
+		return internalConnectDigital(t, connection, -1, -1, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate) {
+		return internalConnectDigital(t, connection, customRate, -1, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
+		return internalConnectDigital(t, connection, customRate, customAverageMS, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS,	boolean everyValue) {
+		return internalConnectDigital(t, connection, customRate, customAverageMS, everyValue);
+	}
     
 }

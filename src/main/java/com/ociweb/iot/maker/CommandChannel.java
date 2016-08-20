@@ -25,7 +25,7 @@ public abstract class CommandChannel {
     
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
 
-    public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog vs digital
+    public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog .0vs digital
     protected static final long MS_TO_NS = 1_000_000;
     
     protected DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  

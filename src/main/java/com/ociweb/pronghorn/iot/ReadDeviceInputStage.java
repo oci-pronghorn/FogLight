@@ -121,17 +121,17 @@ public class ReadDeviceInputStage extends PronghornStage {
 				IODevice twig = hardware.getDigitalInputs()[i].twig;
 
 				if (twig == GroveTwig.RotaryEncoder) {
-					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].connection; //just the low address
+					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register; //just the low address
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
 				} else if (twig == GroveTwig.Button) {                    
-					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].connection;
+					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register;
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
 				} else {                               
 					int idx = Util.reverseBits(sliceCount++);                   
 				}
-				System.out.println("configured "+twig+" on connection "+hardware.getDigitalInputs()[i].connection);
+				System.out.println("configured "+twig+" on connection "+hardware.getDigitalInputs()[i].register);
 			         
 		}                   
 
@@ -169,7 +169,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 				}
 
 				HardwareConnection hc = adConnections[inProgressIdx];
-				int connector = hc.connection;
+				int connector = hc.register;
 				
 				if (hc.twig.pinsUsed()>1) {
 					//rotary encoder

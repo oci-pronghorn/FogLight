@@ -24,10 +24,10 @@ public class I2CConnection extends HardwareConnection {
     }
     
     public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS) {
-    	this(twig,address,readCmd,readBytes,register,setup,responseMS,false);
+    	this(twig,address,readCmd,readBytes,register,setup,responseMS,-1, false);
     }
     
-    public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS, boolean everyValue) {
+    public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS, int customAverageMS, boolean everyValue) {
     	super(twig, -1, responseMS, HardwareConnection.DEFAULT_AVERAGE, everyValue);
         this.address = address;
         this.readCmd = readCmd;

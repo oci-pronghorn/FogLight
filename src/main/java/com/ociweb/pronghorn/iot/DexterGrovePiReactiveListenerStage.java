@@ -39,12 +39,13 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 			int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 			int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 
-			logger.debug("Pi listener consuming I2C message");
+			
+			logger.debug("Pi listener consuming I2C message from addr: {}",addr);
 
 			if(listener instanceof DigitalListener && addr==4 && length==1){
 				int tempValue = backing[position&mask];
 
-				int connector = GrovePiConstants.REGISTER_TO_PIN[register];
+				int connector = GrovePiConstants.REGISTER_TO_PORT[register];
 				assert(connector!=-1);
 
 				commonDigitalEventProcessing(connector, time,tempValue, (DigitalListener)listener);
@@ -61,7 +62,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 
 				} else {
 					int tempValue =  (high<<8) | (0xFF&low);
-					int connector = GrovePiConstants.REGISTER_TO_PIN[register];
+					int connector = GrovePiConstants.REGISTER_TO_PORT[register];
 					assert(connector>=0) :"bad connector "+connector;
 
 					if (tempValue<0) {

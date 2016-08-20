@@ -16,7 +16,7 @@ public class GrovePiGPIO {
     	System.out.println("I reach here");
         int j = usedLines.length;
         while (--j >= 0) {
-            final int i = usedLines[j].connection;
+            final int i = usedLines[j].register;
             gpioLinuxPins.ensureDevice(i);
             gpioOutputEnablePins.ensureDevice(i);
             gpioPullupEnablePins.ensureDevice(i);
@@ -27,7 +27,7 @@ public class GrovePiGPIO {
     public static void removeAllLinuxDevices(final HardwareConnection[] usedLines) {
         int j = usedLines.length;
         while (--j >= 0) {
-            final int i = usedLines[j].connection;
+            final int i = usedLines[j].register;
             gpioLinuxPins.removeDevice(i);
             gpioOutputEnablePins.removeDevice(i);
             gpioPullupEnablePins.removeDevice(i);

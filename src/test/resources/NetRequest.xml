@@ -3,7 +3,7 @@
 
 
    <template name="HTTPGet" id="100">
-     <string name="URL" id="2" charset="unicode"/>
+     <string name="URL" id="2" charset="unicode"/> <!--  break into host, port, path, id -->
    </template>
    
    <template name="HTTPPost" id="101">

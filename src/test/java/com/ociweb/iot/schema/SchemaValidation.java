@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.ociweb.pronghorn.iot.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.iot.schema.ClientNetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
@@ -20,6 +22,17 @@ import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class SchemaValidation {
 
+    @Test
+    public void messageClientNetRequestSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/ClientNetRequest.xml", ClientNetRequestSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(ClientNetRequestSchema.instance));
+    }
+	
+    @Test
+    public void messageClientNetResponseSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/ClientNetResponse.xml", ClientNetResponseSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(ClientNetResponseSchema.instance));
+    }
     
     @Test
     public void messageNetRequestSchemaFROMTest() {

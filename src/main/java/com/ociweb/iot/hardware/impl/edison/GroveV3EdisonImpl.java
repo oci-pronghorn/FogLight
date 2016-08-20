@@ -1,7 +1,5 @@
 package com.ociweb.iot.hardware.impl.edison;
 
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +8,7 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -30,6 +29,7 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 
 	public GroveV3EdisonImpl(GraphManager gm, I2CBacking i2cBacking) {
 		super(gm, i2cBacking);
+		System.out.println("You are running on the Edison hardware.");
 	}
 
 	@Override
@@ -52,8 +52,8 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 		//        System.out.println("The digital Output connection at 0 is: " +digitalOutputs[0].connection);
 		//        System.out.println("The digital Output type at 0 is: " +digitalOutputs[0].type);
 		for (int i = 0; i < digitalOutputs.length; i++) {
-			EdisonGPIO.configDigitalOutput(digitalOutputs[i].connection);//config for writeBit
-			System.out.println("configured output "+super.digitalOutputs[i].twig+" on connection "+super.digitalOutputs[i].connection);
+			EdisonGPIO.configDigitalOutput(digitalOutputs[i].register);//config for writeBit
+			System.out.println("configured output "+super.digitalOutputs[i].twig+" on connection "+super.digitalOutputs[i].register);
 		}
 		//      System.out.println("The Analog Output Length is: " +pwmOutputs.length);
 		//      System.out.println("The Analog Output connection at 0 is: " +pwmOutputs[0].connection);
@@ -61,13 +61,13 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 		//      System.out.println("The output type is: " +ConnectionType.Direct);
 		//      System.out.println("The port used is:"+ (int)pwmOutputs[0].connection);
 		for (int i = 0; i < pwmOutputs.length; i++) {
-			EdisonGPIO.configPWM((int)pwmOutputs[i].connection); //config for pwm
+			EdisonGPIO.configPWM((int)pwmOutputs[i].register); //config for pwm
 		}
 		for (int i = 0; i < super.digitalInputs.length; i++) {
-			EdisonGPIO.configDigitalInput(digitalInputs[i].connection); //config for readBit
+			EdisonGPIO.configDigitalInput(digitalInputs[i].register); //config for readBit
 		}
 		for (int i = 0; i < super.analogInputs.length; i++) {
-			EdisonGPIO.configAnalogInput(analogInputs[i].connection); //config for readInt
+			EdisonGPIO.configAnalogInput(analogInputs[i].register); //config for readInt
 		}
 		EdisonGPIO.configI2C();
 		endPinConfiguration();//Tri State set high to end configuration
@@ -76,7 +76,7 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 
 		for (int i = 0; i < pwmOutputs.length; i++) {
 
-			EdisonPinManager.writePWMRange(pwmOutputs[i].connection, pwmOutputs[i].twig.range() << pwmBitsShift);
+			EdisonPinManager.writePWMRange(pwmOutputs[i].register, pwmOutputs[i].twig.range() << pwmBitsShift);
 
 		}
 
@@ -149,7 +149,7 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 
 	private boolean isInPWMRange(int connector, int value) {
 		for (int i = 0; i < pwmOutputs.length; i++) {
-			if (connector == pwmOutputs[i].connection) {
+			if (connector == pwmOutputs[i].register) {
 				if (value > pwmOutputs[i].twig.range()) {
 					logger.error("pwm value {} out of range, must not be larger than {} ",value,pwmOutputs[i].twig.range());
 					return false;
@@ -175,6 +175,46 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	@Override
 	public ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
 		return new ReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection) {
+		return internalConnectAnalog(t, connection, -1, -1, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate) {
+		return internalConnectAnalog(t, connection, customRate, -1, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS) {
+		return internalConnectAnalog(t, connection, customRate, customAverageMS, false);
+	}
+
+	@Override
+	public Hardware connectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
+		return internalConnectAnalog(t, connection, customRate, customAverageMS, everyValue);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection) {
+		return internalConnectDigital(t, connection, -1, -1, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate) {
+		return internalConnectDigital(t, connection, customRate, -1, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS) {
+		return internalConnectDigital(t, connection, customRate, customAverageMS, false);
+	}
+
+	@Override
+	public Hardware connectDigital(IODevice t, int connection, int customRate, int customAverageMS,	boolean everyValue) {
+		return internalConnectDigital(t, connection, customRate, customAverageMS, everyValue);
 	}
 
 	

@@ -1,4 +1,4 @@
-package com.ociweb.iot.project.lightblink;
+package com.ociweb.iot.lightblink;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

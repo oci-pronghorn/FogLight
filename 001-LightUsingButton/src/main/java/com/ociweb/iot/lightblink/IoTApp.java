@@ -1,4 +1,4 @@
-package com.ociweb.iot.project.lightblink;
+package com.ociweb.iot.lightblink;
 
 import static com.ociweb.iot.grove.GroveTwig.Button;
 import static com.ociweb.iot.grove.GroveTwig.LED;

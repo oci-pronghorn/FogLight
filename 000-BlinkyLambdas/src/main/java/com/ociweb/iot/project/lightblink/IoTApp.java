@@ -28,8 +28,7 @@ import static com.ociweb.iot.maker.Port.*;
 public class IoTApp implements IoTSetup {
     
     private static final String TOPIC = "light";
-    private static final int PAUSE = 500;
-    
+    private static final int PAUSE = 500;    
     public static final Port LED_PORT = D4;
            
     public static void main( String[] args) {
@@ -45,17 +44,18 @@ public class IoTApp implements IoTSetup {
     public void declareBehavior(DeviceRuntime runtime) {
         
         final CommandChannel blinkerChannel = runtime.newCommandChannel();        
-        runtime.addPubSubListener((topic,payload)->{           
-		    int value = payload.readInt();
-		    blinkerChannel.setValueAndBlock(LED_PORT, value, PAUSE);               
-		    blinkerChannel.openTopic(TOPIC).writeInt( 1==value ? 0 : 1 ).publish();
+        runtime.addPubSubListener((topic,payload)->{
+        	
+		    boolean value = payload.readBoolean();
+		    blinkerChannel.setValueAndBlock(LED_PORT, value?1:0, PAUSE);               
+		    blinkerChannel.openTopic(TOPIC).writeBoolean(!value).publish();
 		    
 		}).addSubscription(TOPIC); 
                 
         final CommandChannel startupChannel = runtime.newCommandChannel(); 
         runtime.addStartupListener(
                 ()->{
-                    startupChannel.openTopic(TOPIC).writeInt( 1 ).publish();
+                    startupChannel.openTopic(TOPIC).writeBoolean(true).publish();
                 });        
     }  
 }

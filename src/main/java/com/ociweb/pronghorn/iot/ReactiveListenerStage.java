@@ -66,10 +66,8 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     /////////////////////
     //Listener Filters
     /////////////////////    
-    private Port[] includedAnalogs;//if null then all values are accepted
-    private Port[] excludedAnalogs;//if null then no values are excluded
-    private Port[] includedDigitals;//if null then all values are accepted
-    private Port[] excludedDigitals;//if null then no values are excluded
+    private Port[] includedPorts;//if null then all values are accepted
+    private Port[] excludedPorts;//if null then no values are excluded
     private int[] includedI2Cs;//if null then all values are accepted
     private int[] excludedI2Cs;//if null then no values are excluded
     private long[] includedToStates;
@@ -432,7 +430,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     
 	protected void commonDigitalEventProcessing(Port port, long time, int value, DigitalListener dListener) {
 		
-		if (isIncluded(port, includedDigitals) && isNotExcluded(port, excludedDigitals)) {
+		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 
 			if(value!=lastDigitalValues[port.port]){  //TODO: add switch   
 				dListener.digitalEvent(port, time, 0==lastDigitalTimes[port.port] ? -1 : time-lastDigitalTimes[port.port], value);
@@ -444,7 +442,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
 	protected void commonAnalogEventProcessing(Port port, long time, int value, AnalogListener aListener) {
 		
-		if (isIncluded(port, includedAnalogs) && isNotExcluded(port, excludedAnalogs)) {
+		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 			
 			int runningValue = sendEveryAnalogValue[port.port] ? value : findStableReading(value, port.port);             
 			
@@ -538,9 +536,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 	
 	@Override
-	public ListenerFilter includeAnalogConnections(Port ... ports) {
+	public ListenerFilter includePorts(Port ... ports) {
 		if (!startupCompleted && listener instanceof AnalogListener) {
-			includedAnalogs = ports;
+			includedPorts = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -552,9 +550,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter excludeAnalogConnections(Port ... ports) {
+	public ListenerFilter excludePorts(Port ... ports) {
 		if (!startupCompleted && listener instanceof AnalogListener) {
-			excludedAnalogs = ports;
+			excludedPorts = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -563,34 +561,6 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
 	    	}
 		}
-	}
-
-	@Override
-	public ListenerFilter includeDigitalConnections(Port ... ports) {
-		if (!startupCompleted && listener instanceof DigitalListener) {
-			includedDigitals = ports;
-			return this;
-		} else {
-			if (startupCompleted) {
-	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
-	    	}
-		}
-	}
-
-	@Override
-	public ListenerFilter excludeDigitalConnections(Port ... ports) {
-		if (!startupCompleted && listener instanceof DigitalListener) {
-			excludedDigitals = ports;
-			return this;
-	    } else {
-	    	if (startupCompleted) {
-	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
-	    	}
-	    }
 	}
 
 	@Override

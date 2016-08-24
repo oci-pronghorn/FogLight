@@ -7,25 +7,13 @@ public interface ListenerFilter {
 	 * Only the listed connections.
 	 * @param connections
 	 */
-	ListenerFilter includeAnalogConnections(Port ... ports);
+	ListenerFilter includePorts(Port ... ports);
 	
 	/**
 	 * All known connections except for those listed.
 	 * @param connections
 	 */
-	ListenerFilter excludeAnalogConnections(Port ... ports);
-	
-	/**
-	 * Only the listed connections.
-	 * @param connections
-	 */
-	ListenerFilter includeDigitalConnections(Port ... ports);
-	
-	/**
-	 * All known connections except for those listed.
-	 * @param connections
-	 */
-	ListenerFilter excludeDigitalConnections(Port ... ports);
+	ListenerFilter excludePorts(Port ... ports);
 
 	/**
 	 * Only the listed connections.

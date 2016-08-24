@@ -201,7 +201,6 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 					mostRecentBlockedConnection = -1;//clear in case it gets set.
 					int startCount = localActiveCounts[a];
 					//NOTE: this lock does not prevent other ordered stages from making progress, just this one since it holds the required resource
-	
 
 					//This method must be called at all times to poll I2C
 					processMessagesForPipe(a);											

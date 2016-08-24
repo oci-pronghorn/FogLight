@@ -299,7 +299,7 @@ public class DeviceRuntime {
         //if we have a time event turn it on.
         long rate = hardware.getTriggerRate();
         if (rate>0 && listener instanceof TimeListener) {
-            stage.setTimeEventSchedule(rate);
+            stage.setTimeEventSchedule(rate, hardware.getTriggerStart());
             //Since we are using the time schedule we must set the stage to be faster
             long customRate =   (rate*nsPerMS)/NonThreadScheduler.granularityMultiplier;// in ns and guanularityXfaster than clock trigger
             long appliedRate = Math.min(customRate,defaultSleepRateNS);

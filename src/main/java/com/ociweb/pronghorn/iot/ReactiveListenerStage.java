@@ -101,27 +101,18 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
     private void setupMovingAverages(HardwareImpl hardware, MAvgRollerLong[] target, HardwareConnection[] con) {
         int i = con.length;
-        while (--i >= 0) {
-            
-              int ms   = con[i].movingAverageWindowMS;
-              int rate = con[i].responseMS;
-              System.out.println("count "+(ms/rate)+" ms"+ms+"  rate"+rate);
-              
-              target[hardware.convertToPort(con[i].register)] = new MAvgRollerLong(ms/rate);
-              System.out.println("expecting moving average on connection "+con[i].register);
+        while (--i >= 0) {            
+              target[hardware.convertToPort(con[i].register)] = new MAvgRollerLong(con[i].movingAverageWindowMS/con[i].responseMS);
         }        
     }
     
     
     
-    public void setTimeEventSchedule(long rate) {
+    public void setTimeEventSchedule(long rate, long start) {
         
         timeRate = rate;
-        long now = hardware.currentTimeMillis();
-        if (timeTrigger <= now) {
-            timeTrigger = now + timeRate;
-        }
-        
+        timeTrigger = start;
+
     }
     
     protected int findStableReading(int tempValue, int connector) { 
@@ -251,7 +242,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                     if (listener instanceof PubSubListener) {
 	                    workspace.setLength(0);
 	                    CharSequence topic = PipeReader.readUTF8(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1, workspace);               
-	                    
+	                    assert(null!=topic);
 	                    if (null==payloadReader) {
 	                        payloadReader = new PayloadReader(p); 
 	                    }

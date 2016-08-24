@@ -20,7 +20,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
-public class SchemaValidation {
+public class SchemaValidationTest {
 
     @Test
     public void messageClientNetRequestSchemaFROMTest() {

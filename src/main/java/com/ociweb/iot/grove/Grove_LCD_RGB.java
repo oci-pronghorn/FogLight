@@ -377,11 +377,15 @@ public class Grove_LCD_RGB implements IODevice{
 		displayClear(target);
 		String[] lines = text.split("\n");
 		int steps = 4;
+		
+		target.i2cDelay((Grove_LCD_RGB_Constants.LCD_ADDRESS), Grove_LCD_RGB_Constants.INPUT_SET_DELAY);
+		
 		for(String line: lines) {
 			int p = 0;
 			while (p<line.length()) {
 				writeUTF8ToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETCGRAMADDR, line, p, Math.min(steps, line.length()-p) );
 				p+=steps;
+
 			}
 			//new line
 			writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, 0xc0);

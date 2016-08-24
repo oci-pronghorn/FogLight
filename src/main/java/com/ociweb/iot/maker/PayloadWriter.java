@@ -56,6 +56,15 @@ public class PayloadWriter {
         }
         return this;
     }
+    
+	public PayloadWriter writeObject(Object value) {
+		 try {
+	            writer.writeObject(value);
+	        } catch (IOException e) {
+	            throw new RuntimeException(e);
+	        }
+	        return this;
+	}
 
     public void publish() {
         
@@ -71,5 +80,6 @@ public class PayloadWriter {
         this.key = key;
         DataOutputBlobWriter.openField(writer);
     }
+
 
 }

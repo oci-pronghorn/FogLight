@@ -1,7 +1,7 @@
 package com.ociweb.pronghorn.iot.i2c;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,13 +13,11 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
-import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Appendables;
-import com.ociweb.pronghorn.util.Blocker;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
 public class I2CJFFIStage extends AbstractTrafficOrderedStage {
@@ -50,6 +48,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 	//NOTE: on the pi without any RATE value this stage is run every .057 ms, this is how long 1 run takes to complete for the clock., 2 analog sensors.
 
+	public static final AtomicBoolean instanceCreated = new AtomicBoolean(false);
 
 	public I2CJFFIStage(GraphManager graphManager, Pipe<TrafficReleaseSchema>[] goPipe, 
 			Pipe<I2CCommandSchema>[] i2cPayloadPipes, 
@@ -57,6 +56,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			Pipe<I2CResponseSchema> i2cResponsePipe,
 			HardwareImpl hardware) { 
 		super(graphManager, hardware, i2cPayloadPipes, goPipe, ackPipe, i2cResponsePipe); 
+		
+		assert(!instanceCreated.getAndSet(true)) : "Only one i2c manager can be running at a time";
+			
+		
+		
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
 		this.i2cResponsePipe = i2cResponsePipe;
@@ -200,9 +204,19 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		
 		Pipe<I2CCommandSchema> pipe = fromCommandChannels[activePipe];
 
+//		logger.info("i2c while: {} {} {} {} {} {}",
+//				activePipe,
+//				hasReleaseCountRemaining(activePipe), 
+//				isChannelUnBlocked(activePipe), 
+//				isConnectionUnBlocked(PipeReader.peekInt(pipe, 1)),
+//				PipeReader.hasContentToRead(pipe),
+//				pipe
+//				);
+		
 		while ( hasReleaseCountRemaining(activePipe) 
 				&& isChannelUnBlocked(activePipe)
-				&& isConnectionUnBlocked(Pipe.peekInt(pipe, 1)) //peek next connection and check that it is not blocking for some time 
+				&& PipeReader.hasContentToRead(pipe)
+				&& isConnectionUnBlocked(PipeReader.peekInt(pipe, 1)) //peek next connection and check that it is not blocking for some time 
 				&& PipeReader.tryReadFragment(pipe)){
 
 			int msgIdx = PipeReader.getMsgIdx(pipe);
@@ -211,6 +225,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     			case I2CCommandSchema.MSG_COMMAND_7:
     			{
     			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_CONNECTOR_11);
+    			    assert isConnectionUnBlocked(connection): "expected command to not be blocked";
+    			    
     				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12);
     
     				byte[] backing = PipeReader.readBytesBackingArray(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
@@ -218,7 +234,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     				int pos = PipeReader.readBytesPosition(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
     				int mask = PipeReader.readBytesMask(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
     
-    				assert isConnectionUnBlocked(connection): "expected command to not be blocked";
     
     				Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
     
@@ -248,6 +263,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     			case I2CCommandSchema.MSG_BLOCKCONNECTION_20:
     			{  
     			    int connection = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11);
+    			    assert isConnectionUnBlocked(connection): "expected command to not be blocked";
+    			    
     				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12);
     				long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13);
 

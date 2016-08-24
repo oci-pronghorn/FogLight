@@ -102,14 +102,23 @@ public class TrafficCopStage extends PronghornStage {
             	}            	
             }
             assert(goPendingOnPipe!=-1);
-            
-            //TODO: fix this is stopping metronome in releaes code.
-//            //check if following messages can be merged to the current release message, if its a release for the same pipe as the current active
-//            while ((Pipe.peekInt(primaryIn, 2)==goPendingOnPipe) && PipeReader.tryReadFragment(primaryIn)) {
-//            	assert(PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11) == ackExpectedOn);
-//            	goPendingOnPipeCount += PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12);
-//            	PipeReader.releaseReadLock(primaryIn); 
-//            }
+
+            //check if following messages can be merged to the current release message, if its a release for the same pipe as the current active
+            while (	 PipeReader.peekEquals(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, goPendingOnPipe) && 
+            		 PipeReader.tryReadFragment(primaryIn)) {
+            	if (PipeReader.getMsgIdx(primaryIn)==TrafficOrderSchema.MSG_GO_10) {
+
+            		assert(PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11) == goPendingOnPipe);
+            		goPendingOnPipeCount += PipeReader.readInt(primaryIn, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12);
+            		PipeReader.releaseReadLock(primaryIn); 
+            	
+            	} else {
+        			assert(-1 == PipeReader.getMsgIdx(primaryIn)) : "Expected end of stream however got unsupported message: "+PipeReader.getMsgIdx(primaryIn);
+        			requestShutdown();
+        			PipeReader.releaseReadLock(primaryIn);  
+        			return;//reached end of stream
+            	}
+            }
             
             /////////////////////////////////////////////////////////
             //check third for room to send the pending go release message

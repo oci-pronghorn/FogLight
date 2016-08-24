@@ -14,6 +14,8 @@ public interface Hardware {
 	 public <E extends Enum<E>> Hardware startStateMachineWith(E state);
 	    
 	 public Hardware setTriggerRate(long rateInMS);
+	 public Hardware setTriggerRate(TimeTrigger trigger);
+	 
 	    
 	 public Hardware useI2C();	
 		

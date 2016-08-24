@@ -19,6 +19,7 @@ import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
+import com.ociweb.iot.maker.TimeTrigger;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
@@ -67,6 +68,9 @@ public abstract class HardwareImpl implements Hardware {
 	protected I2CConnection[] i2cOutputs;
 
 	private long timeTriggerRate;
+	private long timeTriggerStart;
+	
+	
 	private Blocker channelBlocker;
 
 	public final GraphManager gm;
@@ -217,8 +221,19 @@ public abstract class HardwareImpl implements Hardware {
 
 	public Hardware setTriggerRate(long rateInMS) {
 		timeTriggerRate = rateInMS;
+		timeTriggerStart = System.currentTimeMillis()+rateInMS;
 		return this;
 	}
+	
+	public Hardware setTriggerRate(TimeTrigger trigger) {	
+		long period = trigger.getRate();
+		timeTriggerRate = period;
+		long now = System.currentTimeMillis();		
+		long soFar = (now % period);		
+		timeTriggerStart = (now - soFar) + period;				
+		return this;
+	}
+	
 
 	public Hardware useI2C() {
 		this.configI2C = true;
@@ -229,6 +244,10 @@ public abstract class HardwareImpl implements Hardware {
 	public long getTriggerRate() {
 		return timeTriggerRate;
 	}
+	public long getTriggerStart() {
+		return timeTriggerStart;
+	}
+	
 
 	public abstract int read(Port port); //Platform specific
 	public abstract void write(Port port, int value); //Platform specific

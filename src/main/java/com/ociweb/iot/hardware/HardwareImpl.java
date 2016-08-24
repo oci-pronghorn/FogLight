@@ -141,9 +141,6 @@ public abstract class HardwareImpl implements Hardware {
 			return new I2CNativeLinuxBacking(deviceNum);
 		} catch (Throwable t) {
 			//avoid non error case that is used to detect which hardware is running.
-			if ((null==t.getMessage()) || !t.getMessage().contains("Could not open")) {
-				logger.error("unable to find binary bindings ", t);
-			}
 			return null;
 		}
 	}

@@ -1,7 +1,5 @@
 package com.ociweb.pronghorn.iot;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +15,8 @@ import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RestListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
-import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.iot.maker.StateChangeListener;
+import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
@@ -432,7 +430,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		
 		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 
-			if(value!=lastDigitalValues[port.port]){  //TODO: add switch   
+			if(value!=lastDigitalValues[port.port]){  
 				dListener.digitalEvent(port, time, 0==lastDigitalTimes[port.port] ? -1 : time-lastDigitalTimes[port.port], value);
 			    lastDigitalValues[port.port] = value;
 			    lastDigitalTimes[port.port] = time;
@@ -445,6 +443,8 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 			
 			int runningValue = sendEveryAnalogValue[port.port] ? value : findStableReading(value, port.port);             
+			
+			//logger.debug(port+" send every value "+sendEveryAnalogValue[port.port]);
 			
 			MAvgRollerLong.roll(rollingMovingAveragesAnalog[port.port], runningValue);                                                
 			
@@ -459,11 +459,11 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 				lastAnalogTimes[port.port] = time;   
 				
 			} else {								
-				if(value!=lastAnalogValues[port.port]){   //TODO: add switch
-					
+				if(runningValue!=lastAnalogValues[port.port]){ 
+										
 					aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
 				   
-					lastAnalogValues[port.port] = value;
+					lastAnalogValues[port.port] = runningValue;
 				    lastAnalogTimes[port.port] = time;
 				}
 			}

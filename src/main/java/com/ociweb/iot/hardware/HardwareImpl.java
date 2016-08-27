@@ -20,6 +20,7 @@ import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.TimeTrigger;
+import com.ociweb.pronghorn.MessagePubSubStage;
 import com.ociweb.pronghorn.TrafficCopStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
@@ -91,7 +92,7 @@ public abstract class HardwareImpl implements Hardware {
 
 	private static final Logger logger = LoggerFactory.getLogger(HardwareImpl.class);
 
-	Enum<?> beginningState;
+	public Enum<?> beginningState;
 
 
 	/////////////////
@@ -163,7 +164,7 @@ public abstract class HardwareImpl implements Hardware {
 	}
 
 	protected I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
-		System.out.println("Adding I2C Connection");
+
 		if (null==original) {
 			return new I2CConnection[] {toAdd};
 		} else {
@@ -472,8 +473,9 @@ public abstract class HardwareImpl implements Hardware {
 		return channelBlocker.isBlocked(channelId);
 	}
 
-	public void releaseChannelBlocks(long now) {
+	public long releaseChannelBlocks(long now) {
 		channelBlocker.releaseBlocks(now);
+		return channelBlocker.durationToNextRelease(now, -1);
 	}
 
 	public long nanoTime() {
@@ -508,7 +510,7 @@ public abstract class HardwareImpl implements Hardware {
 		return tempPipeOfStartupSubscriptions;
 	}
 
-	Pipe<MessagePubSub> consumeStartupSubscriptions() {
+	public Pipe<MessagePubSub> consumeStartupSubscriptions() {
 		Pipe<MessagePubSub> result = tempPipeOfStartupSubscriptions;
 		tempPipeOfStartupSubscriptions = null;//no longer needed
 		return result;
@@ -532,13 +534,12 @@ public abstract class HardwareImpl implements Hardware {
 
 	public ScriptedSchedule buildI2CPollSchedule() {
 		I2CConnection[] localInputs = getI2CInputs();
-		System.out.println("Found "+localInputs.length+" i2c inputs to read from.");
+		
 		long[] schedulePeriods = new long[localInputs.length];
 		for (int i = 0; i < localInputs.length; i++) {
 			schedulePeriods[i] = localInputs[i].responseMS*MS_TO_NS;
 		}
-		logger.info(""+schedulePeriods.length);
-		System.out.println("known I2C rates: "+Arrays.toString(schedulePeriods));
+		logger.debug("known I2C rates: {}",Arrays.toString(schedulePeriods));
 		return PMath.buildScriptedSchedule(schedulePeriods);
 
 	}

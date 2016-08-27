@@ -44,6 +44,7 @@ public abstract class CommandChannel {
     protected final int i2cPipeIdx = 1;
     protected final int subPipeIdx = 2;
     private HardwareImpl hardware;
+	private final int MAX_COMMAND_FRAGMENTS_SIZE;
         
     protected CommandChannel(GraphManager gm, HardwareImpl hardware,
                              Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub,  //avoid adding more and see how they can be combined.
@@ -58,6 +59,8 @@ public abstract class CommandChannel {
        }
        this.hardware = hardware;
        this.output = output;
+       
+       MAX_COMMAND_FRAGMENTS_SIZE = Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands;
     }
     
 
@@ -152,8 +155,7 @@ public abstract class CommandChannel {
     
     public boolean i2cIsReady() {
         
-        return PipeWriter.hasRoomForWrite(goPipe) &&         
-                PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
+        return PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, MAX_COMMAND_FRAGMENTS_SIZE);
        
     }
     

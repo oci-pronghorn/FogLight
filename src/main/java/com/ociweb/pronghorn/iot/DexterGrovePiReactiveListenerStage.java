@@ -49,7 +49,7 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 				int connector = GrovePiConstants.REGISTER_TO_PORT[register];
 				assert(connector!=-1);
 
-				commonDigitalEventProcessing(Port.DIGITALS[connector], time,tempValue, (DigitalListener)listener);
+				commonDigitalEventProcessing(Port.DIGITALS[connector], time, tempValue, (DigitalListener)listener);
 
 			}
 			else if(listener instanceof AnalogListener && addr==4 && length==3){

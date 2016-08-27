@@ -62,6 +62,10 @@ public enum GroveTwig implements IODevice {
             return true;
         }
         
+        public int response() {
+            return 20;
+        }
+        
         @Override
         public int range() {
             return 1;

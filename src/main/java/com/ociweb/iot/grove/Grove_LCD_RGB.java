@@ -397,10 +397,8 @@ public class Grove_LCD_RGB implements IODevice{
 		try {
 			DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
-			//i2cPayloadWriter.write(new byte[]{(byte)register,(byte)value});
 			i2cPayloadWriter.writeByte(register);
 			i2cPayloadWriter.writeByte(value);          
-			//System.out.println(Arrays.toString(new byte[]{(byte)register,(byte)value}));
 
 			target.i2cCommandClose();
 		} catch (IOException e) {

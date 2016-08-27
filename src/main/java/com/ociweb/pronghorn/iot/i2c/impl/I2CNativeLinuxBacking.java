@@ -49,7 +49,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
              */
             if (c.ioctl(i2cFile, UnixIoctlLib.I2C_SLAVE_FORCE, address) >= 0) {
                 lastAddress = address;
-                logger.debug("IOCTL configured for I2C device at 0x" + Integer.toHexString(address));
+                logger.debug("IOCTL configured for I2C device at {}",address);
                 return true;
             } else {
                 throw new RuntimeException("Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));            	
@@ -70,7 +70,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
             logger.debug("unable to open {}",device);
             throw new RuntimeException("Could not open "+device);
         } else {
-            logger.warn("Successfully opened "+device);
+            logger.debug("Successfully opened {}",device);
         }
 
         //Close the file when the application shuts down.

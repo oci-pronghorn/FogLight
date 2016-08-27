@@ -12,46 +12,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 public class ObjectPassingTest {
 
-	 public class TestPojo implements Serializable {
-		 
-		 private static final long serialVersionUID = 1L;
-		 
-		 private String name;
-		 public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public int getAge() {
-			return age;
-		}
-
-		public void setAge(int age) {
-			this.age = age;
-		}
-
-		private int age;
-		 
-		 public TestPojo(){
-		 }
-		 
-		 public TestPojo(String name, int age) {
-			 this.name = name;
-			 this.age = age;
-		 }
-		 
-		 @Override
-		 public boolean equals(Object that) {
-			 if (that instanceof TestPojo) {				 
-				 return this.name.equals(((TestPojo)that).name) && this.age==(((TestPojo)that).age);
-			 }
-			 return false;
-		 }
-		 
-	 }
+	 
 	
 	 @Test
 	    public void testApp()
@@ -59,8 +20,8 @@ public class ObjectPassingTest {
 		 		 
 		 
 		    final AtomicInteger count = new AtomicInteger(0);
-		    final Serializable serialized1 = new String("hello");
-		  //  final Serializable serialized1 = new TestPojo("hello",42);
+		  //  final Serializable serialized1 = new String("hello");
+		    final Serializable serialized1 = new TestPojo("hello",42);
 		    final Serializable serialized2 = new String("world");
 		 
 	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTSetup() {
@@ -81,17 +42,23 @@ public class ObjectPassingTest {
 							
 							try {
 								
-								assertEquals(serialized1, payload.readObject());
-								assertEquals(serialized2, payload.readObject());
+								Object object1 = payload.readObject();
+								//System.out.println(object1.getClass().getCanonicalName());
+								
+								assertEquals(serialized1, object1);
+								
+								Object object2 = payload.readObject();
+								//System.out.println(object2.getClass().getCanonicalName());
+								
+								assertEquals(serialized2, object2);
+								
+								count.incrementAndGet();
 								
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
-								fail();
+								fail("failed after "+count.get());
 							}
-							System.out.println("success:"+count.incrementAndGet());
-							
-							
 							
 							cc1.openTopic("test\topic").writeObject(serialized1).writeObject(serialized2).publish();
 							

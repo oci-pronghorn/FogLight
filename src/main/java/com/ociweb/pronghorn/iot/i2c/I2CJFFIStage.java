@@ -1,6 +1,7 @@
 package com.ociweb.pronghorn.iot.i2c;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
@@ -42,6 +44,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 	private static final int MAX_ADDR = 127;
 
+	private final boolean processInputs;
     private Number rate;
 	private long timeOut = 0;
 	private final int writeTime = 5; //it often takes 1 full ms just to contact the linux driver so this value must be a minimum of 3ms.
@@ -78,14 +81,19 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		}
 
 		if (null!=this.schedule) {
-			assert(0==(this.schedule.commonClock%10)) : "must be divisible by 10";
-			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/10 , this); 
+			//The fastest message that can ever be sent on I2C 100K is once every 1.6MS
+					
+			int divisor = 20; //TODO: review this later by checking less often the CPU usage should go down.
+			assert(0==(this.schedule.commonClock%divisor)) : "must be divisible by "+divisor;
+			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/divisor , this); 
+			logger.warn("setting JFFI to pol every: "+((this.schedule.commonClock)/divisor));
 		}else{
 			logger.debug("Schedule is null");
 		}
 		
 		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
 		
+		processInputs = hardware.hasI2CInputs() && hasListeners();
 	}
 
 	@Override
@@ -101,9 +109,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
 			logger.debug("I2C setup {} complete",inputs[i].address);
 		}
-
-		logger.debug("proposed schedule: {} ",schedule);
-
+		if (null!=schedule) {
+			logger.debug("proposed schedule: {} ",schedule);
+		}
+		
 		blockStartTime = hardware.nanoTime();//critical Pronghorn contract ensure this start is called by the same thread as run
 		
 		if (!hasListeners()) {
@@ -116,21 +125,26 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	public void run() {
 	
 	    //never run poll if we have nothing to poll, in that case the array will have a single -1 
-	    if (hardware.hasI2CInputs() && hasListeners()) {
+	    if (processInputs) {
 	        do {
 			    long waitTime = blockStartTime - hardware.nanoTime();
 	     		if(waitTime>0){
-	     			if (null==rate || (waitTime > 2*rate.longValue())) {    				
+	     			if (null==rate || (waitTime > rate.longValue())) {    				
 	     				processReleasedCommands(waitTime);
 	     				return; //Enough time has not elapsed to start next block on schedule
 	     			} else {
+	     				long blockMS = (hardware.nanoTime()-blockStartTime) / 1_000_000;
+	     				if (blockMS > 1) {
+	     					try {
+								Thread.sleep(blockMS - 1);
+							} catch (InterruptedException e) {
+								requestShutdown();
+		     					return;
+							}//leave ourselves 1 MS
+	     				}
 	     				while (hardware.nanoTime()<blockStartTime){
 	     					Thread.yield();
-	     					if (Thread.interrupted()) {
-	     						requestShutdown();
-	     						return;
-	     					}
-	     				}    				
+	     				}
 	     			}
 	     		}
         
@@ -158,6 +172,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         				}
         				workingBuffer[0] = -2;
         				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
+        				
+        				System.out.println( Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )));
  				
         				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);						
         				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());

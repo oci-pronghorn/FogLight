@@ -160,15 +160,23 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
    	
         boolean foundWork;
 		int[] localActiveCounts = activeCounts;
-		long timeLimit = hardware.currentTimeMillis()+timeout;
-
+		long timeLimit = -1;
+        long unblockChannelLimit = -1;
 		do {
 			foundWork = false;
 			int a = startLoopAt;
 			
 				while (--a >= 0) {
 				    long now = hardware.currentTimeMillis();
-				    hardware.releaseChannelBlocks(now);
+				    if (timeLimit==-1) {
+				    	timeLimit = now+timeout;
+				    
+				    }
+				    //do not call again if we already know nothing will result from it.
+				    if (now>unblockChannelLimit) {
+				    	unblockChannelLimit = now+hardware.releaseChannelBlocks(now);
+				    }
+				    
 				    if (isChannelBlocked(a) ) {
 				        return true;            
 				    }   
@@ -259,18 +267,20 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	protected abstract void processMessagesForPipe(int a);
 
 	private void readNextCount(final int a) {
-		assert(PipeReader.isNewMessage(goPipe[a])) : "This test should only have one simple message made up of one fragment";
-		int msgIdx = PipeReader.getMsgIdx(goPipe[a]);
+		Pipe<TrafficReleaseSchema> localPipe = goPipe[a];
+		assert(PipeReader.isNewMessage(localPipe)) : "This test should only have one simple message made up of one fragment";
+		
+		int msgIdx = PipeReader.getMsgIdx(localPipe);
 		if(TrafficReleaseSchema.MSG_RELEASE_20 == msgIdx){
 			assert(-1==activeCounts[a]);
-			activeCounts[a] = PipeReader.readInt(goPipe[a], TrafficReleaseSchema.MSG_RELEASE_20_FIELD_COUNT_22);
+			activeCounts[a] = PipeReader.readInt(localPipe, TrafficReleaseSchema.MSG_RELEASE_20_FIELD_COUNT_22);
 		}else{
 			assert(msgIdx == -1);
 			if (--hitPoints == 0) {
 				requestShutdown();
 			}
 		}
-		PipeReader.releaseReadLock(goPipe[a]);
+		PipeReader.releaseReadLock(localPipe);
 
 	}
 

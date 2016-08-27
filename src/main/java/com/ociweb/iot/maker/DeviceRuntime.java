@@ -449,6 +449,7 @@ public class DeviceRuntime {
             app.declareConnections(runtime.getHardware());
             establishDefaultRate(runtime);
             app.declareBehavior(runtime);
+            System.out.println("To exit app press Ctrl-C");
             runtime.start();
             runtime.scheduler.startup();
         } catch (Throwable t) {

@@ -47,7 +47,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	private final boolean processInputs;
     private Number rate;
 	private long timeOut = 0;
-	private final int writeTime = 5; //it often takes 1 full ms just to contact the linux driver so this value must be a minimum of 3ms.
+	private final int writeTime = 10; //it often takes 1 full ms just to contact the linux driver so this value must be a minimum of 3ms.
 
 	//NOTE: on the pi without any RATE value this stage is run every .057 ms, this is how long 1 run takes to complete for the clock., 2 analog sensors.
 
@@ -62,7 +62,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		
 		assert(!instanceCreated.getAndSet(true)) : "Only one i2c manager can be running at a time";
 			
-		
 		
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
@@ -86,7 +85,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			int divisor = 20; //TODO: review this later by checking less often the CPU usage should go down.
 			assert(0==(this.schedule.commonClock%divisor)) : "must be divisible by "+divisor;
 			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/divisor , this); 
-			logger.warn("setting JFFI to pol every: "+((this.schedule.commonClock)/divisor));
+			logger.debug("setting JFFI to pol every: "+((this.schedule.commonClock)/divisor));
 		}else{
 			logger.debug("Schedule is null");
 		}
@@ -153,28 +152,35 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         			
         			if(inProgressIdx != -1) {
         			    
-        				if (!PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10)) {
+        				if (!PipeWriter.hasRoomForWrite(i2cResponsePipe)) {
         					//we are going to miss the schedule due to backup in the pipes, this is common when the unit tests run or the user has put in a break point.
         					processReleasedCommands(40);//if this backup runs long term we never release the commands so we must do it now.
         					return;//oops the pipe is full so we can not read, postpone this work until the pipe is cleared.
         				}
 
                         I2CConnection connection = this.inputs[inProgressIdx];
-                        timeOut = hardware.currentTimeMillis() + writeTime;
+                        timeOut = hardware.nanoTime() + (writeTime*1_000_000);
 
                         //Write the request to read
-                        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.currentTimeMillis()<timeOut){}
+                        while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.nanoTime()<timeOut){}
 
+                        if (hardware.nanoTime()>timeOut) {
+                        	//timeout trying to get the i2c bus
+                        	return;
+                        }
+                        
                         long now = System.nanoTime();
                         long limit = now + this.inputs[inProgressIdx].delayAfterRequestNS;
         				while(System.nanoTime() < limit) { 
         					//do nothing in here, this is very short and we must get off the bus as fast as possible.
         				}
+        				
         				workingBuffer[0] = -2;
         				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
         				
-        				System.out.println( Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )));
+   			//System.err.println( "result "+Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes ))+" delay "+this.inputs[inProgressIdx].delayAfterRequestNS);
  				
+   					    PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
         				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);						
         				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
         				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);

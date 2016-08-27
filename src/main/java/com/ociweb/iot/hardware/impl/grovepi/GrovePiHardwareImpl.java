@@ -87,7 +87,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	    		connection = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection];
 				byte[] readCmd = {GrovePiConstants.START_BYTE,GrovePiConstants.ANALOG_READ,(byte)connection,0x00,0x00};
 				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.INPUT,0x00};				
-				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,connection, setup, customRate, customAverageMS, everyValue)); //TODO:i2cConnection needs to support customAverageMS
+				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,connection, setup, customRate, customAverageMS, everyValue)); 
 				
 	    	}else{
 	    		throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
@@ -109,8 +109,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		if (t.isInput()) {
 			if (t.isGrove()) {
 				connection = GrovePiConstants.DIGITAL_PORT_TO_REGISTER[connection];
-				byte[] readCmd = { GrovePiConstants.START_BYTE, GrovePiConstants.DIGITAL_READ, (byte) connection, 0x00,
-						0x00 };
+				byte[] readCmd = { GrovePiConstants.START_BYTE, GrovePiConstants.DIGITAL_READ, (byte) connection, 0x00,	0x00 };
 				byte[] setup = { GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte) connection,	GrovePiConstants.INPUT, 0x00 };
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t, GrovePiConstants.BOARD_ADDR,readCmd, (byte) 1, connection, setup, customRate, customAverageMS, everyValue));	
 			} else {

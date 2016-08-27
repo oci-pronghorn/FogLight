@@ -34,8 +34,6 @@ import com.ociweb.iot.maker.TimeListener;
  * 
  */
 
-//importance of interface. 
-//multiple inheretiance (issue, language have in general),overlap of overlap 
 public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener, TimeListener {
 
     private final CommandChannel tickCommandChannel;
@@ -43,15 +41,16 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     
     private final String topic = "tick";
           
+    private static final int REQ_UNCHANGED_MS = 120;
     
-    private static final int BBM_SLOWEST     = 40; // the  private static final int 
+    private static final int BBM_SLOWEST     = 40; 
     private static final int BBM_FASTEST     = 208;
     
     private static final int BBM_VALUES      = 1+BBM_FASTEST-BBM_SLOWEST;
     private static final int MAX_ANGLE_VALUE = 1024;
     
     private int  requestedPBM;
-    private long requestDuration;
+    private long requestTime;
     
     private long base;
     private int beatIdx; 
@@ -63,25 +62,20 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
         this.tickCommandChannel = runtime.newCommandChannel();
         this.screenCommandChannel = runtime.newCommandChannel();
     }
-    //this.commandChannel, as a parameter of sth else. you will give it to sb as incomplete stage
-// pass this in sth in the constructor 
+
     @Override
     public void startup() {
-        tickCommandChannel.subscribe(topic,this); //take this because it is a pub listen/ current object. valid for use 
+        tickCommandChannel.subscribe(topic,this); 
         tickCommandChannel.openTopic(topic).publish();
         
         Grove_LCD_RGB.commandForColor(tickCommandChannel, 255, 255, 255);
         
     }
 
-    //we will talk about override
     @Override
-    public void analogEvent(Port port, long time, long durationMillis, int average, int value) {  
-    	
-    	System.out.println("xxx event "+time+"  "+port+" "+value);
-    	
-    	requestedPBM=  BBM_SLOWEST + ((BBM_VALUES*average)/MAX_ANGLE_VALUE);       //math value, long, int, beat at the right (primitive work) order of operation  
-        requestDuration = durationMillis;    
+    public void analogEvent(Port port, long time, long durationMillis, int average, int value) { 
+    	requestedPBM =  BBM_SLOWEST + ((BBM_VALUES*average)/MAX_ANGLE_VALUE);   
+    	requestTime = time; 
     }    
 
     @Override
@@ -90,21 +84,21 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     	
         if (requestedPBM>0) {
 
-            if (activeBPM != requestedPBM && (requestDuration > 200 || activeBPM==0) ) {
+            if (activeBPM != requestedPBM && ((System.currentTimeMillis()-requestTime) > REQ_UNCHANGED_MS || activeBPM==0) ) {
             	activeBPM = requestedPBM;
-                base = System.currentTimeMillis(); //this is a standard java they should know. 1970 UMT
+                base = System.currentTimeMillis(); 
                 beatIdx = 0;
-            }                
+            } 
                                     
-            long delta = (++beatIdx*60_000)/activeBPM;//will multiple the pre incremental value if do after 
+            long delta = (++beatIdx*60_000)/activeBPM;
             long until = base + delta;
             tickCommandChannel.digitalPulse(IoTApp.BUZZER_PORT,500_000);     
-            tickCommandChannel.blockUntil(IoTApp.BUZZER_PORT, until); //mark connection as blocked until
+            tickCommandChannel.blockUntil(IoTApp.BUZZER_PORT, until);
             
 
             if (beatIdx==activeBPM) {
             	beatIdx = 0;
-            	base += 60_000; //will talk about the operator 
+            	base += 60_000; 
             }
             
         }

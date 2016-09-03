@@ -122,14 +122,19 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 	@Override
 	public void run() {
+		
+		long prcRelease = hardware.nanoTime();
+		
 	
 	    //never run poll if we have nothing to poll, in that case the array will have a single -1 
 	    if (processInputs) {
 	        do {
 			    long waitTime = blockStartTime - hardware.nanoTime();
 	     		if(waitTime>0){
-	     			if (null==rate || (waitTime > rate.longValue())) {    				
-	     				processReleasedCommands(waitTime);
+	     			if (null==rate || (waitTime > rate.longValue())) {
+	     				if (hardware.nanoTime()>prcRelease) {
+	     					processReleasedCommands(waitTime);
+	     				}
 	     				return; //Enough time has not elapsed to start next block on schedule
 	     			} else {
 	     				long blockMS = (hardware.nanoTime()-blockStartTime) / 1_000_000;
@@ -153,8 +158,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         			if(inProgressIdx != -1) {
         			    
         				if (!PipeWriter.hasRoomForWrite(i2cResponsePipe)) {
-        					//we are going to miss the schedule due to backup in the pipes, this is common when the unit tests run or the user has put in a break point.
-        					processReleasedCommands(40);//if this backup runs long term we never release the commands so we must do it now.
+        					if (hardware.nanoTime()>prcRelease) {
+        						//we are going to miss the schedule due to backup in the pipes, this is common when the unit tests run or the user has put in a break point.
+        						processReleasedCommands(rate.longValue());//if this backup runs long term we never release the commands so we must do it now.
+        					}
         					return;//oops the pipe is full so we can not read, postpone this work until the pipe is cleared.
         				}
 
@@ -191,8 +198,11 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 						
         			} else {
-        				if (rate.longValue()>2_000_000) {
-        					processReleasedCommands(rate.longValue()/1_000_000);
+        				if (rate.longValue()>500_000) {
+        					if (hardware.nanoTime()>prcRelease) {
+        						processReleasedCommands(rate.longValue());
+        						prcRelease+=rate.longValue();
+        					}
         				}
         			}
         			//since we exit early if the pipe is full we must not move this forward until now at the bottom of the loop.
@@ -204,8 +214,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    } else {
 	    	
 	    	//System.err.println("nothing to poll, should choose a simpler design");
-	    	
-	        processReleasedCommands(10);
+	    	if (hardware.nanoTime()>prcRelease) {
+	    		processReleasedCommands(rate.longValue());
+	    		prcRelease+=rate.longValue();
+	    	}
 	    }
 	}
 
@@ -270,15 +282,15 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     				timeOut = hardware.currentTimeMillis() + writeTime;
     				while(!i2c.write((byte) addr, workingBuffer, len) && hardware.currentTimeMillis()<timeOut){}
     
-    				logger.debug("send done");
-    
     			}                                      
     			break;
     
     			case I2CCommandSchema.MSG_BLOCKCHANNEL_22:
     			{
-    				blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));            	   
-    				logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
+    				blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));   
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
+    				}
     			}
     			break;
     
@@ -291,7 +303,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     				long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13);
 
     				blockConnectionDuration(connection, duration);
-    				logger.debug("I2C addr {} {} blocked for {} nanos  {}", addr, connection, duration, pipe);
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("I2C addr {} {} blocked for {} nanos  {}", addr, connection, duration, pipe);
+    				}
     			}   
     			break;
     
@@ -301,7 +315,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     				int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12);
     				long time = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_TIMEMS_14);
     				blockConnectionUntil(connection, time);
-    				logger.debug("I2C addr {} {} blocked until {} millis {}", addr, connection, time, pipe);
+    				if (logger.isDebugEnabled()) {
+    					logger.debug("I2C addr {} {} blocked until {} millis {}", addr, connection, time, pipe);
+    				}
     			}
     
     			break;    

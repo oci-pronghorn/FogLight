@@ -13,6 +13,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
+import com.ociweb.pronghorn.iot.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
@@ -32,6 +33,12 @@ public class SchemaValidationTest {
     public void messageClientNetResponseSchemaFROMTest() {
         assertTrue(FROMValidation.testForMatchingFROMs("/ClientNetResponse.xml", ClientNetResponseSchema.instance));
         assertTrue(FROMValidation.testForMatchingLocators(ClientNetResponseSchema.instance));
+    }
+    
+    @Test
+    public void messageNetParseAckSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/NetParseAck.xml", NetParseAckSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(NetParseAckSchema.instance));
     }
     
     @Test

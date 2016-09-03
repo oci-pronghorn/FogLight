@@ -61,6 +61,8 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     
     private final Enum[] states;
     
+    private boolean timeEvents = false;
+    
     /////////////////////
     //Listener Filters
     /////////////////////    
@@ -76,6 +78,10 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     /////////////////////
     private Number stageRate;
     private final GraphManager graphManager;
+    private int timeProcessWindow;
+
+    private StringBuilder workspace = new StringBuilder();
+    private PayloadReader payloadReader;
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 
@@ -92,7 +98,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                    
         //allow for shutdown upon shutdownRequest we have new content
         GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
-        
+                
     }
 
     private void setupMovingAverages(HardwareImpl hardware, MAvgRollerLong[] target, HardwareConnection[] con) {
@@ -109,6 +115,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         timeRate = rate;
         timeTrigger = start;
 
+        timeEvents = (0 != timeRate) && (listener instanceof TimeListener);
     }
     
     protected int findStableReading(int tempValue, int connector) { 
@@ -187,6 +194,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         
         stageRate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
         
+        timeProcessWindow = (null==stageRate? 0 : (int)(stageRate.longValue()/MS_to_NS));
+        
+        
         
         //Do last so we complete all the initializations first
         if (listener instanceof StartupListener) {
@@ -198,7 +208,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     @Override
     public void run() {
         
-        processTimeEvents(listener);
+        if (timeEvents) {         	
+			processTimeEvents(listener, timeTrigger);            
+		}
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         
@@ -226,8 +238,6 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         
     }
 
-    private StringBuilder workspace = new StringBuilder();
-    private PayloadReader payloadReader;
     
     private void consumePubSubMessage(Object listener, Pipe<MessageSubscription> p) {
         while (PipeReader.tryReadFragment(p)) {                
@@ -281,28 +291,26 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
 	private static final long MS_to_NS = 1_000_000;
 
-	private void processTimeEvents(Object listener) {
-        //if we do have a clock schedule
-        if (0 != timeRate) {
-            if (listener instanceof TimeListener) {
-                            	
-                long timeToWait = (timeTrigger-hardware.currentTimeMillis())*MS_to_NS;
-                if (null!=stageRate && (timeToWait >= stageRate.longValue())) { //if its not near, leave
-                	return;
-                }
-                while (hardware.currentTimeMillis()<timeTrigger) {
-                	Thread.yield();
-                	if (Thread.interrupted()) {
-                		Thread.currentThread().interrupt();
-                		return;
-                	}
-                }
-                ((TimeListener)listener).timeEvent(timeTrigger);
-                timeTrigger += timeRate;
-                
-            }
-        }
-    }
+	private void processTimeEvents(Object listener, long trigger) {
+		
+		long msRemaining = (trigger-hardware.currentTimeMillis()); 
+		if (msRemaining > timeProcessWindow) {
+			//if its not near, leave
+			return;
+		}
+		if (msRemaining>1) {
+			try {
+				Thread.sleep(msRemaining-1);
+			} catch (InterruptedException e) {
+			}
+		}		
+		while (hardware.currentTimeMillis() < trigger) {
+			Thread.yield();                	
+		}
+		
+		((TimeListener)listener).timeEvent(trigger);
+		timeTrigger += timeRate;
+	}
 
 
     private void consumeRestMessage(Object listener2, Pipe<?> p) {

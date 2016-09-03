@@ -349,6 +349,7 @@ public abstract class HardwareImpl implements Hardware {
 
 		long timeout = 20_000; //20 seconds
 
+		int maxGoPipeId = 0;
 		int t = commandChannelCount;
 		while (--t>=0) {
 
@@ -357,6 +358,8 @@ public abstract class HardwareImpl implements Hardware {
 			Pipe<TrafficAckSchema>[] ackIn = new Pipe[p];
 			while (--p>=0) {
 				masterGoOut[p][t] = goOut[p] = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
+				maxGoPipeId = Math.max(maxGoPipeId, goOut[p].id);
+				
 				masterAckIn[p][t] = ackIn[p]=new Pipe<TrafficAckSchema>(ackPipesConfig);								
 			}
 			
@@ -395,6 +398,9 @@ public abstract class HardwareImpl implements Hardware {
 		///////////////
 		createADOutputStage(requestPipes, masterGoOut[TYPE_PIN], masterAckIn[TYPE_PIN]);
 
+		channelBlocker = new Blocker(maxGoPipeId+1);
+		   
+	       
 	}
 
 	private void createMessagePubSubStage(IntHashTable subscriptionPipeLookup,
@@ -459,10 +465,6 @@ public abstract class HardwareImpl implements Hardware {
 	 */
 	public long currentTimeMillis() {
 		return System.currentTimeMillis();
-	}
-
-	public void initChannelBlocker(int channelsCount) {
-		channelBlocker = new Blocker(channelsCount);
 	}
 
 	public void blockChannelUntil(int channelId, long timeInMillis) {        

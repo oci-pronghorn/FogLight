@@ -39,6 +39,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
     
     protected static final long MS_TO_NS = 1_000_000;
     private Number rate;
+    private long releaseWindow = 2; //stay here if work will be available in this many ms.
     
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTrafficOrderedStage.class);
 
@@ -97,7 +98,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 
 	@Override
 	public void run() {
-		processReleasedCommands(null==rate || (rate.longValue()<2_000_000)? 100 : (rate.longValue()/1_000_000));		
+		processReleasedCommands(null==rate ?  100_000 : rate.longValue() );		
 	}
 	
 	
@@ -156,22 +157,21 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 		mostRecentBlockedConnection = connection;
 	}
 
-    protected boolean processReleasedCommands(long timeout) {
+    protected boolean processReleasedCommands(long timeoutNS) {
    	
         boolean foundWork;
 		int[] localActiveCounts = activeCounts;
-		long timeLimit = -1;
+		long timeLimitNS = timeoutNS + hardware.nanoTime();
         long unblockChannelLimit = -1;
+        long windowLimit = 0;
+        boolean holdForWindow = false;
 		do {
 			foundWork = false;
 			int a = startLoopAt;
 			
 				while (--a >= 0) {
 				    long now = hardware.currentTimeMillis();
-				    if (timeLimit==-1) {
-				    	timeLimit = now+timeout;
-				    
-				    }
+				    				
 				    //do not call again if we already know nothing will result from it.
 				    if (now>unblockChannelLimit) {
 				    	unblockChannelLimit = now+hardware.releaseChannelBlocks(now);
@@ -180,7 +180,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 				    if (isChannelBlocked(a) ) {
 				        return true;            
 				    }   
-				    if (now >= timeLimit) {
+				    if (hardware.nanoTime() >= timeLimitNS) {
 				        //stop here because we have run out of time, do save our location to start back here.
 				        startLoopAt = a+1;
                         return false;
@@ -244,15 +244,20 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 							}							
 						}
 					}
-					
-					
-					
+															
 					
 				} 
 				startLoopAt = activeCounts.length;
-			//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
-			//we also check for 'near' work but only when there is no found work since its more expensive
-		} while (foundWork || (connectionBlocker.willReleaseInWindow(hardware.currentTimeMillis(),timeout)));
+			    
+				//only stop after we have 1 cycle where no work was done, this ensure all pipes are as empty as possible before releasing the thread.
+			    //we also check for 'near' work but only when there is no found work since its more expensive
+				long now = hardware.currentTimeMillis();
+				if (now>windowLimit) {
+					windowLimit = now+releaseWindow;
+					holdForWindow = connectionBlocker.willReleaseInWindow(windowLimit);
+				}
+				
+		} while (foundWork | holdForWindow);
 		return true;
     }
 

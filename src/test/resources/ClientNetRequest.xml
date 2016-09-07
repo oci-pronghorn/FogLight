@@ -6,5 +6,9 @@
      <string name="Payload" id="103" charset="unicode"/>
    </template>  
  
+   <template name="EncryptedRequest" id="110">
+     <uInt64 name="ConnectionId" id="101"/>
+     <byteVector name="Encrypted" id="104"/>
+   </template>  
       
 </templates>

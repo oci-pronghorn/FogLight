@@ -2,8 +2,7 @@
 <templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
    
    <template name="Response" id="101">
-     <uInt32 name="Verb" id="1"/>
-     <string name="URL" id="2" charset="unicode"/>
+     <uInt64 name="ConnectionId" id="1"/>
      <byteVector name="Payload" id="3"/>
    </template> 
       

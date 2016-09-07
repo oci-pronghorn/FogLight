@@ -6,11 +6,11 @@ import com.ociweb.pronghorn.pipe.MessageSchema;
 public class ClientNetRequestSchema extends MessageSchema {
 
 	public final static FieldReferenceOffsetManager FROM = new FieldReferenceOffsetManager(
-		    new int[]{0xc0400003,0x90000000,0xa8000000,0xc0200003},
+		    new int[]{0xc0400003,0x90000000,0xa8000000,0xc0200003,0xc0400003,0x90000000,0xb8000001,0xc0200003},
 		    (short)0,
-		    new String[]{"SimpleRequest","ConnectionId","Payload",null},
-		    new long[]{100, 101, 103, 0},
-		    new String[]{"global",null,null,null},
+		    new String[]{"SimpleRequest","ConnectionId","Payload",null,"EncryptedRequest","ConnectionId","Encrypted",null},
+		    new long[]{100, 101, 103, 0, 110, 101, 104, 0},
+		    new String[]{"global",null,null,null,"global",null,null,null},
 		    "ClientNetRequest.xml",
 		    new long[]{2, 2, 0},
 		    new int[]{2, 2, 0});
@@ -20,6 +20,10 @@ public class ClientNetRequestSchema extends MessageSchema {
     public static final int MSG_SIMPLEREQUEST_100 = 0x00000000;
     public static final int MSG_SIMPLEREQUEST_100_FIELD_CONNECTIONID_101 = 0x00800001;
     public static final int MSG_SIMPLEREQUEST_100_FIELD_PAYLOAD_103 = 0x01400003;
+    
+    public static final int MSG_ENCRYPTEDREQUEST_110 = 0x00000004;
+    public static final int MSG_ENCRYPTEDREQUEST_110_FIELD_CONNECTIONID_101 = 0x00800001;
+    public static final int MSG_ENCRYPTEDREQUEST_110_FIELD_ENCRYPTED_104 = 0x01C00003;
     
     protected ClientNetRequestSchema() {
         super(FROM);

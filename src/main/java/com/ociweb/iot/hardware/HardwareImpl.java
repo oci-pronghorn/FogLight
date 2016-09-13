@@ -14,6 +14,7 @@ import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.HTTPResponseListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
@@ -34,6 +35,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
+import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
@@ -307,7 +309,7 @@ public abstract class HardwareImpl implements Hardware {
 		}     
 	}
 
-	public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe);
+	public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<NetRequestSchema> httpRequest, Pipe<TrafficOrderSchema> orderPipe);
 
 	static final boolean debug = false;
 
@@ -460,6 +462,11 @@ public abstract class HardwareImpl implements Hardware {
 		return listener instanceof PubSubListener;
 	}
 
+	public boolean isListeningToHTTPResponse(Object listener) {
+		return listener instanceof HTTPResponseListener;
+	}
+
+	
 	/**
 	 * access to system time.  This method is required so it can be monitored and simulated by unit tests.
 	 */
@@ -472,12 +479,20 @@ public abstract class HardwareImpl implements Hardware {
 	}
 
 	public boolean isChannelBlocked(int channelId) {
-		return channelBlocker.isBlocked(channelId);
+		if (null != channelBlocker)  {
+			return channelBlocker.isBlocked(channelId);
+		} else {
+			return false;
+		}
 	}
 
 	public long releaseChannelBlocks(long now) {
-		channelBlocker.releaseBlocks(now);
-		return channelBlocker.durationToNextRelease(now, -1);
+		if (null != channelBlocker) {
+			channelBlocker.releaseBlocks(now);
+			return channelBlocker.durationToNextRelease(now, -1);
+		} else {
+			return -1; //was not init so there are no possible blocked channels.
+		}
 	}
 
 	public long nanoTime() {

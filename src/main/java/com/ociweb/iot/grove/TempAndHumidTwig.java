@@ -84,17 +84,6 @@ public class TempAndHumidTwig implements IODevice{
 		return 0;
 	}
 
-//	@Override
-//	public boolean isI2C() {
-//		return true;
-//	}
-
-
-	@Override
-	public boolean isGrove() {
-		return false; //this has to be false
-	}
-
     @Override
     public int response() {       
        return 600;      

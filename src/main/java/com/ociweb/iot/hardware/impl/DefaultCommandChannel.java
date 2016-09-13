@@ -6,6 +6,7 @@ import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
+import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -14,8 +15,8 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class DefaultCommandChannel extends CommandChannel{
 
 
-	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> goPipe) {
-			super(gm, hardware, output, i2cOutput, messagePubSub, goPipe);
+	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput, Pipe<MessagePubSub> messagePubSub, Pipe<NetRequestSchema> httpRequest, Pipe<TrafficOrderSchema> goPipe) {
+			super(gm, hardware, output, i2cOutput, messagePubSub, httpRequest, goPipe);
 			assert(Pipe.isForSchema(outputPipes[pinPipeIdx], GroveRequestSchema.instance));
 			assert(Pipe.isForSchema(outputPipes[i2cPipeIdx], I2CCommandSchema.instance));
 	}

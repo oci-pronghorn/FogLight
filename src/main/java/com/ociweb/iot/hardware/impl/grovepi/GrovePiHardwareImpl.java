@@ -21,6 +21,7 @@ import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
+import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -41,9 +42,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 
 	@Override
-	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {
+	public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<NetRequestSchema> httpRequest, Pipe<TrafficOrderSchema> orderPipe) {
 		this.commandIndex++;
-		return new PiCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, orderPipe, commandIndex);	
+		return new PiCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, httpRequest, orderPipe, commandIndex);	
 	} 
     
 	@Override
@@ -83,47 +84,35 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	@Override
 	protected Hardware internalConnectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
 		if (t.isInput()) {
-			if(t.isGrove()){
+		
 	    		connection = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection];
 				byte[] readCmd = {GrovePiConstants.START_BYTE,GrovePiConstants.ANALOG_READ,(byte)connection,0x00,0x00};
 				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.INPUT,0x00};				
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,connection, setup, customRate, customAverageMS, everyValue)); 
-				
-	    	}else{
-	    		throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
-	    	}
+			
 		} else {
-			if(t.isGrove()){
+
 	    		connection = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection];
 				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.OUTPUT,0x00};				
 				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,null,0,connection, setup, customRate, customAverageMS, everyValue));
-				
-	    	}else{
-	    		throw new UnsupportedOperationException("you have tried to connect an analog device to a GPIO pin");
-	    	}
+
 		}
 		return super.internalConnectAnalog(t, connection, customRate, customAverageMS, everyValue);
 	}
 
 	protected Hardware internalConnectDigital(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
 		if (t.isInput()) {
-			if (t.isGrove()) {
+			
 				connection = GrovePiConstants.DIGITAL_PORT_TO_REGISTER[connection];
 				byte[] readCmd = { GrovePiConstants.START_BYTE, GrovePiConstants.DIGITAL_READ, (byte) connection, 0x00,	0x00 };
 				byte[] setup = { GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte) connection,	GrovePiConstants.INPUT, 0x00 };
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t, GrovePiConstants.BOARD_ADDR,readCmd, (byte) 1, connection, setup, customRate, customAverageMS, everyValue));	
-			} else {
-				throw new UnsupportedOperationException("GPIO not yet supported");
-			}
 
 		} else {
-			if (t.isGrove()) {
+			
 				connection = GrovePiConstants.DIGITAL_PORT_TO_REGISTER[connection];
 				byte[] setup = { GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte) connection,	GrovePiConstants.OUTPUT, 0x00 };
 				i2cOutputs = growI2CConnections(i2cOutputs, new I2CConnection(t, GrovePiConstants.BOARD_ADDR, null,	0, connection, setup, customRate, customAverageMS, everyValue)); 
-			} else {
-				throw new UnsupportedOperationException("GPIO not yet supported");
-			}
 
 		}
 		return super.internalConnectDigital(t, connection, customRate, customAverageMS, everyValue);

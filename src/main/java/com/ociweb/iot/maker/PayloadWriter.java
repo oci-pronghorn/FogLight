@@ -2,83 +2,63 @@ package com.ociweb.iot.maker;
 
 import java.io.IOException;
 
-import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeWriter;
-import com.ociweb.pronghorn.util.Pool;
 
-public class PayloadWriter {
+public class PayloadWriter extends DataOutputBlobWriter {
 
-    private final DataOutputBlobWriter<MessagePubSub> writer;
-    private final CommandChannel commandChannel;
+    private final Pipe p;
+    private CommandChannel commandChannel;
     private long key;
-    private Pipe<MessagePubSub> pipe;
+    private int loc=-1;
     
-    public PayloadWriter(Pipe<MessagePubSub> p, CommandChannel commandChannel) {
-        this.writer = new DataOutputBlobWriter<MessagePubSub>(p);
-        this.commandChannel = commandChannel;                
-        this.pipe = p;
-    }
-    
-    public PayloadWriter writeInt(int value) {
-        try {
-            writer.writeInt(value);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
-    }
-    
-    public PayloadWriter writeLong(long value) {
-        try {
-            writer.writeLong(value);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
+    public PayloadWriter(Pipe p) {
+    	super(p);
+    	this.p = p;             
+        
     }
         
-    public PayloadWriter writeBoolean(boolean value) {
-        try {
-            writer.writeBoolean(value);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
+    public void writeString(CharSequence value) {
+        writeUTF(value);
     }
     
-    public PayloadWriter writeString(CharSequence value) {
-        try {
-            writer.writeUTF(value);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
+    public void writeObject(Object object) {
+    	
+    	try {
+			super.writeObject(object);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
     }
     
-	public PayloadWriter writeObject(Object value) {
-		 try {
-	            writer.writeObject(value);
-	        } catch (IOException e) {
-	            throw new RuntimeException(e);
-	        }
-	        return this;
-	}
-
+    public void close() {
+    	if (loc!=-1) {
+    		publish();
+    	}
+    	
+    	try {
+			super.close();
+		} catch (IOException e) {
+			throw new RuntimeException();
+		}
+    	
+    }
+    
     public void publish() {
-        
-        writer.closeHighLevelField(MessagePubSub.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
-        PipeWriter.publishWrites(pipe);
-        
-        commandChannel.publishGo(1,commandChannel.subPipeIdx);        
-        commandChannel.payloadWriterPool.release(key);
-        
+        if (loc!=-1) {
+	        closeHighLevelField(loc);
+	        loc = -1;//clear field
+	        PipeWriter.publishWrites(p);        
+	        commandChannel.publishGo(1,commandChannel.subPipeIdx);
+        }
     }
 
-    void openField(long key) {
-        this.key = key;
-        DataOutputBlobWriter.openField(writer);
+    void openField(int loc, CommandChannel commandChannel) {
+    	assert(this.loc == -1) : "Already open for writing, can not open again.";
+    	this.commandChannel = commandChannel;
+        this.loc = loc;
+        DataOutputBlobWriter.openField(this);
     }
 
 

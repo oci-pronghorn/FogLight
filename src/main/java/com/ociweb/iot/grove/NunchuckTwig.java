@@ -66,11 +66,6 @@ public class NunchuckTwig implements IODevice{
 	}
 
 	@Override
-	public boolean isGrove() {
-		return false;
-	}
-    
-	@Override
     public int response() {       
        return 10;      
     }

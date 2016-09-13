@@ -202,9 +202,9 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 				    
 				    
 					//pull all known the values into the active counts array
-					if (-1==localActiveCounts[a] && PipeReader.tryReadFragment(goPipe[a])) {                    
+					if ((localActiveCounts[a] == -1) && PipeReader.tryReadFragment(goPipe[a])) {                    
 						readNextCount(a);
-					}
+					} 
 				
 					mostRecentBlockedConnection = -1;//clear in case it gets set.
 					int startCount = localActiveCounts[a];
@@ -214,15 +214,17 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 					processMessagesForPipe(a);											
 
 					//send any acks that are outstanding, we did all the work
-					if (startCount>0) {
+					if (startCount>0 || 0==localActiveCounts[a]) {
 						//there was some work to be done
 						if (0==localActiveCounts[a]) {
-						    logger.debug("send ack back to {}",a);					    
+						    //logger.debug("send ack back to {}",a);					    
 						    if (PipeWriter.tryWriteFragment(ackPipe[a], TrafficAckSchema.MSG_DONE_10)) {
 								publishWrites(ackPipe[a]);
 								localActiveCounts[a] = -1;
 								foundWork = true; //keep running may find something else 
-							}//this will try again later since we did not clear it to -1
+							} else {//this will try again later since we did not clear it to -1
+								//logger.debug("unable to send ack back to caller, check pipe lenghts. {} {}",a,ackPipe[a]);
+							}
 						} else {							
 							if (localActiveCounts[a]==startCount) {
 								//we did none of the work
@@ -280,6 +282,7 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 			assert(-1==activeCounts[a]);
 			activeCounts[a] = PipeReader.readInt(localPipe, TrafficReleaseSchema.MSG_RELEASE_20_FIELD_COUNT_22);
 		}else{
+			System.err.println("shtudown ack");
 			assert(msgIdx == -1);
 			if (--hitPoints == 0) {
 				requestShutdown();
@@ -294,7 +297,11 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	}
 
 	protected boolean hasReleaseCountRemaining(int a) {
+		
 		if(activeCounts.length>0){
+		
+			//System.out.println("active counts "+activeCounts[a]);
+			
 			return activeCounts[a] > 0;
 		}else{
 			return false;

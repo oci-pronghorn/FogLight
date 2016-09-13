@@ -6,6 +6,7 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
+import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -21,6 +22,7 @@ public abstract class CommandChannel {
     protected final Pipe<MessagePubSub> messagePubSub;
     protected final Pipe<I2CCommandSchema> i2cOutput;
     protected final Pipe<GroveRequestSchema> output;
+    protected final Pipe<NetRequestSchema> httpRequest;
     
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
 
@@ -35,9 +37,6 @@ public abstract class CommandChannel {
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
     protected final int maxCommands = 50;
     
-    private long topicKeyGen;
-    
-    Pool<PayloadWriter> payloadWriterPool;
     private final int maxOpenTopics = 1;
     
     protected final int pinPipeIdx = 0; 
@@ -47,12 +46,15 @@ public abstract class CommandChannel {
 	private final int MAX_COMMAND_FRAGMENTS_SIZE;
         
     protected CommandChannel(GraphManager gm, HardwareImpl hardware,
-                             Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub,  //avoid adding more and see how they can be combined.
+                             Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  
+                             Pipe<MessagePubSub> messagePubSub,  //avoid adding more and see how they can be combined.
+                             Pipe<NetRequestSchema> httpRequest,
                              Pipe<TrafficOrderSchema> goPipe) {
        this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};
        this.goPipe = goPipe;
        this.messagePubSub = messagePubSub;
        this.i2cOutput = i2cOutput;
+       this.httpRequest = httpRequest;
                              
        if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
            throw new UnsupportedOperationException("maxCommands too large or pipe is too small, pipe size must be at least "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
@@ -184,9 +186,52 @@ public abstract class CommandChannel {
             PipeWriter.publishWrites(i2cOutput);
         } finally {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-        }
-        
+        }        
     }
+    
+    
+    public boolean httpGet(CharSequence domain, int port, CharSequence route) {
+    	return httpGet(domain,port,route,(HTTPResponseListener)listener);
+    	
+    }
+    public boolean httpGet(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
+    	//Pipe<NetRequestSchema> httpRequest
+    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPGET_100)) {
+                	    
+    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, port);
+    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, host);
+    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, route);
+    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, System.identityHashCode(listener));
+    		PipeWriter.publishWrites(httpRequest);
+            
+    		publishGo(1,subPipeIdx);
+            
+            return true;
+        }        
+        return false;
+    	
+    }
+    
+//    public PayloadWriter httpPost(CharSequence domain, int port, CharSequence route) {
+//    	return httpPost(domain,port,route,(HTTPResponseListener)listener);
+//    	
+//    }
+//    public PayloadWriter httpPost(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
+//    	//Pipe<NetRequestSchema> httpRequest
+//    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPPOST_101)) {
+//                	    
+//    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1, port);
+//    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2, host);
+//    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, route);
+//    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10, System.identityHashCode(listener));
+//
+//            publishGo(1,subPipeIdx);
+//            
+//            return true;
+//        }        
+//        return false;
+//    	
+//    }
     
     public boolean subscribe(CharSequence topic) {
         return subscribe(topic, (PubSubListener)listener);
@@ -250,15 +295,11 @@ public abstract class CommandChannel {
     public PayloadWriter openTopic(CharSequence topic) {
         
         if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_PUBLISH_103)) {
-        
-            if (null==payloadWriterPool) {
-                lazyInitOfPool(); //must be after the listener has init all the pipes., TODO: could be done when we assign the lister, if we do.
-            }
             
-            long key = ++topicKeyGen;
             PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1, topic);            
-            PayloadWriter pw = payloadWriterPool.get(key);            
-            pw.openField(key);            
+            PayloadWriter pw = (PayloadWriter) Pipe.outputStream(messagePubSub);
+            		          
+            pw.openField(MessagePubSub.MSG_PUBLISH_103_FIELD_PAYLOAD_3,this);            
                         
             return pw;
             
@@ -269,15 +310,6 @@ public abstract class CommandChannel {
         }
     }
 
-
-    private void lazyInitOfPool() {
-        PayloadWriter[] members = new PayloadWriter[maxOpenTopics];       
-        payloadWriterPool = new Pool<PayloadWriter>(members);
-        int m = maxOpenTopics;
-        while (--m >= 0) {
-            members[m] = new PayloadWriter(messagePubSub, this);
-        }
-    }
 
 
 

@@ -1,5 +1,7 @@
 package com.ociweb.pronghorn.iot;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,6 +9,7 @@ import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.HTTPResponseListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.ListenerFilter;
 import com.ociweb.iot.maker.PayloadReader;
@@ -20,9 +23,15 @@ import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
+import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
+import com.ociweb.pronghorn.network.ClientConnection;
+import com.ociweb.pronghorn.network.ClientConnectionManager;
+import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.PronghornStage;
+import com.ociweb.pronghorn.stage.network.config.HTTPContentType;
+import com.ociweb.pronghorn.stage.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
@@ -82,6 +91,11 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
     private StringBuilder workspace = new StringBuilder();
     private PayloadReader payloadReader;
+    
+    private final StringBuilder workspaceHost = new StringBuilder();
+    
+    private final HTTPSpecification httpSpec = HTTPSpecification.defaultSpec();
+    private final ClientConnectionManager ccm = null ;//TODO: pass in? get from hardware!!!!
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 
@@ -209,7 +223,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     public void run() {
         
         if (timeEvents) {         	
-			processTimeEvents(listener, timeTrigger);            
+			processTimeEvents((TimeListener)listener, timeTrigger);            
 		}
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
@@ -224,11 +238,17 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
             if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
             } else
-            if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {                
-                consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);
+            if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {
+            	if (listener instanceof I2CListener) {
+            		consumeI2CMessage((I2CListener)listener, (Pipe<I2CResponseSchema>) localPipe);
+            	}
             } else
             if (Pipe.isForSchema(localPipe, MessageSubscription.instance)) {                
                 consumePubSubMessage(listener, (Pipe<MessageSubscription>) localPipe);
+            } else 
+            if (Pipe.isForSchema(localPipe, NetResponseSchema.instance)) {
+               //should only have this pipe if listener is also instance of HTTPResponseListener
+               consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) localPipe);
             } else 
             {
                 logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(localPipe));
@@ -239,7 +259,51 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     }
 
     
-    private void consumePubSubMessage(Object listener, Pipe<MessageSubscription> p) {
+    private void consumeNetResponse(HTTPResponseListener listener, Pipe<NetResponseSchema> p) {
+    	 while (PipeReader.tryReadFragment(p)) {                
+             
+             int msgIdx = PipeReader.getMsgIdx(p);
+             switch (msgIdx) {
+             case NetResponseSchema.MSG_RESPONSE_101:
+            	 
+            	 long ccId1 = PipeReader.readLong(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_CONNECTIONID_1);
+            	 ClientConnection cc = ccm.get(ccId1);
+            	 
+            	 if (null!=cc) {
+	            	 PayloadReader reader = (PayloadReader)PipeReader.inputStream(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_PAYLOAD_3);	            	 
+	            	 short statusId = reader.readShort();	
+	            	 short typeHeader = reader.readShort();
+	            	 short typeId = 0;
+	            	 if (6==typeHeader) {//may not have type
+	            		 assert(6==typeHeader) : "should be 6 was "+typeHeader;
+	            		 typeId = reader.readShort();	            	 
+	            		 short headerEnd = reader.readShort();
+	            		 assert(-1==headerEnd) : "header end should be -1 was "+headerEnd;
+	            	 } else {
+	            		 assert(-1==typeHeader) : "header end should be -1 was "+typeHeader;
+	            	 }
+	            	 listener.responseHTTP(cc.getHost(), cc.getPort(), statusId, (HTTPContentType)httpSpec.contentTypes[typeId], reader);            	 
+	            	 //cc.incResponsesReceived(); NOTE: can we move this here instead of in the socket listener??
+            	             	 
+            	 } //else do not send, wait for closed message
+            	 break;
+             case NetResponseSchema.MSG_CLOSED_10:
+            	 
+            	 workspaceHost.setLength(0);
+            	 PipeReader.readUTF8(p, NetResponseSchema.MSG_CLOSED_10_FIELD_HOST_4, workspaceHost);
+            	 listener.responseHTTP(workspaceHost,PipeReader.readInt(p, NetResponseSchema.MSG_CLOSED_10_FIELD_PORT_5),(short)-1,null,null);    
+            	 
+            	 break;
+             default:
+                 throw new UnsupportedOperationException("Unknown id: "+msgIdx);
+             }
+             
+    	 }
+    			
+    	
+	}
+
+	private void consumePubSubMessage(Object listener, Pipe<MessageSubscription> p) {
         while (PipeReader.tryReadFragment(p)) {                
             
             int msgIdx = PipeReader.getMsgIdx(p);
@@ -248,18 +312,8 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                     if (listener instanceof PubSubListener) {
 	                    workspace.setLength(0);
 	                    CharSequence topic = PipeReader.readUTF8(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1, workspace);               
-	                    assert(null!=topic);
-	                    if (null==payloadReader) {
-	                        payloadReader = new PayloadReader(p); 
-	                    }
-	                    
-	                    payloadReader.openHighLevelAPIField(MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
-	
-	//                    if (! payloadReader.markSupported() ) {
-	//                        logger.warn("we need mark to be suppported for payloads in pubsub and http."); //TODO: need to implement mark, urgent.                      
-	//                    }
-	                    
-	                    ((PubSubListener)listener).message(topic, payloadReader);
+	                    assert(null!=topic);	                    
+	                    ((PubSubListener)listener).message(topic,  (PayloadReader)PipeReader.inputStream(p, MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3));
                     }
                     break;
                 case MessageSubscription.MSG_STATECHANGED_71:
@@ -291,7 +345,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
 	private static final long MS_to_NS = 1_000_000;
 
-	private void processTimeEvents(Object listener, long trigger) {
+	private void processTimeEvents(TimeListener listener, long trigger) {
 		
 		long msRemaining = (trigger-hardware.currentTimeMillis()); 
 		if (msRemaining > timeProcessWindow) {
@@ -308,7 +362,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 			Thread.yield();                	
 		}
 		
-		((TimeListener)listener).timeEvent(trigger);
+		listener.timeEvent(trigger);
 		timeTrigger += timeRate;
 	}
 
@@ -330,7 +384,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         }
     }
     
-    protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
+    protected void consumeI2CMessage(I2CListener listener, Pipe<I2CResponseSchema> p) {
 
         while (PipeReader.tryReadFragment(p)) {                
                     
@@ -355,7 +409,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     }
 
 	protected void processI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-		if (listener instanceof I2CListener) {
+
 			int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
 			long time = PipeReader.readLong(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
 			int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
@@ -365,9 +419,8 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 			int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 			int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 		    
-		    commonI2CEventProcessing((I2CListener)listener, addr, register, time, backing, position, length, mask);
-		   
-		}
+		    commonI2CEventProcessing((I2CListener) listener, addr, register, time, backing, position, length, mask);
+
 	}
 
     

@@ -394,20 +394,18 @@ public class Grove_LCD_RGB implements IODevice{
 	}
 
 	private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
-		try {
+		
 			DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
 			i2cPayloadWriter.writeByte(register);
 			i2cPayloadWriter.writeByte(value);          
 
 			target.i2cCommandClose();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+	
 	}
 
 	private static void writeMultipleBytesToRegister(CommandChannel target, int address, int register, byte[] values, int startIdx, int length) {
-		try {
+	
 			DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
 			i2cPayloadWriter.writeByte(register);
@@ -416,34 +414,28 @@ public class Grove_LCD_RGB implements IODevice{
 			}
 
 			target.i2cCommandClose();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+
 	}
 
 	private static void writeCharSequenceToRegister(CommandChannel target, int address, int register, CharSequence values, int startIdx, int length){
-		try {
+		
 			DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
 			i2cPayloadWriter.writeByte(register);
 			i2cPayloadWriter.writeASCII(values.subSequence(startIdx, startIdx+length));
 
 			target.i2cCommandClose();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	};
+
+	}
 	private static void writeUTF8ToRegister(CommandChannel target, int address, int register, CharSequence text, int pos, int len) {
-		try {
+		
 			DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
 			i2cPayloadWriter.writeByte(register);
 			DataOutputBlobWriter.encodeAsUTF8(i2cPayloadWriter, text, pos, len);
 
 			target.i2cCommandClose();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+
 	}
 
 	@Override
@@ -471,10 +463,7 @@ public class Grove_LCD_RGB implements IODevice{
 		byte LCD_REGISTER = 0;
 		return new I2CConnection(this, LCD_ADDR, LCD_READCMD, LCD_BYTESTOREAD, LCD_REGISTER, LCD_SETUP);
 	}
-	@Override
-	public boolean isGrove() {
-		return false;
-	}
+
 	@Override
 	public int response() {       
 		return 20;      

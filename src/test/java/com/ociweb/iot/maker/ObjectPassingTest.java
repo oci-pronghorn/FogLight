@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -16,8 +17,7 @@ public class ObjectPassingTest {
 	
 	 @Test
 	    public void testApp()
-	    {
-		 		 
+	    { 		 
 		 
 		    final AtomicInteger count = new AtomicInteger(0);
 		  //  final Serializable serialized1 = new String("hello");
@@ -60,10 +60,13 @@ public class ObjectPassingTest {
 								fail("failed after "+count.get());
 							}
 							
-							cc1.openTopic("test\topic").writeObject(serialized1).writeObject(serialized2).publish();
+							PayloadWriter pw = cc1.openTopic("test\\topic");
+							pw.writeObject(serialized1);
+							pw.writeObject(serialized2);
+							pw.publish();
 							
 							
-						}}).addSubscription("test\topic");
+						}}).addSubscription("test\\topic");
 					
 					
 					final CommandChannel cc2 = runtime.newCommandChannel();
@@ -72,7 +75,10 @@ public class ObjectPassingTest {
 						@Override
 						public void startup() {
 						
-							cc2.openTopic("test\topic").writeObject(serialized1).writeObject(serialized2).publish();
+							PayloadWriter pw = cc2.openTopic("test\\topic");
+							pw.writeObject(serialized1);
+							pw.writeObject(serialized2);
+							pw.publish();
 							
 						}
 						

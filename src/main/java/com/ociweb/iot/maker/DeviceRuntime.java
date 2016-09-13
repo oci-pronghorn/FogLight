@@ -3,8 +3,6 @@ package com.ociweb.iot.maker;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -22,7 +20,11 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
+import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
+import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+import com.ociweb.pronghorn.pipe.DataInputBlobReader;
+import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
@@ -77,8 +79,14 @@ public class DeviceRuntime {
     
     //////////
     //Pipes containing response data from the GPIO pins both digital and analog, this is primarily polled at a fixed rate on startup.
-    private final PipeConfig<GroveResponseSchema> responsePipeConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);   
-        
+    private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);      
+    
+    //////////
+    //Pipes containing response data from HTTP requests.
+    private final PipeConfig<NetResponseSchema> responseNetConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, defaultCommandChannelLength);   
+    
+    
+    
     /////////
     //Pipes for receiving messages, this includes MQTT, State and many others
     private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
@@ -139,11 +147,24 @@ public class DeviceRuntime {
     	return this.hardware;
     }
     
+    
+    private Pipe<MessagePubSub> newPubSubPipe(PipeConfig<MessagePubSub> config) {
+    	return new Pipe<MessagePubSub>(config) {
+			@SuppressWarnings("unchecked")
+			@Override
+			protected DataOutputBlobWriter<MessagePubSub> createNewBlobWriter() {
+				return new PayloadWriter(this);
+			}
+    		
+    	};
+    }
+    
     public CommandChannel newCommandChannel() { 
       
     	return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(requestPipeConfig ),
     	                                       new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig), 
-    	                                       new Pipe<MessagePubSub>(messagePubSubConfig),
+    	                                       newPubSubPipe(messagePubSubConfig),
+    	                                       null, //TODO: add Pipe<NetRequestSchema> httpRequest,
     	                                       new Pipe<TrafficOrderSchema>(goPipeConfig));
     	
     }
@@ -152,7 +173,8 @@ public class DeviceRuntime {
        
         return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, customChannelLength) ),
                                                new Pipe<I2CCommandSchema>(new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, customChannelLength,defaultCommandChannelMaxPayload)), 
-                                               new Pipe<MessagePubSub>(new PipeConfig<MessagePubSub>(MessagePubSub.instance, customChannelLength,defaultCommandChannelMaxPayload)),
+                                               newPubSubPipe(new PipeConfig<MessagePubSub>(MessagePubSub.instance, customChannelLength,defaultCommandChannelMaxPayload)),
+                                               null, //TODO: add Pipe<NetRequestSchema> httpRequest,
                                                new Pipe<TrafficOrderSchema>(new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, customChannelLength)));
         
     }
@@ -196,23 +218,59 @@ public class DeviceRuntime {
     
     public ListenerFilter registerListener(Object listener) {
         
-        List<Pipe<?>> pipesForListenerConsumption = new ArrayList<Pipe<?>>(); 
+    	/////////
+    	//pre-count how many pipes will be needed so the array can be built to the right size
+    	/////////
+    	int pipesCount = 0;
+    	if (this.hardware.isListeningToI2C(listener) && this.hardware.hasI2CInputs()) {
+    		pipesCount++;      
+        }
+        if (this.hardware.isListeningToPins(listener) && this.hardware.hasDigitalOrAnalogInputs()) {
+        	pipesCount++;
+        }
+        if (this.hardware.isListeningToHTTPResponse(listener)) {
+        	pipesCount++;
+        }
+        if (this.hardware.isListeningToSubscription(listener)) {
+        	pipesCount++;
+        }
+        Pipe<?>[] inputPipes = new Pipe<?>[pipesCount];
+    	 	
+    	
+    	///////
+        //Populate the inputPipes array with the required pipes
+    	///////      
         
         
         if (this.hardware.isListeningToI2C(listener) && this.hardware.hasI2CInputs()) {
-            pipesForListenerConsumption.add(new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x()));   //must double since used by splitter         
+        	inputPipes[--pipesCount] = (new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x()));   //must double since used by splitter         
         }
         if (this.hardware.isListeningToPins(listener) && this.hardware.hasDigitalOrAnalogInputs()) {
-            pipesForListenerConsumption.add(new Pipe<GroveResponseSchema>(responsePipeConfig.grow2x()));  //must double since used by splitter
+        	inputPipes[--pipesCount] = (new Pipe<GroveResponseSchema>(responsePinsConfig.grow2x()));  //must double since used by splitter
+        }
+        if (this.hardware.isListeningToHTTPResponse(listener)) {        	
+        	inputPipes[--pipesCount] = new Pipe<NetResponseSchema>(responseNetConfig) {
+				@SuppressWarnings("unchecked")
+				@Override
+				protected DataInputBlobReader<NetResponseSchema> createNewBlobReader() {
+					return new PayloadReader(this);
+				}
+            };        	
         }
         
         int subPipeIdx = -1;
         int testId = -1;
         if (this.hardware.isListeningToSubscription(listener)) {
-            Pipe<MessageSubscription> subscriptionPipe = new Pipe<MessageSubscription>(messageSubscriptionConfig);
+            Pipe<MessageSubscription> subscriptionPipe = new Pipe<MessageSubscription>(messageSubscriptionConfig) {
+				@SuppressWarnings("unchecked")
+				@Override
+				protected DataInputBlobReader<MessageSubscription> createNewBlobReader() {
+					return new PayloadReader(this);
+				}
+            };
             subPipeIdx = subscriptionPipeIdx++;
             testId = subscriptionPipe.id;
-            pipesForListenerConsumption.add(subscriptionPipe);
+            inputPipes[--pipesCount]=(subscriptionPipe);
             //store this value for lookup later
             IntHashTable.setItem(subscriptionPipeLookup, System.identityHashCode(listener), subPipeIdx);
         }
@@ -224,8 +282,6 @@ public class DeviceRuntime {
         //TimeListener, time rate signals are sent from the stages its self and therefore does not need a pipe to consume.
         /////////////////////
         
-
-        Pipe<?>[] inputPipes = pipesForListenerConsumption.toArray(new Pipe[pipesForListenerConsumption.size()]);
         Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
 
         ReactiveListenerStage reactiveListener = hardware.createReactiveListener(gm, listener, inputPipes, outputPipes);

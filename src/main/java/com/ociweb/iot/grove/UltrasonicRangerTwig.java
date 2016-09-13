@@ -61,12 +61,6 @@ public class UltrasonicRangerTwig implements IODevice{
 		return 0;
 	}
 
-
-	@Override
-	public boolean isGrove() {
-		return false;
-	}
-
     @Override
     public int response() {       
        return 100;      

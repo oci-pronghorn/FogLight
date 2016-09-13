@@ -15,6 +15,8 @@ import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
 import com.ociweb.iot.maker.Port;
+import com.ociweb.iot.maker.TimeTrigger;
+
 import static com.ociweb.iot.maker.Port.*;
 
 /**
@@ -65,7 +67,7 @@ public class IoTApp implements IoTSetup
     	c.connect(LightSensor, LIGHT_SENSOR_PORT);
     	c.connect(AngleSensor, ANGLE_SENSOR_PORT);
     	c.useI2C();
-    	c.setTriggerRate(1000);
+    	c.setTriggerRate(TimeTrigger.OnTheSecond);
     }
 
 

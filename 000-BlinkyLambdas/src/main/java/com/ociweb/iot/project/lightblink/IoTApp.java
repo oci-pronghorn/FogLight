@@ -19,6 +19,7 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.Port;
 
 import static com.ociweb.iot.maker.Port.*;
@@ -46,14 +47,18 @@ public class IoTApp implements IoTSetup {
         	
 		    boolean value = payload.readBoolean();
 		    blinkerChannel.setValueAndBlock(LED_PORT, value?1:0, PAUSE);               
-		    blinkerChannel.openTopic(TOPIC).writeBoolean(!value).publish();
+		    PayloadWriter writer = blinkerChannel.openTopic(TOPIC);
+		    writer.writeBoolean(!value);
+		    writer.publish();
 		    
 		}).addSubscription(TOPIC); 
                 
         final CommandChannel startupChannel = runtime.newCommandChannel(); 
         runtime.addStartupListener(
                 ()->{
-                    startupChannel.openTopic(TOPIC).writeBoolean(true).publish();
+                	PayloadWriter writer = startupChannel.openTopic(TOPIC);
+                	writer.writeBoolean(true);
+                	writer.publish();
                 });        
     }  
 }

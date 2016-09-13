@@ -211,7 +211,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		col = col%PongConstants.CHAR_WIDTH; 
 		row = row%PongConstants.CHAR_HEIGHT;
 		for (int i = 0; i < ballMap.length; i++){
-			ballMap[i] = (i == row-1 || i == row)  ? PongConstants.rowLookup[col] : 0; //TODO: test this???
+			ballMap[i] = (i == row-1 || i == row) & col>=0  ? PongConstants.rowLookup[col] : 0; //TODO: test this???
 		}
 		return ballMap;
 	}

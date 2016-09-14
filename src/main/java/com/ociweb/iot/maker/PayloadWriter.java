@@ -55,7 +55,7 @@ public class PayloadWriter extends DataOutputBlobWriter {
     }
 
     void openField(int loc, CommandChannel commandChannel) {
-    	assert(this.loc == -1) : "Already open for writing, can not open again.";
+    	//assert(this.loc == -1) : "Already open for writing, can not open again.";
     	this.commandChannel = commandChannel;
         this.loc = loc;
         DataOutputBlobWriter.openField(this);

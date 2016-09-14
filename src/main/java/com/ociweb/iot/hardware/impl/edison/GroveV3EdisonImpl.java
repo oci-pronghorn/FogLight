@@ -100,7 +100,7 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	//    }
 
 
-	private void setToKnownStateFromColdStart() {
+	public static void setToKnownStateFromColdStart() {
 		//critical for the analog connections
 		EdisonGPIO.gpioOutputEnablePins.setDirectionHigh(10);
 		EdisonGPIO.gpioOutputEnablePins.setValueHigh(10);

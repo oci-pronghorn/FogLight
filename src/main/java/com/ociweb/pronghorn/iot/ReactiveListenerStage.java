@@ -94,7 +94,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     
     private final StringBuilder workspaceHost = new StringBuilder();
     
-    private final HTTPSpecification httpSpec = HTTPSpecification.defaultSpec();
+    private HTTPSpecification httpSpec;
     private final ClientConnectionManager ccm = null ;//TODO: pass in? get from hardware!!!!
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
@@ -282,6 +282,11 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	            	 } else {
 	            		 assert(-1==typeHeader) : "header end should be -1 was "+typeHeader;
 	            	 }
+	            	 
+	            	 if (null==httpSpec) {
+	            		 httpSpec = HTTPSpecification.defaultSpec();
+	            	 }
+	            	 
 	            	 listener.responseHTTP(cc.getHost(), cc.getPort(), statusId, (HTTPContentType)httpSpec.contentTypes[typeId], reader);            	 
 	            	 //cc.incResponsesReceived(); NOTE: can we move this here instead of in the socket listener??
             	             	 
@@ -627,7 +632,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	@Override
 	public ListenerFilter addSubscription(CharSequence topic) {		
 		if (!startupCompleted && listener instanceof PubSubListener) {
-			hardware.addStartupSubscription(topic, System.identityHashCode(this));		
+			hardware.addStartupSubscription(topic, System.identityHashCode(listener));		
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -728,7 +733,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		int b = maxOrdinal & 0x3F;		
 		int longsCount = a+(b==0?0:1);
 		
-		long[] array = new long[longsCount];
+		long[] array = new long[longsCount+1];
 				
 		int i = state.length;
 		while (--i>=0) {			

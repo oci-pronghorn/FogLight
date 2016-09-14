@@ -36,9 +36,11 @@ import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
 import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
+import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
+import com.ociweb.pronghorn.network.NetGraphBuilder;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -81,10 +83,10 @@ public abstract class HardwareImpl implements Hardware {
 	private static final int DEFAULT_LENGTH = 16;
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
 
-	protected final PipeConfig<TrafficReleaseSchema> releasePipesConfig          = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, DEFAULT_LENGTH);
-	protected final PipeConfig<TrafficOrderSchema> orderPipesConfig          = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, DEFAULT_LENGTH);
-	protected final PipeConfig<TrafficAckSchema> ackPipesConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, DEFAULT_LENGTH);
-	protected final PipeConfig<GroveResponseSchema> groveResponseConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+	protected final PipeConfig<TrafficReleaseSchema> releasePipesConfig   = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, DEFAULT_LENGTH);
+	protected final PipeConfig<TrafficOrderSchema> orderPipesConfig       = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, DEFAULT_LENGTH);
+	protected final PipeConfig<TrafficAckSchema> ackPipesConfig           = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, DEFAULT_LENGTH);
+	protected final PipeConfig<GroveResponseSchema> groveResponseConfig   = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 	protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 
 	public final I2CBacking i2cBacking;
@@ -321,16 +323,18 @@ public abstract class HardwareImpl implements Hardware {
 
 	public final void buildStages(
 			IntHashTable subscriptionPipeLookup,
+			IntHashTable netPipeLookup,			
 			Pipe<GroveResponseSchema>[] responsePipes,     //one for each listener of this type (broadcast to all)
 			Pipe<I2CResponseSchema>[] i2cResponsePipes,    //one for each listener of this type (broadcast to all)
 			Pipe<MessageSubscription>[] subscriptionPipes, //one for each listener of this type (subscription per pipe)
+			Pipe<NetResponseSchema>[] netResponsePipes,
 
-			Pipe<TrafficOrderSchema>[] orderPipes,   //one for each command channel 
+			Pipe<TrafficOrderSchema>[] orderPipes,    //one for each command channel 
 
-			Pipe<GroveRequestSchema>[] requestPipes, //one for each command channel 
-			Pipe<I2CCommandSchema>[] i2cPipes,       //one for each command channel 
-			Pipe<MessagePubSub>[] messagePubSub      //one for each command channel 
-
+			Pipe<GroveRequestSchema>[] requestPipes,  //one for each command channel 
+			Pipe<I2CCommandSchema>[] i2cPipes,        //one for each command channel 
+			Pipe<MessagePubSub>[] messagePubSub,      //one for each command channel 
+			Pipe<NetRequestSchema>[] netRequestPipes  //one for each command channel
 			) {
 
 
@@ -369,9 +373,38 @@ public abstract class HardwareImpl implements Hardware {
 
 		}
 
+		////////
+		//create the network client stages
+		////////
+		if (!IntHashTable.isEmpty(netPipeLookup) && (netResponsePipes.length!=0) && (netRequestPipes.length!=0)) {
+			
+			//BUILD GRAPH
+			
+//			int inputsCount = 1;
+//			int outputsCount = 1;
+//			int maxPartialResponses =1;
+//			int maxListeners = 1;
+//			NetGraphBuilder.buildHTTPClientGraph(gm, this, inputsCount, outputsCount, maxPartialResponses, maxListeners, 
+//					ccm, 
+//					netPipeLookup, 
+//					netRequestConfig, releasePipesConfig, ackPipesConfig, clientNetRequestConfig, parseAckConfig, clientNetResponseConfig, netResponseConfig,
+//					input, goPipe, toReactor, ackPipe);
+//			
+//			
+//			
+			
+		} else {
+			assert(IntHashTable.isEmpty(netPipeLookup) == (0==netResponsePipes.length) );			
+			assert( (0==netResponsePipes.length) == (0==netRequestPipes.length) );
+		}
+		
 		/////////
-		//always create the pub sub and state managment stage
+		//always create the pub sub and state management stage?
 		/////////
+		//TODO: only create when subscriptionPipeLookup is not empty and subscriptionPipes has zero length.
+		if (IntHashTable.isEmpty(subscriptionPipeLookup) && subscriptionPipes.length==0) {
+			logger.trace("can save some resources by not starting up the unused pub sub service.");
+		}
 		createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterGoOut[TYPE_MSG], masterAckIn[TYPE_MSG], subscriptionPipes);
 
 		//////////////////

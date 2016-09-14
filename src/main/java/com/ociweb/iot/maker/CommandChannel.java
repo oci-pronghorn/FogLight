@@ -212,26 +212,27 @@ public abstract class CommandChannel {
     	
     }
     
-//    public PayloadWriter httpPost(CharSequence domain, int port, CharSequence route) {
-//    	return httpPost(domain,port,route,(HTTPResponseListener)listener);
-//    	
-//    }
-//    public PayloadWriter httpPost(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
-//    	//Pipe<NetRequestSchema> httpRequest
-//    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPPOST_101)) {
-//                	    
-//    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1, port);
-//    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2, host);
-//    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, route);
-//    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10, System.identityHashCode(listener));
-//
-//            publishGo(1,subPipeIdx);
-//            
-//            return true;
-//        }        
-//        return false;
-//    	
-//    }
+    public PayloadWriter httpPost(CharSequence domain, int port, CharSequence route) {
+    	return httpPost(domain,port,route,(HTTPResponseListener)listener);    	
+    }
+    
+    public PayloadWriter httpPost(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
+    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPPOST_101)) {
+                	    
+    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1, port);
+    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2, host);
+    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, route);
+    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10, System.identityHashCode(listener));
+
+            publishGo(1,subPipeIdx);
+            
+            PayloadWriter pw = (PayloadWriter) Pipe.outputStream(messagePubSub);    
+            pw.openField(NetRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5,this);  
+            return pw;
+        } else {
+        	return null;
+        }    	
+    }
     
     public boolean subscribe(CharSequence topic) {
         return subscribe(topic, (PubSubListener)listener);

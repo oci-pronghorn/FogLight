@@ -1,6 +1,10 @@
 package com.ociweb.pronghorn;
 
+import java.io.IOException;
 import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
@@ -13,11 +17,14 @@ import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
 public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 
+	private final static Logger logger = LoggerFactory.getLogger(MessagePubSubStage.class);
+	
     private final Pipe<MessagePubSub>[] incomingSubsAndPubsPipe;
     private final Pipe<MessageSubscription>[] outgoingMessagePipes;
     
@@ -88,7 +95,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         
         this.subscriberLists = new short[maxLists*subscriberListSize];       
         Arrays.fill(this.subscriberLists, (short)-1);
-        this.localSubscriptionTrie = new TrieParser(maxLists * estimatedTopicLength );
+        this.localSubscriptionTrie = new TrieParser(maxLists * estimatedTopicLength,1,false,false);
         this.externalSubscriptionTrie = new TrieParser(maxExternalTopicsLength);
         this.trieReader = new TrieParserReader();
 
@@ -146,8 +153,10 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
     }
 
 	private void addSubscription(Pipe<MessagePubSub> pipe) {
-		final short pipeIdx = (short)IntHashTable.getItem(subscriptionPipeLookup, PipeReader.readInt(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4));
-		        
+		int hash = PipeReader.readInt(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4); //HOW is this known?? TOOD: must be wrong??
+		final short pipeIdx = (short)IntHashTable.getItem(subscriptionPipeLookup, hash);
+		System.out.println("adding subscription hash was "+hash+" to send to pipe "+pipeIdx);
+		       
 		assert(pipeIdx>=0) : "Must have valid pipe index";
 		
 		final byte[] backing = PipeReader.readBytesBackingArray(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_TOPIC_1);
@@ -206,6 +215,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         
         
         while (hasReleaseCountRemaining(a) &&
+        		isChannelUnBlocked(a) &&
                PipeReader.tryReadFragment(pipe) 
               ) {
             
@@ -256,6 +266,16 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 	                        if (listIdx>=0) {
 	                        	final int limit = listIdx+subscriberListSize;
 	                        	for(int i = listIdx; i<limit && (-1 != subscriberLists[i]); i++) {
+	                        		
+	                        		try {
+										Appendables.appendUTF8(System.out, backing, pos, len, mask);
+										System.out.println("send to "+i+" and pipe "+subscriberLists[i]);
+	                        		} catch (IOException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+	                        		
+	                        		
 	                        		copyToSubscriber(pipe, subscriberLists[i]);                                
 	                        	}
 	                                                	
@@ -307,15 +327,26 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 		return false;
 	}
 
-	private void addSubscription(final short pipeIdx, final byte[] backing, final int pos, final int len,
-			final int mask) {
+	private void addSubscription(final short pipeIdx, final byte[] backing, final int pos, final int len, final int mask) {
+//		
+		try {
+			Appendables.appendUTF8(System.out, backing, pos, len, mask);
+			System.out.println("subscription goes to pipeIdx "+pipeIdx);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		int listIdx = (int) TrieParserReader.query(trieReader, localSubscriptionTrie, backing, pos, len, mask);
 		
 		if (listIdx<0) {
 		    //create new subscription
 		    listIdx = subscriberListSize*totalSubscriberLists++;
+		    //System.err.println("Adding new subcription with value "+listIdx);
 		    localSubscriptionTrie.setValue(backing, pos, len, mask, listIdx);
-		}
+		}// else {
+		//	System.err.println("adding to old subscription "+listIdx);
+		//}
 		
 		//add index on first -1 or stop if value already found                    
 		for(int i = listIdx; i<(listIdx+subscriberListSize); i++) {

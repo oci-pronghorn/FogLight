@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -92,7 +93,7 @@ public class DeviceRuntime {
     private final PipeConfig<MessageSubscription> messageSubscriptionConfig = new PipeConfig<MessageSubscription>(MessageSubscription.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
     
         
-    
+    private int netResponsePipeIdx = 0;//this implementation is dependent upon graphManager returning the pipes in the order created!
     private int subscriptionPipeIdx = 0; //this implementation is dependent upon graphManager returning the pipes in the order created!
     
     
@@ -102,7 +103,7 @@ public class DeviceRuntime {
     private static final byte edI2C = 6;
     
     private final IntHashTable subscriptionPipeLookup = new IntHashTable(10);//NOTE: this is a maximum of 1024 listeners
-    
+    private final IntHashTable netPipeLookup = new IntHashTable(10);//NOTE: this is a maximum of 1024 listeners
     
     public DeviceRuntime() {
         gm = new GraphManager();
@@ -127,6 +128,14 @@ public class DeviceRuntime {
     	    
     	    I2CBacking i2cBacking = null;
 
+//    	    try {
+//    	    	//hack test.
+//    	    	GroveV3EdisonImpl.setToKnownStateFromColdStart();
+//    	     // EdisonGPIO.configI2C();
+//    	    } catch (Throwable t) {
+//    	    	
+//    	    }
+    	    
     	    i2cBacking = HardwareImpl.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
 	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
@@ -208,8 +217,8 @@ public class DeviceRuntime {
         return registerListener(listener);
     }
 
-    public <E extends Enum<E>> StateChangeListener<E> addStateChangeListener(StateChangeListener<E> listener) {
-        return (StateChangeListener<E>)registerListener(listener);
+    public <E extends Enum<E>> ListenerFilter addStateChangeListener(StateChangeListener<E> listener) {
+        return registerListener(listener);
     }
     
     public ListenerFilter addListener(Object listener) {
@@ -249,17 +258,26 @@ public class DeviceRuntime {
         	inputPipes[--pipesCount] = (new Pipe<GroveResponseSchema>(responsePinsConfig.grow2x()));  //must double since used by splitter
         }
         if (this.hardware.isListeningToHTTPResponse(listener)) {        	
-        	inputPipes[--pipesCount] = new Pipe<NetResponseSchema>(responseNetConfig) {
+        	Pipe<NetResponseSchema> netResponsePipe = new Pipe<NetResponseSchema>(responseNetConfig) {
 				@SuppressWarnings("unchecked")
 				@Override
 				protected DataInputBlobReader<NetResponseSchema> createNewBlobReader() {
 					return new PayloadReader(this);
 				}
             };        	
+            
+            int pipeIdx = netResponsePipeIdx++;
+            inputPipes[--pipesCount] = netResponsePipe;
+            boolean addedItem = IntHashTable.setItem(netPipeLookup, System.identityHashCode(listener), pipeIdx);
+            if (!addedItem) {
+            	throw new RuntimeException("Could not find unique identityHashCode for "+listener.getClass().getCanonicalName());
+            }
+            
         }
         
         int subPipeIdx = -1;
         int testId = -1;
+        
         if (this.hardware.isListeningToSubscription(listener)) {
             Pipe<MessageSubscription> subscriptionPipe = new Pipe<MessageSubscription>(messageSubscriptionConfig) {
 				@SuppressWarnings("unchecked")
@@ -272,7 +290,11 @@ public class DeviceRuntime {
             testId = subscriptionPipe.id;
             inputPipes[--pipesCount]=(subscriptionPipe);
             //store this value for lookup later
-            IntHashTable.setItem(subscriptionPipeLookup, System.identityHashCode(listener), subPipeIdx);
+            logger.info("adding hash listener {} to pipe {} ",System.identityHashCode(listener), subPipeIdx);
+            boolean addedItem = IntHashTable.setItem(subscriptionPipeLookup, System.identityHashCode(listener), subPipeIdx);
+            if (!addedItem) {
+            	throw new RuntimeException("Could not find unique identityHashCode for "+listener.getClass().getCanonicalName());
+            }
         }
 
         
@@ -367,15 +389,18 @@ public class DeviceRuntime {
        hardware.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
        hardware.buildStages(subscriptionPipeLookup,
+    		   				netPipeLookup,
                             GraphManager.allPipesOfType(gm, GroveResponseSchema.instance), 
                             GraphManager.allPipesOfType(gm, I2CResponseSchema.instance),
                             GraphManager.allPipesOfType(gm, MessageSubscription.instance),
+                            GraphManager.allPipesOfType(gm, NetResponseSchema.instance),
                             
                             GraphManager.allPipesOfType(gm, TrafficOrderSchema.instance), 
                             
                             GraphManager.allPipesOfType(gm, GroveRequestSchema.instance), 
                             GraphManager.allPipesOfType(gm, I2CCommandSchema.instance),
-                            GraphManager.allPipesOfType(gm, MessagePubSub.instance)
+                            GraphManager.allPipesOfType(gm, MessagePubSub.instance),
+                            GraphManager.allPipesOfType(gm, NetRequestSchema.instance)
                );
     
        

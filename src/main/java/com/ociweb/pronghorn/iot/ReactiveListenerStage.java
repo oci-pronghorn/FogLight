@@ -239,9 +239,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
             } else
             if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {
-            	if (listener instanceof I2CListener) {
-            		consumeI2CMessage((I2CListener)listener, (Pipe<I2CResponseSchema>) localPipe);
-            	}
+            	//listener may be analog or digital if we are using the grovePi board            	
+            	consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);            	
+            	
             } else
             if (Pipe.isForSchema(localPipe, MessageSubscription.instance)) {                
                 consumePubSubMessage(listener, (Pipe<MessageSubscription>) localPipe);
@@ -389,7 +389,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         }
     }
     
-    protected void consumeI2CMessage(I2CListener listener, Pipe<I2CResponseSchema> p) {
+    protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
 
         while (PipeReader.tryReadFragment(p)) {                
                     

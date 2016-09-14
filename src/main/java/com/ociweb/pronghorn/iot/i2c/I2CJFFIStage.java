@@ -85,7 +85,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 			int divisor = 20; //TODO: review this later by checking less often the CPU usage should go down.
 			assert(0==(this.schedule.commonClock%divisor)) : "must be divisible by "+divisor;
 			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/divisor , this); 
-			logger.debug("setting JFFI to pol every: "+((this.schedule.commonClock)/divisor));
+			logger.debug("setting JFFI to pol every: {} with schedule {}",((this.schedule.commonClock)/divisor),this.schedule);
 		}else{
 			logger.debug("Schedule is null");
 		}
@@ -130,6 +130,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 	    if (processInputs) {
 	        do {
 			    long waitTime = blockStartTime - hardware.nanoTime();
+			    
+			    //logger.info("wait time before continue {},",waitTime);
+			    
 	     		if(waitTime>0){
 	     			if (null==rate || (waitTime > rate.longValue())) {
 	     				if (hardware.nanoTime()>prcRelease) {
@@ -162,6 +165,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         						//we are going to miss the schedule due to backup in the pipes, this is common when the unit tests run or the user has put in a break point.
         						processReleasedCommands(rate.longValue());//if this backup runs long term we never release the commands so we must do it now.
         					}
+        					logger.warn("outgoing pipe is backed up, unable to read new data  {}"+i2cResponsePipe);
         					return;//oops the pipe is full so we can not read, postpone this work until the pipe is cleared.
         				}
 
@@ -172,6 +176,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.nanoTime()<timeOut){}
 
                         if (hardware.nanoTime()>timeOut) {
+                        	logger.warn("failed to get I2C bus master");
                         	//timeout trying to get the i2c bus
                         	return;
                         }
@@ -184,9 +189,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         				
         				workingBuffer[0] = -2;
         				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
+        		
+        				//logger.debug("i2c reading result {} delay before read {} ",Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )),this.inputs[inProgressIdx].delayAfterRequestNS);
         				
-   			//System.err.println( "result "+Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes ))+" delay "+this.inputs[inProgressIdx].delayAfterRequestNS);
- 				
    					    PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
         				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);						
         				PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());

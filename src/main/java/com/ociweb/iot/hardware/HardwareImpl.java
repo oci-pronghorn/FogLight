@@ -589,7 +589,7 @@ public abstract class HardwareImpl implements Hardware {
 		for (int i = 0; i < localInputs.length; i++) {
 			schedulePeriods[i] = localInputs[i].responseMS*MS_TO_NS;
 		}
-		logger.debug("known I2C rates: {}",Arrays.toString(schedulePeriods));
+		//logger.debug("known I2C rates: {}",Arrays.toString(schedulePeriods));
 		return PMath.buildScriptedSchedule(schedulePeriods);
 
 	}

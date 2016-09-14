@@ -1,6 +1,7 @@
 package com.ociweb.iot.pong;
 
 import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
+import static com.ociweb.iot.grove.GroveTwig.Button;
 
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -12,18 +13,13 @@ public class IoTApp implements IoTSetup {
 
 	public void declareConnections(Hardware c) {
 
-		c.connect(AngleSensor, PongConstants.Player1Con);
-		c.connect(AngleSensor, PongConstants.Player2Con);
-		//c.useConnectI2C(new UltrasonicRangerTwig(PongConstants.Player2Con));
-
-//		c.connectI2C(GroveLCDRGB)  TODO: begin logic goes here.
-//		c.useI2C();
+		c.connect(AngleSensor, PongConstants.Player1Con); //A1
+		c.connect(AngleSensor, PongConstants.Player2Con); //A2
+		c.connect(Button, PongConstants.ButtonCon); //D2
+		
 		
 		c.setTriggerRate(100);
 	//TODO: 	c.startStateMachineWith(GameStage.???)
-
-
-		//c.useConnectA(LightSensor, 1);
 
 	}    
 

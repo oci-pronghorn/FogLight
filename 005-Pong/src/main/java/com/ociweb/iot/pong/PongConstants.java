@@ -8,13 +8,14 @@ public class PongConstants {
 
 	public static final Port Player1Con = A1;
 	public static final Port Player2Con = A2;
+	public static final Port ButtonCon = D2;
 
 	public static final int PADDLE_1_COL = 1;
 	public static final int PADDLE_2_COL = 8;
-	
+	public static final int SCORE_COL = 5;
 
 	public static final int LEFT_LIMIT = PADDLE_1_COL*6+4;
-	public static final int RIGHT_LIMIT = PADDLE_2_COL*6+4;
+	public static final int RIGHT_LIMIT = PADDLE_2_COL*6+1;
 	public static final int UP_LIMIT = 1;
 	public static final int DOWN_LIMIT = 16;
 	public static final int CHAR_HEIGHT = 9;
@@ -74,10 +75,10 @@ public class PongConstants {
 	public final static byte[] backgroundChar = Grove_LCD_RGB_Patterns.dithered;
 	
 	public final static int[][] backGround = {
-			{0,0},
-			{0,1},
-			{9,0},
-			{9,1},
+			{0, 0},
+			{0, 1},
+			{9, 0},
+			{9, 1},
 			{10,0},
 			{10,1},
 			{11,0},
@@ -88,6 +89,7 @@ public class PongConstants {
 			{15,0},
 			{15,1}
 	};
+	
 
 
 }

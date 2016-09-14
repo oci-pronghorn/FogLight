@@ -2,6 +2,7 @@ package com.ociweb.iot.pong;
 
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.StartupListener;
@@ -13,7 +14,7 @@ import java.util.Arrays;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
 
-public class PongBehavior implements StartupListener, TimeListener, AnalogListener, StateChangeListener {
+public class PongBehavior implements StartupListener, TimeListener, AnalogListener, StateChangeListener, DigitalListener {
 
 	private CommandChannel pongChannel;
 
@@ -77,7 +78,24 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 				break;
 		}
 	}
+	
+	@Override
+	public void digitalEvent(Port port, long time, long durationMillis, int value) {
+		player1Score = 0;
+		player2Score = 0;
+		resetBallPos();
+		gameState = gameState.score;
+	}
 
+	@Override
+	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
+		if(port == PongConstants.Player1Con){
+			player1Loc = (value-4)/68; //maps 1024 to 0-15
+		}else if(port == PongConstants.Player2Con){
+			player2Loc = (value-4)/68;
+		}
+	}
+	
 	private void doScore(long time) {
 		if(scoreTime == -1){
 			Grove_LCD_RGB.writeCharSequence(pongChannel, player1Score+"-"+player2Score, 11, 1);
@@ -85,11 +103,11 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		}
 		
 		int secondsLeft = (int) (3-(time-scoreTime)/1000);
-		Grove_LCD_RGB.writeCharSequence(pongChannel,  Integer.toString(secondsLeft), 6, 0); 
+		Grove_LCD_RGB.writeCharSequence(pongChannel,  Integer.toString(secondsLeft), PongConstants.SCORE_COL, 0); 
 		
 		if(time-scoreTime>3000){
 			scoreTime = -1;
-			Grove_LCD_RGB.writeChar(pongChannel, (byte)' ', 6, 0);
+			Grove_LCD_RGB.writeChar(pongChannel, (byte)' ', PongConstants.SCORE_COL, 0);
 			resetBallPos();
 			//drawBackground();
 			drawPaddles();
@@ -107,32 +125,22 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		}
 		//bounce off the paddles
 		if(ballCol <=PongConstants.LEFT_LIMIT){
-//			if((ballRow>=player1Loc) && (ballRow<=player1Loc+2)){
-//				ballColDelta = 1;
-//			}
-//			else if((ballRow>=player1Loc-1) && (ballRow<=player1Loc+3)){
-//				ballColDelta = 1;
-//				ballRowDelta = -ballRowDelta;
-//			}
-//			else{
-//				gameState = GameState.score;
-//				player2Score++;
-//			}
-			ballColDelta = 1;
+			if((ballRow>=player1Loc-1) && (ballRow<=player1Loc+3)){
+				ballColDelta = 1;
+			}
+			else{
+				gameState = GameState.score;
+				player2Score++;
+			}
 		}
-		if(ballCol <=PongConstants.RIGHT_LIMIT){
-//			if((ballRow>=player2Loc) && (ballRow<=player2Loc+2)){
-//				ballColDelta = -1;
-//			}
-//			else if((ballRow>=player2Loc-1) && (ballRow<=player2Loc+3)){
-//				ballColDelta = -1;
-//				ballRowDelta = -ballRowDelta;
-//			}
-//			else{
-//				gameState = GameState.score;
-//				player1Score++;
-//			}
-			ballColDelta = -1;
+		if(ballCol >=PongConstants.RIGHT_LIMIT){
+			if((ballRow>=player2Loc-1) && (ballRow<=player2Loc+3)){
+				ballColDelta = -1;
+			}
+			else{
+				gameState = GameState.score;
+				player1Score++;
+			}
 		}
 		ballRow += ballRowDelta;
 		ballCol += ballColDelta;
@@ -145,7 +153,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		currentBallCol = ballCol/PongConstants.CHAR_WIDTH;
 
 		//clear old ball char location
-		if((currentBallRow != oldBallRow || currentBallCol != oldBallCol) && (oldBallCol != PongConstants.PADDLE_1_COL)){
+		if((currentBallRow != oldBallRow || currentBallCol != oldBallCol) && (oldBallCol != PongConstants.PADDLE_1_COL) && (oldBallCol != PongConstants.PADDLE_2_COL)){
 			Grove_LCD_RGB.writeChar(pongChannel, (byte)' ', oldBallCol, oldBallRow); //writing a space to the old location is cheaper than using clearDisplay()
 		}
 		
@@ -172,10 +180,12 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 			Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.BALL_CHAR, generateBallMap(ballCol, ballRow));
 			Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_1_UP_CHAR, generatePaddleMap(player1Loc));
 			Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_1_DOWN_CHAR, generatePaddleMap(player1Loc-PongConstants.CHAR_HEIGHT));
+			Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_2_UP_CHAR, generatePaddleMap(player2Loc));
+			Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_2_DOWN_CHAR, generatePaddleMap(player2Loc-PongConstants.CHAR_HEIGHT));
 		}
 
 		//write new ball char location
-		if((currentBallRow != oldBallRow || currentBallCol != oldBallCol) && currentBallCol != PongConstants.PADDLE_1_COL){
+		if((currentBallRow != oldBallRow || currentBallCol != oldBallCol) && currentBallCol != PongConstants.PADDLE_1_COL && currentBallCol != PongConstants.PADDLE_2_COL){
 				Grove_LCD_RGB.writeChar(pongChannel, PongConstants.BALL_CHAR, currentBallCol, currentBallRow);
 		}
 	}
@@ -191,21 +201,11 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 
 		if(time - startTime >= PongConstants.TITLE_TIME){ //TODO: consider exitTime constant, for score as well.
 			Grove_LCD_RGB.clearDisplay(pongChannel);
+			//drawBackground();							//TODO: currently i2c pipe not big enough
 			resetBallPos();
 			gameState = GameState.score; //draw the score and count down
 		}
 	}
-
-	
-	@Override
-	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-		if(port == PongConstants.Player1Con){
-			player1Loc = (value-4)/68; //maps 1024 to 0-15
-		}else if(port == PongConstants.Player2Con){
-			player2Loc = (value-4)/68;
-		}
-	}
-
 
 	private byte[] generateBallMap(int col, int row){
 		col = col%PongConstants.CHAR_WIDTH; 
@@ -233,12 +233,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		return paddleAndBallMap;
 	}
 	
-	private void drawPaddles(){
-//		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_1_UP_CHAR, generatePaddleMap(0));
-//		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_1_DOWN_CHAR, generatePaddleMap(-2));
-//		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_2_UP_CHAR, generatePaddleMap(0));
-//		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_2_DOWN_CHAR, generatePaddleMap(-2));
-		
+	private void drawPaddles(){	
 		Grove_LCD_RGB.writeChar(pongChannel, PongConstants.PADDLE_1_UP_CHAR, PongConstants.PADDLE_1_COL, 0);
 		Grove_LCD_RGB.writeChar(pongChannel, PongConstants.PADDLE_1_DOWN_CHAR, PongConstants.PADDLE_1_COL, 1);
 		Grove_LCD_RGB.writeChar(pongChannel, PongConstants.PADDLE_2_UP_CHAR, PongConstants.PADDLE_2_COL, 0);
@@ -260,12 +255,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		Grove_LCD_RGB.writeMultipleChars(pongChannel, charIdxs, 0, 0); //actually write the chars to the screen
 	}
 	
-	private void drawBackground(){
-		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_1_UP_CHAR, generatePaddleMap(0));
-		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_1_DOWN_CHAR, generatePaddleMap(-2));
-		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_2_UP_CHAR, generatePaddleMap(0));
-		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.PADDLE_2_DOWN_CHAR, generatePaddleMap(-2));
-		
+	private void drawBackground(){ // TODO: Currently i2cPipe not big enough to handle it
 		Grove_LCD_RGB.setCustomChar(pongChannel, PongConstants.BACK_CHAR, PongConstants.backgroundChar);
 		for (int i = 0; i < PongConstants.backGround.length; i++) {
 			Grove_LCD_RGB.writeChar(pongChannel, PongConstants.BACK_CHAR, PongConstants.backGround[i][0], PongConstants.backGround[i][1]);
@@ -277,6 +267,8 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		// TODO Auto-generated method stub
 		
 	}
+
+	
 
 	
 	

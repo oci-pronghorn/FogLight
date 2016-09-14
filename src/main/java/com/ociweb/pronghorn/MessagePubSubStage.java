@@ -155,7 +155,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 	private void addSubscription(Pipe<MessagePubSub> pipe) {
 		int hash = PipeReader.readInt(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4); //HOW is this known?? TOOD: must be wrong??
 		final short pipeIdx = (short)IntHashTable.getItem(subscriptionPipeLookup, hash);
-		System.out.println("adding subscription hash was "+hash+" to send to pipe "+pipeIdx);
+		//System.out.println("adding subscription hash was "+hash+" to send to pipe "+pipeIdx);
 		       
 		assert(pipeIdx>=0) : "Must have valid pipe index";
 		
@@ -267,13 +267,13 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 	                        	final int limit = listIdx+subscriberListSize;
 	                        	for(int i = listIdx; i<limit && (-1 != subscriberLists[i]); i++) {
 	                        		
-	                        		try {
-										Appendables.appendUTF8(System.out, backing, pos, len, mask);
-										System.out.println("send to "+i+" and pipe "+subscriberLists[i]);
-	                        		} catch (IOException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									}
+//	                        		try {
+//										Appendables.appendUTF8(System.out, backing, pos, len, mask);
+//										//System.out.println("send to "+i+" and pipe "+subscriberLists[i]);
+//	                        		} catch (IOException e) {
+//										// TODO Auto-generated catch block
+//										e.printStackTrace();
+//									}
 	                        		
 	                        		
 	                        		copyToSubscriber(pipe, subscriberLists[i]);                                
@@ -329,13 +329,13 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 
 	private void addSubscription(final short pipeIdx, final byte[] backing, final int pos, final int len, final int mask) {
 //		
-		try {
-			Appendables.appendUTF8(System.out, backing, pos, len, mask);
-			System.out.println("subscription goes to pipeIdx "+pipeIdx);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			Appendables.appendUTF8(System.out, backing, pos, len, mask);
+//			System.out.println("subscription goes to pipeIdx "+pipeIdx);
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 		int listIdx = (int) TrieParserReader.query(trieReader, localSubscriptionTrie, backing, pos, len, mask);
 		

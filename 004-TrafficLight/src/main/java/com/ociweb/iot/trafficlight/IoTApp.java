@@ -8,23 +8,22 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.iot.maker.Port.*;
 public class IoTApp implements IoTSetup
 {
-	private static final Port LED3_PORT = D3;
+	private static final Port LED3_PORT = D5;
 	private static final Port LED1_PORT = D7;
-	private static final Port LED2_PORT = D8;
-	private static long prevTime =0;
+	private static final Port LED2_PORT = D8;	
+	
 	private enum State {
-		REDLIGHT(1200), GREENLIGHT(1000),YELLOWLIGHT(200);
+		REDLIGHT(10000), GREENLIGHT(8000),YELLOWLIGHT(2000);
 		private int deltaTime;
 		State(int deltaTime){this.deltaTime=deltaTime;}
 		public int getTime(){return deltaTime;}
 	};
-	private State state = State.YELLOWLIGHT;
-       
-    
+	
     public static void main( String[] args ) {
         DeviceRuntime.run(new IoTApp());
     }
@@ -35,55 +34,48 @@ public class IoTApp implements IoTSetup
 		c.connect(LED, LED1_PORT);
 		c.connect(LED, LED2_PORT);
 		c.connect(LED, LED3_PORT);
-		c.setTriggerRate(500);
 		c.useI2C();
-        
     }
 
 
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
-		final CommandChannel channel1 = runtime.newCommandChannel();
-		final CommandChannel channellcd=runtime.newCommandChannel();
+    	
+    	final CommandChannel channel0 = runtime.newCommandChannel();
+    	runtime.addPubSubListener((topic, payload)-> {
+    		
+    		channel0.setValueAndBlock(LED1_PORT, 1, State.REDLIGHT.getTime());
+			channel0.setValueAndBlock(LED2_PORT, 0, State.REDLIGHT.getTime());
+			channel0.setValueAndBlock(LED3_PORT, 0, State.REDLIGHT.getTime());
+			Grove_LCD_RGB.commandForTextAndColor(channel0, "RED", 255, 0, 0);
+						
+			channel0.openTopic("GREEN").publish();
+			
+    	}).addSubscription("RED");
 
+    	final CommandChannel channel1 = runtime.newCommandChannel();
+    	runtime.addPubSubListener((topic, payload)-> {
+    		channel1.setValueAndBlock(LED1_PORT, 0, State.GREENLIGHT.getTime());
+			channel1.setValueAndBlock(LED2_PORT, 0, State.GREENLIGHT.getTime());
+			channel1.setValueAndBlock(LED3_PORT, 1, State.GREENLIGHT.getTime());
+			Grove_LCD_RGB.commandForTextAndColor(channel1, "GREEN",0, 255, 0);
+			channel1.openTopic("YELLOW").publish();
+    		
+    	}).addSubscription("GREEN");
 
-
-
-		runtime.addTimeListener((time)->{ 
-
-			switch(state){
-			case YELLOWLIGHT:
-				channel1.setValue(LED1_PORT, 0);
-				channel1.setValue(LED2_PORT, 1);
-				channel1.setValue(LED3_PORT, 0);
-				Grove_LCD_RGB.commandForTextAndColor(channellcd,"YELLOW", 255, 255, 0);
-				if(time-prevTime>=state.getTime()){
-					state = State.REDLIGHT;
-					prevTime = time;
-				}
-				break;
-			case REDLIGHT:
-				channel1.setValue(LED1_PORT, 1);
-				channel1.setValue(LED2_PORT, 0);
-				channel1.setValue(LED3_PORT, 0);
-				Grove_LCD_RGB.commandForTextAndColor(channellcd, "RED", 255, 0, 0);
-				if(time-prevTime>=state.getTime()){
-					state = State.GREENLIGHT;
-					prevTime = time;
-				}
-				break;
-			case GREENLIGHT:
-				channel1.setValue(LED1_PORT, 0);
-				channel1.setValue(LED2_PORT, 0);
-				channel1.setValue(LED3_PORT, 1);
-				Grove_LCD_RGB.commandForTextAndColor(channellcd, "GREEN",0, 255, 0);
-				if(time-prevTime>=state.getTime()){
-					state = State.YELLOWLIGHT;
-					prevTime = time;
-				}
-				break;
-			}
-		});
+    	final CommandChannel channel2 = runtime.newCommandChannel();
+    	runtime.addPubSubListener((topic, payload)-> {
+    		channel2.setValueAndBlock(LED1_PORT, 0,State.YELLOWLIGHT.getTime());
+			channel2.setValueAndBlock(LED2_PORT, 1,State.YELLOWLIGHT.getTime());
+			channel2.setValueAndBlock(LED3_PORT, 0,State.YELLOWLIGHT.getTime());
+			Grove_LCD_RGB.commandForTextAndColor(channel2,"YELLOW", 255, 255, 0);
+			channel2.openTopic("RED").publish();
+    		
+    	}).addSubscription("YELLOW");
+    	
+       final CommandChannel channel4 = runtime.newCommandChannel();
+       runtime.addStartupListener(()->{channel4.openTopic("RED").publish();});
+        
     }
         
   

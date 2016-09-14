@@ -1,8 +1,5 @@
 package com.ociweb.iot.trafficlight;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -26,8 +23,14 @@ public class AppTest {
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
+	    	scheduler.startup();
 	    	
-	    	//test application here
+	    	int i = 1000;
+	    	while (--i>=0) {
+	    		scheduler.run();
+	    	}
+	    	
+	    	scheduler.shutdown();
 	    	
 	    }
 }

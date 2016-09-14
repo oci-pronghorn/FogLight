@@ -44,31 +44,68 @@ public class IoTApp implements IoTSetup
     	final CommandChannel channel0 = runtime.newCommandChannel();
     	runtime.addPubSubListener((topic, payload)-> {
     		
-    		channel0.setValueAndBlock(LED1_PORT, 1, State.REDLIGHT.getTime());
-			channel0.setValueAndBlock(LED2_PORT, 0, State.REDLIGHT.getTime());
-			channel0.setValueAndBlock(LED3_PORT, 0, State.REDLIGHT.getTime());
-			Grove_LCD_RGB.commandForTextAndColor(channel0, "RED", 255, 0, 0);
-						
+    		channel0.setValue(LED1_PORT, 1);
+			channel0.setValue(LED2_PORT, 0);
+			channel0.setValue(LED3_PORT, 0);
+			Grove_LCD_RGB.commandForTextAndColor(channel0, "RED", 255, 0, 0);		
+			
+			//Not the way this should be written...
+			//NOTE: this is a hack until the block becomes common between native I2C and grovePi translated pins
+			try {
+				Thread.sleep(State.REDLIGHT.getTime());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//TODO: switch to using this
+			//channel0.block(State.REDLIGHT.getTime());
+			
+			
 			channel0.openTopic("GREEN").publish();
 			
     	}).addSubscription("RED");
 
     	final CommandChannel channel1 = runtime.newCommandChannel();
     	runtime.addPubSubListener((topic, payload)-> {
-    		channel1.setValueAndBlock(LED1_PORT, 0, State.GREENLIGHT.getTime());
-			channel1.setValueAndBlock(LED2_PORT, 0, State.GREENLIGHT.getTime());
-			channel1.setValueAndBlock(LED3_PORT, 1, State.GREENLIGHT.getTime());
+    		channel1.setValue(LED1_PORT, 0);
+			channel1.setValue(LED2_PORT, 0);
+			channel1.setValue(LED3_PORT, 1);
 			Grove_LCD_RGB.commandForTextAndColor(channel1, "GREEN",0, 255, 0);
+			
+			
+			//Not the way this should be written...
+			//NOTE: this is a hack until the block becomes common between native I2C and grovePi translated pins
+			try {
+				Thread.sleep(State.GREENLIGHT.getTime());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//TODO: switch to using this
+			//channel1.block(State.GREENLIGHT.getTime());
+			
 			channel1.openTopic("YELLOW").publish();
     		
     	}).addSubscription("GREEN");
 
     	final CommandChannel channel2 = runtime.newCommandChannel();
     	runtime.addPubSubListener((topic, payload)-> {
-    		channel2.setValueAndBlock(LED1_PORT, 0,State.YELLOWLIGHT.getTime());
-			channel2.setValueAndBlock(LED2_PORT, 1,State.YELLOWLIGHT.getTime());
-			channel2.setValueAndBlock(LED3_PORT, 0,State.YELLOWLIGHT.getTime());
+    		channel2.setValue(LED1_PORT, 0);
+			channel2.setValue(LED2_PORT, 1);
+			channel2.setValue(LED3_PORT, 0);
 			Grove_LCD_RGB.commandForTextAndColor(channel2,"YELLOW", 255, 255, 0);
+			
+			//Not the way this should be written...
+			//NOTE: this is a hack until the block becomes common between native I2C and grovePi translated pins
+			try {
+				Thread.sleep(State.YELLOWLIGHT.getTime());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//TODO: switch to using this
+			//channel2.block(State.YELLOWLIGHT.getTime());
+			
 			channel2.openTopic("RED").publish();
     		
     	}).addSubscription("YELLOW");

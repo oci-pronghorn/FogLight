@@ -8,7 +8,9 @@ import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.iot.maker.StateChangeListener;
 import com.ociweb.iot.maker.TimeListener;
+import com.ociweb.pronghorn.util.Appendables;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB;
@@ -80,7 +82,8 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	}
 	
 	@Override
-	public void digitalEvent(Port port, long time, long durationMillis, int value) {
+	public void digitalEvent(Port port, long time, long durationMillis, int value) {		
+		
 		player1Score = 0;
 		player2Score = 0;
 		resetBallPos();
@@ -90,15 +93,27 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	@Override
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
 		if(port == PongConstants.Player1Con){
-			player1Loc = (value-4)/68; //maps 1024 to 0-15
+			player1Loc = 15-((value-4)/68); //maps 1024 to 0-15
 		}else if(port == PongConstants.Player2Con){
-			player2Loc = (value-4)/68;
+			player2Loc = 15-((value-4)/68);
 		}
 	}
 	
+	StringBuilder scoreWorkspace = new StringBuilder();
 	private void doScore(long time) {
 		if(scoreTime == -1){
-			Grove_LCD_RGB.writeCharSequence(pongChannel, player1Score+"-"+player2Score, 11, 1);
+			scoreWorkspace.setLength(0);
+			try {
+			
+				Appendables.appendFixedDecimalDigits(scoreWorkspace, player1Score, 10);
+				scoreWorkspace.append('-');
+				Appendables.appendFixedDecimalDigits(scoreWorkspace, player2Score, 10);
+				
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			
+			Grove_LCD_RGB.writeCharSequence(pongChannel, scoreWorkspace, 11, 1);
 			scoreTime = time;
 		}
 		
@@ -130,7 +145,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 			}
 			else{
 				gameState = GameState.score;
-				player2Score++;
+				player2Score = Math.min(99, player2Score+1);
 			}
 		}
 		if(ballCol >=PongConstants.RIGHT_LIMIT){
@@ -139,7 +154,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 			}
 			else{
 				gameState = GameState.score;
-				player1Score++;
+				player1Score = Math.min(99, player1Score+1);
 			}
 		}
 		ballRow += ballRowDelta;
@@ -249,7 +264,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		byte[] charIdxs = new byte[32]; //32 chars on screen
 		Arrays.fill(charIdxs, (byte)0);  //fill screen with first custom character
 		for (int i = 0; i < 6; i++) {
-			charIdxs[i+5] = (byte)" Pong ".charAt(i); //write title in middle of screen
+			charIdxs[i+5] = (byte)"Paddle".charAt(i); //write title in middle of screen
 			charIdxs[i+21] = (byte)' ';
 		}
 		Grove_LCD_RGB.writeMultipleChars(pongChannel, charIdxs, 0, 0); //actually write the chars to the screen

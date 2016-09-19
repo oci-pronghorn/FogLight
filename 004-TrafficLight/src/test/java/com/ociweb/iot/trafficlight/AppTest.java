@@ -19,13 +19,12 @@ public class AppTest {
 	    	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    
-	    	scheduler.setSingleStepMode(true);
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
 	    	scheduler.startup();
 	    	
-	    	int i = 1000;
+	    	int i = 14;
 	    	while (--i>=0) {
 	    		scheduler.run();
 	    	}

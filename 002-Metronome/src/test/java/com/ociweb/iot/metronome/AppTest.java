@@ -27,9 +27,6 @@ public class AppTest
         NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();      
         TestHardware hardware = (TestHardware)runtime.getHardware();
 
-        scheduler.setSingleStepMode(true);
-        scheduler.setMinimumStepDurationMS(0);
-        
         hardware.clearI2CWriteCount();
 
         hardware.write(IoTApp.ROTARY_ANGLE_PORT, 970); //970 will give us 200 BPM and a delay of 300 ms       

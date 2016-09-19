@@ -84,7 +84,11 @@ public class DeviceRuntime {
     
     //////////
     //Pipes containing response data from HTTP requests.
-    private final PipeConfig<NetResponseSchema> responseNetConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, defaultCommandChannelLength);   
+    private final PipeConfig<NetResponseSchema> responseNetConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);   
+    
+    //////////
+    //Pipes containing HTTP requests.
+    private final PipeConfig<NetRequestSchema> requestNetConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
     
     
     
@@ -127,14 +131,6 @@ public class DeviceRuntime {
     	    ///////////////////////
     	    
     	    I2CBacking i2cBacking = null;
-
-//    	    try {
-//    	    	//hack test.
-//    	    	GroveV3EdisonImpl.setToKnownStateFromColdStart();
-//    	     // EdisonGPIO.configI2C();
-//    	    } catch (Throwable t) {
-//    	    	
-//    	    }
     	    
     	    i2cBacking = HardwareImpl.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
@@ -168,12 +164,24 @@ public class DeviceRuntime {
     	};
     }
     
+    public Pipe<NetRequestSchema> newNetRequestPipe(PipeConfig<NetRequestSchema> config) {
+    	return new Pipe<NetRequestSchema>(config) {
+			@SuppressWarnings("unchecked")
+			@Override
+			protected DataOutputBlobWriter<NetRequestSchema> createNewBlobWriter() {
+				return new PayloadWriter(this);
+			}
+    		
+    	};   	
+    	
+    }
+    
     public CommandChannel newCommandChannel() { 
       
     	return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(requestPipeConfig ),
     	                                       new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig), 
     	                                       newPubSubPipe(messagePubSubConfig),
-    	                                       null, //TODO: add Pipe<NetRequestSchema> httpRequest,
+    	                                       newNetRequestPipe(requestNetConfig),
     	                                       new Pipe<TrafficOrderSchema>(goPipeConfig));
     	
     }
@@ -183,7 +191,7 @@ public class DeviceRuntime {
         return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, customChannelLength) ),
                                                new Pipe<I2CCommandSchema>(new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, customChannelLength,defaultCommandChannelMaxPayload)), 
                                                newPubSubPipe(new PipeConfig<MessagePubSub>(MessagePubSub.instance, customChannelLength,defaultCommandChannelMaxPayload)),
-                                               null, //TODO: add Pipe<NetRequestSchema> httpRequest,
+                                               newNetRequestPipe(requestNetConfig),
                                                new Pipe<TrafficOrderSchema>(new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, customChannelLength)));
         
     }
@@ -290,7 +298,7 @@ public class DeviceRuntime {
             testId = subscriptionPipe.id;
             inputPipes[--pipesCount]=(subscriptionPipe);
             //store this value for lookup later
-            logger.info("adding hash listener {} to pipe {} ",System.identityHashCode(listener), subPipeIdx);
+            //logger.debug("adding hash listener {} to pipe {} ",System.identityHashCode(listener), subPipeIdx);
             boolean addedItem = IntHashTable.setItem(subscriptionPipeLookup, System.identityHashCode(listener), subPipeIdx);
             if (!addedItem) {
             	throw new RuntimeException("Could not find unique identityHashCode for "+listener.getClass().getCanonicalName());

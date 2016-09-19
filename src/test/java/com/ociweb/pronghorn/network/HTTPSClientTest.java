@@ -31,8 +31,10 @@ import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
+import com.ociweb.pronghorn.stage.scheduling.FixedThreadsScheduler;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
+import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.stage.stream.ToOutputStreamStage;
 import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
@@ -375,14 +377,18 @@ public class HTTPSClientTest {
 		//MonitorConsoleStage.attach(gm);
 		//GraphManager.enableBatching(gm);
 		
-		ThreadPerStageScheduler scheduler = new ThreadPerStageScheduler(gm);
+		StageScheduler scheduler = new FixedThreadsScheduler(gm, 3);
+		//StageScheduler scheduler = new ThreadPerStageScheduler(gm);
+		
+		
+		
 		scheduler.startup();		
 
 
 		
 		final int MSG_SIZE = 6;
 		
-		int testSize = 100;//3000; //TODO: when large the pipes back up and we have a new error!!
+		int testSize = 30;//3000; //TODO: when large the pipes back up and we have a new error!!
 		
 		int requests = testSize;
 		

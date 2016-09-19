@@ -195,7 +195,7 @@ public abstract class CommandChannel {
     	
     }
     public boolean httpGet(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
-    	//Pipe<NetRequestSchema> httpRequest
+    	
     	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPGET_100)) {
                 	    
     		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, port);

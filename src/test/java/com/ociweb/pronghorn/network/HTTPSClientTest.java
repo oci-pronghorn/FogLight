@@ -28,6 +28,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
@@ -58,8 +59,9 @@ public class HTTPSClientTest {
 			int iterations = testSize;
 			
 			while (--iterations>=0) {
-				long start = System.currentTimeMillis();
+				//long start = System.currentTimeMillis();
 				URL u = new URL("https://encrypted.google.com");
+				
 				InputStream in = u.openStream();
 				
 				int temp = 0;
@@ -71,8 +73,8 @@ public class HTTPSClientTest {
 				  }
 				  
 				} while (temp!=-1);
-				long duration = System.currentTimeMillis()-start;
-				System.out.println("blocking duration: "+duration);
+				//long duration = System.currentTimeMillis()-start;
+				//System.out.println("blocking duration: "+duration);
 			}
 			
 			long avgDuration = (System.currentTimeMillis()-runStart)/testSize;
@@ -105,7 +107,7 @@ public class HTTPSClientTest {
 		int maxPartialResponses = 2;
 		int maxListeners = 1<<base2SimultaniousConnections;
 		
-		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 4_000_000);
+		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 20_000);
 		
 		ClientConnectionManager ccm = new ClientConnectionManager(base2SimultaniousConnections,inputsCount);
 		IntHashTable listenerPipeLookup = new IntHashTable(base2SimultaniousConnections+2);
@@ -229,12 +231,14 @@ public class HTTPSClientTest {
 	
 		//gm.writeAsDOT(gm, System.out);
 		
-	   // MonitorConsoleStage.attach(gm);
+	 //   MonitorConsoleStage.attach(gm);
 		
-		ThreadPerStageScheduler scheduler = new ThreadPerStageScheduler(gm);
+     	//StageScheduler scheduler = new ThreadPerStageScheduler(gm);
+		StageScheduler scheduler = new FixedThreadsScheduler(gm, 8);
 		
 		
 		scheduler.startup();
+		System.out.println("done with startup");
 		
 	    int testIter = 30;
 	    
@@ -265,7 +269,7 @@ public class HTTPSClientTest {
 			int maxCycles = 1000;
 			while (--maxCycles>=0 && !(new String(finalContent.toByteArray()).contains("0x3c,0x2f,0x68,0x74,0x6d,0x6c,0x3e"))) {
 				try {
-					Thread.sleep(60);
+					Thread.sleep(10);
 				} catch (InterruptedException e) {
 					break;
 				}
@@ -321,7 +325,7 @@ public class HTTPSClientTest {
 		
 		//only build minimum for the pipeline
 		
-		GraphManager gm = new GraphManager();		
+		GraphManager gm = new GraphManager();
 		HardwareImpl hardware = new TestHardware(gm);
 		
 		final int inputsCount = 2;
@@ -331,7 +335,7 @@ public class HTTPSClientTest {
 		int maxPartialResponses = 2;
 		int maxListeners = 1<<base2SimultaniousConnections;
 
-		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 100_000);//10_000_000);
+		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 20_000);
 		
 		ClientConnectionManager ccm = new ClientConnectionManager(base2SimultaniousConnections,inputsCount);
 		IntHashTable listenerPipeLookup = new IntHashTable(base2SimultaniousConnections+2);
@@ -358,9 +362,15 @@ public class HTTPSClientTest {
 		Pipe<TrafficAckSchema>[] ackPipe = new Pipe[inputsCount]; 
 	
 		
-		NetGraphBuilder.buildHTTPClientGraph(gm, hardware, inputsCount, outputsCount, maxPartialResponses, maxListeners, ccm,
+		
+		int m = maxListeners;
+		while (--m>=0) {
+			toReactor[m] = new Pipe<NetResponseSchema>(netResponseConfig);
+		}
+		
+		NetGraphBuilder.buildHTTPClientGraph(gm, hardware, inputsCount, outputsCount, maxPartialResponses, ccm,
 				listenerPipeLookup, netREquestConfig, trafficReleaseConfig, trafficAckConfig, clientNetRequestConfig,
-				parseAckConfig, clientNetResponseConfig, netResponseConfig, input, goPipe, toReactor,ackPipe);
+				parseAckConfig, clientNetResponseConfig, input, goPipe, toReactor, ackPipe);
 		
 		int i = toReactor.length;
 		PipeCleanerStage[] cleaners = new PipeCleanerStage[i];
@@ -374,10 +384,13 @@ public class HTTPSClientTest {
 		}
 		
 		
+
+		
 		//MonitorConsoleStage.attach(gm);
 		//GraphManager.enableBatching(gm);
 		
-		StageScheduler scheduler = new FixedThreadsScheduler(gm, 3);
+		//TODO: why is this scheduler taking so long to stop.
+		StageScheduler scheduler = new FixedThreadsScheduler(gm, 8);
 		//StageScheduler scheduler = new ThreadPerStageScheduler(gm);
 		
 		
@@ -388,7 +401,7 @@ public class HTTPSClientTest {
 		
 		final int MSG_SIZE = 6;
 		
-		int testSize = 30;//3000; //TODO: when large the pipes back up and we have a new error!!
+		int testSize = 3300; //TODO: when large the pipes back up and we have a new error!!
 		
 		int requests = testSize;
 		
@@ -433,7 +446,7 @@ public class HTTPSClientTest {
 				requests--;
 			
 				d+=MSG_SIZE;
-				System.out.println(requests);
+			//	System.out.println(requests);
 			}
 		}
 		
@@ -458,7 +471,7 @@ public class HTTPSClientTest {
 				lastCount = count;
 				
 				
-				System.err.println("pct "+((100f*lastCount)/(float)expected));
+				///System.err.println("pct "+((100f*lastCount)/(float)expected));
 				
 			}
 

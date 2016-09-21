@@ -100,64 +100,119 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 	            				
 	            				activeHost.setLength(0);//NOTE: we may want to think about a zero copy design
 				                PipeReader.readUTF8(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, activeHost);
-				                
-				                int port = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1);
-				                int userId = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10);
-				                
-				                long connectionId = ccm.lookup(activeHost, port, userId);	
-				                //openConnection(activeHost, port, userId, outIdx);
-				                
-				                if (-1 != connectionId) {
+				                {
+					                int port = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1);
+					                int userId = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10);
 					                
-				                	ClientConnection clientConnection = ccm.get(connectionId);
-				                	int outIdx = clientConnection.requestPipeLineIdx();
-				                	
-				                	clientConnection.incRequestsSent();//count of messages can only be done here.
-									Pipe<ClientNetRequestSchema> outputPipe = output[outIdx];
-					                				                	
-					                if (PipeWriter.tryWriteFragment(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100) ) {
-					                    	
-					                	PipeWriter.writeLong(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_CONNECTIONID_101, connectionId);
+					                long connectionId = ccm.lookup(activeHost, port, userId);	
+					                //openConnection(activeHost, port, userId, outIdx);
+					                
+					                if (-1 != connectionId) {
+						                
+					                	ClientConnection clientConnection = ccm.get(connectionId);
+					                	int outIdx = clientConnection.requestPipeLineIdx();
 					                	
-					                	DataOutputBlobWriter.openField(writer[outIdx]);
-					                	
-										DataOutputBlobWriter<ClientNetRequestSchema> activeWriter = writer[outIdx]; 		                
-					                	DataOutputBlobWriter.encodeAsUTF8(activeWriter,"GET");
-					                	
-					                	int len = PipeReader.readDataLength(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
-					                	int  first = PipeReader.readBytesPosition(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
-					                	boolean prePendSlash = (0==len) || ('/' != PipeReader.readBytesBackingArray(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3)[first&Pipe.blobMask(requestPipe)]);  
-					                	
-										if (prePendSlash) { //NOTE: these can be pre-coverted to bytes so we need not convert on each write. may want to improve.
-											DataOutputBlobWriter.encodeAsUTF8(activeWriter," /");
-										} else {
-											DataOutputBlobWriter.encodeAsUTF8(activeWriter," ");
-										}
-										
-										//Reading from UTF8 field and writing to UTF8 encoded field so we are doing a direct copy here.
-										PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, activeWriter);
-										
-										finishWritingHeader(activeHost, activeWriter);
-					                	DataOutputBlobWriter.closeHighLevelField(writer[outIdx], ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_PAYLOAD_103);
-					                					                	
-					                	PipeWriter.publishWrites(outputPipe);
-					                					                	
-					                } else {
-					                	System.err.println("unable to write");
-					                	throw new RuntimeException("Unable to send request, outputPipe is full");
+					                	clientConnection.incRequestsSent();//count of messages can only be done here.
+										Pipe<ClientNetRequestSchema> outputPipe = output[outIdx];
+						                				                	
+						                if (PipeWriter.tryWriteFragment(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100) ) {
+						                    	
+						                	PipeWriter.writeLong(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_CONNECTIONID_101, connectionId);
+						                	
+						                	DataOutputBlobWriter.openField(writer[outIdx]);
+						                	
+											DataOutputBlobWriter<ClientNetRequestSchema> activeWriter = writer[outIdx]; 		                
+						                	DataOutputBlobWriter.encodeAsUTF8(activeWriter,"GET");
+						                	
+						                	int len = PipeReader.readDataLength(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
+						                	int  first = PipeReader.readBytesPosition(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
+						                	boolean prePendSlash = (0==len) || ('/' != PipeReader.readBytesBackingArray(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3)[first&Pipe.blobMask(requestPipe)]);  
+						                	
+											if (prePendSlash) { //NOTE: these can be pre-coverted to bytes so we need not convert on each write. may want to improve.
+												DataOutputBlobWriter.encodeAsUTF8(activeWriter," /");
+											} else {
+												DataOutputBlobWriter.encodeAsUTF8(activeWriter," ");
+											}
+											
+											//Reading from UTF8 field and writing to UTF8 encoded field so we are doing a direct copy here.
+											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, activeWriter);
+											
+											finishWritingHeader(activeHost, activeWriter);
+						                	DataOutputBlobWriter.closeHighLevelField(writer[outIdx], ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_PAYLOAD_103);
+						                					                	
+						                	PipeWriter.publishWrites(outputPipe);
+						                					                	
+						                } else {
+						                	System.err.println("unable to write");
+						                	throw new RuntimeException("Unable to send request, outputPipe is full");
+						                }
 					                }
-				                }
+			                	}
 	            		break;
 	            			case NetRequestSchema.MSG_HTTPPOST_101:
 	            				
-	            				//TODO: not yet implemented must clean up get and duplicate the logic here
 	            				
-	            				//NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2
-	            				//NetRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1;
-	            				//NetRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10
-	            				
-	            				
-	            				
+	            				activeHost.setLength(0);//NOTE: we may want to think about a zero copy design
+				                PipeReader.readUTF8(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2, activeHost);
+				                {
+					                int port = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1);
+					                int userId = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10);
+					                
+					                long connectionId = ccm.lookup(activeHost, port, userId);	
+					                //openConnection(activeHost, port, userId, outIdx);
+					                
+					                if (-1 != connectionId) {
+						                
+					                	ClientConnection clientConnection = ccm.get(connectionId);
+					                	int outIdx = clientConnection.requestPipeLineIdx();
+					                					                  	
+					                	clientConnection.incRequestsSent();//count of messages can only be done here.
+										Pipe<ClientNetRequestSchema> outputPipe = output[outIdx];
+					                
+						                if (PipeWriter.tryWriteFragment(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100) ) {
+					                    	
+						                	PipeWriter.writeLong(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_CONNECTIONID_101, connectionId);
+						                	
+						                	DataOutputBlobWriter.openField(writer[outIdx]);
+						                	
+											DataOutputBlobWriter<ClientNetRequestSchema> activeWriter = writer[outIdx]; 		                
+						                	DataOutputBlobWriter.encodeAsUTF8(activeWriter,"POST");
+						                	
+						                	int len = PipeReader.readDataLength(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3);					                	
+						                	int  first = PipeReader.readBytesPosition(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3);					                	
+						                	boolean prePendSlash = (0==len) || ('/' != PipeReader.readBytesBackingArray(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3)[first&Pipe.blobMask(requestPipe)]);  
+						                	
+											if (prePendSlash) { //NOTE: these can be pre-coverted to bytes so we need not convert on each write. may want to improve.
+												DataOutputBlobWriter.encodeAsUTF8(activeWriter," /");
+											} else {
+												DataOutputBlobWriter.encodeAsUTF8(activeWriter," ");
+											}
+											
+											//Reading from UTF8 field and writing to UTF8 encoded field so we are doing a direct copy here.
+											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, activeWriter);
+											
+											finishWritingHeader(activeHost, activeWriter);
+											
+											//un-tested  post payload here, TODO: need to add support for chunking and length??
+											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5, activeWriter);
+											
+						                	DataOutputBlobWriter.closeHighLevelField(writer[outIdx], ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_PAYLOAD_103);
+						                					                	
+						                	PipeWriter.publishWrites(outputPipe);
+						                					                	
+						                } else {
+						                	System.err.println("unable to write");
+						                	throw new RuntimeException("Unable to send request, outputPipe is full");
+						                }
+										
+										
+										
+										
+					                }
+		            				//TODO: not yet implemented must clean up get and duplicate the logic here
+		            				
+		            				
+				                }
 	    	        	break;
 	    	            
 	            	

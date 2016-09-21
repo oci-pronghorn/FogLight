@@ -10,6 +10,7 @@ import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Pool;
@@ -17,12 +18,14 @@ import static com.ociweb.iot.maker.Port.*;
 
 public abstract class CommandChannel {
 
-    protected final Pipe<?>[] outputPipes;
+    private final Pipe<?>[] outputPipes;
     protected final Pipe<TrafficOrderSchema> goPipe;
-    protected final Pipe<MessagePubSub> messagePubSub;
-    protected final Pipe<I2CCommandSchema> i2cOutput;
-    protected final Pipe<GroveRequestSchema> output;
-    protected final Pipe<NetRequestSchema> httpRequest;
+    
+    protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
+    protected final Pipe<GroveRequestSchema> pinOutput; //TODO: find a way to not create if not used like http or message pup/sub
+    
+    private Pipe<NetRequestSchema> httpRequest;
+    private Pipe<MessagePubSub> messagePubSub;
     
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
 
@@ -42,35 +45,79 @@ public abstract class CommandChannel {
     protected final int pinPipeIdx = 0; 
     protected final int i2cPipeIdx = 1;
     protected final int subPipeIdx = 2;
+    protected final int netPipeIdx = 3;
+    protected final int goPipeIdx = 4;
+    
+    
     private HardwareImpl hardware;
 	private final int MAX_COMMAND_FRAGMENTS_SIZE;
         
     protected CommandChannel(GraphManager gm, HardwareImpl hardware,
-                             Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  
-                             Pipe<MessagePubSub> messagePubSub,  //avoid adding more and see how they can be combined.
-                             Pipe<NetRequestSchema> httpRequest,
-                             Pipe<TrafficOrderSchema> goPipe) {
-       this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};
-       this.goPipe = goPipe;
-       this.messagePubSub = messagePubSub;
-       this.i2cOutput = i2cOutput;
-       this.httpRequest = httpRequest;
+    						 PipeConfig<GroveRequestSchema> pinConfig, 
+    					   	 PipeConfig<I2CCommandSchema> i2cConfig,  
+                             PipeConfig<MessagePubSub> pubSubConfig,
+                             PipeConfig<NetRequestSchema> netRequestConfig,
+                             PipeConfig<TrafficOrderSchema> goPipeConfig) {
+    	
+       this.outputPipes = new Pipe<?>[]{new Pipe<GroveRequestSchema>(pinConfig),
+    	                                new Pipe<I2CCommandSchema>(i2cConfig),
+    	                                newPubSubPipe(pubSubConfig),
+    	                                hardware.isUseNetClient() ? newNetRequestPipe(netRequestConfig) : null,
+    	                                new Pipe<TrafficOrderSchema>(goPipeConfig)};
+       
+       //using index helps avoid bugs by ensuring we use and known these index values.
+       this.goPipe = (Pipe<TrafficOrderSchema>) outputPipes[goPipeIdx];
+       this.i2cOutput = (Pipe<I2CCommandSchema>) outputPipes[i2cPipeIdx];
+       this.messagePubSub = (Pipe<MessagePubSub>) outputPipes[subPipeIdx];
+       this.httpRequest = (Pipe<NetRequestSchema>) outputPipes[netPipeIdx];
+       this.pinOutput = (Pipe<GroveRequestSchema>) outputPipes[pinPipeIdx];
                              
        if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
            throw new UnsupportedOperationException("maxCommands too large or pipe is too small, pipe size must be at least "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
        }
        this.hardware = hardware;
-       this.output = output;
        
        MAX_COMMAND_FRAGMENTS_SIZE = Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands;
     }
     
+    private static Pipe<MessagePubSub> newPubSubPipe(PipeConfig<MessagePubSub> config) {
+    	return new Pipe<MessagePubSub>(config) {
+			@SuppressWarnings("unchecked")
+			@Override
+			protected DataOutputBlobWriter<MessagePubSub> createNewBlobWriter() {
+				return new PayloadWriter(this);
+			}
+    		
+    	};
+    }
+    
+    private static Pipe<NetRequestSchema> newNetRequestPipe(PipeConfig<NetRequestSchema> config) {
+    	return new Pipe<NetRequestSchema>(config) {
+			@SuppressWarnings("unchecked")
+			@Override
+			protected DataOutputBlobWriter<NetRequestSchema> createNewBlobWriter() {
+				return new PayloadWriter(this);
+			}
+    		
+    	};   	
+    	
+    }
 
+    Pipe<?>[] getOutputPipes() {
+    	return outputPipes;
+    }
+    
+    
     void setListener(Object listener) {
         if (null != this.listener) {
             throw new UnsupportedOperationException("Bad Configuration, A CommandChannel can only be held and used by a single listener lambda/class");
         }
         this.listener = listener;
+        
+        
+        
+        
+        
     }
 
     

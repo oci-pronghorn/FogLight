@@ -18,14 +18,13 @@ public class NetGraphBuilder {
 
 	
 	public static void buildHTTPClientGraph(GraphManager gm, HardwareImpl hardware, int inputsCount, int outputsCount,
-			int maxPartialResponses, int maxListeners, ClientConnectionManager ccm, IntHashTable listenerPipeLookup,
+			int maxPartialResponses, ClientConnectionManager ccm, IntHashTable listenerPipeLookup,
 			PipeConfig<NetRequestSchema> netRequestConfig, 
 			PipeConfig<TrafficReleaseSchema> trafficReleaseConfig,
 			PipeConfig<TrafficAckSchema> trafficAckConfig, 
 			PipeConfig<ClientNetRequestSchema> clientNetRequestConfig,
 			PipeConfig<NetParseAckSchema> parseAckConfig, 
 			PipeConfig<ClientNetResponseSchema> clientNetResponseConfig,
-			PipeConfig<NetResponseSchema> netResponseConfig, 
 			Pipe<NetRequestSchema>[] input,
 			Pipe<TrafficReleaseSchema>[] goPipe, 
 			Pipe<NetResponseSchema>[] toReactor, 
@@ -39,12 +38,7 @@ public class NetGraphBuilder {
 		Pipe<NetParseAckSchema> parseAck = new Pipe<NetParseAckSchema>(parseAckConfig);
 		Pipe<ClientNetResponseSchema>[] socketResponse = new Pipe[maxPartialResponses];
 		Pipe<ClientNetResponseSchema>[] clearResponse = new Pipe[maxPartialResponses];		
-		
-		
-		int m = maxListeners;
-		while (--m>=0) {
-			toReactor[m] = new Pipe<NetResponseSchema>(netResponseConfig);
-		}
+
 				
 		int k = maxPartialResponses;
 		while (--k>=0) {
@@ -63,8 +57,7 @@ public class NetGraphBuilder {
 			ackPipe[i] = new Pipe<TrafficAckSchema>(trafficAckConfig);
 			goPipe[i] = new Pipe<TrafficReleaseSchema>(trafficReleaseConfig); 
             input[i] = new Pipe<NetRequestSchema>(netRequestConfig);	
-		}
-				
+		}	
 	
 		
 		///////////////////
@@ -73,6 +66,7 @@ public class NetGraphBuilder {
 		
 		HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, hardware, ccm, input, goPipe, ackPipe, clientRequests);
 		SSLEngineWrapStage wrapStage = new  SSLEngineWrapStage(gm,ccm,clientRequests, wrappedClientRequests );
+				
 		ClientSocketWriterStage socketWriteStage = new ClientSocketWriterStage(gm, ccm, wrappedClientRequests);
 		//the data was sent by this stage but the next stage is responsible for responding to the results.
 		

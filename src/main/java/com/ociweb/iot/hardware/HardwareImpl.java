@@ -29,23 +29,28 @@ import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
+import com.ociweb.pronghorn.iot.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.iot.schema.ClientNetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.MessageSubscription;
+import com.ociweb.pronghorn.iot.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
+import com.ociweb.pronghorn.network.ClientConnectionManager;
 import com.ociweb.pronghorn.network.NetGraphBuilder;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
+import com.ociweb.pronghorn.stage.scheduling.FixedThreadsScheduler;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
@@ -61,6 +66,8 @@ public abstract class HardwareImpl implements Hardware {
 	private static final HardwareConnection[] EMPTY = new HardwareConnection[0];
 
 	protected boolean configI2C;       //Humidity, LCD need I2C address so..
+	protected boolean useNetClient;
+	
 	protected long debugI2CRateLastTime;
 
 	protected HardwareConnection[] digitalInputs; //Button, Motion
@@ -238,7 +245,13 @@ public abstract class HardwareImpl implements Hardware {
 	
 
 	public Hardware useI2C() {
-		this.configI2C = true;
+		this.configI2C = true; //TODO: enusre pi grove turns this on at all times, 
+		                       //TODO: when this is NOT on do not build the i2c pipes.
+		return this;
+	}
+	
+	public Hardware useNetClient() {
+		this.useNetClient = true;
 		return this;
 	}
 
@@ -311,7 +324,10 @@ public abstract class HardwareImpl implements Hardware {
 		}     
 	}
 
-	public abstract CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<NetRequestSchema> httpRequest, Pipe<TrafficOrderSchema> orderPipe);
+	public abstract CommandChannel newCommandChannel(PipeConfig<GroveRequestSchema> pinPipeConfig, PipeConfig<I2CCommandSchema> i2cPipeConfig, 
+			 PipeConfig<MessagePubSub> pubSubConfig,
+             PipeConfig<NetRequestSchema> netRequestConfig,
+             PipeConfig<TrafficOrderSchema> orderPipeConfig);
 
 	static final boolean debug = false;
 
@@ -337,18 +353,20 @@ public abstract class HardwareImpl implements Hardware {
 			Pipe<NetRequestSchema>[] netRequestPipes  //one for each command channel
 			) {
 
-
 		assert(orderPipes.length == i2cPipes.length);
 		assert(orderPipes.length == requestPipes.length);
 
-		int eventSchemas = 3;
 		int commandChannelCount = orderPipes.length;
 		
-		int TYPE_PIN = 0;
-		int TYPE_I2C = 1;
-		int TYPE_MSG = 2;
-		int TYPE_NET = 3;
-				
+		
+		int eventSchemas = 0;
+		
+		//TODO: based on the pipes use each of these
+		int TYPE_PIN = eventSchemas++;
+		int TYPE_I2C = eventSchemas++;
+		int TYPE_MSG = eventSchemas++;
+		int TYPE_NET = useNetClient(netPipeLookup, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
+						
 
 		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][commandChannelCount];
 		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][commandChannelCount];
@@ -372,31 +390,53 @@ public abstract class HardwareImpl implements Hardware {
 			TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut);
 
 		}
-
+		
+		
+		
 		////////
 		//create the network client stages
 		////////
-		if (!IntHashTable.isEmpty(netPipeLookup) && (netResponsePipes.length!=0) && (netRequestPipes.length!=0)) {
+		if (useNetClient(netPipeLookup, netResponsePipes, netRequestPipes)) {
 			
+			System.err.println("loaded client http");
+			if (masterGoOut[TYPE_NET].length != masterAckIn[TYPE_NET].length) {
+				throw new UnsupportedOperationException(masterGoOut[TYPE_NET].length+"!="+masterAckIn[TYPE_NET].length);
+			}
+			if (masterGoOut[TYPE_NET].length != netRequestPipes.length) {
+				throw new UnsupportedOperationException(masterGoOut[TYPE_NET].length+"!="+netRequestPipes.length);
+			}
+			
+			assert(masterGoOut[TYPE_NET].length == masterAckIn[TYPE_NET].length);
+			assert(masterGoOut[TYPE_NET].length == netRequestPipes.length);
+			
+			
+			PipeConfig<NetRequestSchema> netRequestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 30,1<<9);		
+			PipeConfig<ClientNetRequestSchema> clientNetRequestConfig = new PipeConfig<ClientNetRequestSchema>(ClientNetRequestSchema.instance,4,16000); 
+			PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 4);		
+			PipeConfig<ClientNetResponseSchema> clientNetResponseConfig = new PipeConfig<ClientNetResponseSchema>(ClientNetResponseSchema.instance, 10, 1<<16); 		
+
 			//BUILD GRAPH
 			
-//			int inputsCount = 1;
-//			int outputsCount = 1;
-//			int maxPartialResponses =1;
-//			int maxListeners = 1;
-//			NetGraphBuilder.buildHTTPClientGraph(gm, this, inputsCount, outputsCount, maxPartialResponses, maxListeners, 
-//					ccm, 
-//					netPipeLookup, 
-//					netRequestConfig, releasePipesConfig, ackPipesConfig, clientNetRequestConfig, parseAckConfig, clientNetResponseConfig, netResponseConfig,
-//					input, goPipe, toReactor, ackPipe);
-//			
-//			
-//			
-			
-		} else {
-			assert(IntHashTable.isEmpty(netPipeLookup) == (0==netResponsePipes.length) );			
-			assert( (0==netResponsePipes.length) == (0==netRequestPipes.length) );
-		}
+			int connectionsInBits=10;			
+			int maxPartialResponses=4;
+			ClientConnectionManager ccm = new ClientConnectionManager(connectionsInBits, maxPartialResponses);
+
+			//TODO: tie this in tonight.
+			int inputsCount = 1;
+			int outputsCount = 1;
+			NetGraphBuilder.buildHTTPClientGraph(gm, this, inputsCount, outputsCount, maxPartialResponses,  
+					ccm, 
+					netPipeLookup, 
+					netRequestConfig, releasePipesConfig, ackPipesConfig, 
+					clientNetRequestConfig, parseAckConfig, clientNetResponseConfig, 
+					netRequestPipes, 
+					masterGoOut[TYPE_NET], //go comands matching above requestPipes 
+					netResponsePipes, 
+					masterAckIn[TYPE_NET]); //acks for each request pipe.
+						
+		}// else {
+			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );
+		//}
 		
 		/////////
 		//always create the pub sub and state management stage?
@@ -438,6 +478,15 @@ public abstract class HardwareImpl implements Hardware {
 	       
 	}
 
+	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<NetResponseSchema>[] netResponsePipes, Pipe<NetRequestSchema>[] netRequestPipes) {
+		
+		if (isUseNetClient() && IntHashTable.isEmpty(netPipeLookup)) {
+			throw new UnsupportedOperationException("useNetClient is enabled however no HTTPResponseListener instances were registered.");
+		}
+		
+		return !IntHashTable.isEmpty(netPipeLookup) && (netResponsePipes.length!=0) && (netRequestPipes.length!=0);
+	}
+
 	private void createMessagePubSubStage(IntHashTable subscriptionPipeLookup,
 			Pipe<MessagePubSub>[] messagePubSub,
 			Pipe<TrafficReleaseSchema>[] masterMsggoOut, 
@@ -472,7 +521,8 @@ public abstract class HardwareImpl implements Hardware {
 
 	public StageScheduler createScheduler(DeviceRuntime iotDeviceRuntime) {
 		//NOTE: need to consider different schedulers in the future.
-		final StageScheduler scheduler = new ThreadPerStageScheduler(gm);
+		final StageScheduler scheduler = new FixedThreadsScheduler(gm, Runtime.getRuntime().availableProcessors()); 
+				//new ThreadPerStageScheduler(gm);
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
@@ -496,7 +546,13 @@ public abstract class HardwareImpl implements Hardware {
 	}
 
 	public boolean isListeningToHTTPResponse(Object listener) {
-		return listener instanceof HTTPResponseListener;
+		boolean result = listener instanceof HTTPResponseListener;
+		if (result) {
+			if (isUseNetClient()) {
+				throw new UnsupportedOperationException("In declareConnections call useNetClient() on the hardware object to enable use of this listener.");
+			}
+		}
+		return result;
 	}
 
 	
@@ -687,6 +743,10 @@ public abstract class HardwareImpl implements Hardware {
 		}
 		
 		return this;
+	}
+
+	public boolean isUseNetClient() {
+		return useNetClient;
 	}
 
 }

@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -25,7 +24,6 @@ import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
-import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
@@ -153,46 +151,25 @@ public class DeviceRuntime {
     }
     
     
-    private Pipe<MessagePubSub> newPubSubPipe(PipeConfig<MessagePubSub> config) {
-    	return new Pipe<MessagePubSub>(config) {
-			@SuppressWarnings("unchecked")
-			@Override
-			protected DataOutputBlobWriter<MessagePubSub> createNewBlobWriter() {
-				return new PayloadWriter(this);
-			}
-    		
-    	};
-    }
-    
-    public Pipe<NetRequestSchema> newNetRequestPipe(PipeConfig<NetRequestSchema> config) {
-    	return new Pipe<NetRequestSchema>(config) {
-			@SuppressWarnings("unchecked")
-			@Override
-			protected DataOutputBlobWriter<NetRequestSchema> createNewBlobWriter() {
-				return new PayloadWriter(this);
-			}
-    		
-    	};   	
-    	
-    }
+
     
     public CommandChannel newCommandChannel() { 
       
-    	return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(requestPipeConfig ),
-    	                                       new Pipe<I2CCommandSchema>(i2cPayloadPipeConfig), 
-    	                                       newPubSubPipe(messagePubSubConfig),
-    	                                       newNetRequestPipe(requestNetConfig),
-    	                                       new Pipe<TrafficOrderSchema>(goPipeConfig));
+    	return this.hardware.newCommandChannel((requestPipeConfig ),
+    	                                       (i2cPayloadPipeConfig), 
+    	                                       messagePubSubConfig,
+    	                                       requestNetConfig,
+    	                                       (goPipeConfig));
     	
     }
 
     public CommandChannel newCommandChannel(int customChannelLength) { 
        
-        return this.hardware.newCommandChannel(new Pipe<GroveRequestSchema>(new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, customChannelLength) ),
-                                               new Pipe<I2CCommandSchema>(new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, customChannelLength,defaultCommandChannelMaxPayload)), 
-                                               newPubSubPipe(new PipeConfig<MessagePubSub>(MessagePubSub.instance, customChannelLength,defaultCommandChannelMaxPayload)),
-                                               newNetRequestPipe(requestNetConfig),
-                                               new Pipe<TrafficOrderSchema>(new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, customChannelLength)));
+        return this.hardware.newCommandChannel((new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, customChannelLength) ),
+                                               (new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, customChannelLength,defaultCommandChannelMaxPayload)), 
+                                               (new PipeConfig<MessagePubSub>(MessagePubSub.instance, customChannelLength,defaultCommandChannelMaxPayload)),
+                                               requestNetConfig,
+                                               (new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, customChannelLength)));
         
     }
     
@@ -235,6 +212,8 @@ public class DeviceRuntime {
     
     public ListenerFilter registerListener(Object listener) {
         
+    	//TODO: convert to stack based implementation for a single pass.
+    	
     	/////////
     	//pre-count how many pipes will be needed so the array can be built to the right size
     	/////////
@@ -355,7 +334,9 @@ public class DeviceRuntime {
     
     
     private Pipe<?>[] extractPipesUsedByListener(Object listener) {
-        Pipe<?>[] outputPipes = new Pipe<?>[0];
+        //TODO: convert to recursive in order to a llocate once
+    	
+    	Pipe<?>[] outputPipes = new Pipe<?>[0];
 
         Class<? extends Object> c = listener.getClass();
         Field[] fields = c.getDeclaredFields();
@@ -368,7 +349,7 @@ public class DeviceRuntime {
                     
                     assert(channelNotPreviouslyUsed(cmdChnl)) : "A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.";
                     cmdChnl.setListener(listener);  
-                    outputPipes = PronghornStage.join(outputPipes, cmdChnl.outputPipes);
+                    outputPipes = PronghornStage.join(outputPipes, cmdChnl.getOutputPipes());
                 }
             } catch (Throwable e) {
                 logger.debug("unable to find CommandChannel",e);

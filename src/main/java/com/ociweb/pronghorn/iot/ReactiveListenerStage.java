@@ -1,7 +1,5 @@
 package com.ociweb.pronghorn.iot;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +24,6 @@ import com.ociweb.pronghorn.iot.schema.MessageSubscription;
 import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
 import com.ociweb.pronghorn.network.ClientConnection;
 import com.ociweb.pronghorn.network.ClientConnectionManager;
-import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.PronghornStage;

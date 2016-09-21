@@ -341,7 +341,7 @@ public class HTTPResponseParserStage extends PronghornStage {
 											
 											int type = (int)TrieParserReader.parseNext(trieReader, typeMap);
 											
-											System.out.println("type was "+type);//TODO: refine this.
+									//		System.out.println("type was "+type);//TODO: refine this.
 											writer.writeShort((short)type);
 											break;
 																											

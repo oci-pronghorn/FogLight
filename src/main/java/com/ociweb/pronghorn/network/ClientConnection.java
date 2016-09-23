@@ -21,11 +21,11 @@ import javax.net.ssl.SSLSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.pronghorn.iot.schema.ClientNetRequestSchema;
-import com.ociweb.pronghorn.iot.schema.ClientNetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.schema.ClientNetResponseSchema;
 
 public class ClientConnection {
 
@@ -52,6 +52,10 @@ public class ClientConnection {
 	private final int port;
 	
 	private static InetAddress testAddr;
+	
+	private long closeTimeLimit = Long.MAX_VALUE;
+	private long TIME_TILL_CLOSE = 10_000;
+	
 	
 	static {
 		
@@ -89,8 +93,8 @@ public class ClientConnection {
 		this.socketChannel = SocketChannel.open();
 		this.socketChannel.configureBlocking(false);  
 		this.socketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
-		this.socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
-		this.socketChannel.setOption(StandardSocketOptions.SO_RCVBUF,1<<18); //.25 MB
+		this.socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true); 
+		this.socketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 1<<18); //.25 MB
 						
 		try {
 			InetSocketAddress remote = new InetSocketAddress(host, port);
@@ -121,14 +125,27 @@ public class ClientConnection {
 	}
 	
 	public void incRequestsSent() {
+		closeTimeLimit = Long.MAX_VALUE;
 		requestsSent++;		
+	}
+	
+	public void waitForMatch() {
+		while (responsesReceived<requestsSent) {
+			Thread.yield();
+		}
 	}
 	
 	public boolean incResponsesReceived() {
 		assert(1+responsesReceived<=requestsSent) : "received more responses than requests were sent";
 		boolean result = (++responsesReceived)==requestsSent;
-		if (result && isShuttingDown) {
-			close();
+		if (result) {
+			
+			if (isShuttingDown) {
+				close();
+			} else {
+				closeTimeLimit = System.currentTimeMillis()+TIME_TILL_CLOSE;
+			}
+			
 		}
 		return result;
 	}
@@ -151,6 +168,9 @@ public class ClientConnection {
 	}
 
 	public static int buildGUID(byte[] target, CharSequence host, int port, int userId) {
+		//TODO: if we find a better hash for host port user we can avoid this trie lookup. TODO: performance improvement.
+		//new Exception("build guid").printStackTrace();
+		
 		int pos = 0;
     	for(int i = 0; i<host.length(); i++) {
     		short c = (short)host.charAt(i);
@@ -181,14 +201,14 @@ public class ClientConnection {
 	
 		
 	public void handshake(Selector selector) throws IOException {
-		
+
 		assert(socketChannel.finishConnect());
 		
 		long limit = System.currentTimeMillis()+ 2000; //2 second time out to re-try the handshake
 		do {
 			engine.beginHandshake();	
     		isValid = doHandshake(socketChannel, engine);
-    		log.info("is valid handshake connection {} ",isValid);
+    		//log.debug("is valid handshake connection {} ",isValid);
     		
 		} while (!isValid && System.currentTimeMillis()<limit);
     	
@@ -203,13 +223,16 @@ public class ClientConnection {
 	
 
 	public boolean isValid() {
+
 		if (!socketChannel.isConnected()) {
 			return false;
 		}
 		
-		//if (isValid && !socketChannel.isConnected()) {
-		//	isValid = false;
-		//}
+		if (responsesReceived==requestsSent && System.currentTimeMillis() > closeTimeLimit) {
+			log.info("stale connection closed after non use {}",this);
+			close();
+			return false;
+		}
 		return isValid;
 	}
 	
@@ -233,17 +256,17 @@ public class ClientConnection {
 		}
 		
 	}
-	
-	
+		
 	
 	public boolean writeToSocketChannel(Pipe<ClientNetRequestSchema> source) {
 		ByteBuffer[] writeHolder = PipeReader.wrappedUnstructuredLayoutBuffer(source, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_PAYLOAD_103);
 		try {
 			do {
 				socketChannel.write(writeHolder);
-			} while (writeHolder[0].hasRemaining() || writeHolder[1].hasRemaining()); //TODO: this  is a bad spin loop to be refactored up and out.
+			} while (writeHolder[1].hasRemaining()); //TODO: this  is a bad spin loop to be refactored up and out.
 		} catch (IOException e) {
 			log.debug("unable to write to socket {}",this,e);
+			close();
 			return false;
 		}
 		return true;
@@ -256,6 +279,7 @@ public class ClientConnection {
 			return socketChannel.read(targetByteBuffers);			
 		} catch (IOException ex) {			
 			log.warn("unable read from socket {}",this,ex);
+			close();
 		}
 		return -1;
 	}
@@ -604,31 +628,10 @@ public class ClientConnection {
 			} else {				
 				assert(status == Status.BUFFER_OVERFLOW);
 				
-				System.err.println(" data "+rolling.position()+"  use case "+thisCase);
-						
-				
-				//TODO: target ByteBuffer may run up against ring how to expand??
-//				pct 80.0
-//				pct 80.333336
-//				pct 80.666664
-//				no room for write
-//				[SSLEngineUnWrapStage id:4] ERROR com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler - Unexpected error in SSLEngineUnWrapStage #4 with 2 input pipes.
-//				java.lang.RuntimeException: server is untrustworthy? Output pipe is too small for the content to be written inside 87381 reading from 4804
-//					at com.ociweb.pronghorn.network.ClientConnection.engineUnWrap(ClientConnection.java:597)
-//					at com.ociweb.pronghorn.network.SSLEngineUnWrapStage.run(SSLEngineUnWrapStage.java:46)
-				
 				throw new RuntimeException("server is untrustworthy? Output pipe is too small for the content to be written inside "+
 			                               target.maxAvgVarLen+" reading from "+rolling.position());
 				
 
-//[HTTPResponseParserStage id:5] WARN com.ociweb.pronghorn.network.HTTPResponseParserStage - bad response from server com.ociweb.pronghorn.network.ClientConnection@7df0ef07
-//java.lang.RuntimeException: server is untrustworthy? Output pipe is too small for the content to be written inside 87381 reading from 12097
-//	at com.ociweb.pronghorn.network.ClientConnection.engineUnWrap(ClientConnection.java:620)
-//	at com.ociweb.pronghorn.network.SSLEngineUnWrapStage.run(SSLEngineUnWrapStage.java:46)
-//	at com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler.runPeriodicLoop(ThreadPerStageScheduler.java:444)
-//	at com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler.access$6(ThreadPerStageScheduler.java:405)
-//	at com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler$3.run(ThreadPerStageScheduler.java:334)
-				
 			}	
 		}
 	}

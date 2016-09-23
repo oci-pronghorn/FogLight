@@ -10,12 +10,12 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.pronghorn.iot.schema.ClientNetRequestSchema;
-import com.ociweb.pronghorn.iot.schema.ClientNetResponseSchema;
-import com.ociweb.pronghorn.iot.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.schema.ClientNetResponseSchema;
+import com.ociweb.pronghorn.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -35,7 +35,7 @@ public class ClientSocketReaderStage extends PronghornStage {
 		
 		assert(ccm.resposePoolSize() == output.length);
 
-		
+		GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
 	}
 
 	@Override
@@ -136,13 +136,8 @@ public class ClientSocketReaderStage extends PronghornStage {
 					ClientConnection clientConnection = ccm.get(finishedConnectionId);
 					//only remove after all the in flight messages are consumed
 					if (clientConnection.incResponsesReceived()) {	
-						
-						//only add this cancel after we determine we it should be added.
-						//clientConnection.getSelectionKey().cancel();
-						
-						//because this is a single thread it is the only place where we can manage the Pool of outgoing pipe runs.
-						ccm.releaseResponsePipeLineIdx(clientConnection.getId());					
-						
+						//connection may still be open but we will release the pipeline
+						ccm.releaseResponsePipeLineIdx(clientConnection.getId());
 					}
 				}
 				

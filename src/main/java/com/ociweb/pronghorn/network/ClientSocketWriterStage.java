@@ -1,8 +1,8 @@
 package com.ociweb.pronghorn.network;
 
-import com.ociweb.pronghorn.iot.schema.ClientNetRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 

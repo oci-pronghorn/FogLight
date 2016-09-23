@@ -3,6 +3,7 @@ package com.ociweb.pronghorn.network;
 import java.io.IOException;
 import java.nio.channels.Selector;
 
+import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
 import com.ociweb.pronghorn.util.PoolIdx;
 import com.ociweb.pronghorn.util.ServiceObjectHolder;
 import com.ociweb.pronghorn.util.ServiceObjectValidator;
@@ -44,7 +45,8 @@ public class ClientConnectionManager implements ServiceObjectValidator<ClientCon
 	 * @param userId
 	 * @return -1 if the host port and userId are not found
 	 */
-	public long lookup(CharSequence host, int port, int userId) {		
+	public long lookup(CharSequence host, int port, int userId) {	
+		//TODO: lookup by userID then by port then by host??? may be a better approach instead of guid 
 		int len = ClientConnection.buildGUID(guidWorkspace, host, port, userId);		
 		return TrieParserReader.query(hostTrieReader, hostTrie, guidWorkspace, 0, len, Integer.MAX_VALUE);
 	}
@@ -100,6 +102,39 @@ public class ClientConnectionManager implements ServiceObjectValidator<ClientCon
 			}
 		}
 		return selector;
+	}
+
+	public static long openConnection(ClientConnectionManager ccm, CharSequence host, int port, int userId, int pipeIdx) {
+		long connectionId = ccm.lookup(host, port, userId);				                
+		if (-1 == connectionId || null == ccm.get(connectionId)) {
+			
+			try {
+		    	//create new connection because one was not found or the old one was closed
+				ClientConnection cc = new ClientConnection(host.toString(), port, userId, pipeIdx);				                	
+		    	
+		    	while (!cc.isFinishConnect() ) {  //TODO: revisit
+		    		Thread.yield();
+		    	}
+		    	
+		    	int p = Thread.currentThread().getPriority();
+		    	Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+		    	cc.handshake(ccm.selector()); //TODO: revisit this is blocking
+		    	Thread.currentThread().setPriority(p);
+		    	
+		    	if (cc.isValid()) {
+		    		connectionId = ccm.add(cc);
+		    		//log.debug("added new connection under id:"+connectionId);
+		    	} else {
+		    		HTTPClientRequestStage.log.warn("new connection was invalid {}:{}",host,port);
+		    		connectionId = -1;
+		    	}
+			} catch (IOException ex) {
+				HTTPClientRequestStage.log.warn("handshake problems with new connection {}:{}",host,port,ex);
+				
+				connectionId = -1;
+			}				                	
+		}
+		return connectionId;
 	}
 
 

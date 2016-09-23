@@ -17,17 +17,18 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.pronghorn.iot.schema.ClientNetRequestSchema;
-import com.ociweb.pronghorn.iot.schema.ClientNetResponseSchema;
-import com.ociweb.pronghorn.iot.schema.NetParseAckSchema;
-import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
-import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
+import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
+import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.schema.ClientNetResponseSchema;
+import com.ociweb.pronghorn.schema.NetParseAckSchema;
+import com.ociweb.pronghorn.schema.NetRequestSchema;
+import com.ociweb.pronghorn.schema.NetResponseSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.network.config.HTTPSpecification;
@@ -73,6 +74,7 @@ public class HTTPSClientTest {
 				  }
 				  
 				} while (temp!=-1);
+				in.close();
 				//long duration = System.currentTimeMillis()-start;
 				//System.out.println("blocking duration: "+duration);
 			}
@@ -320,8 +322,11 @@ public class HTTPSClientTest {
 		
 	}
 		
-	@Ignore
+	@Test
 	public void buildPipeline() {
+		
+		//forced sequential calls, send next after previous returns.
+		boolean sequential = true;
 		
 		//only build minimum for the pipeline
 		
@@ -368,9 +373,24 @@ public class HTTPSClientTest {
 			toReactor[m] = new Pipe<NetResponseSchema>(netResponseConfig);
 		}
 		
-		NetGraphBuilder.buildHTTPClientGraph(gm, hardware, inputsCount, outputsCount, maxPartialResponses, ccm,
-				listenerPipeLookup, netREquestConfig, trafficReleaseConfig, trafficAckConfig, clientNetRequestConfig,
-				parseAckConfig, clientNetResponseConfig, input, goPipe, toReactor, ackPipe);
+		
+		int k = inputsCount;
+		while (--k>=0) {
+			ackPipe[k] = new Pipe<TrafficAckSchema>(trafficAckConfig);
+			goPipe[k] = new Pipe<TrafficReleaseSchema>(trafficReleaseConfig); 
+            input[k] = new Pipe<NetRequestSchema>(netREquestConfig);	
+		}	
+		
+		Pipe<ClientNetRequestSchema>[] clientRequests = new Pipe[outputsCount];
+		int r = outputsCount;
+		while (--r>=0) {
+			clientRequests[r] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig);		
+		}
+		HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, hardware, ccm, input, goPipe, ackPipe, clientRequests);
+		
+		
+		NetGraphBuilder.buildHTTPClientGraph(gm, outputsCount, maxPartialResponses, ccm, listenerPipeLookup, clientNetRequestConfig,
+				parseAckConfig, clientNetResponseConfig, clientRequests, toReactor);
 		
 		int i = toReactor.length;
 		PipeCleanerStage[] cleaners = new PipeCleanerStage[i];
@@ -390,7 +410,7 @@ public class HTTPSClientTest {
 		//GraphManager.enableBatching(gm);
 		
 		//TODO: why is this scheduler taking so long to stop.
-		StageScheduler scheduler = new FixedThreadsScheduler(gm, 8);
+		StageScheduler scheduler = new FixedThreadsScheduler(gm, 5);
 		//StageScheduler scheduler = new ThreadPerStageScheduler(gm);
 		
 		
@@ -401,7 +421,7 @@ public class HTTPSClientTest {
 		
 		final int MSG_SIZE = 6;
 		
-		int testSize = 3300; //TODO: when large the pipes back up and we have a new error!!
+		int testSize = 50; 
 		
 		int requests = testSize;
 		
@@ -412,9 +432,10 @@ public class HTTPSClientTest {
 		int d = 0;
 		while (requests>0 && System.currentTimeMillis()<timeout) {
 			
-			//forced sequential calls, send next after previous returns.
-			boolean sequential = true;
+
 			if (sequential) {
+				
+				System.out.println("received "+d);
 				while (doneCount(cleaners)<d && System.currentTimeMillis()<timeout){
 					try {
 						Thread.sleep(5);
@@ -446,7 +467,7 @@ public class HTTPSClientTest {
 				requests--;
 			
 				d+=MSG_SIZE;
-			//	System.out.println(requests);
+		
 			}
 		}
 		

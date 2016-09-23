@@ -1,4 +1,4 @@
-package com.ociweb.pronghorn;
+package com.ociweb.pronghorn.iot;
 
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
@@ -8,10 +8,6 @@ import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-
-//TODO: this class and its schemas will be moved to the general Pronghorn project, 
-//TODO: once moved over to pronghorn add unit tests arround it.
-
 
 /**
  * Supports a single primary input pipe that defines which  output pipes should be processed and in which order.

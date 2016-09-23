@@ -21,25 +21,19 @@ import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.TimeTrigger;
-import com.ociweb.pronghorn.MessagePubSubStage;
-import com.ociweb.pronghorn.TrafficCopStage;
+import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
+import com.ociweb.pronghorn.iot.MessagePubSubStage;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
+import com.ociweb.pronghorn.iot.TrafficCopStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
-import com.ociweb.pronghorn.iot.schema.ClientNetRequestSchema;
-import com.ociweb.pronghorn.iot.schema.ClientNetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.iot.schema.MessagePubSub;
-import com.ociweb.pronghorn.iot.schema.MessageSubscription;
-import com.ociweb.pronghorn.iot.schema.NetParseAckSchema;
-import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
-import com.ociweb.pronghorn.iot.schema.NetResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
@@ -49,6 +43,13 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
+import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.schema.ClientNetResponseSchema;
+import com.ociweb.pronghorn.schema.MessagePubSub;
+import com.ociweb.pronghorn.schema.MessageSubscription;
+import com.ociweb.pronghorn.schema.NetParseAckSchema;
+import com.ociweb.pronghorn.schema.NetRequestSchema;
+import com.ociweb.pronghorn.schema.NetResponseSchema;
 import com.ociweb.pronghorn.stage.route.SplitterStage;
 import com.ociweb.pronghorn.stage.scheduling.FixedThreadsScheduler;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -424,15 +425,16 @@ public abstract class HardwareImpl implements Hardware {
 			//TODO: tie this in tonight.
 			int inputsCount = 1;
 			int outputsCount = 1;
-			NetGraphBuilder.buildHTTPClientGraph(gm, this, inputsCount, outputsCount, maxPartialResponses,  
-					ccm, 
-					netPipeLookup, 
-					netRequestConfig, releasePipesConfig, ackPipesConfig, 
-					clientNetRequestConfig, parseAckConfig, clientNetResponseConfig, 
-					netRequestPipes, 
-					masterGoOut[TYPE_NET], //go comands matching above requestPipes 
-					netResponsePipes, 
-					masterAckIn[TYPE_NET]); //acks for each request pipe.
+			Pipe<ClientNetRequestSchema>[] clientRequests = new Pipe[outputsCount];
+			int r = outputsCount;
+			while (--r>=0) {
+				clientRequests[r] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig);		
+			}
+			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[TYPE_NET], masterAckIn[TYPE_NET], clientRequests);
+			
+			
+			NetGraphBuilder.buildHTTPClientGraph(gm, outputsCount, maxPartialResponses, ccm, netPipeLookup, clientNetRequestConfig,
+												 parseAckConfig, clientNetResponseConfig, clientRequests, netResponsePipes); 
 						
 		}// else {
 			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );

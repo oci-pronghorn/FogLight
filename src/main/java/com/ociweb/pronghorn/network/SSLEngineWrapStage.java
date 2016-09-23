@@ -2,8 +2,8 @@ package com.ociweb.pronghorn.network;
 
 import java.nio.ByteBuffer;
 
-import com.ociweb.pronghorn.iot.schema.ClientNetRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 

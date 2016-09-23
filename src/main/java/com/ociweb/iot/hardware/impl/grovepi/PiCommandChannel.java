@@ -8,13 +8,13 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.MessagePubSub;
-import com.ociweb.pronghorn.iot.schema.NetRequestSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.schema.MessagePubSub;
+import com.ociweb.pronghorn.schema.NetRequestSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class PiCommandChannel extends CommandChannel{

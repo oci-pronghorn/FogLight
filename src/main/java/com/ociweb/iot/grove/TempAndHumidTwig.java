@@ -9,6 +9,11 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 
+/**
+ * Stores information necessary for reading from the Temperature and Humidity sensor from Grove
+ * 
+ * TODO: This class is currently based on the GrovePi hardware. Does not support regular hardware interface.
+ */
 public class TempAndHumidTwig implements IODevice{
 
 	public byte addr = 0x04;
@@ -37,6 +42,11 @@ public class TempAndHumidTwig implements IODevice{
 		}
 	}
 
+	/**
+	 * Returns the I2CConnection object, with all the byte arrays necessary to read from the device
+	 * 
+	 * @return I2CConnection
+	 */
 	public I2CConnection getI2CConnection(){
 		byte[] TEMPHUMID_READCMD = {0x01, 40, connection, module_type, 0x00};
 	    byte[] TEMPHUMID_SETUP = {0x01, 0x05, 0x00, 0x00, 0x00}; 
@@ -46,6 +56,15 @@ public class TempAndHumidTwig implements IODevice{
 	    return new I2CConnection(this, TEMPHUMID_ADDR, TEMPHUMID_READCMD, TEMPHUMID_BYTESTOREAD, TEMPHUMID_REGISTER, TEMPHUMID_SETUP);
 	}
 	
+	/**
+	 * Interprets the data coming from the read pipe.
+	 * 
+	 * @param backing
+	 * @param position
+	 * @param length
+	 * @param mask
+	 * @return int array length 2. [temperature, humidity]
+	 */
 	public int[] interpretGrovePiData(byte[] backing, int position, int length, int mask){
 		assert(length == 9) : "Incorrect length of data passed into DHT sensor class";
 		for (int i = 0; i < readData.length; i++) {
@@ -55,6 +74,7 @@ public class TempAndHumidTwig implements IODevice{
 				(int)ByteBuffer.wrap(readData).order(ByteOrder.LITTLE_ENDIAN).getFloat(5)};
 		return temp;
 	}
+	
 	
 	@Override
 	public boolean isValid(byte[] backing, int position, int length, int mask){

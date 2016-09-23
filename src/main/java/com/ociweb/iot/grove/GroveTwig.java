@@ -5,6 +5,11 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 
+/**
+ * Holds information for all standard A/D I/O twigs in the Grove starter kit.
+ * Methods are necessary for interpreting new connections declared in declareConnections(Hardware c) in the maker app.
+ * @see src.main.java.com.ociweb.iot.hardware.IODevice
+ */
 public enum GroveTwig implements IODevice {
 
     UVSensor(){
@@ -149,6 +154,7 @@ public enum GroveTwig implements IODevice {
         return false;
     }
     
+    
     public int response() {
         return 20;
     }
@@ -156,21 +162,27 @@ public enum GroveTwig implements IODevice {
     public boolean isPWM() {
         return false;
     }
+    
     public boolean isI2C(){
     	return false;
     }
+    
     public I2CConnection getI2CConnection(){
     	return null;
     }
+    
     public int range() {
         return 256;
     }
+    
     public boolean isGrove(){
     	return true;
     }
+    
     public byte[] I2COutSetup(){
     	return null;
     }
+
     public boolean isValid(byte[] backing, int position, int length, int mask){
     	return true;
     }

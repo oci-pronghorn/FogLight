@@ -1,5 +1,10 @@
 package com.ociweb.iot.hardware;
 
+/**
+ * Contains all the information necessary for reading specific I2C Devices. Is used by I2CJFFIStage.
+ * @author alexherriott
+ *
+ */
 public class I2CConnection extends HardwareConnection {
 
     public final byte address;  		//i2c address

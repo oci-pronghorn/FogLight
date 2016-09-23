@@ -322,7 +322,7 @@ public class HTTPSClientTest {
 		
 	}
 		
-	@Test
+	@Ignore
 	public void buildPipeline() {
 		
 		//forced sequential calls, send next after previous returns.

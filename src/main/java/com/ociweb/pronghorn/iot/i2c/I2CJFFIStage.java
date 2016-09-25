@@ -190,7 +190,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         				workingBuffer[0] = -2;
         				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
         		
-        				//logger.debug("i2c reading result {} delay before read {} ",Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )),this.inputs[inProgressIdx].delayAfterRequestNS);
+        				//logger.info("i2c reading result {} delay before read {} ",Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )),this.inputs[inProgressIdx].delayAfterRequestNS);
         				
    					    PipeWriter.tryWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
         				PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);						

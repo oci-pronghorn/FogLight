@@ -523,8 +523,8 @@ public abstract class HardwareImpl implements Hardware {
 
 	public StageScheduler createScheduler(DeviceRuntime iotDeviceRuntime) {
 		//NOTE: need to consider different schedulers in the future.
-		final StageScheduler scheduler = new FixedThreadsScheduler(gm, Runtime.getRuntime().availableProcessors()); 
-				//new ThreadPerStageScheduler(gm);
+		final StageScheduler scheduler = //disabled until recursion is fixed...  new FixedThreadsScheduler(gm, Runtime.getRuntime().availableProcessors()); 
+				                         new ThreadPerStageScheduler(gm);
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {

@@ -22,6 +22,7 @@ public class GrovePiConstants {
     public static final byte ANALOG_READ = 0x03;
     public static final byte ANALOG_WRITE = 0x04;
     public static final byte PIN_MODE = 0x05;
+    public static final byte ULTRASONIC_RANGER = 0x07;
     public static final byte OUTPUT = 0x01;
     public static final byte INPUT = 0x00;
 	

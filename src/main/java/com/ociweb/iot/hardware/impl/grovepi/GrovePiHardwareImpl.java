@@ -90,7 +90,15 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		if (t.isInput()) {
 		
 	    		connection = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection];
-				byte[] readCmd = {GrovePiConstants.START_BYTE,GrovePiConstants.ANALOG_READ,(byte)connection,0x00,0x00};
+	    		
+	    		//NOTE: may need to add additional "special cases" here
+				byte groveOperation = 
+						GroveTwig.UltrasonicRanger == t ?						
+							GrovePiConstants.ULTRASONIC_RANGER :
+							GrovePiConstants.ANALOG_READ;
+				
+				
+				byte[] readCmd = {GrovePiConstants.START_BYTE,groveOperation,(byte)connection,0x00,0x00};
 				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)connection,GrovePiConstants.INPUT,0x00};				
 				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,connection, setup, customRate, customAverageMS, everyValue)); 
 			

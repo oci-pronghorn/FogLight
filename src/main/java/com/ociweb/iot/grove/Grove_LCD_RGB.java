@@ -9,6 +9,7 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
+import com.ociweb.pronghorn.util.Appendables;
 
 /**
  * TODO: This class probably needs to be renamed and moved; it's now both a simple API and collection of constants.
@@ -105,7 +106,7 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
-	public static boolean commandForText(CommandChannel target, String text) {
+	public static boolean commandForText(CommandChannel target, CharSequence text) {
 
 		if (!target.i2cIsReady()) {
 			return false;
@@ -369,29 +370,41 @@ public class Grove_LCD_RGB implements IODevice{
 
 	}
 
-	private static void showTwoLineText(CommandChannel target, String text) {
+	private static void showTwoLineText(CommandChannel target, CharSequence text) {
 
 		if(!isStarted){
 			begin(target);
 		}
 		displayClear(target);
-		String[] lines = text.split("\n");
-		int steps = 4;
-		
+
 		target.i2cDelay((Grove_LCD_RGB_Constants.LCD_ADDRESS), Grove_LCD_RGB_Constants.INPUT_SET_DELAY);
 		
-		for(String line: lines) {
-			int p = 0;
-			while (p<line.length()) {
-				writeUTF8ToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETCGRAMADDR, line, p, Math.min(steps, line.length()-p) );
-				p+=steps;
-
-			}
-			//new line
-			writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, 0xc0);
+		int p = 0;
+		int start = 0;
+		while (p<text.length()) {
+			if (text.charAt(p++)=='\n') {					
+				writeSingleLine(target, text, start, p-1);// -1 to skip the \n
+				start = p;				
+			}			
 		}
+		assert(p==text.length());
+		writeSingleLine(target, text, start, p);
 
 	}
+
+	private static void writeSingleLine(CommandChannel target, CharSequence line, int p, int limit) {
+		int steps = 4;
+		
+		while (p<limit) {
+			writeUTF8ToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETCGRAMADDR, line, p, Math.min(steps, limit-p) );
+			p+=steps;
+
+		}
+		//new line
+		writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)), Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, 0xc0);
+	}
+	
+	
 
 	private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
 		

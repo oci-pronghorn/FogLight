@@ -144,6 +144,21 @@ public enum GroveTwig implements IODevice {
         public boolean isOutput() {
             return true;
         }
+    },
+    UltrasonicRanger() {
+    	 @Override
+         public boolean isInput() {
+             return true;
+         }
+    	 
+    	 public int range() {
+    	        return 1024;
+    	 }
+    	    
+         public int response() {
+             return 100; 
+         }
+    
     };
     
     public boolean isInput() {
@@ -173,10 +188,6 @@ public enum GroveTwig implements IODevice {
     
     public int range() {
         return 256;
-    }
-    
-    public boolean isGrove(){
-    	return true;
     }
     
     public byte[] I2COutSetup(){

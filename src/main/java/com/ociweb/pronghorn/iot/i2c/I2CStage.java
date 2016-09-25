@@ -142,7 +142,7 @@ public class I2CStage extends PronghornStage {
                 backing.write(address, bytes, bytes.length);
 
                 Pipe.confirmLowLevelRead(request, bytesToSendReleaseSize);
-                Pipe.releaseReads(request);
+                Pipe.releaseReadLock(request);
             }
         }
     }

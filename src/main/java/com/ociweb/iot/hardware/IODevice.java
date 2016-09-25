@@ -6,8 +6,8 @@ package com.ociweb.iot.hardware;
 public interface IODevice {
 
 	/**
-	 * Time in ms between read request and read response for I2C devices.
-	 * @return
+	 * 
+	 * @return Time in ms between read request and read response for I2C devices.
 	 */
      public int           response(); //in ms, do not poll faster than this
      public boolean       isInput();
@@ -15,8 +15,8 @@ public interface IODevice {
      public boolean       isPWM();
      
      /**
-      * Range of data
-      * @return
+      * 
+      * @return Range of data
       */
      public int           range(); //for PWM and for A2D read, must be 1 for digital inputs.
 
@@ -32,13 +32,13 @@ public interface IODevice {
       * @param position
       * @param length
       * @param mask
-      * @return
+      * @return true if this data in the backing array is sane
       */
      public boolean		  isValid(byte[] backing, int position, int length, int mask);
      
      /**
-      * Returns number of pins used by device.
-      * @return
+      * 
+      * @return Returns number of pins used by device.
       */
      public int           pinsUsed();//count of contiguous pins used, eg almost always 1 but would be 2 for the grove rotary encoder
      

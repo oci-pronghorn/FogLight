@@ -1,7 +1,21 @@
 package com.ociweb.iot.maker;
 
+/**
+ * Functional interface for changes in a state machine registered with the
+ * {@link DeviceRuntime}.
+ *
+ * @author Nathan Tippy
+ */
+@FunctionalInterface
 public interface StateChangeListener<E extends Enum<E>> {
-	
-	public void stateChange(E oldState, E newState);
+
+	/**
+	 * Invoked when a state machine registered with the {@link DeviceRuntime}
+	 * changes state.
+	 *
+	 * @param oldState Old state of the state machine.
+	 * @param newState New state of the state machine.
+	 */
+	void stateChange(E oldState, E newState);
 	
 }

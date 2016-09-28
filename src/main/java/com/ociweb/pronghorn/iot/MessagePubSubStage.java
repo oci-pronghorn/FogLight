@@ -25,10 +25,6 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
     private final Pipe<MessagePubSub>[] incomingSubsAndPubsPipe;
     private final Pipe<MessageSubscription>[] outgoingMessagePipes;
     
-    private final Pipe<MessageSubscription>[] incomingExternalMessagePipes; //TODO: add prefix back on before routing to subscribers.
-    private final Pipe<MessageSubscription>[] outgoingExternalMessagePipes;
-    
-    
     private static final int estimatedTopicLength = 100;
     private static final int maxLists = 10; //TODO: make this grow as needed based on growing count of subscriptions.
     private static final int maxExternalTopicsLength = 128;
@@ -69,9 +65,6 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
        this.incomingSubsAndPubsPipe = incomingSubsAndPubsPipe;
        this.outgoingMessagePipes = outgoingMessagePipes;
        
-       this.outgoingExternalMessagePipes = null;//TODO: must pass in pipe going to external routing services
-       this.incomingExternalMessagePipes = null;
-       
        assert(goPipe.length == ackPipe.length) : "should be one ack pipe for every go pipe";
        
        this.subscriberListSize = outgoingMessagePipes.length;//can never hava more subscribers than ALL
@@ -81,11 +74,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
        this.currentState = null==hardware.beginningState ? -1 :hardware.beginningState.ordinal();
        
     }
-    
-    //TODO: these are just hacked here for now and need to be set inside of hardware
-    //private int EXT_OPEN_DDS = 2;
-    //private String EXT_ROUTE = "opendds\\%b";
-    
+
     @Override
     public void startup() {
         super.startup();
@@ -98,14 +87,8 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 
         this.pendingPublish = new int[subscriberListSize];
         
-        processStartupSubscriptions(hardware.consumeStartupSubscriptions());
-        
-     
-        
-      //  this.externalSubscriptionTrie.setUTF8Value(EXT_ROUTE, EXT_OPEN_DDS);
-        
-        
-        
+        processStartupSubscriptions(hardware.consumeStartupSubscriptions());      
+ 
     }
     
     private void processStartupSubscriptions(Pipe<MessagePubSub> pipe) {
@@ -207,8 +190,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         
         Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[a];
         
-        
-        
+             
         
         
         while (hasReleaseCountRemaining(a) &&
@@ -241,49 +223,23 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
                         final byte[] backing = PipeReader.readBytesBackingArray(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);
                         final int pos = PipeReader.readBytesPosition(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);
                         final int len = PipeReader.readBytesLength(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);
-                        final int mask = PipeReader.readBytesMask(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);
+                        final int mask = PipeReader.readBytesMask(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);                  
                         
-                        
-//                        int extIdx = (int) TrieParserReader.query(trieReader, externalSubscriptionTrie, backing, pos, len, mask);
-//                        
-//                        //TODO: must be configured externally
-//                        if (extIdx==EXT_OPEN_DDS) {
-//                        	
-//                        	if (!copyToExternal(pipe, extIdx)) {
-//                        		
-//                        		//TODO: set delvery type to extern and count...
-//                        		//return;
-//                        		
-//                        	}
-//                                   	
-//                        	
-//                        } else {                       
-                        
-	                        int listIdx = (int) TrieParserReader.query(trieReader, localSubscriptionTrie, backing, pos, len, mask);
-	                        if (listIdx>=0) {
-	                        	final int limit = listIdx+subscriberListSize;
-	                        	for(int i = listIdx; i<limit && (-1 != subscriberLists[i]); i++) {
-	                        		
-//	                        		try {
-//										Appendables.appendUTF8(System.out, backing, pos, len, mask);
-//										//System.out.println("send to "+i+" and pipe "+subscriberLists[i]);
-//	                        		} catch (IOException e) {
-//										// TODO Auto-generated catch block
-//										e.printStackTrace();
-//									}
-	                        		
-	                        		
-	                        		copyToSubscriber(pipe, subscriberLists[i]);                                
-	                        	}
-	                                                	
-	                            if (pendingPublishCount>0) {
-	                            	pendingDeliveryType = PubType.Message;
-	                                pendingReleaseCountIdx = a; //keep so this is only cleared after we have had successful transmit to all subscribers.
-	                                return;//must try again later
-	                            }                            
-	                            
-	                        }
-//                        }
+                        int listIdx = (int) TrieParserReader.query(trieReader, localSubscriptionTrie, backing, pos, len, mask);
+                        if (listIdx>=0) {
+                        	final int limit = listIdx+subscriberListSize;
+                        	for(int i = listIdx; i<limit && (-1 != subscriberLists[i]); i++) {
+                        		copyToSubscriber(pipe, subscriberLists[i]);                                
+                        	}
+                                                	
+                            if (pendingPublishCount>0) {
+                            	pendingDeliveryType = PubType.Message;
+                                pendingReleaseCountIdx = a; //keep so this is only cleared after we have had successful transmit to all subscribers.
+                                return;//must try again later
+                            }                            
+                            
+                        }
+
                     }   
                     break;
                 case MessagePubSub.MSG_SUBSCRIBE_100:
@@ -305,34 +261,9 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         }
     }
 
-	private boolean copyToExternal(Pipe<MessagePubSub> pipe, int extIdx) {
-		
-    	
-     	 Pipe<MessageSubscription> outPipe = outgoingExternalMessagePipes[extIdx];
-     	 
-         if (PipeWriter.tryWriteFragment(outPipe, MessageSubscription.MSG_PUBLISH_103)) {
-             
-        	 //TODO: revist to make garbage free
-             PipeWriter.writeUTF8(outPipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1, TrieParserReader.capturedFieldBytesAsUTF8(trieReader, 0, new StringBuilder()));
-             PipeReader.copyBytes(pipe, outPipe, MessagePubSub.MSG_PUBLISH_103_FIELD_PAYLOAD_3, MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
-             
-             PipeWriter.publishWrites(outPipe);
-             return true;
-         } else {
-             pendingPublish[pendingPublishCount++] = extIdx;                                    
-         }
-		return false;
-	}
 
 	private void addSubscription(final short pipeIdx, final byte[] backing, final int pos, final int len, final int mask) {
-//		
-//		try {
-//			Appendables.appendUTF8(System.out, backing, pos, len, mask);
-//			System.out.println("subscription goes to pipeIdx "+pipeIdx);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+
 		
 		int listIdx = (int) TrieParserReader.query(trieReader, localSubscriptionTrie, backing, pos, len, mask);
 		
@@ -341,9 +272,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 		    listIdx = subscriberListSize*totalSubscriberLists++;
 		    //System.err.println("Adding new subcription with value "+listIdx);
 		    localSubscriptionTrie.setValue(backing, pos, len, mask, listIdx);
-		}// else {
-		//	System.err.println("adding to old subscription "+listIdx);
-		//}
+		}
 		
 		//add index on first -1 or stop if value already found                    
 		for(int i = listIdx; i<(listIdx+subscriberListSize); i++) {

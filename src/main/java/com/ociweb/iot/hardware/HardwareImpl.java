@@ -695,8 +695,7 @@ public abstract class HardwareImpl implements Hardware {
 	public byte convertToPort(byte connection) {
 		return connection;
 	}
-
-	
+			
 
 	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
 		
@@ -730,6 +729,16 @@ public abstract class HardwareImpl implements Hardware {
 			return internalConnectAnalog(t, port.port, customRateMS, -1, false);			
 		} else {
 			return internalConnectDigital(t, port.port, customRateMS, -1, false);			
+		}
+		
+	}
+	
+	public Hardware connect(IODevice t, Port port, int customRateMS, boolean everyValue) {
+		
+		if (port.isAnalog()) {
+			return internalConnectAnalog(t, port.port, customRateMS, -1, everyValue);			
+		} else {
+			return internalConnectDigital(t, port.port, customRateMS, -1, everyValue);			
 		}
 		
 	}

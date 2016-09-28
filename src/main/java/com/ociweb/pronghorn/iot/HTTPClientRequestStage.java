@@ -182,6 +182,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											
 											finishWritingHeader(activeHost, activeWriter, implementationVersion);
 											
+											//TODO: must write lenghth in header before we write the payload.
 											//un-tested  post payload here, TODO: need to add support for chunking and length??
 											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5, activeWriter);
 											
@@ -198,9 +199,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 										
 										
 					                }
-		            				//TODO: not yet implemented must clean up get and duplicate the logic here
-		            				
-		            				
+		            		
 				                }
 	    	        	break;
 	    	            

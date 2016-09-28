@@ -600,28 +600,28 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	
 	@Override
 	public ListenerFilter includePorts(Port ... ports) {
-		if (!startupCompleted && listener instanceof AnalogListener) {
+		if (!startupCompleted && (listener instanceof AnalogListener || listener instanceof DigitalListener)) {
 			includedPorts = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
 	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
 	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
+	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister or DigitalListener in order to call this method.");
 	    	}
 		}
 	}
 
 	@Override
 	public ListenerFilter excludePorts(Port ... ports) {
-		if (!startupCompleted && listener instanceof AnalogListener) {
+		if (!startupCompleted && (listener instanceof AnalogListener || listener instanceof DigitalListener)) {
 			excludedPorts = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
 	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
 	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
+	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister or DigitalListener in order to call this method.");
 	    	}
 		}
 	}

@@ -22,6 +22,8 @@ public class IoTApp implements IoTSetup
 	private static int    centsPerGallon; 
 	
 	private final static int BUTTON_RATE_MS = 200; //5 per second per second
+	private final static int RANGER_RATE_MS = 200; //5 per second per second
+	
 	private final static boolean RETURN_EVERY_SAMPLE = true; //by default only returns changes
 	private final static String TOPIC_TANK  = "tank";
 	private final static String TOPIC_PUMP  = "pump";
@@ -45,7 +47,7 @@ public class IoTApp implements IoTSetup
     public void declareConnections(Hardware c) {
         c.connect(Button, D7, BUTTON_RATE_MS, RETURN_EVERY_SAMPLE);
         c.connect(AngleSensor, A0);
-        c.connect(UltrasonicRanger, A2); //default rate 5x per second
+        c.connect(UltrasonicRanger, A2, RANGER_RATE_MS, RETURN_EVERY_SAMPLE); //default rate 5x per second
         
         c.startStateMachineWith(PumpState.Idle);
     }
@@ -70,7 +72,7 @@ public class IoTApp implements IoTSetup
     	                              .addSubscription(TOPIC_TOTAL);
     	
     	runtime.addPubSubListener(new PublishDataMQTT(serverURI,clientId))
-   										.addSubscription(TOPIC_PUMP)
+   										.addSubscription(TOPIC_TOTAL)
    										.addSubscription(TOPIC_TANK);
     	
     }

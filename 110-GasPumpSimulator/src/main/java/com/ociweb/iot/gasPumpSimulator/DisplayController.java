@@ -69,6 +69,7 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 			lastPumpTime = 0;				
 			lastPumpUnits = 0;			
 			
+			long totalTime = payload.readLong();
 			lastTotalName = payload.readUTF();
 			int price = payload.readInt();
 			lastTotalUnits = payload.readInt();

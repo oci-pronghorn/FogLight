@@ -24,6 +24,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 			
 	private int units;
 	private int totalUnits;
+	private long time;
 	
 	public PumpSimulator(DeviceRuntime runtime, String pumpTopic, String totalTopic, String fuelName, int centsPerGallon) {
 
@@ -35,8 +36,6 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
    	  
 	}
 
-	long last = 0;
-	
 	@Override
 	public void digitalEvent(Port port, long time, long durationMillis, int value) {
 	
@@ -44,15 +43,10 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 		
 		
 		if (isActive) {
-	
-			long gap = time-last;
 
-			last = time;
 			
-			//max flow rate
-			//555 cm2 per 6 seconds
-			//for 5 per second this is about right for the fuel consumed.
-			units += (18*value);				
+			this.units += value;				
+			this.time = time;
 			
 			PayloadWriter payload = channel.openTopic(pumpTopic);
 						
@@ -81,6 +75,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 			
 				PayloadWriter payload = channel.openTopic(totalTopic);
 				
+				payload.writeLong(this.time);
 				payload.writeUTF(fuelName);
 				payload.writeInt(centsPerUnit);
 				payload.writeInt(totalUnits);

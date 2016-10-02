@@ -17,12 +17,10 @@ public class TankMonitor implements AnalogListener {
     private final int radiusMM = 42;
     private final int radiusSquared = radiusMM*radiusMM;;
     private final double radiusSquaredPi = Math.PI*radiusSquared;
-    
-    
-    
     private final String fuelName;
     private final Logger logger = LoggerFactory.getLogger(TankMonitor.class);
-	
+	private int lastValue = Integer.MIN_VALUE;
+    
 	public TankMonitor(DeviceRuntime runtime, String topic, int fullTank, String fuelName) {
 	
 		this.commandChannel = runtime.newCommandChannel();
@@ -34,26 +32,29 @@ public class TankMonitor implements AnalogListener {
 
 	@Override
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-			
+
 		if (value>fullTank) {
 			logger.trace("check equipment, tank {} is deeper than expected {} ",value,fullTank);	
 			value = fullTank;//default value for the error case
 		} 
-		
-		int volumeCM = computeVolumeCM2(value);
-		
-		//max flow rate
-		//555 cm2 per 6 seconds
-
-		
-        PayloadWriter payload = commandChannel.openTopic(topic);
-        	        
-		payload.writeLong(time); //local time, may be off, do check the os
-		payload.writeInt(volumeCM);
-		payload.writeUTF(fuelName);
-		
-		payload.publish();
-
+			
+		//sample must be stable for 2 seconds before we consider it safe for use
+		if (durationMillis > 2000 && (value!=lastValue)) {
+					
+			int volumeCM = computeVolumeCM2(value);
+			
+			//max flow rate
+			//555 cm2 per 6 seconds	
+			
+	        PayloadWriter payload = commandChannel.openTopic(topic);
+	        	        
+			payload.writeLong(time); //local time, may be off, do check the os
+			payload.writeInt(volumeCM);
+			payload.writeUTF(fuelName);
+			
+			payload.publish();
+			lastValue = value;
+		}
 		
 	}
 

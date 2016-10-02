@@ -546,16 +546,18 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 			}
 			
 			if (sendEveryAnalogValue[port.port]) {
-				
-				aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
+				//set time first so this is 0 the moment it shows up
+				//since we send every read we can send the age as greater and geater values as long as it does not change.
 				if(runningValue!=lastAnalogValues[port.port]){ 
 					lastAnalogTimes[port.port] = time;   
 					lastAnalogValues[port.port] = runningValue;
 				}
+				aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
 				
 			} else {								
 				if(runningValue!=lastAnalogValues[port.port]){ 
 										
+					//the duration here is the duration of how long the previous value was held.
 					aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
 				   
 					lastAnalogValues[port.port] = runningValue;

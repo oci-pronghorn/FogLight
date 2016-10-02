@@ -170,7 +170,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         				}
 
                         I2CConnection connection = this.inputs[inProgressIdx];
-                        timeOut = hardware.nanoTime() + (writeTime*1_000_000);
+                        timeOut = hardware.nanoTime() + (writeTime*35_000_000);///I2C allows for clients to abandon master after 35 ms
 
                         //logger.info("i2c request read "+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
                         
@@ -178,7 +178,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.nanoTime()<timeOut){}
 
                         if (hardware.nanoTime()>timeOut) {
-                        	logger.warn("failed to get I2C bus master");
+                        	logger.warn("failed to get I2C bus master, waited 35ms");
                         	//timeout trying to get the i2c bus
                         	return;
                         }

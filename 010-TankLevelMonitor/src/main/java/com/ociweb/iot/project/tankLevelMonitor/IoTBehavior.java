@@ -43,11 +43,8 @@ public class IoTBehavior implements DigitalListener, AnalogListener{
 			int remainingDepth = fullTank-value;
 			
 			StringBuilder builder = new StringBuilder();
-			try {
-				Appendables.appendFixedDecimalDigits(builder, remainingDepth, 100);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			Appendables.appendFixedDecimalDigits(builder, remainingDepth, 100);
+
 			builder.append("cm \n");
 			builder.append("depth");
 			

@@ -5,16 +5,15 @@ import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Port;
 
-public class FuelSelector implements AnalogListener {
-
+public class ModeSelector implements AnalogListener {
 
 	private final CommandChannel commandChannel;
 	private PumpState lastState;
 	private int angleDivisor;
 
-	public FuelSelector(DeviceRuntime runtime, int angleRange) {
+	public ModeSelector(DeviceRuntime runtime, int angleRange) {
 		this.commandChannel = runtime.newCommandChannel();
-		this.angleDivisor = angleRange/PumpState.values().length;
+		this.angleDivisor = 1+(angleRange/PumpState.values().length); //rounds up so 1024 does not produce a new state
 	}
 
 	@Override
@@ -25,7 +24,6 @@ public class FuelSelector implements AnalogListener {
 			commandChannel.changeStateTo(state);
 			lastState=state;
 		}
-		
 		
 	}
 }

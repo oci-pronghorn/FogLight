@@ -156,16 +156,16 @@ public class DeviceRuntime {
     	    i2cBacking = HardwareImpl.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
 	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
-	            System.out.println("Detected running on Edison");
+	            logger.trace("Detected running on Edison");
 	        } else {
 	        	i2cBacking = HardwareImpl.getI2CBacking(piI2C);
 	    	    if (null != i2cBacking) {
 	    	        this.hardware = new GrovePiHardwareImpl(gm, i2cBacking);
-	    	        System.out.println("Detected running on Pi");
+	    	        logger.trace("Detected running on Pi");
 	    	    }
     	        else {
     	            this.hardware = new TestHardware(gm);
-    	            System.out.println("Unrecognized hardware, test mock hardware will be used");
+    	            logger.trace("Unrecognized hardware, test mock hardware will be used");
     	        }    	        
     	    }  	    
     	    

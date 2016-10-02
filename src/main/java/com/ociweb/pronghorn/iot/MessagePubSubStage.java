@@ -165,14 +165,17 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 	        		}
 	        		break;
 	        	case State:
-	        		for(int i = 0; i<limit; i++) {
-	        			copyToSubscriber(currentState, newState, pendingPublish[i]);                
+	        		if (currentState!=newState) {
+		        		for(int i = 0; i<limit; i++) {
+		        			copyToSubscriberState(currentState, newState, pendingPublish[i]);                
+		        		}
 	        		}
 	        		break;
         	}
             if (pendingPublishCount>0) {
                 return;//try again later
             } else {
+            	currentState = newState;
                 //now done with this message so release it and send the ack
                 PipeReader.releaseReadLock(pipe);
                 decReleaseCount(pendingReleaseCountIdx);
@@ -206,15 +209,20 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
             		
             		//NOTE: this is sent to all outgoing pipes, some may not want state but are only here for listening to particular topics.
             		//      This might be improved in the future if needed by capturing the list of only those pipes connected to instances of StateChangeListeners.
-                	for(int i = 0; i<outgoingMessagePipes.length; i++) {
-                		copyToSubscriber(currentState, newState, i);
-                	}
+            		if (currentState!=newState) {
+	                	for(int i = 0; i<outgoingMessagePipes.length; i++) {
+	                		copyToSubscriberState(currentState, newState, i);
+	                	}
+            		}
             		
             		 if (pendingPublishCount>0) {
                      	 pendingDeliveryType = PubType.State;
                          pendingReleaseCountIdx = a; //keep so this is only cleared after we have had successful transmit to all subscribers.
                          return;//must try again later
-                     }  
+                     } else {
+                    	 //done with state changes
+                    	 currentState = newState;
+                     }
             		break;
                 case MessagePubSub.MSG_PUBLISH_103:
                     {
@@ -298,10 +306,10 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         }
     }
 
-    private void copyToSubscriber(int oldOrdinal, int newOrdinal, int pipeIdx) {
+    private void copyToSubscriberState(int oldOrdinal, int newOrdinal, int pipeIdx) {
         Pipe<MessageSubscription> outPipe = outgoingMessagePipes[pipeIdx];
         if (PipeWriter.tryWriteFragment(outPipe, MessageSubscription.MSG_STATECHANGED_71)) {
-            
+        	assert(oldOrdinal != newOrdinal) : "Stage change must actualt change the state!";
         	PipeWriter.writeInt(outPipe, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8, oldOrdinal);
         	PipeWriter.writeInt(outPipe, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9, newOrdinal);
         	            

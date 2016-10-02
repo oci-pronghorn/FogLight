@@ -93,6 +93,11 @@ public class TempAndHumidTwig implements IODevice{
 	public boolean isOutput() {
 		return false;
 	}
+	
+	@Override
+    public int scanDelay() {
+    	return 0;
+    }
 
 	@Override
 	public boolean isPWM() {

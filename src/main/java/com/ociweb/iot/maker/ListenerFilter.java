@@ -56,6 +56,13 @@ public interface ListenerFilter {
 	 * For StateChangeListener reduce notifications.
 	 * @param states
 	 */
+	<E extends Enum<E>> ListenerFilter includeStateChangeToAndFrom(E ... states); 
+	
+	
+	/**
+	 * For StateChangeListener reduce notifications.
+	 * @param states
+	 */
 	<E extends Enum<E>> ListenerFilter excludeStateChangeFrom(E ... states); 
 	
 	

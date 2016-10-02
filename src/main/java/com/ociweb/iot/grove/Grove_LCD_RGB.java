@@ -106,6 +106,11 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
+	@Override
+    public int scanDelay() {
+    	return 0;
+    }
+    
 	public static boolean commandForText(CommandChannel target, CharSequence text) {
 
 		if (!target.i2cIsReady()) {

@@ -156,9 +156,12 @@ public enum GroveTwig implements IODevice {
     	 }
     	    
          public int response() {
-             return 100; 
+             return 200; 
          }
-    
+         
+         public int scanDelay() {
+         	return 1_420_000;
+         }
     };
     
     public boolean isInput() {
@@ -172,6 +175,10 @@ public enum GroveTwig implements IODevice {
     
     public int response() {
         return 20;
+    }
+    
+    public int scanDelay() {
+    	return 0;
     }
     
     public boolean isPWM() {

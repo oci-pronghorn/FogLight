@@ -6,10 +6,8 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.PayloadReader;
 import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.StateChangeListener;
 
 public class PumpSimulator implements DigitalListener, StateChangeListener<PumpState> {
@@ -18,7 +16,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 	
 	private final CommandChannel channel;	
 	private final String fuelName;
-	private final int centsPerGallon;
+	private final int centsPerUnit;
 	
 	private final String pumpTopic;
 	private final String totalTopic;
@@ -33,7 +31,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
       this.pumpTopic = pumpTopic;   	  
       this.totalTopic = totalTopic;
    	  this.fuelName = fuelName;
-   	  this.centsPerGallon = centsPerGallon;
+   	  this.centsPerUnit = centsPerGallon;
    	  
 	}
 
@@ -42,21 +40,25 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 	@Override
 	public void digitalEvent(Port port, long time, long durationMillis, int value) {
 	
+			
+		
 		
 		if (isActive) {
 	
 			long gap = time-last;
-			System.out.println("gap "+gap+" "+value);
+
 			last = time;
 			
-			//pump 1/100 gallon or nothing
-			units += value;				
+			//max flow rate
+			//555 cm2 per 6 seconds
+			//for 5 per second this is about right for the fuel consumed.
+			units += (18*value);				
 			
 			PayloadWriter payload = channel.openTopic(pumpTopic);
 						
 			payload.writeLong(time);
 			payload.writeUTF(fuelName);
-			payload.writeInt(centsPerGallon);
+			payload.writeInt(centsPerUnit);
 			payload.writeInt(units);
 						
 			payload.publish();
@@ -80,7 +82,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 				PayloadWriter payload = channel.openTopic(totalTopic);
 				
 				payload.writeUTF(fuelName);
-				payload.writeInt(centsPerGallon);
+				payload.writeInt(centsPerUnit);
 				payload.writeInt(totalUnits);
 				
 				payload.publish();

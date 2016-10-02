@@ -1,7 +1,5 @@
 package com.ociweb.iot.gasPumpSimulator;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +32,8 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 	private String lastTotalName;
 	private int    lastTotalPrice;
 	private int    lastTotalUnits;
+	
+	private String showingNow = "";
 		
 	public DisplayController(DeviceRuntime runtime, String topicTank, String topicPump, String topicTotal) {
 		this.commandChannel = runtime.newCommandChannel();
@@ -51,17 +51,15 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 			lastTankTime = payload.readLong();
 			lastTankDepth = payload.readInt();
 			lastTankFuel = payload.readUTF();
-			
-			System.out.println("display received last depth of "+lastTankDepth);
-			
+	
 		}
 
 		if (topic.equals(topicPump)) {
 			
 			lastPumpTime = payload.readLong();
 			lastPumpFuel = payload.readUTF();
-			lastPumpPrice = payload.readInt();					
-			lastPumpUnits = payload.readInt();	
+			lastPumpPrice = payload.readInt();	
+			lastPumpUnits = payload.readInt();
 		
 		}
 		
@@ -72,9 +70,11 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 			lastPumpUnits = 0;			
 			
 			lastTotalName = payload.readUTF();
-			lastTotalPrice = payload.readInt();
+			int price = payload.readInt();
 			lastTotalUnits = payload.readInt();
 			
+			lastTotalPrice = (price*lastTotalUnits)/100;
+						
 		}
 		
 		repaint();
@@ -104,27 +104,34 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 				loggger.error("error skipped unknown state :"+activeState);
 		}
 		
-		Grove_LCD_RGB.commandForColor(commandChannel, 255, 255, 200);
-		Grove_LCD_RGB.commandForText(commandChannel, target);
+		String newText = target.toString();
+		if (!newText.equals(showingNow)) {
 		
+			Grove_LCD_RGB.commandForColor(commandChannel, 255, 255, 200);
+			Grove_LCD_RGB.commandForText(commandChannel, newText);
+			showingNow = newText;
+			
+		}
 	}
 	
 
 	private void buildReceiptDisplay(StringBuilder target) {
 
-			target.append("Total: ").append(lastTotalName).append("\n");
-			target.append("$");
-			
-			Appendables.appendFixedDecimalDigits(target, lastTotalPrice/100, 1000);
-			target.append('.');
-			Appendables.appendFixedDecimalDigits(target, lastTotalPrice%100, 10);
-			target.append("  ");
+			if (null!=lastTotalName) {
+				target.append(lastTotalName);
+			}
+			target.append(" total \n");
 			
 			Appendables.appendFixedDecimalDigits(target, lastTotalUnits/100, 1000);
 			target.append('.');
 			Appendables.appendFixedDecimalDigits(target, lastTotalUnits%100, 10);
-						
+			
+			target.append(" ");
 
+			target.append("$");			
+			Appendables.appendFixedDecimalDigits(target, lastTotalPrice/100, 1000);
+			target.append('.');
+			Appendables.appendFixedDecimalDigits(target, lastTotalPrice%100, 10);
 	}
 
 	private void buildPumpingDisplay(StringBuilder target) {
@@ -132,7 +139,7 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 			target.append(lastPumpFuel);
 			target.append("\n");
 			
-			target.append("G:");
+			target.append("");
 			Appendables.appendFixedDecimalDigits(target, lastPumpUnits/100, 100);
 			target.append('.');
 			Appendables.appendFixedDecimalDigits(target, lastPumpUnits%100, 10);
@@ -148,9 +155,12 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 	
 	private void buildTankDisplay(StringBuilder target) {
 
+			if (null!=lastTankFuel) {
+				target.append(lastTankFuel).append(" tank");
+			}
+			target.append('\n');
 			Appendables.appendFixedDecimalDigits(target, lastTankDepth, 1000);
-			target.append(" cm2 vol\n");
-			target.append(lastTankFuel);
+			target.append(" cm2 volume");
 
 	}
 	

@@ -17,6 +17,7 @@ public class PublishDataMQTT implements PubSubListener{
 	private final int QOS = 0;
 	private final String serverURI; 
 	private final String clientId;
+	private final String root = "open24";
 	
 	public PublishDataMQTT(String serverURI, String clientId) {
 		this.connOptions = new MqttConnectOptions();
@@ -47,7 +48,12 @@ public class PublishDataMQTT implements PubSubListener{
 	        client.connect(connOptions);     
 	        client.setTimeToWait(-1);
 	        
-	        client.publish("24/"+clientId+"/"+topic, message);
+	        StringBuilder builder = new StringBuilder();
+	        builder.append(root).append('/');
+	        builder.append(clientId).append('/');
+	        builder.append(topic);
+	        
+	        client.publish(builder.toString(), message);
 			
 	        client.disconnect();
 				        

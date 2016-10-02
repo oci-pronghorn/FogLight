@@ -1,8 +1,12 @@
 package com.ociweb.iot.gasPumpSimulator;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
+import static com.ociweb.iot.grove.GroveTwig.Button;
+import static com.ociweb.iot.grove.GroveTwig.UltrasonicRanger;
+import static com.ociweb.iot.maker.Port.A0;
+import static com.ociweb.iot.maker.Port.A2;
+import static com.ociweb.iot.maker.Port.D7;
 
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -17,7 +21,7 @@ public class IoTApp implements IoTSetup
 	private static String fuelName;
 	private static int    centsPerGallon; 
 	
-	private final static int BUTTON_RATE_MS = 100; //10 per second per second
+	private final static int BUTTON_RATE_MS = 200; //5 per second per second
 	private final static boolean RETURN_EVERY_SAMPLE = true; //by default only returns changes
 	private final static String TOPIC_TANK  = "tank";
 	private final static String TOPIC_PUMP  = "pump";
@@ -29,8 +33,8 @@ public class IoTApp implements IoTSetup
     	
     	fuelName =                        DeviceRuntime.getOptArg("--fuelName", "-fn", args, "Unleaded");
     	centsPerGallon = Integer.parseInt(DeviceRuntime.getOptArg("--fuelName", "-fn", args, "215"));    	    	
-    	serverURI =                       DeviceRuntime.getOptArg("--brokerURI", "-br", args, "tcp://127.0.0.1");
-    	clientId =                        DeviceRuntime.getOptArg("--clientId", "-id", args, "unknown");	    			
+    	serverURI =                       DeviceRuntime.getOptArg("--brokerURI", "-br", args, "tcp://127.0.0.1:1883");
+    	clientId =                        DeviceRuntime.getOptArg("--clientId", "-id", args, "unknownStation");	    			
     	tankDepth =      Integer.parseInt(DeviceRuntime.getOptArg("--tankDepth", "-td", args, "13"));
 
         DeviceRuntime.run(new IoTApp());
@@ -64,18 +68,10 @@ public class IoTApp implements IoTSetup
     	                              .addSubscription(TOPIC_TANK)
     	                              .addSubscription(TOPIC_PUMP)
     	                              .addSubscription(TOPIC_TOTAL);
-    	                              
-
     	
-    	//TODO: enable this last.
-    	 //any sensors will only need to publish to upload to have the data relayed to the external service
-//    	runtime.addPubSubListener(new PublishDataMQTT(serverURI,clientId))
-//    										.addSubscription(TOPIC_PUMP)
-//    										.addSubscription(TOPIC_TANK);
-    	
-
-    	//add tank volume info on idle mode
-    	
+    	runtime.addPubSubListener(new PublishDataMQTT(serverURI,clientId))
+   										.addSubscription(TOPIC_PUMP)
+   										.addSubscription(TOPIC_TANK);
     	
     }
 

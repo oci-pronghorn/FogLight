@@ -1,17 +1,13 @@
 package com.ociweb.iot.gasPumpSimulator;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.util.Appendables;
 
 public class TankMonitor implements AnalogListener {
 	
@@ -40,25 +36,24 @@ public class TankMonitor implements AnalogListener {
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
 			
 		if (value>fullTank) {
-			logger.warn("check equipment, tank {} is deeper than expected {} ",value,fullTank);			
-		} else {
-						
-			int volumeCM = computeVolumeCM2(value);
+			logger.trace("check equipment, tank {} is deeper than expected {} ",value,fullTank);	
+			value = fullTank;//default value for the error case
+		} 
+		
+		int volumeCM = computeVolumeCM2(value);
+		
+		//max flow rate
+		//555 cm2 per 6 seconds
 
-	        PayloadWriter payload = commandChannel.openTopic(topic);
-	        	        
-			payload.writeLong(time); //local time, may be off, do check the os
-			payload.writeInt(volumeCM);
-			payload.writeUTF(fuelName);
-			
-			payload.publish();
-			
-			boolean debug = false;
-			if (debug) {
-				viewOnDevice(volumeCM);
-			}
-			
-		}
+		
+        PayloadWriter payload = commandChannel.openTopic(topic);
+        	        
+		payload.writeLong(time); //local time, may be off, do check the os
+		payload.writeInt(volumeCM);
+		payload.writeUTF(fuelName);
+		
+		payload.publish();
+
 		
 	}
 
@@ -67,21 +62,6 @@ public class TankMonitor implements AnalogListener {
 		double volumeMM2 = radiusSquaredPi * remainingDepthMM;
 		int volumeCM = (int) Math.rint(volumeMM2/100d);
 		return volumeCM;
-	}
-
-	private void viewOnDevice(int remainingDepth) {
-		StringBuilder builder = new StringBuilder();
-		Appendables.appendFixedDecimalDigits(builder, remainingDepth, 100);
-
-		builder.append(" mm^2 volume\n");
-		builder.append(fuelName);
-		
-		//if you would like to show on console
-		System.out.println(builder);
-		
-		//if you would like to show on LCD (if its attached to i2c port)
-		Grove_LCD_RGB.commandForColor(commandChannel, 200, 200, 180);
-		Grove_LCD_RGB.commandForText(commandChannel, builder);
 	}
 
 

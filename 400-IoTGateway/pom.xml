@@ -188,6 +188,7 @@
             <option>-dontnote</option>
             <option>-dontwarn</option>
             <option>-optimizations code/allocation/</option>
+            <option>-keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; }</option> <!-- complete hack for eclipse paho -->
           </options>
           <obfuscate>false</obfuscate>
           <libs>

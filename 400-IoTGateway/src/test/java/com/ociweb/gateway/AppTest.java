@@ -1,9 +1,6 @@
 package com.ociweb.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
+import org.junit.Ignore;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -15,7 +12,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 public class AppTest { 
 
 	
-	 @Test
+	 @Ignore
 	    public void testApp()
 	    {
 	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());	    	

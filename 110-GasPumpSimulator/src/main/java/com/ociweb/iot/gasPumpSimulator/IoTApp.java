@@ -32,11 +32,11 @@ public class IoTApp implements IoTSetup
 	
 	
     public static void main( String[] args ) {
-    	
-    	fuelName =                        DeviceRuntime.getOptArg("--fuelName", "-fn", args, "Unleaded");
-    	centsPerGallon = Integer.parseInt(DeviceRuntime.getOptArg("--fuelName", "-fn", args, "215"));    	    	
+
+    	fuelName =                        DeviceRuntime.getOptArg("--fuelName",  "-fn", args, "diesel");
+    	centsPerGallon = Integer.parseInt(DeviceRuntime.getOptArg("--fuelPrice", "-fp", args, "215"));
     	serverURI =                       DeviceRuntime.getOptArg("--brokerURI", "-br", args, "tcp://127.0.0.1:1883");
-    	clientId =                        DeviceRuntime.getOptArg("--clientId", "-id", args, "unknownStation");	    			
+    	clientId =                        DeviceRuntime.getOptArg("--clientId",  "-id", args, "unknownStation");
     	tankDepth =      Integer.parseInt(DeviceRuntime.getOptArg("--tankDepth", "-td", args, "13"));
 
         DeviceRuntime.run(new IoTApp());

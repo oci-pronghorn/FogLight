@@ -3,6 +3,8 @@ package com.ociweb.matrix;
 
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
@@ -16,6 +18,7 @@ import com.ociweb.pronghorn.stage.math.DecimalSchema;
 import com.ociweb.pronghorn.stage.math.MatrixSchema;
 import com.ociweb.pronghorn.stage.math.RowSchema;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
+import com.ociweb.pronghorn.stage.scheduling.FixedThreadsScheduler;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
@@ -63,16 +66,16 @@ public class IoTApp implements IoTSetup
 		//fast     Integers          5.80           5.95
 		
     	
-		MatrixTypes type = MatrixTypes.Floats;//Decimals;//Integers; //2, 3328335 longs/ints/doubles   [0,332833152] floats
+		MatrixTypes type = MatrixTypes.Integers;//Decimals;//Integers; //2, 3328335 longs/ints/doubles   [0,332833152] floats
 		
 		//TypeMask.Decimal;
 		
 		
 		//when matrix size is larger than CPU cache we run into issues.
-		int leftRows=500;
-		int rightColumns=500;
+		int leftRows=1200;
+		int leftColumns = 1000;
+		int rightColumns=1000;
 				
-		int leftColumns = 500;
 		int rightRows=leftColumns;		
 		
 		
@@ -99,15 +102,15 @@ public class IoTApp implements IoTSetup
 		//GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 500);
 		
 		//TODO: not sure why but the splitter that consumes left needs a minimum ring size or it gets stuck,
-		Pipe<RowSchema<MatrixSchema>> left = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(leftRowSchema, leftRows));
+		Pipe<RowSchema<MatrixSchema>> left = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(leftRowSchema, leftRows /*Math.min(16, leftRows)*/));
 		
-		Pipe<RowSchema<MatrixSchema>> right = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(rightRowSchema, Math.min(16, rightRows)));
+		Pipe<RowSchema<MatrixSchema>> right = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(rightRowSchema, rightRows /*Math.min(16, rightRows)*/));
 		
-		Pipe<RowSchema<MatrixSchema>> result = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(rowResultSchema, Math.min(16, resultSchema.getRows()))); //NOTE: reqires 2 or JSON will not write out !!
+		Pipe<RowSchema<MatrixSchema>> result = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(rowResultSchema, /*Math.min(16,*/ resultSchema.getRows() )); //NOTE: reqires 2 or JSON will not write out !!
 	//	Pipe<DecimalSchema<MatrixSchema>> result2 = new Pipe<DecimalSchema<MatrixSchema>>(new PipeConfig<DecimalSchema<MatrixSchema>>(result2Schema, resultSchema.getRows())); //NOTE: reqires 2 or JSON will not write out !!
 		
 		
-		int targetThreadCount = 60;
+		int targetThreadCount = 10;//60; //105967ms
 		Pipe<ColumnSchema<MatrixSchema>>[] colResults = BuildMatrixCompute.buildGraph(gm, resultSchema, leftSchema, rightSchema, left, right, targetThreadCount-2);
 		
 //		int x = colResults.length;
@@ -115,6 +118,7 @@ public class IoTApp implements IoTSetup
 //		while (--x>=0) {
 //			watches[x] =  new PipeCleanerStage<>(gm, colResults[x]);
 //		}
+		
 		
 		ColumnsToRowsStage<MatrixSchema> ctr = new ColumnsToRowsStage<MatrixSchema>(gm, resultSchema, colResults, result);
 		
@@ -131,28 +135,47 @@ public class IoTApp implements IoTSetup
 		
 		GraphManager.enableBatching(gm);
 		
-		//gm.exportGraphDotFile();
+		//gm.exportGraphDotFile();//TODO: this may not work and cause issues.
 		
 		//MonitorConsoleStage.attach(gm);
 		
 		StageScheduler scheduler = new ThreadPerStageScheduler(gm);
-			                     //new FixedThreadsScheduler(gm, targetThreadCount);
+			                      //new FixedThreadsScheduler(gm, targetThreadCount);
 		
 		scheduler.startup();	
 		
-		int testSize = 50;
+		int testSize = 100;//5000;
 		int k = testSize;
 		long timeout = 0;
 		while (--k>=0) {
 			timeout = System.currentTimeMillis()+5000;
-			//System.out.println(k);
+
+			for(int c=0;c<rightRows;c++) {
+				while (!Pipe.hasRoomForWrite(right)) {
+					Thread.yield();
+					if (System.currentTimeMillis()>timeout) {
+						scheduler.shutdown();
+						scheduler.awaitTermination(20, TimeUnit.SECONDS);
+						System.err.println("A, unable to write all of test data!");
+						return;
+					}
+				}
+				Pipe.addMsgIdx(right, resultSchema.rowId);		
+				for(int r=0;r<rightColumns;r++) {
+					type.addValue(c, right);
+				}
+				Pipe.confirmLowLevelWrite(right, Pipe.sizeOf(right, resultSchema.rowId));
+				Pipe.publishWrites(right);
+				
+			}
+			
 			for(int c=0;c<leftRows;c++) {
 				while (!Pipe.hasRoomForWrite(left)) {
 					Thread.yield();
 					if (System.currentTimeMillis()>timeout) {
 						scheduler.shutdown();
 						scheduler.awaitTermination(20, TimeUnit.SECONDS);
-						
+						System.err.println("B, unable to write all of test data!");
 						return;
 					}
 				}
@@ -164,23 +187,6 @@ public class IoTApp implements IoTSetup
 				Pipe.publishWrites(left);
 			}
 			
-			for(int c=0;c<rightRows;c++) {
-				while (!Pipe.hasRoomForWrite(right)) {
-					Thread.yield();
-					if (System.currentTimeMillis()>timeout) {
-						scheduler.shutdown();
-						scheduler.awaitTermination(20, TimeUnit.SECONDS);
-						
-						return;
-					}
-				}
-				Pipe.addMsgIdx(right, resultSchema.rowId);		
-					for(int r=0;r<rightColumns;r++) {
-						type.addValue(c, right);
-					}
-				Pipe.confirmLowLevelWrite(right, Pipe.sizeOf(right, resultSchema.rowId));
-				Pipe.publishWrites(right);
-			}
 
 		}
 		
@@ -191,16 +197,26 @@ public class IoTApp implements IoTSetup
 			Pipe.publishEOF(left);
 			Pipe.publishEOF(right);
 		}
+
 		
-		GraphManager.blockUntilStageBeginsShutdown(gm, watch, 5000);//timeout in ms
+		if (GraphManager.blockUntilStageBeginsShutdown(gm, watch, 6000)) {//timeout in ms
+		} else {
+			System.err.println("time out!");
+		}
+			
 		
-//		//all the requests have now been sent.
+		scheduler.shutdown();
+		
+		//all the requests have now been sent.
 //		int w = watches.length;
 //		while (--w>=0) {
-//			GraphManager.blockUntilStageBeginsShutdown(gm, watches[w], 5000);//timeout in ms
+//			if (!GraphManager.blockUntilStageBeginsShutdown(gm, watches[w], 5000)) {//timeout in ms
+//				System.err.println("ERROR SHUTDOWN");
+//				System.exit(-1);
+//			}
 //		}
 
-		scheduler.awaitTermination(20, TimeUnit.SECONDS);
+		scheduler.awaitTermination(10, TimeUnit.SECONDS);
 				
 	//	System.out.println("len "+baos.toByteArray().length+"  "+new String(baos.toByteArray()));
 		

@@ -112,6 +112,29 @@ public class DeviceRuntime {
      
     }
 
+    public static String getOptArg(String longName, String shortName, String[] args, String defaultValue) {
+        
+        String prev = null;
+        for (String token : args) {
+            if (longName.equals(prev) || shortName.equals(prev)) {
+                if (token == null || token.trim().length() == 0 || token.startsWith("-")) {
+                    return defaultValue;
+                }
+                return reportChoice(longName, shortName, token.trim());
+            }
+            prev = token;
+        }
+        return reportChoice(longName, shortName, defaultValue);
+    }
+    
+    public static String reportChoice(final String longName, final String shortName, final String value) {
+        System.out.print(longName);
+        System.out.print(" ");
+        System.out.print(shortName);
+        System.out.print(" ");
+        System.out.println(value);
+        return value;
+    }
     
     public HardwareImpl getHardware(){
     	if(this.hardware==null){
@@ -133,16 +156,16 @@ public class DeviceRuntime {
     	    i2cBacking = HardwareImpl.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
 	            this.hardware = new GroveV3EdisonImpl(gm, i2cBacking);
-	            System.out.println("Detected running on Edison");
+	            logger.trace("Detected running on Edison");
 	        } else {
 	        	i2cBacking = HardwareImpl.getI2CBacking(piI2C);
 	    	    if (null != i2cBacking) {
 	    	        this.hardware = new GrovePiHardwareImpl(gm, i2cBacking);
-	    	        System.out.println("Detected running on Pi");
+	    	        logger.trace("Detected running on Pi");
 	    	    }
     	        else {
     	            this.hardware = new TestHardware(gm);
-    	            System.out.println("Unrecognized hardware, test mock hardware will be used");
+    	            logger.trace("Unrecognized hardware, test mock hardware will be used");
     	        }    	        
     	    }  	    
     	    
@@ -349,7 +372,13 @@ public class DeviceRuntime {
                     
                     assert(channelNotPreviouslyUsed(cmdChnl)) : "A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.";
                     cmdChnl.setListener(listener);  
-                    outputPipes = PronghornStage.join(outputPipes, cmdChnl.getOutputPipes());
+                    Pipe<?>[] chnlPipes = cmdChnl.getOutputPipes();
+                    int i = chnlPipes.length;
+                    while (--i>=0) {
+                    	if (null!=chnlPipes[i]) {	
+                    		outputPipes = PronghornStage.join(outputPipes, chnlPipes[i]);
+                    	}
+                    }
                 }
             } catch (Throwable e) {
                 logger.debug("unable to find CommandChannel",e);

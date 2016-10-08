@@ -115,6 +115,11 @@ public class Grove_LCD_RGB implements IODevice {
         return true;
     }
 
+    @Override
+    public int scanDelay() {
+        return 0;
+    }
+
     /**
      * Sends a command to a given Grove LCD RGB device that will set its currently displayed color.
      *

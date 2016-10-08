@@ -51,6 +51,11 @@ public class NunchuckTwig implements IODevice{
 	}
 
 	@Override
+    public int scanDelay() {
+    	return 0;
+    }
+    
+	@Override
 	public boolean isOutput() {
 		return false;
 	}

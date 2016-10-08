@@ -24,6 +24,7 @@ import com.ociweb.pronghorn.network.ClientConnection;
 import com.ociweb.pronghorn.network.ClientConnectionManager;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.pipe.PipeReaderUTF8MutableCharSquence;
 import com.ociweb.pronghorn.schema.MessageSubscription;
 import com.ociweb.pronghorn.schema.NetResponseSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -62,6 +63,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     protected long[] lastDigitalTimes;
     
     protected boolean[] sendEveryAnalogValue;
+    protected boolean[] sendEveryDigitalValue;
+    
+    
     protected int[] lastAnalogValues;
     protected long[] lastAnalogTimes;
     
@@ -86,7 +90,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     private final GraphManager graphManager;
     private int timeProcessWindow;
 
-    private StringBuilder workspace = new StringBuilder();
+    private PipeReaderUTF8MutableCharSquence workspace = new PipeReaderUTF8MutableCharSquence();
     private PayloadReader payloadReader;
     
     private final StringBuilder workspaceHost = new StringBuilder();
@@ -181,7 +185,10 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_PORTS];
         rollingMovingAveragesDigital = new MAvgRollerLong[MAX_PORTS];
         
-        setupMovingAverages(hardware, rollingMovingAveragesAnalog, hardware.getAnalogInputs());
+        HardwareConnection[] analogInputs = hardware.getAnalogInputs();
+        HardwareConnection[] digitalInputs = hardware.getDigitalInputs();
+        
+		setupMovingAverages(hardware, rollingMovingAveragesAnalog, analogInputs);
               
         setupMovingAverages(hardware, rollingMovingAveragesDigital, hardware.getDigitalInputs());
           
@@ -189,14 +196,23 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         lastAnalogValues = new int[MAX_PORTS];
         
         sendEveryAnalogValue = new boolean[MAX_PORTS];
-        int a = hardware.getAnalogInputs().length;
-        while (--a>=0) {
-        	
-        	HardwareConnection con = hardware.getAnalogInputs()[a];
-        	
-        	sendEveryAnalogValue[hardware.convertToPort(con.register)] = con.sendEveryValue;   
-        	
+        sendEveryDigitalValue = new boolean[MAX_PORTS];
+        
+        int a = analogInputs.length;
+        while (--a>=0) {        	
+        	HardwareConnection con = analogInputs[a];
+        	//System.out.println("seems wrong to covert this: "+con.register);
+        	sendEveryAnalogValue[hardware.convertToPort(con.register)] = con.sendEveryValue;
         }
+        
+        int d = digitalInputs.length;
+        while (--d>=0) {        	
+        	HardwareConnection con = digitalInputs[d];
+        	//System.out.println("seems wrong to covert this: "+con.register);
+        	sendEveryDigitalValue[hardware.convertToPort(con.register)] = con.sendEveryValue;        	
+        }
+        
+        
         
         lastDigitalTimes = new long[MAX_PORTS];
         lastAnalogTimes = new long[MAX_PORTS];
@@ -312,9 +328,10 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
             switch (msgIdx) {
                 case MessageSubscription.MSG_PUBLISH_103:
                     if (listener instanceof PubSubListener) {
-	                    workspace.setLength(0);
-	                    CharSequence topic = PipeReader.readUTF8(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1, workspace);               
-	                    assert(null!=topic);	                    
+                    	                    	
+                    	CharSequence topic = workspace.setToField(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1);
+	  
+	                    assert(null!=topic) : "Callers must be free to write topic.equals(x) with no fear that topic is null.";	                    
 	                    ((PubSubListener)listener).message(topic,  (PayloadReader)PipeReader.inputStream(p, MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3));
                     }
                     break;
@@ -323,6 +340,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 		
                 		int oldOrdinal = PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8);
                 		int newOrdinal = PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9);
+                		
+                		assert(oldOrdinal != newOrdinal) : "Stage change must actualt change the state!";
+                		
                 		if (isIncluded(newOrdinal, includedToStates) && isIncluded(oldOrdinal, includedFromStates) &&
                 			isNotExcluded(newOrdinal, excludedToStates) && isNotExcluded(oldOrdinal, excludedFromStates) ) {			                			
                 			((StateChangeListener)listener).stateChange(states[oldOrdinal], states[newOrdinal]);
@@ -493,10 +513,19 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		
 		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 
-			if(value!=lastDigitalValues[port.port]){  
-				dListener.digitalEvent(port, time, 0==lastDigitalTimes[port.port] ? -1 : time-lastDigitalTimes[port.port], value);
-			    lastDigitalValues[port.port] = value;
-			    lastDigitalTimes[port.port] = time;
+			if (sendEveryDigitalValue[port.port]) {
+				dListener.digitalEvent(port, time, 0==lastDigitalTimes[port.port] ? -1 : time-lastDigitalTimes[port.port], value);				
+				if(value!=lastDigitalValues[port.port]){  
+					lastDigitalValues[port.port] = value;
+			    	lastDigitalTimes[port.port] = time;
+				}
+				
+			} else {			
+				if(value!=lastDigitalValues[port.port]){  
+					dListener.digitalEvent(port, time, 0==lastDigitalTimes[port.port] ? -1 : time-lastDigitalTimes[port.port], value);
+				    lastDigitalValues[port.port] = value;
+				    lastDigitalTimes[port.port] = time;
+				}
 			}
 		}
 	}
@@ -517,13 +546,18 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 			}
 			
 			if (sendEveryAnalogValue[port.port]) {
-				
+				//set time first so this is 0 the moment it shows up
+				//since we send every read we can send the age as greater and geater values as long as it does not change.
+				if(runningValue!=lastAnalogValues[port.port]){ 
+					lastAnalogTimes[port.port] = time;   
+					lastAnalogValues[port.port] = runningValue;
+				}
 				aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
-				lastAnalogTimes[port.port] = time;   
 				
 			} else {								
 				if(runningValue!=lastAnalogValues[port.port]){ 
 										
+					//the duration here is the duration of how long the previous value was held.
 					aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
 				   
 					lastAnalogValues[port.port] = runningValue;
@@ -600,28 +634,28 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	
 	@Override
 	public ListenerFilter includePorts(Port ... ports) {
-		if (!startupCompleted && listener instanceof AnalogListener) {
+		if (!startupCompleted && (listener instanceof AnalogListener || listener instanceof DigitalListener)) {
 			includedPorts = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
 	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
 	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
+	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister or DigitalListener in order to call this method.");
 	    	}
 		}
 	}
 
 	@Override
 	public ListenerFilter excludePorts(Port ... ports) {
-		if (!startupCompleted && listener instanceof AnalogListener) {
+		if (!startupCompleted && (listener instanceof AnalogListener || listener instanceof DigitalListener)) {
 			excludedPorts = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
 	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
 	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
+	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister or DigitalListener in order to call this method.");
 	    	}
 		}
 	}
@@ -696,6 +730,12 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		}
 	}
 
+	
+	@Override
+	public <E extends Enum<E>> ListenerFilter includeStateChangeToAndFrom(E ... state) {
+		return includeStateChangeTo(state).includeStateChangeFrom(state);
+	}
+	
 	@Override
 	public <E extends Enum<E>> ListenerFilter includeStateChangeFrom(E ... state) {
 		if (!startupCompleted && listener instanceof StateChangeListener) {

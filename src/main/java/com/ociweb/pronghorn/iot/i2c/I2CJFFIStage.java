@@ -170,22 +170,36 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         				}
 
                         I2CConnection connection = this.inputs[inProgressIdx];
-                        timeOut = hardware.nanoTime() + (writeTime*1_000_000);
+                        timeOut = hardware.nanoTime() + (writeTime*35_000_000);///I2C allows for clients to abandon master after 35 ms
 
+                        //logger.info("i2c request read "+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
+                        
                         //Write the request to read
                         while(!i2c.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.nanoTime()<timeOut){}
 
                         if (hardware.nanoTime()>timeOut) {
-                        	logger.warn("failed to get I2C bus master");
+                        	logger.warn("failed to get I2C bus master, waited 35ms");
                         	//timeout trying to get the i2c bus
                         	return;
                         }
                         
-                        long now = System.nanoTime();
-                        long limit = now + this.inputs[inProgressIdx].delayAfterRequestNS;
-        				while(System.nanoTime() < limit) { 
+                        long delayAfterRequestNS = this.inputs[inProgressIdx].delayAfterRequestNS;
+                        if (delayAfterRequestNS>0) {
+                        	try {
+								Thread.sleep(delayAfterRequestNS/1_000_000,(int) (delayAfterRequestNS%1_000_000));
+							} catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+								requestShutdown();
+								return;
+							}
+                        }
+                        
+                        //DO Not delete this block until after we have tested this code with the metronome and traffic lights...
+                        //long now = System.nanoTime();
+						//long limit = now + delayAfterRequestNS;
+        				//while(System.nanoTime() < limit) { 
         					//do nothing in here, this is very short and we must get off the bus as fast as possible.
-        				}
+        				//}
         				
         				workingBuffer[0] = -2;
         				byte[] temp =i2c.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
@@ -276,14 +290,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
     				Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
     
-    				try {
-    					if (logger.isDebugEnabled()) {
-    						logger.debug("{} send command {} {}", activePipe, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
-    					}
-    				} catch (IOException e) {
-    					throw new RuntimeException(e);
+					if (logger.isDebugEnabled()) {
+						logger.debug("{} send command {} {}", activePipe, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
     				}
-    
+     
     				timeOut = hardware.currentTimeMillis() + writeTime;
     				while(!i2c.write((byte) addr, workingBuffer, len) && hardware.currentTimeMillis()<timeOut){}
     

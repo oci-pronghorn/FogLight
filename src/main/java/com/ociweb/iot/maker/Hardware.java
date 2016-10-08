@@ -28,6 +28,7 @@ public interface Hardware {
     Hardware connect(IODevice device, Port port, int customRateMS, int customAvgWinMS, boolean everyValue);
     Hardware connect(IODevice device, Port port, int customRateMS, int customAvgWinMS);
     Hardware connect(IODevice device, Port port, int customRateMS);
+    Hardware connect(IODevice device, Port port, int customRateMS, boolean everyValue);
     Hardware connect(IODevice device, Port port);
 
     /**

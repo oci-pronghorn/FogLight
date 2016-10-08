@@ -282,6 +282,11 @@ public abstract class CommandChannel {
     }
     
     public boolean subscribe(CharSequence topic) {
+    	
+    	if (null==listener || null == goPipe) {
+    		throw new UnsupportedOperationException("Can not subscribe before startup. Call addSubscription when registering listener."); 
+    	}
+    	
         return subscribe(topic, (PubSubListener)listener);
     }
     

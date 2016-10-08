@@ -20,6 +20,7 @@ import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
+import com.ociweb.iot.maker.StateChangeListener;
 import com.ociweb.iot.maker.TimeTrigger;
 import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
 import com.ociweb.pronghorn.iot.MessagePubSubStage;
@@ -544,7 +545,7 @@ public abstract class HardwareImpl implements Hardware {
 	}
 
 	public boolean isListeningToSubscription(Object listener) {
-		return listener instanceof PubSubListener;
+		return listener instanceof PubSubListener || listener instanceof StateChangeListener<?>;
 	}
 
 	public boolean isListeningToHTTPResponse(Object listener) {
@@ -695,8 +696,7 @@ public abstract class HardwareImpl implements Hardware {
 	public byte convertToPort(byte connection) {
 		return connection;
 	}
-
-	
+			
 
 	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
 		
@@ -730,6 +730,16 @@ public abstract class HardwareImpl implements Hardware {
 			return internalConnectAnalog(t, port.port, customRateMS, -1, false);			
 		} else {
 			return internalConnectDigital(t, port.port, customRateMS, -1, false);			
+		}
+		
+	}
+	
+	public Hardware connect(IODevice t, Port port, int customRateMS, boolean everyValue) {
+		
+		if (port.isAnalog()) {
+			return internalConnectAnalog(t, port.port, customRateMS, -1, everyValue);			
+		} else {
+			return internalConnectDigital(t, port.port, customRateMS, -1, everyValue);			
 		}
 		
 	}

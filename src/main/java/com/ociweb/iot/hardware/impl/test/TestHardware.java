@@ -44,7 +44,7 @@ public class TestHardware extends HardwareImpl {
     
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking());
-        System.out.println("You are running on the test hardware.");
+        //logger.trace("You are running on the test hardware.");
     }
     
     

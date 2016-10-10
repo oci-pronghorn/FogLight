@@ -94,6 +94,16 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
+	/**
+	 * Sets the background color of a Grove RGB LCD display by piping the appropriate
+	 * byte array to {@link I2CStage}
+	 * 
+	 * @param target
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @return
+	 */
 	public static boolean commandForColor(CommandChannel target, int r, int g, int b) {
 
 		if (!target.i2cIsReady()) {
@@ -111,6 +121,15 @@ public class Grove_LCD_RGB implements IODevice{
     	return 0;
     }
     
+	/**
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Sets text to the RGBLCD Screen.
+	 * Text starts in the upper left corner of the screen.
+	 * 
+	 * @param target
+	 * @param text
+	 * @return
+	 */
 	public static boolean commandForText(CommandChannel target, CharSequence text) {
 
 		if (!target.i2cIsReady()) {
@@ -124,10 +143,12 @@ public class Grove_LCD_RGB implements IODevice{
 	}
 
 	/**
-	 * Switches the lcd display on or off. Default is on
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Switches the lcd display on or off. Text on the screen will freeze when deactivated, and new text will not be able 
+	 * to be written until it is reactivated. Default state is on.
 	 * 
-	 * @param target CommandChannel to send command on
-	 * @param on boolean to set display to
+	 * @param target 
+	 * @param on 
 	 * @return boolean command is successful
 	 */
 	public static boolean commandForDisplay (CommandChannel target, boolean on){
@@ -146,10 +167,13 @@ public class Grove_LCD_RGB implements IODevice{
 	}
 
 	/**
-	 * Switches the cursor on or off. Default is off
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Switches the cursor on or off. Cursor will disappear when deactivated. Is a 7x1 pixel column that flashes
+	 * located in the far left of the character space. Cursor appears one character
+	 * to the right of the last character written. Default state is off.
 	 * 
-	 * @param target CommandChannel to send command on
-	 * @param on boolean to set cursor to
+	 * @param target CommandChannel
+	 * @param on 
 	 * @return boolean command is successful
 	 */
 	public static boolean commandForCursor (CommandChannel target, boolean on){
@@ -170,10 +194,13 @@ public class Grove_LCD_RGB implements IODevice{
 	}
 
 	/**
-	 * Switches the blinking cursor on or off. Default is off
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Switches the Blink on or off. When blink is activated, the entire character  one character to the right 
+	 * of the last character written will flash.
+	 * Default state is off.
 	 * 
-	 * @param target CommandChannel to send command on
-	 * @param on boolean to set blink to
+	 * @param target CommandChannel
+	 * @param on
 	 * @return boolean command is successful
 	 */
 	public static boolean commandForBlink (CommandChannel target, boolean on){
@@ -193,6 +220,13 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 	
+	/**
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Clears the display of all text and sets the cursor back to (0,0)
+	 * 
+	 * @param target
+	 * @return Command is successful.
+	 */
 	public static boolean clearDisplay(CommandChannel target){
 		if (!target.i2cIsReady()) {
 			return false;
@@ -203,6 +237,15 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
+	/**
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Sets the cursor to the indicated location: (col,row). New text written to the display will appear in the new location,
+	 * with the exception of commandForText() and commandForTextAndColor(), which reset the cursor position to (0,0)
+	 * @param target
+	 * @param col
+	 * @param row
+	 * @return
+	 */
 	public static boolean setCursor(CommandChannel target, int col, int row){
 		if (!target.i2cIsReady()) {
 			return false;
@@ -215,15 +258,20 @@ public class Grove_LCD_RGB implements IODevice{
 	
 	
 	
-	/////////////////////////////
-	////  Write text methods ////
-	/////////////////////////////
+	//////////////////////////////////////
+	////  Detailed write text methods ////
+	//////////////////////////////////////
 
 	/**
-	 * Creates a custom char from an array of 8 bytes. Can save up to 8 custom chars in the LCD. 
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Creates a custom char from an array of 8 bytes. Can save up to 8 custom chars in the LCD in locations 0-7.
+	 * Custom chars can be therefore written with ASCII 0-7 to the display, using the writeChar() or writeMultipleChars()
+	 * methods. Each byte corresponds to a row of the character, from top row to bottom row. The values for each column 
+	 * within each row correspond to the lowest 5 bits of each byte. See {@link Grove_LCD_RGB_Patterns} for examples.
+	 * 
 	 * @param target CommandChannel to send command on
 	 * @param location location 0-7 to store the charmap in the LCD
-	 * @param charMap Array of 8 bytes. Each byte is a row. Least significant 5 bits determines values within row
+	 * @param charMap Array of 8 bytes. Each byte is a row, top to bottom. Least significant 5 bits determines values within row
 	 */
 	public static boolean setCustomChar(CommandChannel target, int location,  byte charMap[]){
 		if (!target.i2cIsReady()) {
@@ -250,11 +298,15 @@ public class Grove_LCD_RGB implements IODevice{
 	}
 
 	/**
-	 * Writes an ascii char  with idx characterIdx. Locations 0-7 contain custom characters.
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Writes a single ascii char with index characterIdx. Locations 0-7 contain custom characters. Writes to 
+	 * the location specified by (col, row).
+	 * 
 	 * @param target CommandChannel to send command on
 	 * @param characterIdx Index of the character
-	 * @param row TODO
-	 * @param col TODO
+	 * @param row 
+	 * @param col 
+	 * @return boolean command successfully sent.
 	 */
 	public static boolean writeChar(CommandChannel target, int characterIdx, int col, int row){
 		if (!target.i2cIsReady()) {
@@ -268,10 +320,34 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 
+	/**
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Writes multiple chars with ASCII indexes specified in the characterIdx array. Text starts at position
+	 * (col, row). Useful for writing text that contains special characters index 0-7. See SetCustomChar. For
+	 * more easily writing CharSequences, use writeCharSequence or commandForText/commandForTextAndColor.
+	 * 
+	 * @param target
+	 * @param characterIdx
+	 * @param col
+	 * @param row
+	 * @return command successfully sent
+	 */
 	public static boolean writeMultipleChars(CommandChannel target, byte[] characterIdx, int col, int row){ //TODO: creates lots of garbage
 		return writeMultipleChars(target, characterIdx, 0, characterIdx.length, col, row);
 	}
 	
+	/**
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Writes multiple chars with ASCII indexes specified in the characterIdx array. Text starts at position
+	 * (col, row). Useful for writing text that contains special characters index 0-7. See SetCustomChar. For
+	 * more easily writing CharSequences, use writeCharSequence or commandForText/commandForTextAndColor.
+	 * 
+	 * @param target
+	 * @param characterIdx
+	 * @param col
+	 * @param row
+	 * @return command successfully sent
+	 */
 	public static boolean writeMultipleChars(CommandChannel target, byte[] characterIdx, int startIdx, int length, int col, int row){
 		if (!target.i2cIsReady()) {
 			return false;
@@ -299,10 +375,32 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 	
+	/**
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Writes the CharSequence text to the display. Text starts at position (col, row). For writing custom
+	 * characters, see writeChar and writeMultipleChars.
+	 * 
+	 * @param target
+	 * @param text
+	 * @param col
+	 * @param row
+	 * @return command successfully sent
+	 */
 	public static boolean writeCharSequence(CommandChannel target, CharSequence text, int col, int row){
 		return writeCharSequence(target, text, 0, text.length(), col, row);
 	}
 	
+	/**
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Writes the CharSequence text to the display. Text starts at position (col, row). For writing custom
+	 * characters, see writeChar and writeMultipleChars.
+	 * 
+	 * @param target
+	 * @param text
+	 * @param col
+	 * @param row
+	 * @return command successfully sent
+	 */
 	public static boolean writeCharSequence(CommandChannel target, CharSequence text, int startIdx, int length, int col, int row){
 		if (!target.i2cIsReady()) {
 			return false;
@@ -331,6 +429,17 @@ public class Grove_LCD_RGB implements IODevice{
 		return true;
 	}
 	
+	/**
+	 * When passed a {@link CommandChannel} compiles the appropriate byte array to send to {@link I2CJFFIStage}.
+	 * Writes an int padded with zeros in front to position (col,row).
+	 * 
+	 * @param target
+	 * @param value
+	 * @param length - the length in digits of the final int when written. Will pad with zeros until length is reached.
+	 * @param col
+	 * @param row
+	 * @return
+	 */
 	public static boolean writePaddedInt(CommandChannel target, int value, int length, int col, int row){
 		if (!target.i2cIsReady()) {
 			return false;

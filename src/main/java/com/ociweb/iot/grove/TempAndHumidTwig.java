@@ -43,7 +43,10 @@ public class TempAndHumidTwig implements IODevice{
 	}
 
 	/**
-	 * Returns the I2CConnection object, with all the byte arrays necessary to read from the device
+	 * Allows the {@link com.ociweb.pronghorn.iot.i2c.I2CJFFIStage} to sample the sensor by providing the right i2c commands and delays.
+	 * See {@link com.ociweb.iot.grove.hardware.I2CConnection} for command details.
+	 * 
+	 * TODO: This method should be moved to a Dexter GrovePi specific class.
 	 * 
 	 * @return I2CConnection
 	 */
@@ -57,7 +60,12 @@ public class TempAndHumidTwig implements IODevice{
 	}
 	
 	/**
-	 * Interprets the data coming from the read pipe.
+	 * Is passed information from the read pipe and interprets it to usable data. 
+	 * 		Returns a 2-element int[], [Temperature, Humidity].
+	 * Note: Sensor resolution only returns values to the nearest int, so we return an int array, 
+	 * 		despite the data being returned from the GrovePi as a float.
+	 * 
+	 * TODO: This method should be moved to a Dexter GrovePi specific class.
 	 * 
 	 * @param backing
 	 * @param position
@@ -66,7 +74,7 @@ public class TempAndHumidTwig implements IODevice{
 	 * @return int array length 2. [temperature, humidity]
 	 */
 	public int[] interpretGrovePiData(byte[] backing, int position, int length, int mask){
-		assert(length == 9) : "Incorrect length of data passed into DHT sensor class";
+		assert(length == 9) : "Incorrect length of data passed into DHT sensor";
 		for (int i = 0; i < readData.length; i++) {
 			readData[i] = backing[(position + i)&mask];
 		}
@@ -77,6 +85,15 @@ public class TempAndHumidTwig implements IODevice{
 	
 	
 	@Override
+	/**
+	 * Is passed information from the read pipe in the maker app and checks for validity
+	 * 
+	 * @param backing
+	 * @param position
+	 * @param length
+	 * @param mask
+	 * @return boolean isValid
+	 */
 	public boolean isValid(byte[] backing, int position, int length, int mask){
 		for (int i = 0; i < readData.length; i++) {
 			readData[i] = backing[(position + i)&mask];

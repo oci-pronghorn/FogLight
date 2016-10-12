@@ -292,19 +292,13 @@ public abstract class AbstractTrafficOrderedStage extends PronghornStage {
 	}
 
 	protected void decReleaseCount(int a) {
+		//logger.info("decrease the count for {} down from {} ",a,activeCounts[a]);
 		activeCounts[a]--;
+		
 	}
 
 	protected boolean hasReleaseCountRemaining(int a) {
-		
-		if(activeCounts.length>0){
-		
-			//System.out.println("active counts "+activeCounts[a]);
-			
-			return activeCounts[a] > 0;
-		}else{
-			return false;
-		}
+		return (activeCounts.length>0)&&(activeCounts[a] > 0);
 	}
 
 }

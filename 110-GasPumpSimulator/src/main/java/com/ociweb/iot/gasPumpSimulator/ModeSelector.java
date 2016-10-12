@@ -8,7 +8,7 @@ import com.ociweb.iot.maker.Port;
 public class ModeSelector implements AnalogListener {
 
 	private final CommandChannel commandChannel;
-	private PumpState lastState;
+//testing removal:	private PumpState lastState;
 	private int angleDivisor;
     private long lastChange; //used to keep user from toggling between states quickly
 	
@@ -21,9 +21,9 @@ public class ModeSelector implements AnalogListener {
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
 		
 		PumpState state = PumpState.values()[value/angleDivisor];
-		if (state!=lastState && (time-lastChange)>200) {
+		if (/*state!=lastState &&*/ (time-lastChange)>200) {
 			commandChannel.changeStateTo(state);
-			lastState=state;
+			//testing removal:			lastState=state;
 			lastChange = time;
 		}
 		

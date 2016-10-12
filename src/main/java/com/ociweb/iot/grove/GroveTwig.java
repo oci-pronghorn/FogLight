@@ -230,23 +230,21 @@ public enum GroveTwig implements IODevice {
     }
 
     /**
-     * TODO: What does this do?
-     *
-     * @return
+     * @return the setup bytes needed to initialized the connected I2C device
      */
     public byte[] I2COutSetup() {
         return null;
     }
 
     /**
-     * TODO: This does something with ring buffers, but what?
+     * Validates if the I2C data from from the device is a valid response for this twig
      *
      * @param backing
      * @param position
      * @param length
      * @param mask
      *
-     * @return
+     * @return fals if the bytes returned from the device were not some valid response
      */
     public boolean isValid(byte[] backing, int position, int length, int mask) {
         return true;

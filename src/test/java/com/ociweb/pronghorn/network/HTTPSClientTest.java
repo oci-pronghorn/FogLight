@@ -32,7 +32,7 @@ import com.ociweb.pronghorn.schema.NetResponseSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.network.config.HTTPSpecification;
-import com.ociweb.pronghorn.stage.route.SplitterStage;
+import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.FixedThreadsScheduler;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
@@ -175,7 +175,7 @@ public class HTTPSClientTest {
 			clearResponseLive[k] = new Pipe<ClientNetResponseSchema>(clientNetResponseConfig.grow2x());
 			clearResponseTest[k] = new Pipe<ClientNetResponseSchema>(clientNetResponseConfig.grow2x());
 			
-			SplitterStage<ClientNetResponseSchema> requestSplitter = new SplitterStage<ClientNetResponseSchema>(gm, clearResponse[k], clearResponseLive[k], clearResponseTest[k]); 
+			ReplicatorStage<ClientNetResponseSchema> requestSplitter = new ReplicatorStage<ClientNetResponseSchema>(gm, clearResponse[k], clearResponseLive[k], clearResponseTest[k]); 
 			
 			ConsoleJSONDumpStage<ClientNetResponseSchema> dumpB = new ConsoleJSONDumpStage<ClientNetResponseSchema>(gm, clearResponseTest[k], new PrintStream(contentResponse));
 
@@ -187,14 +187,14 @@ public class HTTPSClientTest {
 			clientRequestsLive[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig.grow2x());
 			clientRequestsTest[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig.grow2x());
 						
-			SplitterStage<ClientNetRequestSchema> requestSplitter = new SplitterStage<ClientNetRequestSchema>(gm, clientRequests[j], clientRequestsLive[j], clientRequestsTest[j]); 
+			ReplicatorStage<ClientNetRequestSchema> requestSplitter = new ReplicatorStage<ClientNetRequestSchema>(gm, clientRequests[j], clientRequestsLive[j], clientRequestsTest[j]); 
 			ConsoleJSONDumpStage<ClientNetRequestSchema> requestDump = new ConsoleJSONDumpStage<ClientNetRequestSchema>(gm, clientRequestsTest[j], new PrintStream(contentPlain));
 			
 			wrappedClientRequests[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig);
 			wrappedClientRequestsLive[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig.grow2x());
 			wrappedClientRequestsTest[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig.grow2x());
 			
-			SplitterStage<ClientNetRequestSchema> encryptedSplitter = new SplitterStage<ClientNetRequestSchema>(gm, wrappedClientRequests[j], wrappedClientRequestsLive[j], wrappedClientRequestsTest[j]); 
+			ReplicatorStage<ClientNetRequestSchema> encryptedSplitter = new ReplicatorStage<ClientNetRequestSchema>(gm, wrappedClientRequests[j], wrappedClientRequestsLive[j], wrappedClientRequestsTest[j]); 
 			
 			ConsoleJSONDumpStage<ClientNetRequestSchema> encryptedDump = new ConsoleJSONDumpStage<ClientNetRequestSchema>(gm, wrappedClientRequestsTest[j], new PrintStream(contentEncrypted));
 

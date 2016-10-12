@@ -44,7 +44,7 @@ public class TempAndHumidTwig implements IODevice{
 
 	/**
 	 * Allows the {@link com.ociweb.pronghorn.iot.i2c.I2CJFFIStage} to sample the sensor by providing the right i2c commands and delays.
-	 * See {@link com.ociweb.iot.grove.hardware.I2CConnection} for command details.
+	 * See {@link com.ociweb.iot.hardware.I2CConnection} for command details.
 	 * 
 	 * TODO: This method should be moved to a Dexter GrovePi specific class.
 	 * 

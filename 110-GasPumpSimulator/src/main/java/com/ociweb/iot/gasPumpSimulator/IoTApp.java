@@ -11,6 +11,7 @@ import static com.ociweb.iot.maker.Port.D7;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.ListenerFilter;
 
 public class IoTApp implements IoTSetup
 {
@@ -20,6 +21,7 @@ public class IoTApp implements IoTSetup
 	private static int    tankDepth;
 	private static String fuelName;
 	private static int    centsPerGallon; 
+	private static boolean publishTankData;
 	
 	private final static int BUTTON_RATE_MS = 200; //5 per second per second
 	private final static int RANGER_RATE_MS = 200; //5 per second per second
@@ -33,12 +35,12 @@ public class IoTApp implements IoTSetup
 	
     public static void main( String[] args ) {
 
-    	fuelName =                        DeviceRuntime.getOptArg("--fuelName",  "-fn", args, "diesel");
-    	centsPerGallon = Integer.parseInt(DeviceRuntime.getOptArg("--fuelPrice", "-fp", args, "215"));
-    	serverURI =                       DeviceRuntime.getOptArg("--brokerURI", "-br", args, "tcp://127.0.0.1:1883");
-    	clientId =                        DeviceRuntime.getOptArg("--clientId",  "-id", args, "unknownStation");
-    	tankDepth =      Integer.parseInt(DeviceRuntime.getOptArg("--tankDepth", "-td", args, "13"));
-
+    	fuelName =                             DeviceRuntime.getOptArg("--fuelName",         "-fn", args, "diesel");
+    	centsPerGallon = Integer.parseInt(     DeviceRuntime.getOptArg("--fuelPrice",        "-fp", args, "215"));
+    	serverURI =                            DeviceRuntime.getOptArg("--brokerURI",        "-br", args, "tcp://127.0.0.1:1883");
+    	clientId =                             DeviceRuntime.getOptArg("--clientId",         "-id", args, "unknownStation");
+    	tankDepth =      Integer.parseInt(     DeviceRuntime.getOptArg("--tankDepth",        "-td", args, "13"));
+    	publishTankData = Boolean.parseBoolean(DeviceRuntime.getOptArg("--publishTankData",  "-pt", args, "true"));
         DeviceRuntime.run(new IoTApp());
         
     }
@@ -71,9 +73,12 @@ public class IoTApp implements IoTSetup
     	                              .addSubscription(TOPIC_PUMP)
     	                              .addSubscription(TOPIC_TOTAL);
     	
-    	runtime.addPubSubListener(new PublishDataMQTT(serverURI,clientId))
-   										.addSubscription(TOPIC_TOTAL)
-   										.addSubscription(TOPIC_TANK);
+    	ListenerFilter mqttFilter = runtime.addPubSubListener(new PublishDataMQTT(serverURI,clientId))
+   										.addSubscription(TOPIC_TOTAL);
+    	if (publishTankData) {
+    		mqttFilter.addSubscription(TOPIC_TANK);
+    	}
+    									
     	
     }
 

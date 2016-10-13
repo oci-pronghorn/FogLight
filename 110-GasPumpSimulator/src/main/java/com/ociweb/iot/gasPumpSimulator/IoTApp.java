@@ -57,11 +57,7 @@ public class IoTApp implements IoTSetup
 
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
-        
-    	//Continuous monitoring of the tank and values published to TOPIC_TANK    	
-    	runtime.registerListener(new TankMonitor(runtime, TOPIC_TANK, tankDepth, fuelName))
-    	                              .includePorts(A2);
-    	
+            	
     	runtime.registerListener(new ModeSelector(runtime, AngleSensor.range()))
     	                              .includePorts(A0);
     	  	    	
@@ -77,6 +73,9 @@ public class IoTApp implements IoTSetup
    										.addSubscription(TOPIC_TOTAL);
     	if (publishTankData) {
     		mqttFilter.addSubscription(TOPIC_TANK);
+    		  	
+        	runtime.registerListener(new TankMonitor(runtime, TOPIC_TANK, tankDepth, fuelName))
+        	                              .includePorts(A2);
     	}
     									
     	

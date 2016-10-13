@@ -158,10 +158,12 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 
 			if (null!=lastTankFuel) {
 				target.append(lastTankFuel).append(" tank");
+				target.append('\n');
+				Appendables.appendFixedDecimalDigits(target, lastTankDepth, 1000);
+				target.append(" cm2 volume");
+			} else {
+				target.append("No tank data\n");
 			}
-			target.append('\n');
-			Appendables.appendFixedDecimalDigits(target, lastTankDepth, 1000);
-			target.append(" cm2 volume");
 
 	}
 	

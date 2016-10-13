@@ -5,6 +5,8 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.maker.PayloadReader;
 import com.ociweb.iot.maker.PubSubListener;
@@ -18,6 +20,7 @@ public class PublishDataMQTT implements PubSubListener{
 	private final String serverURI; 
 	private final String clientId;
 	private final String root = "open24";
+	private static final Logger logger = LoggerFactory.getLogger(PublishDataMQTT.class); 
 	
 	public PublishDataMQTT(String serverURI, String clientId) {
 		this.connOptions = new MqttConnectOptions();
@@ -58,7 +61,8 @@ public class PublishDataMQTT implements PubSubListener{
 	        client.disconnect();
 				        
 	      } catch (MqttException e) {
-	    	  throw new RuntimeException(e);
+	    	  client = null;
+	    	  logger.warn("Unable to send payload",e);
 	      }		
 	}
 

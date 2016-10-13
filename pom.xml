@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ociweb.iot.archetype</groupId>
   <artifactId>PronghornIoT-Archetype</artifactId>
-  <version>0.0.6-SNAPSHOT</version>
+  <version>0.0.7-SNAPSHOT</version>
   <name>Archetype - PronghornIoT-Archetype</name>
   <url>http://maven.apache.org</url>
   

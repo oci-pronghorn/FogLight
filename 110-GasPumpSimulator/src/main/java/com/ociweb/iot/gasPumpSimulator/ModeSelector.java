@@ -19,8 +19,9 @@ public class ModeSelector implements AnalogListener {
 
 	@Override
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-		
-		PumpState state = PumpState.values()[value/angleDivisor];
+
+		int pumpStateIndex = value/angleDivisor;
+		PumpState state = PumpState.values()[pumpStateIndex%PumpState.values().length];
 		if (/*state!=lastState &&*/ (time-lastChange)>200) {
 			commandChannel.changeStateTo(state);
 			//testing removal:			lastState=state;

@@ -49,7 +49,10 @@ public class IoTApp implements IoTSetup
     public void declareConnections(Hardware c) {
         c.connect(Button, D7, BUTTON_RATE_MS, RETURN_EVERY_SAMPLE);
         c.connect(AngleSensor, A0);
-        c.connect(UltrasonicRanger, A2, RANGER_RATE_MS, RETURN_EVERY_SAMPLE); //default rate 5x per second
+
+		if (publishTankData) {
+			c.connect(UltrasonicRanger, A2, RANGER_RATE_MS, RETURN_EVERY_SAMPLE); //default rate 5x per second
+		}
         
         c.startStateMachineWith(PumpState.Idle);
     }

@@ -14,8 +14,8 @@ import static com.ociweb.iot.maker.Port.*;
 public class IoTApp implements IoTSetup
 {
 	private static final Port LED3_PORT = D5;
-	private static final Port LED1_PORT = D7;
-	private static final Port LED2_PORT = D8;	
+	private static final Port LED1_PORT = D3;
+	private static final Port LED2_PORT = D6;	
 	
 	private enum State {
 		REDLIGHT(10000), GREENLIGHT(8000),YELLOWLIGHT(2000);

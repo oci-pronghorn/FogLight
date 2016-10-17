@@ -180,6 +180,7 @@
             <option>-keep public class com.ociweb.iot.trafficlight.IoTApp {
 			    public static void main(java.lang.String[]);
 			}</option>
+            <option>-keep class jnr.x86asm.** { *; }</option>
             <option>-keep class jnr.ffi.** { *; }</option>
             <option>-keep class com.kenai.jffi.** { *; }</option>
             <option>-dontobfuscate</option>

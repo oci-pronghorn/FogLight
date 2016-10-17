@@ -11,17 +11,16 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.iot.maker.PayloadReader;
 import com.ociweb.iot.maker.PubSubListener;
 
-//TODO: use this as a template, we need Kafka and OpenDDS as options ready-to-go
 public class PublishDataMQTT implements PubSubListener{
 
 	private MqttConnectOptions connOptions;
 	private MqttClient client;
 	private final int QOS = 0;
-	private final String serverURI; 
+	private final String serverURI;
 	private final String clientId;
 	private final String root = "open24";
-	private static final Logger logger = LoggerFactory.getLogger(PublishDataMQTT.class); 
-	
+	private static final Logger logger = LoggerFactory.getLogger(PublishDataMQTT.class);
+
 	public PublishDataMQTT(String serverURI, String clientId) {
 		this.connOptions = new MqttConnectOptions();
 		this.connOptions.setCleanSession(true);
@@ -30,40 +29,41 @@ public class PublishDataMQTT implements PubSubListener{
 		this.serverURI = serverURI;
 		this.clientId = clientId;
 	}
-	
+
 	@Override
 	public void message(CharSequence topic, PayloadReader payload) {
 
 	    try {
-	    	if (null==client) {
-	    		client = new MqttClient(serverURI, clientId, new MemoryPersistence());
-	    	}
+		    	if (null==client) {
+		    		client = new MqttClient(serverURI, clientId, new MemoryPersistence());
+		    	}
+
 	        MqttMessage message = new MqttMessage();
-	        
+
 	        int payloadSize = payload.available();
 	        byte[] data = new byte[payloadSize];
 	        payload.read(data);
-	        
+
 	        message.setPayload(data);
 	        message.setRetained(false);
 	        message.setQos(QOS);
-	        
-	        client.connect(connOptions);     
+
+	        client.connect(connOptions);
 	        client.setTimeToWait(-1);
-	        
+
 	        StringBuilder builder = new StringBuilder();
 	        builder.append(root).append('/');
 	        builder.append(clientId).append('/');
 	        builder.append(topic);
-	        
+
 	        client.publish(builder.toString(), message);
-			
+
 	        client.disconnect();
-				        
+
 	      } catch (MqttException e) {
 	    	  client = null;
 	    	  logger.warn("Unable to send payload",e);
-	      }		
+	      }
 	}
 
 }

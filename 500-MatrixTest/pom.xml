@@ -7,8 +7,8 @@
     <artifactId>examples</artifactId>
     <version>1</version>
   </parent>
-  <groupId>com.ociweb.iot.project.tankLevelMonitor</groupId>
-  <artifactId>010-TankLevelMonitor</artifactId>
+  <groupId>com.ociweb.matrix</groupId>
+  <artifactId>500-MatrixTest</artifactId>
   <version>1.0-SNAPSHOT</version>
   <properties>
     <java.secure.socket.extension.classes>${java.home}/lib/jsse.jar</java.secure.socket.extension.classes>
@@ -138,13 +138,13 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.ociweb.iot.project.tankLevelMonitor.IoTApp</mainClass>
+              <mainClass>com.ociweb.matrix.IoTApp</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber010-TankLevelMonitor</finalName>
+          <finalName>uber500-MatrixTest</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -171,7 +171,7 @@
         </dependencies>
         <configuration>
           <options>
-            <option>-keep public class com.ociweb.iot.project.tankLevelMonitor.IoTApp {
+            <option>-keep public class com.ociweb.matrix.IoTApp {
 			    public static void main(java.lang.String[]);
 			}</option>
             <option>-keep class jnr.ffi.** { *; }</option>
@@ -188,8 +188,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber010-TankLevelMonitor.jar</injar>
-          <outjar>010-TankLevelMonitor.jar</outjar>
+          <injar>uber500-MatrixTest.jar</injar>
+          <outjar>500-MatrixTest.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

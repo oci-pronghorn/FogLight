@@ -103,15 +103,10 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	private void doScore(long time) {
 		if(scoreTime == -1){
 			scoreWorkspace.setLength(0);
-			try {
-			
-				Appendables.appendFixedDecimalDigits(scoreWorkspace, player1Score, 10);
-				scoreWorkspace.append('-');
-				Appendables.appendFixedDecimalDigits(scoreWorkspace, player2Score, 10);
-				
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+
+			Appendables.appendFixedDecimalDigits(scoreWorkspace, player1Score, 10);
+			scoreWorkspace.append('-');
+			Appendables.appendFixedDecimalDigits(scoreWorkspace, player2Score, 10);
 			
 			Grove_LCD_RGB.writeCharSequence(pongChannel, scoreWorkspace, 11, 1);
 			scoreTime = time;

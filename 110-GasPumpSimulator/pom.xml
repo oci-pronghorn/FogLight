@@ -20,7 +20,7 @@
     <dependency>
       <groupId>com.ociweb</groupId>
       <artifactId>PronghornIoT</artifactId>
-      <version>[0.0.3,0.1.0)</version>
+      <version>[0.0.9,0.1.0)</version>
     </dependency>
     <dependency><groupId>org.eclipse.paho</groupId><artifactId>mqtt-client</artifactId><version>0.4.0</version></dependency>
     <dependency>
@@ -32,7 +32,7 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>1.7.12</version>
-      <scope>runtime</scope>
+    
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -183,6 +183,7 @@
             <option>-dontnote</option>
             <option>-dontwarn</option>
             <option>-optimizations code/allocation/</option>
+            <option>-keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; }</option> <!-- complete hack for eclipse paho -->
           </options>
           <obfuscate>false</obfuscate>
           <libs>

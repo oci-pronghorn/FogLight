@@ -49,9 +49,29 @@ public class PublishKafka implements PubSubListener {
 		lastEpochSeconds = epochSeconds;
 
 		expandedEpochSeconds += ((deltaSeconds * EXPANDED_TIME_SLOPE) + EXPANDED_TIME_OFFSET);
+		System.out.println("epochseconds original:" + Long.toString(epochSeconds) +
+				           " expanded: " + Long.toString(expandedEpochSeconds));
 
 		return expandedEpochSeconds;
 
+	}
+
+	private int convertGlassToTankLevel(int level){
+
+		// Glass is physical
+		long MAX_PHYSICAL   = 6096;
+		long MIN_PHYSICAL   = 0;
+
+		// Tank is logical
+		long MAX_LOGICAL    = 0;
+		long MIN_LOGICAL    = -10000;
+
+		double logicalSpan  = MAX_LOGICAL - MIN_LOGICAL;
+		double physicalSpan = MAX_PHYSICAL - MIN_PHYSICAL;
+
+		double slope        = logicalSpan / physicalSpan;
+		double intercept    = -( MIN_PHYSICAL * slope ) + MIN_LOGICAL;
+		return (int) (level * slope + intercept);
 	}
 
 	private String createPriceMessage(long epochSeconds, String fuelName, int priceInCents){
@@ -77,13 +97,16 @@ public class PublishKafka implements PubSubListener {
 		return builder.toString();
 	}
 
-	private String createLevelMessage(long epochSeconds, int volumCM2, String fuelName){
+	private String createLevelMessage(long epochSeconds, int volumeCM2, String fuelName){
+
+		int logicalLevel = convertGlassToTankLevel(volumeCM2);
+		System.out.println("Glass level:" + volumeCM2 + " Tank level:" + logicalLevel);
 
 		// level.{{ station_no }} {{ timestamp }} {{ value }} station={{ station_no }} type={{ regular | premium | diesel }}
 		StringBuilder builder = new StringBuilder();
 		builder.append("level.").append(stationId).append(' ');
 		builder.append(Long.toString(elongateTime(epochSeconds))).append(' ');
-		builder.append(volumCM2).append(' ');
+		builder.append(logicalLevel).append(' ');
 		builder.append("station=").append(stationId).append(' ');;
 		builder.append("type=").append(fuelName);
 		return builder.toString();
@@ -93,8 +116,9 @@ public class PublishKafka implements PubSubListener {
 	public void message(CharSequence topic, PayloadReader payload) {
 
 		String sensorTopic = payload.readUTF();
+		System.out.println("got MQTT topic:" + sensorTopic);
 
-		CharSequence[] topicSubArray = Appendables.split(sensorTopic, '/');
+		String[] topicSubArray = sensorTopic.split("/");
 		//[0] will be the root
 		//[1] will be the pumpId
 		//[2] will be the type of message either pump or tank
@@ -107,7 +131,7 @@ public class PublishKafka implements PubSubListener {
 			String fuelName   = payload.readUTF();
 			int priceInCents  = payload.readInt(); // dollers * 100 or pennies
 			int totalUnits    = payload.readInt(); // units * 100
-			String pumpId = topicSubArray[1].toString();
+			String pumpId     = topicSubArray[1];
 
 			values.add(createPriceMessage(epochSeconds, fuelName, priceInCents));
 			values.add(createVolumeMessage(pumpId, epochSeconds, fuelName, totalUnits));
@@ -126,7 +150,7 @@ public class PublishKafka implements PubSubListener {
 		try {
 			producer = new KafkaProducer<String,String>(properties);
 			for(String value:values){
-				System.out.println("got MQTT topic:" + sensorTopic + " kafkaTopic:" + kafkaTopic + " payload:" + value);
+				System.out.println("kafkaTopic:" + kafkaTopic + " payload:" + value);
 				producer.send(new ProducerRecord<String,String>(kafkaTopic, kafkaTopic, value));
 			}
 		} catch (Throwable e) {

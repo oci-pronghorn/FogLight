@@ -1,6 +1,5 @@
 package com.ociweb.iot.hardware;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,7 +28,6 @@ import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.TrafficCopStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
-import com.ociweb.pronghorn.iot.i2c.PureJavaI2CStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
@@ -51,8 +49,7 @@ import com.ociweb.pronghorn.schema.MessageSubscription;
 import com.ociweb.pronghorn.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.schema.NetRequestSchema;
 import com.ociweb.pronghorn.schema.NetResponseSchema;
-import com.ociweb.pronghorn.stage.route.SplitterStage;
-import com.ociweb.pronghorn.stage.scheduling.FixedThreadsScheduler;
+import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
@@ -448,7 +445,8 @@ public abstract class HardwareImpl implements Hardware {
 		if (IntHashTable.isEmpty(subscriptionPipeLookup) && subscriptionPipes.length==0) {
 			logger.trace("can save some resources by not starting up the unused pub sub service.");
 		}
-		createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterGoOut[TYPE_MSG], masterAckIn[TYPE_MSG], subscriptionPipes);
+		createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterGoOut[TYPE_MSG], masterAckIn[TYPE_MSG], 
+				                 subscriptionPipes);
 
 		//////////////////
 		//only build and connect I2C if it is used for either in or out  
@@ -456,7 +454,7 @@ public abstract class HardwareImpl implements Hardware {
 		Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
 		if (i2cResponsePipes.length>0) {
 			masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
-			SplitterStage i2cResponseSplitter = new SplitterStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
+			ReplicatorStage i2cResponseSplitter = new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
 		}
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
 			createI2COutputInputStage(i2cPipes, masterGoOut[TYPE_I2C], masterAckIn[TYPE_I2C], masterI2CResponsePipe);
@@ -467,7 +465,7 @@ public abstract class HardwareImpl implements Hardware {
 		//////////////
 		if (responsePipes.length>0) {
 			Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
-			SplitterStage responseSplitter = new SplitterStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
+			ReplicatorStage responseSplitter = new ReplicatorStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
 			createADInputStage(masterResponsePipe);
 		}
 		

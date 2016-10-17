@@ -348,6 +348,12 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 			((StateChangeListener)listener).stateChange(states[oldOrdinal], states[newOrdinal]);
                 		}
 						
+                	} else {
+                		//Reactive listener can store the state here
+                		
+                		//TODO: important feature, in the future we can keep the state and add new filters like
+                		//      only accept digital reads when we are in state X
+                		
                 	}
                     break;
                 case -1:

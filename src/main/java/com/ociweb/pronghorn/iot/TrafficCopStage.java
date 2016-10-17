@@ -61,7 +61,7 @@ public class TrafficCopStage extends PronghornStage {
                 if (!PipeReader.tryReadFragment(ackIn[ackExpectedOn])) {
                     
                     if (System.currentTimeMillis() > ackExpectedTime) {
-                        throw new RuntimeException("Expected to get ack back from "+GraphManager.getRingProducer(graphManager, +ackIn[ackExpectedOn].id)+" within "+msAckTimeout+"ms");
+                        throw new RuntimeException("Expected to get ack back from "+GraphManager.getRingProducer(graphManager, +ackIn[ackExpectedOn].id)+" within "+msAckTimeout+"ms "+ackIn[ackExpectedOn]);
                     }
                     
                     return;//we are still waiting for requested operation to complete

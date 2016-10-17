@@ -66,7 +66,8 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
 					int connector = GrovePiConstants.REGISTER_TO_PORT[register];
 					assert(connector>=0) :"bad connector "+connector;
 
-					if (tempValue<0) {
+					//The dexter grove only has 10 bit analog to digital converter so we should never find a value larger than 1024
+					if ((tempValue<0) || (tempValue>1024)) {
 						logger.error("connection {} bad i2c result array [{}, {}, {}] ",connector,backing[(position+0)&mask],backing[(position+1)&mask],backing[(position+2)&mask]);
 					} else {						
 						commonAnalogEventProcessing(Port.ANALOGS[connector], time, tempValue, (AnalogListener)listener);

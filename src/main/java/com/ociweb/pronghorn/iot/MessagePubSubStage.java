@@ -27,22 +27,21 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
     
     private static final int estimatedTopicLength = 100;
     private static final int maxLists = 10; //TODO: make this grow as needed based on growing count of subscriptions.
-    private static final int maxExternalTopicsLength = 128;
-    
+  
     private final int subscriberListSize;
     private short[] subscriberLists;
     private int totalSubscriberLists;
     
-    private TrieParser localSubscriptionTrie; 
-    private TrieParser externalSubscriptionTrie; 
-    
+    private TrieParser localSubscriptionTrie;    
+ 
     private TrieParserReader trieReader;
-    
     
     
     private IntHashTable subscriptionPipeLookup;
     
-    private int[] pendingPublish;
+    private int[] pendingPublish; //remaining pipes that this pending message must be published to
+    private long[][] consumedMarks; //ack only is sent after every subscribers tail has passed these marks
+    private boolean[] pendingAck; //this input needs an ack and should be sent once all consumed marks are cleared.
     
     enum PubType {
     	Message, State;
@@ -53,8 +52,38 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
     private int pendingPublishCount;
     private int pendingReleaseCountIdx;
 
+    //global state.
     private int currentState;
     private int newState;
+    private int stateChangeInFlight = -1;
+    
+    /**
+     * Provides an eventually consistent state model of events.  It works in the same way as the larger universe.  If a supernova is observed by two planets they may
+     * not know about it at the same moment but the first who observes it can not send a message to the second that would arrive before the second observes the
+     * even themselves.
+     * 
+     * Ensures that every subsriber gets its correct published messsages.  The publisher CommandChannel does not receive an Ack( will not continue) until 
+     * all subscribers have consumed the message from the pipe.  Other command channels are free to send other messages at the same time.  We only need to ensure 
+     * the sequential behavior relative to a single command channel.
+     * 
+     * State changes have the same behavior as other messages above plus they block ALL other command channels from starting a state change until the current
+     * change is complete.  The ensures that the meta state of the system can only be in one of 3 states ( A, B, or  transitioning from A to B) at any given
+     * moment of time no more than 2 states will ever be in play at once.  
+     * 
+     * If the pipes become full and an mesage/stateChange can not be added to all the required pipes then NOTHING else is done (no new message processing) until
+     * the partial delevery can become 100% complete.  This is critical to ensure the proper ordering of events.  
+     * 
+     * 
+     * 
+     * 
+     * @param gm
+     * @param subscriptionPipeLookup
+     * @param hardware
+     * @param incomingSubsAndPubsPipe
+     * @param goPipe
+     * @param ackPipe
+     * @param outgoingMessagePipes
+     */
     
     public MessagePubSubStage(GraphManager gm, IntHashTable subscriptionPipeLookup, HardwareImpl hardware, Pipe<MessagePubSub>[] incomingSubsAndPubsPipe,
                               Pipe<TrafficReleaseSchema>[] goPipe,
@@ -65,6 +94,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
        this.incomingSubsAndPubsPipe = incomingSubsAndPubsPipe;
        this.outgoingMessagePipes = outgoingMessagePipes;
        
+       assert(incomingSubsAndPubsPipe.length == goPipe.length) : "should be one go pipe for every incoming message pipe.";
        assert(goPipe.length == ackPipe.length) : "should be one ack pipe for every go pipe";
        
        this.subscriberListSize = outgoingMessagePipes.length;//can never hava more subscribers than ALL
@@ -75,14 +105,59 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
        
     }
 
+    private boolean isPreviousConsumed(int incomingPipeId) {
+    	
+    	long[] marks = consumedMarks[incomingPipeId];
+    	int i = marks.length;
+    	while (--i>=0) {    		
+    		long mark = marks[i];
+    		//only check those that have been set.
+    		if (mark>0) {
+    			if (Pipe.tailPosition(outgoingMessagePipes[i])<mark) {
+    				//logger.info("not consumed yet {}<{}",Pipe.tailPosition(outgoingMessagePipes[i]),mark);
+    				return false;
+    			} else {
+    				//logger.info("is consumed {}>={}",Pipe.tailPosition(outgoingMessagePipes[i]),mark);
+    				marks[i] = 0;//clear this, tail was moved past mark
+    			}
+    		}
+    	}
+    	
+    	//if this is waiting for an ack send it and clear the value
+    	if (pendingAck[incomingPipeId]) {   
+    		//logger.info("sending ack to  {} ",incomingPipeId);
+    		
+    		PipeReader.releaseReadLock( incomingSubsAndPubsPipe[incomingPipeId]);                
+            decReleaseCount(incomingPipeId);    		
+    		
+            pendingAck[incomingPipeId] = false;
+    		
+    		//if this ack was for the state change in flight clear it
+    		if (stateChangeInFlight == incomingPipeId) {
+    			stateChangeInFlight = -1;
+    		}
+    	}
+    	
+    	return true;//consumer has moved tail past all marks
+    	
+    }
+    
+    
     @Override
     public void startup() {
         super.startup();
         
+        int incomingPipeCount = incomingSubsAndPubsPipe.length;
+        //for each pipe we must keep track of the consumed marks before sending the ack back
+        int outgoingPipeCount = outgoingMessagePipes.length;
+        consumedMarks = new long[incomingPipeCount][outgoingPipeCount];
+        
+        pendingAck = new boolean[incomingPipeCount];
+        
         this.subscriberLists = new short[maxLists*subscriberListSize];       
         Arrays.fill(this.subscriberLists, (short)-1);
         this.localSubscriptionTrie = new TrieParser(maxLists * estimatedTopicLength,1,false,false);
-        this.externalSubscriptionTrie = new TrieParser(maxExternalTopicsLength);
+
         this.trieReader = new TrieParserReader();
 
         this.pendingPublish = new int[subscriberListSize];
@@ -117,8 +192,7 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
             		//      This might be improved in the future if needed by capturing the list of only those pipes connected to instances of StateChangeListeners.
                 	for(int i = 0; i<outgoingMessagePipes.length; i++) {
                 		pendingPublish[pendingPublishCount++] = i;
-                	} 
-                	
+                	}
             		break;
                 case MessagePubSub.MSG_SUBSCRIBE_100:
                       addSubscription(pipe);                                  
@@ -158,27 +232,28 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         	pendingPublishCount = 0;//set to zero to collect the new failed values
         	Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[pendingReleaseCountIdx];
             
+        	long[] targetMakrs = consumedMarks[pendingReleaseCountIdx];
+        	  
         	switch(pendingDeliveryType) {
 	        	case Message:
 	        		for(int i = 0; i<limit; i++) {
-	        			copyToSubscriber(pipe, pendingPublish[i]);                
+	        			copyToSubscriber(pipe, pendingPublish[i], targetMakrs);                
 	        		}
 	        		break;
 	        	case State:
-	        		if (currentState!=newState) {
-		        		for(int i = 0; i<limit; i++) {
-		        			copyToSubscriberState(currentState, newState, pendingPublish[i]);                
-		        		}
+	        		//finishing the remaining copies that could not be done before because the pipes were full
+	        		for(int i = 0; i<limit; i++) {
+	        			copyToSubscriberState(currentState, newState, pendingPublish[i], targetMakrs);                
+	        		}
+
+	        		if (0 == pendingPublishCount) {
+	        			currentState = newState;
 	        		}
 	        		break;
         	}
             if (pendingPublishCount>0) {
+            	//do not pick up new work until this is done or we may get out of order messages.
                 return;//try again later
-            } else {
-            	currentState = newState;
-                //now done with this message so release it and send the ack
-                PipeReader.releaseReadLock(pipe);
-                decReleaseCount(pendingReleaseCountIdx);
             }
         }        
         super.run();
@@ -194,58 +269,101 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         Pipe<MessagePubSub> pipe = incomingSubsAndPubsPipe[a];
         
              
+        long[] targetMakrs = consumedMarks[a];
         
         
-        while (hasReleaseCountRemaining(a) &&
-        		isChannelUnBlocked(a) &&
+        //logger.info("enter while {}, {} ,{} ,{}",isPreviousConsumed(a),hasReleaseCountRemaining(a),isChannelUnBlocked(a),isNotBlockedByStateChange(pipe));
+        
+        
+        while (isPreviousConsumed(a) && //warning this one has side effect and must come first.
+        	   hasReleaseCountRemaining(a) &&
+        	   isChannelUnBlocked(a) &&        	   
+        	   isNotBlockedByStateChange(pipe) &&        	   
                PipeReader.tryReadFragment(pipe) 
               ) {
             
+        	
             int msgIdx = PipeReader.getMsgIdx(pipe);
+            //logger.info("consumed message {}",msgIdx);
+            
             switch (msgIdx)  {
             	case MessagePubSub.MSG_CHANGESTATE_70:
             		
+            		assert(isA && !isB);
+            		//error because we have not yet put the previous change on all the pipes
+            		assert(newState==currentState) : "Attempting to process state change before all listeners have been sent the current state change ";
+            		//error because the previous change has not been consumed from all the changes
+            		assert(stateChangeInFlight == -1) : "Attempting to process state change before all listeners have consumed the in flight change";
+            		            		
             		newState = PipeReader.readInt(pipe, MessagePubSub.MSG_CHANGESTATE_70_FIELD_ORDINAL_7);
             		
-            		//NOTE: this is sent to all outgoing pipes, some may not want state but are only here for listening to particular topics.
-            		//      This might be improved in the future if needed by capturing the list of only those pipes connected to instances of StateChangeListeners.
             		if (currentState!=newState) {
+            			stateChangeInFlight = a;
+            			//NOTE: this must go out to all pipes regardless of having state listeners.
+            			//      reactors will hold the state to do additional event filtering so all message pipes to require state change messages.
+            			pendingAck[a] = true; 
+            			//logger.info("need pending ack for message on {} ",a);
+  
 	                	for(int i = 0; i<outgoingMessagePipes.length; i++) {
-	                		copyToSubscriberState(currentState, newState, i);
+	                		copyToSubscriberState(currentState, newState, i, targetMakrs);
 	                	}
+            		} else {
+            			//logger.info("no change so release and clear");
+            			PipeReader.releaseReadLock( incomingSubsAndPubsPipe[a]);                
+                        decReleaseCount(a);   
+            			
             		}
             		
-            		 if (pendingPublishCount>0) {
+            		//Do nothing else until this is completed.
+            		//critical to ensure that ordering is preserved 
+            		if (pendingPublishCount>0) {
+            			 logger.warn("State change pipes have become full, you may want to consider fewer state changes or longer pipes for MessagePubSub outgoing");
                      	 pendingDeliveryType = PubType.State;
                          pendingReleaseCountIdx = a; //keep so this is only cleared after we have had successful transmit to all subscribers.
                          return;//must try again later
-                     } else {
+                    } else {
                     	 //done with state changes
                     	 currentState = newState;
-                     }
+                    }
             		break;
                 case MessagePubSub.MSG_PUBLISH_103:
-                    {
-                        
+                    {                        
+                    	assert(isB && !isA);
+                    	
                         //find which pipes have subscribed to this topic
                         final byte[] backing = PipeReader.readBytesBackingArray(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);
                         final int pos = PipeReader.readBytesPosition(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);
                         final int len = PipeReader.readBytesLength(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);
                         final int mask = PipeReader.readBytesMask(pipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1);                  
                         
+                        //selects the topics pipe
+                      
                         int listIdx = (int) TrieParserReader.query(trieReader, localSubscriptionTrie, backing, pos, len, mask);
                         if (listIdx>=0) {
-                        	final int limit = listIdx+subscriberListSize;
-                        	for(int i = listIdx; i<limit && (-1 != subscriberLists[i]); i++) {
-                        		copyToSubscriber(pipe, subscriberLists[i]);                                
+                        	
+                        	if (hasNextSubscriber(listIdx)) {
+	                        	pendingAck[a] = true; 
+	                        	//logger.info("need pending ack for message on {} ",a);
+	                        	
+	                        	final int limit = listIdx+subscriberListSize;
+	                        	for(int i = listIdx; i<limit && hasNextSubscriber(i); i++) {
+	                        		copyToSubscriber(pipe, subscriberLists[i], targetMakrs);                                
+	                        	}
+	                                       
                         	}
-                                                	
+                        	//Do nothing else until this is completed.
+                        	//critical to ensure that ordering is preserved
                             if (pendingPublishCount>0) {
+                            	logger.warn("Message PubSub pipes have become full, you may want to consider fewer messages or longer pipes for MessagePubSub outgoing");
                             	pendingDeliveryType = PubType.Message;
                                 pendingReleaseCountIdx = a; //keep so this is only cleared after we have had successful transmit to all subscribers.
                                 return;//must try again later
                             }                            
                             
+                        } else {
+                        	//logger.info("no subscribers so release and clear");
+                        	PipeReader.releaseReadLock( incomingSubsAndPubsPipe[a]);                
+                            decReleaseCount(a);   
                         }
 
                     }   
@@ -253,6 +371,8 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
                 case MessagePubSub.MSG_SUBSCRIBE_100:
                     {
                         addSubscription(pipe);
+                        PipeReader.releaseReadLock( incomingSubsAndPubsPipe[a]);                
+                        decReleaseCount(a); 
                     }              
                     break;
                 case MessagePubSub.MSG_UNSUBSCRIBE_101:                    
@@ -260,14 +380,23 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
                     throw new UnsupportedOperationException("This feature will be added after full wildcard support is added. dependent feature.");
                     //break;      
                 
-            }            
-            PipeReader.releaseReadLock(pipe);
-            
-            
-            decReleaseCount(a);
-            
+            }   
         }
     }
+
+    boolean isA;
+    boolean isB;
+    
+	private boolean isNotBlockedByStateChange(Pipe<MessagePubSub> pipe) {
+		isA = PipeReader.peekMsg(pipe,  MessagePubSub.MSG_CHANGESTATE_70);
+		isB = PipeReader.peekMsg(pipe,   MessagePubSub.MSG_PUBLISH_103);
+		
+		return (stateChangeInFlight == -1) || ( !PipeReader.peekMsg(pipe, MessagePubSub.MSG_CHANGESTATE_70));
+	}
+
+	private boolean hasNextSubscriber(int listIdx) {
+		return -1 != subscriberLists[listIdx];
+	}
 
 
 	private void addSubscription(final short pipeIdx, final byte[] backing, final int pos, final int len, final int mask) {
@@ -293,12 +422,17 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
 		}
 	}
 
-    private void copyToSubscriber(Pipe<MessagePubSub> pipe, int pipeIdx) {
+    private void copyToSubscriber(Pipe<MessagePubSub> pipe, int pipeIdx, long[] targetMarks) {
         Pipe<MessageSubscription> outPipe = outgoingMessagePipes[pipeIdx];
         if (PipeWriter.tryWriteFragment(outPipe, MessageSubscription.MSG_PUBLISH_103)) {
             
+        	
             PipeReader.copyBytes(pipe, outPipe, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1);
             PipeReader.copyBytes(pipe, outPipe, MessagePubSub.MSG_PUBLISH_103_FIELD_PAYLOAD_3, MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
+            
+            //due to batching this may not become the head position upon publish but it will do so eventually.
+            //so to track this position we use workingHeadPosition not headPosition
+            targetMarks[pipeIdx] = Pipe.workingHeadPosition(outPipe);
             
             PipeWriter.publishWrites(outPipe);
         } else {
@@ -306,13 +440,17 @@ public class MessagePubSubStage extends AbstractTrafficOrderedStage {
         }
     }
 
-    private void copyToSubscriberState(int oldOrdinal, int newOrdinal, int pipeIdx) {
+    private void copyToSubscriberState(int oldOrdinal, int newOrdinal, int pipeIdx, long[] targetMarks) {
         Pipe<MessageSubscription> outPipe = outgoingMessagePipes[pipeIdx];
         if (PipeWriter.tryWriteFragment(outPipe, MessageSubscription.MSG_STATECHANGED_71)) {
         	assert(oldOrdinal != newOrdinal) : "Stage change must actualt change the state!";
         	PipeWriter.writeInt(outPipe, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8, oldOrdinal);
         	PipeWriter.writeInt(outPipe, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9, newOrdinal);
         	            
+            //due to batching this may not become the head position upon publish but it will do so eventually.
+            //so to track this position we use workingHeadPosition not headPosition
+        	targetMarks[pipeIdx] = Pipe.workingHeadPosition(outPipe);
+            		
             PipeWriter.publishWrites(outPipe);
         } else {
         	pendingPublish[pendingPublishCount++] = pipeIdx;                                     

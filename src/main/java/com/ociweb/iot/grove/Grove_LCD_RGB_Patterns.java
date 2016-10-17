@@ -1,11 +1,14 @@
 package com.ociweb.iot.grove;
 
+/**
+ * Various static byte arrays for common shapes that can be displayed
+ * on a Grove LCD RGB display
+ * 
+ * @author Nathan Tippy
+ */
 public class Grove_LCD_RGB_Patterns {
-	
-	
-	
-	//suits
 
+	// Suits //////////////////////////////////////////////////////////////////
 	public static final byte[] spade = {
 			0b00100,
 			0b01110,
@@ -50,10 +53,7 @@ public class Grove_LCD_RGB_Patterns {
 			0b00100,	
 	};
 	
-	
-	
-	//emojis
-	
+	// Emojis /////////////////////////////////////////////////////////////////
 	public static final byte[] smiley = {
 			0b00000,
 			0b01010,
@@ -131,11 +131,8 @@ public class Grove_LCD_RGB_Patterns {
 			0b00000,
 			0b00000,	
 	};
-	
-	
-	
-	// Arrows
-	
+
+	// Arrows /////////////////////////////////////////////////////////////////
 	public static final byte[] upArrow = {
 			0b00000,
 			0b00100,
@@ -181,8 +178,7 @@ public class Grove_LCD_RGB_Patterns {
 	};
 	
 	
-	//Patterns
-	
+	// Patterns ///////////////////////////////////////////////////////////////
 	public static final byte[] dithered = {
 			0b10101,
 			0b01010,

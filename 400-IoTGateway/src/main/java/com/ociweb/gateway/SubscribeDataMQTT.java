@@ -33,9 +33,6 @@ public class SubscribeDataMQTT implements StartupListener {
 		this.commandChannel = runtime.newCommandChannel();
 				
 		this.connOptions = new MqttConnectOptions();
-		this.connOptions.setCleanSession(true);
-	//	this.connOptions.setKeepAliveInterval(0);
-	//	this.connOptions.setConnectionTimeout(0);
 
 		this.subscriptionTopic = subscriptionTopic;
 		this.serverURI = serverURI;
@@ -64,7 +61,9 @@ public class SubscribeDataMQTT implements StartupListener {
 	
 				@Override
 				public void messageArrived(String topic, MqttMessage message) throws Exception {
-										
+								
+					logger.info("received MQTT message on topic {}",topic);
+					
 					PayloadWriter payload = commandChannel.openTopic(publishTopic);					
 					payload.writeUTF(topic);
 					payload.write(message.getPayload());

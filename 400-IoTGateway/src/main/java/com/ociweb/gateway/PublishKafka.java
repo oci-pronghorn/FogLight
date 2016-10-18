@@ -115,8 +115,10 @@ public class PublishKafka implements PubSubListener {
 	@Override
 	public void message(CharSequence topic, PayloadReader payload) {
 
+		
 		String sensorTopic = payload.readUTF();
-		System.out.println("got MQTT topic:" + sensorTopic);
+		
+		logger.info("sending to Kafka topic from MQTT of {} ",topic);
 
 		String[] topicSubArray = sensorTopic.split("/");
 		//[0] will be the root
@@ -150,11 +152,11 @@ public class PublishKafka implements PubSubListener {
 		try {
 			producer = new KafkaProducer<String,String>(properties);
 			for(String value:values){
-				System.out.println("kafkaTopic:" + kafkaTopic + " payload:" + value);
+				logger.info("sending kafkaTopic:" + kafkaTopic + " payload:" + value);
 				producer.send(new ProducerRecord<String,String>(kafkaTopic, kafkaTopic, value));
 			}
 		} catch (Throwable e) {
-			//logger.warn("unable to send to kafka.",e);
+			logger.warn("unable to send to kafka.",e);
 	    } finally {
 		    if (null!=producer) {
 		    	producer.close();

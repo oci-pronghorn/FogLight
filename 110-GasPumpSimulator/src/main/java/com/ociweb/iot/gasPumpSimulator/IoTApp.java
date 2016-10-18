@@ -8,6 +8,9 @@ import static com.ociweb.iot.maker.Port.A0;
 import static com.ociweb.iot.maker.Port.A2;
 import static com.ociweb.iot.maker.Port.D7;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
@@ -32,6 +35,7 @@ public class IoTApp implements IoTSetup
 	private final static String TOPIC_TOTAL = "total";
 
 
+	private static final Logger logger = LoggerFactory.getLogger(IoTApp.class);
 
     public static void main( String[] args ) {
 
@@ -80,6 +84,8 @@ public class IoTApp implements IoTSetup
     	  	mqttFilter.addSubscription(TOPIC_TANK);
         	runtime.registerListener(new TankMonitor(runtime, TOPIC_TANK, tankDepth, fuelName))
         	                              .includePorts(A2);
+    	} else {
+    		logger.info("no pump attached");
     	}
 
     }

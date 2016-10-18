@@ -56,7 +56,7 @@ public class PublishDataMQTT implements PubSubListener{
 	        builder.append(clientId).append('/');
 	        builder.append(topic);
 
-	        logger.info("publish MQTT {} {} {}",QOS, builder.toString(),message);
+	        logger.info("publish MQTT {} {}",QOS, builder.toString());
 	        
 	        client.publish(builder.toString(), message);
 

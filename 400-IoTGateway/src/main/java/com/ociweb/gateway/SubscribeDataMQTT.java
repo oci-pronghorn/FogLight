@@ -33,7 +33,7 @@ public class SubscribeDataMQTT implements StartupListener {
 		this.commandChannel = runtime.newCommandChannel();
 				
 		this.connOptions = new MqttConnectOptions();
-
+		
 		this.subscriptionTopic = subscriptionTopic;
 		this.serverURI = serverURI;
 		this.clientId = clientId;
@@ -77,7 +77,7 @@ public class SubscribeDataMQTT implements StartupListener {
 			
 			client.connect(connOptions);     
 			//client.setTimeToWait(-1);
-			client.subscribe(subscriptionTopic, 0);//"/root", 0);
+			client.subscribe(subscriptionTopic, 1);
 		
 		
 		} catch (MqttException e) {

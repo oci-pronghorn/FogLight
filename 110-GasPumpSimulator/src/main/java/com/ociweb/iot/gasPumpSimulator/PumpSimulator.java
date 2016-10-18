@@ -23,7 +23,6 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 	private boolean isActive;
 
 	private int units;
-	private int totalUnits;
 	private long time;
 
 	public PumpSimulator(DeviceRuntime runtime, String pumpTopic, String totalTopic, String fuelName, int centsPerGallon) {
@@ -67,15 +66,14 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 			isActive = false;
 
 			if (units>0) {
-				totalUnits += units;
-				units = 0;
 
 				PayloadWriter payload = channel.openTopic(totalTopic);
 
 				payload.writeLong(this.time);
 				payload.writeUTF(fuelName);
 				payload.writeInt(centsPerUnit);
-				payload.writeInt(totalUnits);
+				payload.writeInt(units);
+				units = 0;
 
 				payload.publish();
 			}

@@ -20,18 +20,18 @@ import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
+import com.ociweb.pronghorn.network.config.HTTPSpecification;
+import com.ociweb.pronghorn.network.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientNetResponseSchema;
+import com.ociweb.pronghorn.network.schema.NetParseAckSchema;
+import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
-import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
-import com.ociweb.pronghorn.schema.ClientNetResponseSchema;
-import com.ociweb.pronghorn.schema.NetParseAckSchema;
-import com.ociweb.pronghorn.schema.NetRequestSchema;
-import com.ociweb.pronghorn.schema.NetResponseSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
-import com.ociweb.pronghorn.stage.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.FixedThreadsScheduler;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -322,11 +322,11 @@ public class HTTPSClientTest {
 		
 	}
 		
-	@Ignore
+	@Test
 	public void buildPipeline() {
 		
 		//forced sequential calls, send next after previous returns.
-		boolean sequential = true;
+		boolean sequential = false;
 		
 		//only build minimum for the pipeline
 		
@@ -405,6 +405,7 @@ public class HTTPSClientTest {
 		
 		
 
+		GraphManager.exportGraphDotFile(gm, "httpClientPipeline");
 		
 		//MonitorConsoleStage.attach(gm);
 		//GraphManager.enableBatching(gm);
@@ -421,7 +422,7 @@ public class HTTPSClientTest {
 		
 		final int MSG_SIZE = 6;
 		
-		int testSize = 50; 
+		int testSize = 100; 
 		
 		int requests = testSize;
 		

@@ -51,7 +51,7 @@ public class AlertTrigger implements TimeListener, StartupListener{
 		//StringBuilder b = new StringBuilder();
 		boolean alert = true;
 		for(Map.Entry<Long, Integer> entry: map.entrySet()) {			
-			alert = alert & (entry.getValue()!=0); //if every value is not zero then we alert.
+			alert = alert & (Math.abs(entry.getValue())>1); //if every value is not zero then we alert.
 			logger.info("id {} value {} ", entry.getKey(), entry.getValue());			
 		}
 				

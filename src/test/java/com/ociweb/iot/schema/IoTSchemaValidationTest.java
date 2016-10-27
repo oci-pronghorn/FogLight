@@ -13,7 +13,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.schema.ClientNetRequestSchema;
-import com.ociweb.pronghorn.network.schema.ClientNetResponseSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.network.schema.NetRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;

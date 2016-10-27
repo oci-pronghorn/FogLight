@@ -22,7 +22,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.network.schema.ClientNetRequestSchema;
-import com.ociweb.pronghorn.network.schema.ClientNetResponseSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.network.schema.NetRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
@@ -121,7 +121,7 @@ public class HTTPSClientTest {
 		PipeConfig<ClientNetRequestSchema> clientNetRequestConfig = new PipeConfig<ClientNetRequestSchema>(ClientNetRequestSchema.instance,4,16000); 
 		PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 2);
 		
-		PipeConfig<ClientNetResponseSchema> clientNetResponseConfig = new PipeConfig<ClientNetResponseSchema>(ClientNetResponseSchema.instance, 2, 1<<14); 		
+		PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 2, 1<<14); 		
 		PipeConfig<NetResponseSchema> netResponseConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, 2, 1<<14);
 		
 		//holds new requests
@@ -142,10 +142,10 @@ public class HTTPSClientTest {
 		
 
 		Pipe<NetParseAckSchema> parseAck = new Pipe<NetParseAckSchema>(parseAckConfig);
-		Pipe<ClientNetResponseSchema>[] socketResponse = new Pipe[maxPartialResponses];
-		Pipe<ClientNetResponseSchema>[] clearResponse = new Pipe[maxPartialResponses];
-		Pipe<ClientNetResponseSchema>[] clearResponseLive = new Pipe[maxPartialResponses];
-		Pipe<ClientNetResponseSchema>[] clearResponseTest = new Pipe[maxPartialResponses];
+		Pipe<NetPayloadSchema>[] socketResponse = new Pipe[maxPartialResponses];
+		Pipe<NetPayloadSchema>[] clearResponse = new Pipe[maxPartialResponses];
+		Pipe<NetPayloadSchema>[] clearResponseLive = new Pipe[maxPartialResponses];
+		Pipe<NetPayloadSchema>[] clearResponseTest = new Pipe[maxPartialResponses];
 		
 		Pipe<NetResponseSchema>[] toReactor = new Pipe[maxListeners];
 		
@@ -170,14 +170,14 @@ public class HTTPSClientTest {
 				
 		int k = maxPartialResponses;
 		while (--k>=0) {
-			socketResponse[k] = new Pipe<ClientNetResponseSchema>(clientNetResponseConfig);
-			clearResponse[k] = new Pipe<ClientNetResponseSchema>(clientNetResponseConfig);
-			clearResponseLive[k] = new Pipe<ClientNetResponseSchema>(clientNetResponseConfig.grow2x());
-			clearResponseTest[k] = new Pipe<ClientNetResponseSchema>(clientNetResponseConfig.grow2x());
+			socketResponse[k] = new Pipe<NetPayloadSchema>(clientNetResponseConfig);
+			clearResponse[k] = new Pipe<NetPayloadSchema>(clientNetResponseConfig);
+			clearResponseLive[k] = new Pipe<NetPayloadSchema>(clientNetResponseConfig.grow2x());
+			clearResponseTest[k] = new Pipe<NetPayloadSchema>(clientNetResponseConfig.grow2x());
 			
-			ReplicatorStage<ClientNetResponseSchema> requestSplitter = new ReplicatorStage<ClientNetResponseSchema>(gm, clearResponse[k], clearResponseLive[k], clearResponseTest[k]); 
+			ReplicatorStage<NetPayloadSchema> requestSplitter = new ReplicatorStage<NetPayloadSchema>(gm, clearResponse[k], clearResponseLive[k], clearResponseTest[k]); 
 			
-			ConsoleJSONDumpStage<ClientNetResponseSchema> dumpB = new ConsoleJSONDumpStage<ClientNetResponseSchema>(gm, clearResponseTest[k], new PrintStream(contentResponse));
+			ConsoleJSONDumpStage<NetPayloadSchema> dumpB = new ConsoleJSONDumpStage<NetPayloadSchema>(gm, clearResponseTest[k], new PrintStream(contentResponse));
 
 		}
 		
@@ -353,7 +353,7 @@ public class HTTPSClientTest {
 		PipeConfig<ClientNetRequestSchema> clientNetRequestConfig = new PipeConfig<ClientNetRequestSchema>(ClientNetRequestSchema.instance,4,16000); 
 		PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 4);
 		
-		PipeConfig<ClientNetResponseSchema> clientNetResponseConfig = new PipeConfig<ClientNetResponseSchema>(ClientNetResponseSchema.instance, 10, 1<<16); 		
+		PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 10, 1<<16); 		
 		PipeConfig<NetResponseSchema> netResponseConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, 10, 1<<15); //if this backs up we get an error TODO: fix
 
 		

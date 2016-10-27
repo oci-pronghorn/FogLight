@@ -243,31 +243,9 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 		if (-1 == outIdx) {
 			return false;
 		}
-		activeHost.setLength(0);//NOTE: we may want to think about a zero copy design
-		PipeReader.peekUTF8(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, activeHost);
 		
-		int port = PipeReader.peekInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1);
-		int userId = PipeReader.peekInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10);
-				
-		long connectionId = ClientConnectionManager.openConnection(ccm, activeHost, port, userId, outIdx);
-		if (connectionId>=0) {
-			ClientConnection clientConnection = ccm.get(connectionId);
-			//if we have a pre-existing pipe, must use it.
-			outIdx = clientConnection.requestPipeLineIdx();
-			if (!PipeWriter.hasRoomForWrite(output[outIdx])) {
-				return false;
-			}
-		} else {
-			//"Has no room" for the new connection.
-			
-			
-			
-			//request close of negative connection id?
-			
-			
-			return false;
-		}
-		return true;
+		return com.ociweb.pronghorn.network.HTTPClientRequestStage.hasOpenConnection(requestPipe, activeHost, output, ccm, outIdx);
+
 	}
 
 	public static void finishWritingHeader(CharSequence host, DataOutputBlobWriter<ClientNetRequestSchema> writer, CharSequence implementationVersion, long length) {

@@ -2,16 +2,9 @@ package com.ociweb.iot.schema;
 
 import static org.junit.Assert.assertTrue;
 
+import com.ociweb.pronghorn.iot.schema.*;
 import org.junit.Test;
 
-import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
-import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
-import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
 import com.ociweb.pronghorn.schema.ClientNetResponseSchema;
@@ -85,5 +78,9 @@ public class SchemaValidationTest {
         assertTrue(FROMValidation.testForMatchingLocators(TrafficAckSchema.instance));
     }
 
-    
+    @Test
+    public void piCamSchemaFROMTest() {
+        assertTrue(FROMValidation.testForMatchingFROMs("/PiCamSchema.xml", PiCamSchema.instance));
+        assertTrue(FROMValidation.testForMatchingLocators(PiCamSchema.instance));
+    }
 }

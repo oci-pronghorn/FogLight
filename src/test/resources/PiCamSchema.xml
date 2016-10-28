@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+
+    <template name="PiCamPublication" id="1">
+        <byteVector name="Image" id="2"/>
+        <long name="Time" id="3"/>
+        <string name="Extension" id="4"/>
+    </template>
+
+
+</templates>

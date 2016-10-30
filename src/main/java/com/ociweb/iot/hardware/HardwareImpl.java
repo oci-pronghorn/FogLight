@@ -38,7 +38,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.ClientConnectionManager;
 import com.ociweb.pronghorn.network.NetGraphBuilder;
-import com.ociweb.pronghorn.network.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.network.schema.NetRequestSchema;
@@ -410,7 +410,7 @@ public abstract class HardwareImpl implements Hardware {
 			
 			
 			PipeConfig<NetRequestSchema> netRequestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 30,1<<9);		
-			PipeConfig<ClientNetRequestSchema> clientNetRequestConfig = new PipeConfig<ClientNetRequestSchema>(ClientNetRequestSchema.instance,4,16000); 
+			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
 			PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 4);		
 			PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 10, 1<<16); 		
 
@@ -423,10 +423,10 @@ public abstract class HardwareImpl implements Hardware {
 			//TODO: tie this in tonight.
 			int inputsCount = 1;
 			int outputsCount = 1;
-			Pipe<ClientNetRequestSchema>[] clientRequests = new Pipe[outputsCount];
+			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
 			int r = outputsCount;
 			while (--r>=0) {
-				clientRequests[r] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig);		
+				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
 			}
 			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[TYPE_NET], masterAckIn[TYPE_NET], clientRequests);
 			

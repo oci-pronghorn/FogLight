@@ -8,7 +8,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.ClientConnection;
 import com.ociweb.pronghorn.network.ClientConnectionManager;
-import com.ociweb.pronghorn.network.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetRequestSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -23,7 +23,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 	public static final Logger log = LoggerFactory.getLogger(HTTPClientRequestStage.class);
 	
 	private final Pipe<NetRequestSchema>[] input;
-	private final Pipe<ClientNetRequestSchema>[] output;
+	private final Pipe<NetPayloadSchema>[] output;
 	private final ClientConnectionManager ccm;
 
 	private int activeOutIdx = 0;
@@ -49,7 +49,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
             Pipe<NetRequestSchema>[] input,
             Pipe<TrafficReleaseSchema>[] goPipe,
             Pipe<TrafficAckSchema>[] ackPipe,
-            Pipe<ClientNetRequestSchema>[] output
+            Pipe<NetPayloadSchema>[] output
             ) {
 		super(graphManager, hardware, input, goPipe, ackPipe, output);
 		this.input = input;
@@ -96,17 +96,17 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 					                
 					                if (-1 != connectionId) {
 						                
-					                	ClientConnection clientConnection = ccm.get(connectionId);
+					                	ClientConnection clientConnection = (ClientConnection)ccm.get(connectionId, 0);
 					                	int outIdx = clientConnection.requestPipeLineIdx();
 					                	
 					                	clientConnection.incRequestsSent();//count of messages can only be done here.
-										Pipe<ClientNetRequestSchema> outputPipe = output[outIdx];
+										Pipe<NetPayloadSchema> outputPipe = output[outIdx];
 						                				                	
-						                if (PipeWriter.tryWriteFragment(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100) ) {
+						                if (PipeWriter.tryWriteFragment(outputPipe, NetPayloadSchema.MSG_PLAIN_210) ) {
 						                    	
-						                	PipeWriter.writeLong(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_CONNECTIONID_101, connectionId);
+						                	PipeWriter.writeLong(outputPipe, NetPayloadSchema.MSG_PLAIN_210_FIELD_CONNECTIONID_201, connectionId);
 						                	
-						                	DataOutputBlobWriter<ClientNetRequestSchema> activeWriter = PipeWriter.outputStream(outputPipe);
+						                	DataOutputBlobWriter<NetPayloadSchema> activeWriter = PipeWriter.outputStream(outputPipe);
 						                	DataOutputBlobWriter.openField(activeWriter);
 											
 						                	DataOutputBlobWriter.encodeAsUTF8(activeWriter,"GET");
@@ -125,7 +125,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, activeWriter);
 											
 											finishWritingHeader(activeHost, activeWriter, implementationVersion, 0);
-						                	DataOutputBlobWriter.closeHighLevelField(activeWriter, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_PAYLOAD_103);
+						                	DataOutputBlobWriter.closeHighLevelField(activeWriter, NetPayloadSchema.MSG_PLAIN_210_FIELD_PAYLOAD_204);
 						                					                	
 						                	PipeWriter.publishWrites(outputPipe);
 						                					                	
@@ -150,17 +150,17 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 					                
 					                if (-1 != connectionId) {
 						                
-					                	ClientConnection clientConnection = ccm.get(connectionId);
+					                	ClientConnection clientConnection = (ClientConnection)ccm.get(connectionId, 0);
 					                	int outIdx = clientConnection.requestPipeLineIdx();
 					                					                  	
 					                	clientConnection.incRequestsSent();//count of messages can only be done here.
-										Pipe<ClientNetRequestSchema> outputPipe = output[outIdx];
+										Pipe<NetPayloadSchema> outputPipe = output[outIdx];
 					                
-						                if (PipeWriter.tryWriteFragment(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100) ) {
+						                if (PipeWriter.tryWriteFragment(outputPipe, NetPayloadSchema.MSG_PLAIN_210) ) {
 					                    	
-						                	PipeWriter.writeLong(outputPipe, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_CONNECTIONID_101, connectionId);
+						                	PipeWriter.writeLong(outputPipe, NetPayloadSchema.MSG_PLAIN_210_FIELD_CONNECTIONID_201, connectionId);
 						                	
-						                	DataOutputBlobWriter<ClientNetRequestSchema> activeWriter = PipeWriter.outputStream(outputPipe);
+						                	DataOutputBlobWriter<NetPayloadSchema> activeWriter = PipeWriter.outputStream(outputPipe);
 						                	DataOutputBlobWriter.openField(activeWriter);
 						                			                
 						                	DataOutputBlobWriter.encodeAsUTF8(activeWriter,"POST");
@@ -191,7 +191,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											//un-tested  post payload here, TODO: need to add support for chunking and length??
 											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5, activeWriter);
 											
-						                	DataOutputBlobWriter.closeHighLevelField(activeWriter, ClientNetRequestSchema.MSG_SIMPLEREQUEST_100_FIELD_PAYLOAD_103);
+						                	DataOutputBlobWriter.closeHighLevelField(activeWriter, NetPayloadSchema.MSG_PLAIN_210_FIELD_PAYLOAD_204);
 						                					                	
 						                	PipeWriter.publishWrites(outputPipe);
 						                					                	
@@ -224,7 +224,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 
 
 	//TODO: make static.
-	public boolean hasRoomForWrite(Pipe<NetRequestSchema> requestPipe, StringBuilder activeHost, Pipe<ClientNetRequestSchema>[] output, ClientConnectionManager ccm) {
+	public boolean hasRoomForWrite(Pipe<NetRequestSchema> requestPipe, StringBuilder activeHost, Pipe<NetPayloadSchema>[] output, ClientConnectionManager ccm) {
 		int result = -1;
 		//if we go around once and find nothing then stop looking
 		int i = output.length;
@@ -248,7 +248,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 
 	}
 
-	public static void finishWritingHeader(CharSequence host, DataOutputBlobWriter<ClientNetRequestSchema> writer, CharSequence implementationVersion, long length) {
+	public static void finishWritingHeader(CharSequence host, DataOutputBlobWriter<NetPayloadSchema> writer, CharSequence implementationVersion, long length) {
 		DataOutputBlobWriter.encodeAsUTF8(writer," HTTP/1.1\r\nHost: ");
 		DataOutputBlobWriter.encodeAsUTF8(writer,host);
 		DataOutputBlobWriter.encodeAsUTF8(writer,"\r\nUser-Agent: Pronghorn/");

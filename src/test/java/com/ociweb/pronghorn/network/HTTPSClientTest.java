@@ -21,7 +21,7 @@ import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.config.HTTPSpecification;
-import com.ociweb.pronghorn.network.schema.ClientNetRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetParseAckSchema;
 import com.ociweb.pronghorn.network.schema.NetRequestSchema;
@@ -118,7 +118,7 @@ public class HTTPSClientTest {
 		PipeConfig<NetRequestSchema> netREquestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 2,1<<9);		
 		PipeConfig<TrafficReleaseSchema> trafficReleaseConfig = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 2);
 		PipeConfig<TrafficAckSchema> trafficAckConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 2);
-		PipeConfig<ClientNetRequestSchema> clientNetRequestConfig = new PipeConfig<ClientNetRequestSchema>(ClientNetRequestSchema.instance,4,16000); 
+		PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
 		PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 2);
 		
 		PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 2, 1<<14); 		
@@ -131,14 +131,14 @@ public class HTTPSClientTest {
 		//this is the ack back that the request was sent
 		Pipe<TrafficAckSchema>[] ackPipe = new Pipe[inputsCount]; 
 		//this is the fully formed request to be wrapped
-		Pipe<ClientNetRequestSchema>[] clientRequests = new Pipe[outputsCount];
-		Pipe<ClientNetRequestSchema>[] clientRequestsLive = new Pipe[outputsCount];
-		Pipe<ClientNetRequestSchema>[] clientRequestsTest = new Pipe[outputsCount];
+		Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
+		Pipe<NetPayloadSchema>[] clientRequestsLive = new Pipe[outputsCount];
+		Pipe<NetPayloadSchema>[] clientRequestsTest = new Pipe[outputsCount];
 		
 		//this is the encrypted (aka wrapped) fully formed reqests
-		Pipe<ClientNetRequestSchema>[] wrappedClientRequests = new Pipe[outputsCount];
-		Pipe<ClientNetRequestSchema>[] wrappedClientRequestsLive = new Pipe[outputsCount];
-		Pipe<ClientNetRequestSchema>[] wrappedClientRequestsTest = new Pipe[outputsCount];
+		Pipe<NetPayloadSchema>[] wrappedClientRequests = new Pipe[outputsCount];
+		Pipe<NetPayloadSchema>[] wrappedClientRequestsLive = new Pipe[outputsCount];
+		Pipe<NetPayloadSchema>[] wrappedClientRequestsTest = new Pipe[outputsCount];
 		
 
 		Pipe<NetParseAckSchema> parseAck = new Pipe<NetParseAckSchema>(parseAckConfig);
@@ -183,20 +183,20 @@ public class HTTPSClientTest {
 		
 		int j = outputsCount;
 		while (--j>=0) {
-			clientRequests[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig);
-			clientRequestsLive[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig.grow2x());
-			clientRequestsTest[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig.grow2x());
+			clientRequests[j] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);
+			clientRequestsLive[j] = new Pipe<NetPayloadSchema>(clientNetRequestConfig.grow2x());
+			clientRequestsTest[j] = new Pipe<NetPayloadSchema>(clientNetRequestConfig.grow2x());
 						
-			ReplicatorStage<ClientNetRequestSchema> requestSplitter = new ReplicatorStage<ClientNetRequestSchema>(gm, clientRequests[j], clientRequestsLive[j], clientRequestsTest[j]); 
-			ConsoleJSONDumpStage<ClientNetRequestSchema> requestDump = new ConsoleJSONDumpStage<ClientNetRequestSchema>(gm, clientRequestsTest[j], new PrintStream(contentPlain));
+			ReplicatorStage<NetPayloadSchema> requestSplitter = new ReplicatorStage<NetPayloadSchema>(gm, clientRequests[j], clientRequestsLive[j], clientRequestsTest[j]); 
+			ConsoleJSONDumpStage<NetPayloadSchema> requestDump = new ConsoleJSONDumpStage<NetPayloadSchema>(gm, clientRequestsTest[j], new PrintStream(contentPlain));
 			
-			wrappedClientRequests[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig);
-			wrappedClientRequestsLive[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig.grow2x());
-			wrappedClientRequestsTest[j] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig.grow2x());
+			wrappedClientRequests[j] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);
+			wrappedClientRequestsLive[j] = new Pipe<NetPayloadSchema>(clientNetRequestConfig.grow2x());
+			wrappedClientRequestsTest[j] = new Pipe<NetPayloadSchema>(clientNetRequestConfig.grow2x());
 			
-			ReplicatorStage<ClientNetRequestSchema> encryptedSplitter = new ReplicatorStage<ClientNetRequestSchema>(gm, wrappedClientRequests[j], wrappedClientRequestsLive[j], wrappedClientRequestsTest[j]); 
+			ReplicatorStage<NetPayloadSchema> encryptedSplitter = new ReplicatorStage<NetPayloadSchema>(gm, wrappedClientRequests[j], wrappedClientRequestsLive[j], wrappedClientRequestsTest[j]); 
 			
-			ConsoleJSONDumpStage<ClientNetRequestSchema> encryptedDump = new ConsoleJSONDumpStage<ClientNetRequestSchema>(gm, wrappedClientRequestsTest[j], new PrintStream(contentEncrypted));
+			ConsoleJSONDumpStage<NetPayloadSchema> encryptedDump = new ConsoleJSONDumpStage<NetPayloadSchema>(gm, wrappedClientRequestsTest[j], new PrintStream(contentEncrypted));
 
 		}
 		
@@ -350,7 +350,7 @@ public class HTTPSClientTest {
 		PipeConfig<NetRequestSchema> netREquestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 30,1<<9);		
 		PipeConfig<TrafficReleaseSchema> trafficReleaseConfig = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 30);
 		PipeConfig<TrafficAckSchema> trafficAckConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 4);
-		PipeConfig<ClientNetRequestSchema> clientNetRequestConfig = new PipeConfig<ClientNetRequestSchema>(ClientNetRequestSchema.instance,4,16000); 
+		PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
 		PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 4);
 		
 		PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 10, 1<<16); 		
@@ -381,10 +381,10 @@ public class HTTPSClientTest {
             input[k] = new Pipe<NetRequestSchema>(netREquestConfig);	
 		}	
 		
-		Pipe<ClientNetRequestSchema>[] clientRequests = new Pipe[outputsCount];
+		Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
 		int r = outputsCount;
 		while (--r>=0) {
-			clientRequests[r] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig);		
+			clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
 		}
 		HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, hardware, ccm, input, goPipe, ackPipe, clientRequests);
 		

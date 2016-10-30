@@ -107,8 +107,8 @@ public class I2CStage extends PronghornStage {
             switch (msgId) {
                 case I2CCommandSchema.MSG_COMMAND_7:
                     
-                    int connection = Pipe.takeValue(request);
-                    int addr = Pipe.takeValue(request);
+                    int connection = Pipe.takeInt(request);
+                    int addr = Pipe.takeInt(request);
                     int meta = Pipe.takeRingByteMetaData(request);
                     int len = Pipe.takeRingByteLen(request);
 

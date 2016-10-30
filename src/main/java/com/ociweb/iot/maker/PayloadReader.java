@@ -10,8 +10,10 @@ public class PayloadReader extends DataInputBlobReader{
         super(pipe);
     }
     
-	//                    if (! payloadReader.markSupported() ) {
-	//                        logger.warn("we need mark to be suppported for payloads in pubsub and http."); //TODO: need to implement mark, urgent.                      
-	//                    }
+    //TODO: requires support for mark
+    //TODO: as with PayloadWriter needs a bounds check for the makers
+    
+    
+    
 
 }

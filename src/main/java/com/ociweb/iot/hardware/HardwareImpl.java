@@ -410,8 +410,7 @@ public abstract class HardwareImpl implements Hardware {
 			
 			
 			PipeConfig<NetRequestSchema> netRequestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 30,1<<9);		
-			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
-			PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 4);		
+			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 	
 			PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 10, 1<<16); 		
 
 			//BUILD GRAPH
@@ -431,8 +430,8 @@ public abstract class HardwareImpl implements Hardware {
 			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[TYPE_NET], masterAckIn[TYPE_NET], clientRequests);
 			
 			
-			NetGraphBuilder.buildHTTPClientGraph(gm, outputsCount, maxPartialResponses, ccm, netPipeLookup, clientNetRequestConfig,
-												 parseAckConfig, clientNetResponseConfig, clientRequests, netResponsePipes); 
+			NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, netPipeLookup, clientNetResponseConfig,
+												 clientRequests, netResponsePipes, 2, 2); 
 						
 		}// else {
 			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );

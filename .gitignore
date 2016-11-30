@@ -12,3 +12,10 @@ buildNumber.properties
 .DS_Store
 .idea
 *.iml
+/.attach_pid16003
+/.attach_pid21197
+/.attach_pid3212
+/.attach_pid6833
+/httpClientPipeline
+/httpClientPipeline.circo.svg
+/httpClientPipeline.svg

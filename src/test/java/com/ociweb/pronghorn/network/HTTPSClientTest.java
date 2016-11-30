@@ -142,6 +142,9 @@ public class HTTPSClientTest {
 		
 
 		Pipe<NetParseAckSchema> parseAck = new Pipe<NetParseAckSchema>(parseAckConfig);
+		Pipe<NetParseAckSchema> parseAck2 = new Pipe<NetParseAckSchema>(parseAckConfig);
+		
+		
 		Pipe<NetPayloadSchema>[] socketResponse = new Pipe[maxPartialResponses];
 		Pipe<NetPayloadSchema>[] clearResponse = new Pipe[maxPartialResponses];
 		Pipe<NetPayloadSchema>[] clearResponseLive = new Pipe[maxPartialResponses];
@@ -215,19 +218,19 @@ public class HTTPSClientTest {
 		
 		HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, hardware, ccm, input, goPipe, ackPipe, clientRequests);
 		//splitter is between these two 
-		SSLEngineWrapStage wrapStage = new  SSLEngineWrapStage(gm,ccm,clientRequestsLive, wrappedClientRequests, 0 );
+		SSLEngineWrapStage wrapStage = new  SSLEngineWrapStage(gm,ccm,false,clientRequestsLive, wrappedClientRequests, 0 );
 		//splitter is between these two
 		ClientSocketWriterStage socketWriteStage = new ClientSocketWriterStage(gm, ccm, wrappedClientRequestsLive);
 		//the data was sent by this stage but the next stage is responsible for responding to the results.
 		
-		ClientSocketReaderStage socketReaderStage = new ClientSocketReaderStage(gm, ccm, parseAck, socketResponse);
+		ClientSocketReaderStage socketReaderStage = new ClientSocketReaderStage(gm, ccm, new Pipe[]{parseAck,parseAck2}, socketResponse, true);
         // 	GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 0, socketReaderStage); //may be required for 10Gb+ connections
 				
 		//the responding reading data is encrypted so there is not much to be tested
 		//we will test after the unwrap
-		SSLEngineUnWrapStage unwrapStage = new SSLEngineUnWrapStage(gm, ccm, socketResponse, clearResponse, false, 0); 
+		SSLEngineUnWrapStage unwrapStage = new SSLEngineUnWrapStage(gm, ccm, socketResponse, clearResponse, parseAck2, false, 0); 
 	
-		HTTPResponseParserStage parser = new HTTPResponseParserStage(gm, clearResponseLive, toReactor, parseAck, listenerPipeLookup, ccm, HTTPSpecification.defaultSpec());
+		HTTP1xResponseParserStage parser = new HTTP1xResponseParserStage(gm, clearResponseLive, toReactor, parseAck, listenerPipeLookup, ccm, HTTPSpecification.defaultSpec());
 		
 
 	
@@ -351,7 +354,6 @@ public class HTTPSClientTest {
 		PipeConfig<TrafficReleaseSchema> trafficReleaseConfig = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 30);
 		PipeConfig<TrafficAckSchema> trafficAckConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 4);
 		PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
-		PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 4);
 		
 		PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 10, 1<<16); 		
 		PipeConfig<NetResponseSchema> netResponseConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, 10, 1<<15); //if this backs up we get an error TODO: fix
@@ -389,8 +391,8 @@ public class HTTPSClientTest {
 		HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, hardware, ccm, input, goPipe, ackPipe, clientRequests);
 		
 		
-		NetGraphBuilder.buildHTTPClientGraph(gm, outputsCount, maxPartialResponses, ccm, listenerPipeLookup, clientNetRequestConfig,
-				parseAckConfig, clientNetResponseConfig, clientRequests, toReactor);
+		NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, listenerPipeLookup, clientNetResponseConfig,
+				clientRequests, toReactor, 2, 2);
 		
 		int i = toReactor.length;
 		PipeCleanerStage[] cleaners = new PipeCleanerStage[i];

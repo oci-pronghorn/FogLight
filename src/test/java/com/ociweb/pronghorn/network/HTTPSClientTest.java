@@ -23,7 +23,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
-import com.ociweb.pronghorn.network.schema.NetParseAckSchema;
+import com.ociweb.pronghorn.network.schema.ReleaseSchema;
 import com.ociweb.pronghorn.network.schema.NetRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -111,7 +111,7 @@ public class HTTPSClientTest {
 		
 		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 20_000);
 		
-		ClientConnectionManager ccm = new ClientConnectionManager(base2SimultaniousConnections,inputsCount);
+		ClientCoordinator ccm = new ClientCoordinator(base2SimultaniousConnections,inputsCount);
 		IntHashTable listenerPipeLookup = new IntHashTable(base2SimultaniousConnections+2);
 		IntHashTable.setItem(listenerPipeLookup, 42, 0);//put on pipe 0
 		
@@ -119,7 +119,7 @@ public class HTTPSClientTest {
 		PipeConfig<TrafficReleaseSchema> trafficReleaseConfig = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 2);
 		PipeConfig<TrafficAckSchema> trafficAckConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 2);
 		PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
-		PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 2);
+		PipeConfig<ReleaseSchema> parseAckConfig = new PipeConfig<ReleaseSchema>(ReleaseSchema.instance, 2);
 		
 		PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 2, 1<<14); 		
 		PipeConfig<NetResponseSchema> netResponseConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, 2, 1<<14);
@@ -141,8 +141,8 @@ public class HTTPSClientTest {
 		Pipe<NetPayloadSchema>[] wrappedClientRequestsTest = new Pipe[outputsCount];
 		
 
-		Pipe<NetParseAckSchema> parseAck = new Pipe<NetParseAckSchema>(parseAckConfig);
-		Pipe<NetParseAckSchema> parseAck2 = new Pipe<NetParseAckSchema>(parseAckConfig);
+		Pipe<ReleaseSchema> parseAck = new Pipe<ReleaseSchema>(parseAckConfig);
+		Pipe<ReleaseSchema> parseAck2 = new Pipe<ReleaseSchema>(parseAckConfig);
 		
 		
 		Pipe<NetPayloadSchema>[] socketResponse = new Pipe[maxPartialResponses];
@@ -220,7 +220,8 @@ public class HTTPSClientTest {
 		//splitter is between these two 
 		SSLEngineWrapStage wrapStage = new  SSLEngineWrapStage(gm,ccm,false,clientRequestsLive, wrappedClientRequests, 0 );
 		//splitter is between these two
-		ClientSocketWriterStage socketWriteStage = new ClientSocketWriterStage(gm, ccm, wrappedClientRequestsLive);
+		Pipe<NetPayloadSchema> handshake = new Pipe<NetPayloadSchema>(clientNetRequestConfig.grow2x());
+		ClientSocketWriterStage socketWriteStage = new ClientSocketWriterStage(gm, ccm, PronghornStage.join(wrappedClientRequestsLive,handshake));
 		//the data was sent by this stage but the next stage is responsible for responding to the results.
 		
 		ClientSocketReaderStage socketReaderStage = new ClientSocketReaderStage(gm, ccm, new Pipe[]{parseAck,parseAck2}, socketResponse, true);
@@ -228,7 +229,7 @@ public class HTTPSClientTest {
 				
 		//the responding reading data is encrypted so there is not much to be tested
 		//we will test after the unwrap
-		SSLEngineUnWrapStage unwrapStage = new SSLEngineUnWrapStage(gm, ccm, socketResponse, clearResponse, parseAck2, false, 0); 
+		SSLEngineUnWrapStage unwrapStage = new SSLEngineUnWrapStage(gm, ccm, socketResponse, clearResponse, parseAck2, handshake, false, 0); 
 	
 		HTTP1xResponseParserStage parser = new HTTP1xResponseParserStage(gm, clearResponseLive, toReactor, parseAck, listenerPipeLookup, ccm, HTTPSpecification.defaultSpec());
 		
@@ -345,7 +346,7 @@ public class HTTPSClientTest {
 
 		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 20_000);
 		
-		ClientConnectionManager ccm = new ClientConnectionManager(base2SimultaniousConnections,inputsCount);
+		ClientCoordinator ccm = new ClientCoordinator(base2SimultaniousConnections,inputsCount);
 		IntHashTable listenerPipeLookup = new IntHashTable(base2SimultaniousConnections+2);
 		IntHashTable.setItem(listenerPipeLookup, 42, 0);//put on pipe 0
 		
@@ -354,8 +355,7 @@ public class HTTPSClientTest {
 		PipeConfig<TrafficReleaseSchema> trafficReleaseConfig = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 30);
 		PipeConfig<TrafficAckSchema> trafficAckConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 4);
 		PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
-		
-		PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 10, 1<<16); 		
+				
 		PipeConfig<NetResponseSchema> netResponseConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, 10, 1<<15); //if this backs up we get an error TODO: fix
 
 		
@@ -391,7 +391,7 @@ public class HTTPSClientTest {
 		HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, hardware, ccm, input, goPipe, ackPipe, clientRequests);
 		
 		
-		NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, listenerPipeLookup, clientNetResponseConfig,
+		NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, listenerPipeLookup, 10, 1<<15,
 				clientRequests, toReactor, 2, 2);
 		
 		int i = toReactor.length;

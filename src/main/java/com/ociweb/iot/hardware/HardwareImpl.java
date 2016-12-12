@@ -36,11 +36,11 @@ import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
-import com.ociweb.pronghorn.network.ClientConnectionManager;
+import com.ociweb.pronghorn.network.ClientCoordinator;
 import com.ociweb.pronghorn.network.NetGraphBuilder;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
-import com.ociweb.pronghorn.network.schema.NetParseAckSchema;
+import com.ociweb.pronghorn.network.schema.ReleaseSchema;
 import com.ociweb.pronghorn.network.schema.NetRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -410,14 +410,13 @@ public abstract class HardwareImpl implements Hardware {
 			
 			
 			PipeConfig<NetRequestSchema> netRequestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 30,1<<9);		
-			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 	
-			PipeConfig<NetPayloadSchema> clientNetResponseConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance, 10, 1<<16); 		
+			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
 
 			//BUILD GRAPH
 			
 			int connectionsInBits=10;			
 			int maxPartialResponses=4;
-			ClientConnectionManager ccm = new ClientConnectionManager(connectionsInBits, maxPartialResponses);
+			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses);
 
 			//TODO: tie this in tonight.
 			int inputsCount = 1;
@@ -430,7 +429,7 @@ public abstract class HardwareImpl implements Hardware {
 			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[TYPE_NET], masterAckIn[TYPE_NET], clientRequests);
 			
 			
-			NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, netPipeLookup, clientNetResponseConfig,
+			NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15,
 												 clientRequests, netResponsePipes, 2, 2); 
 						
 		}// else {

@@ -21,7 +21,7 @@ import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.network.ClientConnection;
-import com.ociweb.pronghorn.network.ClientConnectionManager;
+import com.ociweb.pronghorn.network.ClientCoordinator;
 import com.ociweb.pronghorn.network.config.HTTPContentType;
 import com.ociweb.pronghorn.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
@@ -96,7 +96,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     private final StringBuilder workspaceHost = new StringBuilder();
     
     private HTTPSpecification httpSpec;
-    private final ClientConnectionManager ccm = null ;//TODO: pass in? get from hardware!!!!
+    private final ClientCoordinator ccm = null ;//TODO: pass in? get from hardware!!!!
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 

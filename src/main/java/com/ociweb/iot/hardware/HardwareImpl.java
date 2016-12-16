@@ -430,7 +430,7 @@ public abstract class HardwareImpl implements Hardware {
 			
 			
 			NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15,
-												 clientRequests, netResponsePipes, 2, 2); 
+												 clientRequests, netResponsePipes, 2, 2, 2); 
 						
 		}// else {
 			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );

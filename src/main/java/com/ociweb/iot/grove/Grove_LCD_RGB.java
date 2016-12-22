@@ -26,6 +26,8 @@ public class Grove_LCD_RGB implements IODevice {
 
     /**
      * Sets up a Grove LCD RGB display on a given {@link CommandChannel}.
+     * 
+     * TODO: Move this so that it is automatically initialized on startup() if connected
      *
      * @param target {@link CommandChannel} of the I2C device for the Grove LCD RGB display.
      *

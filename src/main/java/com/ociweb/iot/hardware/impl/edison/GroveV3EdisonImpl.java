@@ -15,10 +15,10 @@ import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+import com.ociweb.pronghorn.network.schema.NetRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.schema.MessagePubSub;
-import com.ociweb.pronghorn.schema.NetRequestSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveV3EdisonImpl extends HardwareImpl {

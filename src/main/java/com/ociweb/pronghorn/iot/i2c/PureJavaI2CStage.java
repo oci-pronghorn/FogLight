@@ -244,9 +244,9 @@ public class PureJavaI2CStage extends PronghornStage {
         //will mess up time, do not use
         System.out.println("                        READING FROM QUEUE DELAY");
 
-        int offset = Pipe.takeValue(activePipe); //TODO: ignrore?? old feature we may not want.
+        int offset = Pipe.takeInt(activePipe); //TODO: ignrore?? old feature we may not want.
 
-        cyclesToWait = 1 + (Pipe.takeValue(activePipe)/NS_PAUSE); //schedule rate so value is in NS
+        cyclesToWait = 1 + (Pipe.takeInt(activePipe)/NS_PAUSE); //schedule rate so value is in NS
 
         //we do not need the data so release now.
         Pipe.confirmLowLevelRead(activePipe,bytesToSendReleaseSize);
@@ -256,8 +256,8 @@ public class PureJavaI2CStage extends PronghornStage {
     }
 
     private void readCommandMessage() {
-        int connection = Pipe.takeValue(activePipe);
-        int addrs = Pipe.takeValue(activePipe);
+        int connection = Pipe.takeInt(activePipe);
+        int addrs = Pipe.takeInt(activePipe);
         int meta = Pipe.takeRingByteMetaData(activePipe);
         int len = Pipe.takeRingByteLen(activePipe);
         if (len>0) {

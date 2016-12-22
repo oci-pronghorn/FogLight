@@ -36,19 +36,19 @@ import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
-import com.ociweb.pronghorn.network.ClientConnectionManager;
+import com.ociweb.pronghorn.network.ClientCoordinator;
 import com.ociweb.pronghorn.network.NetGraphBuilder;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
+import com.ociweb.pronghorn.network.schema.ReleaseSchema;
+import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
-import com.ociweb.pronghorn.schema.ClientNetRequestSchema;
-import com.ociweb.pronghorn.schema.ClientNetResponseSchema;
 import com.ociweb.pronghorn.schema.MessagePubSub;
 import com.ociweb.pronghorn.schema.MessageSubscription;
-import com.ociweb.pronghorn.schema.NetParseAckSchema;
-import com.ociweb.pronghorn.schema.NetRequestSchema;
-import com.ociweb.pronghorn.schema.NetResponseSchema;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
@@ -410,29 +410,27 @@ public abstract class HardwareImpl implements Hardware {
 			
 			
 			PipeConfig<NetRequestSchema> netRequestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 30,1<<9);		
-			PipeConfig<ClientNetRequestSchema> clientNetRequestConfig = new PipeConfig<ClientNetRequestSchema>(ClientNetRequestSchema.instance,4,16000); 
-			PipeConfig<NetParseAckSchema> parseAckConfig = new PipeConfig<NetParseAckSchema>(NetParseAckSchema.instance, 4);		
-			PipeConfig<ClientNetResponseSchema> clientNetResponseConfig = new PipeConfig<ClientNetResponseSchema>(ClientNetResponseSchema.instance, 10, 1<<16); 		
+			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
 
 			//BUILD GRAPH
 			
 			int connectionsInBits=10;			
 			int maxPartialResponses=4;
-			ClientConnectionManager ccm = new ClientConnectionManager(connectionsInBits, maxPartialResponses);
+			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses);
 
 			//TODO: tie this in tonight.
 			int inputsCount = 1;
 			int outputsCount = 1;
-			Pipe<ClientNetRequestSchema>[] clientRequests = new Pipe[outputsCount];
+			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
 			int r = outputsCount;
 			while (--r>=0) {
-				clientRequests[r] = new Pipe<ClientNetRequestSchema>(clientNetRequestConfig);		
+				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
 			}
 			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[TYPE_NET], masterAckIn[TYPE_NET], clientRequests);
 			
 			
-			NetGraphBuilder.buildHTTPClientGraph(gm, outputsCount, maxPartialResponses, ccm, netPipeLookup, clientNetRequestConfig,
-												 parseAckConfig, clientNetResponseConfig, clientRequests, netResponsePipes); 
+			NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15,
+												 clientRequests, netResponsePipes, 2, 2, 2); 
 						
 		}// else {
 			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );

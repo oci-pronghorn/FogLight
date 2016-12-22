@@ -21,15 +21,15 @@ import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.network.ClientConnection;
-import com.ociweb.pronghorn.network.ClientConnectionManager;
+import com.ociweb.pronghorn.network.ClientCoordinator;
+import com.ociweb.pronghorn.network.config.HTTPContentType;
+import com.ociweb.pronghorn.network.config.HTTPSpecification;
+import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeReaderUTF8MutableCharSquence;
 import com.ociweb.pronghorn.schema.MessageSubscription;
-import com.ociweb.pronghorn.schema.NetResponseSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
-import com.ociweb.pronghorn.stage.network.config.HTTPContentType;
-import com.ociweb.pronghorn.stage.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
@@ -96,7 +96,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     private final StringBuilder workspaceHost = new StringBuilder();
     
     private HTTPSpecification httpSpec;
-    private final ClientConnectionManager ccm = null ;//TODO: pass in? get from hardware!!!!
+    private final ClientCoordinator ccm = null ;//TODO: pass in? get from hardware!!!!
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 
@@ -280,7 +280,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
              case NetResponseSchema.MSG_RESPONSE_101:
             	 
             	 long ccId1 = PipeReader.readLong(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_CONNECTIONID_1);
-            	 ClientConnection cc = ccm.get(ccId1);
+            	 ClientConnection cc = (ClientConnection)ccm.get(ccId1, 0);
             	 
             	 if (null!=cc) {
 	            	 PayloadReader reader = (PayloadReader)PipeReader.inputStream(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_PAYLOAD_3);	            	 

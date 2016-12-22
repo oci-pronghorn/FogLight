@@ -1,6 +1,6 @@
 package com.ociweb.iot.maker;
 
-import com.ociweb.pronghorn.stage.network.config.HTTPContentType;
+import com.ociweb.pronghorn.network.config.HTTPContentType;
 
 /**
  * Functional interface for HTTP responses returned from outgoing

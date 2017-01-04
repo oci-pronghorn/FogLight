@@ -216,6 +216,21 @@ public class DeviceRuntime {
     public ListenerFilter addTimeListener(TimeListener listener) {
         return registerListener(listener);
     }
+
+    public ListenerFilter addImageListener(ImageListener listener) {
+        if (hardware.getTriggerRate() < 1250) {
+            throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
+        }
+
+        switch (hardware.getPlatformType()) {
+            case GROVE_PI:
+                return registerListener(new PiImageListenerBacking(listener));
+            default:
+                throw new UnsupportedOperationException("Image listeners are not supported for [" +
+                                                        hardware.getPlatformType() +
+                                                        "] hardware");
+        }
+    }
         
     public ListenerFilter addI2CListener(I2CListener listener) {
         return registerListener(listener);

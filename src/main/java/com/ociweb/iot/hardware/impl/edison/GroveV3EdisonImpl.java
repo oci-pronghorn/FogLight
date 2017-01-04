@@ -1,5 +1,6 @@
 package com.ociweb.iot.hardware.impl.edison;
 
+import com.ociweb.iot.hardware.HardwarePlatformType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,6 +132,11 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	private void endPinConfiguration() {
 		EdisonGPIO.shieldControl.setDirectionHigh(0);
 		//devicePinConfigurationLock.unlock(); //TODO: can be blown away?
+	}
+
+	@Override
+	public HardwarePlatformType getPlatformType() {
+		return HardwarePlatformType.INTEL_EDITION;
 	}
 
 	@Override

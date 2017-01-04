@@ -1,5 +1,8 @@
 package com.ociweb.iot.maker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -9,6 +12,8 @@ import java.io.IOException;
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class PiImageListenerBacking implements TimeListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(PiImageListenerBacking.class);
 
     private final ImageListener handler;
 
@@ -30,7 +35,7 @@ public class PiImageListenerBacking implements TimeListener {
         try {
             Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Unable to take picture from Raspberry Pi Camera due to error [{}].", e.getMessage(), e);
         }
 
         return new File(fileName + ".jpg");

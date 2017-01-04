@@ -16,6 +16,10 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Pool;
 import static com.ociweb.iot.maker.Port.*;
 
+/**
+ * Represents a dedicated channel for communicating with a single device
+ * or resource on an IoT system.
+ */
 public abstract class CommandChannel {
 
     private final Pipe<?>[] outputPipes;
@@ -138,19 +142,94 @@ public abstract class CommandChannel {
     protected boolean exitBlockOk() {
         return aBool.compareAndSet(true, false);
     }
-    
+
+    /**
+     * Causes this channel to delay processing any actions until the specified
+     * amount of time has elapsed.
+     *
+     * @param msDuration Milliseconds to delay.
+     *
+     * @return True if blocking was successful, and false otherwise.
+     */
     public abstract boolean block(long msDuration);
-    
+
+    /**
+     * Causes this channel to delay processing any actions on a given {@link Port}
+     * until the specified amount of time has elapsed.
+     *
+     * @param port Port to temporarily stop processing actions on.
+     * @param durationMilli Milliseconds until the port will process actions again.
+     *
+     * @return True if blocking was successful, and false otherwise.
+     */
     public abstract boolean block(Port port, long durationMilli);
-    
+
+    /**
+     * Causes this channel to delay processing any actions on a given {@link Port}
+     * until the specified UNIX time is reached.
+     *
+     * @param port Port to temporarily stop processing actions on.
+     * @param time Time, in milliseconds, since the UNIX epoch that indicates
+     *             when actions should resume processing.
+     *
+     * @return True if blocking was successful, and false otherwise.
+     */
     public abstract boolean blockUntil(Port port, long time);
-    
+
+    /**
+     * Sets the value of an analog/digital port on this command channel.
+     *
+     * @param port {@link Port} to set the value of.
+     * @param value Value to set the port to.
+     *
+     * @return True if the port could be set, and false otherwise.
+     */
     public abstract boolean setValue(Port port, int value);
+
+    /**
+     * Sets the value of an analog/digital port on this command channel and then
+     * delays processing of all future actions on this port until a specified
+     * amount of time passes.
+     *
+     * @param port {@link Port} to set the value of.
+     * @param value Value to set the port to.
+     * @param durationMilli Time in milliseconds to delay processing of future actions
+     *                      on this port.
+     *
+     * @return True if the port could be set, and false otherwise.
+     */
     public abstract boolean setValueAndBlock(Port port, int value, long durationMilli);
-    
+
+    /**
+     * "Pulses" a given port, setting its state to True/On and them immediately
+     * setting its state to False/Off.
+     *
+     * @param port {@link Port} to pulse.
+     *
+     * @return True if the port could be pulsed, and false otherwise.
+     */
     public abstract boolean digitalPulse(Port port);
+
+    /**
+     * "Pulses" a given port, setting its state to True/On and them immediately
+     * setting its state to False/Off.
+     *
+     * @param port {@link Port} to pulse.
+     * @param durationNanos Time in nanoseconds to sustain the pulse for.
+     *
+     * @return True if the port could be pulsed, and false otherwise.
+     */
     public abstract boolean digitalPulse(Port port, long durationNanos);
 
+    /**
+     * Opens an I2C connection.
+     *
+     * @param targetAddress I2C address to open a connection to.
+     *
+     * @return An {@link DataOutputBlobWriter} with an {@link I2CCommandSchema} that's
+     *         connected to the specified target address.
+     *
+     */
     public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
@@ -173,10 +252,13 @@ public abstract class CommandChannel {
         }
         
     }
-    
 
-
-    
+    /**
+     * Triggers a delay for a given I2C address.
+     *
+     * @param targetAddress I2C address to trigger a delay on.
+     * @param durationNanos Time in nanoseconds to delay.
+     */
     public void i2cDelay(int targetAddress, long durationNanos) {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
@@ -201,14 +283,18 @@ public abstract class CommandChannel {
         }
         
     }
-    
+
+    /**
+     * @return True if the I2C bus is ready for communication, and false otherwise.
+     */
     public boolean i2cIsReady() {
-        
         return PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, MAX_COMMAND_FRAGMENTS_SIZE);
        
     }
-    
 
+    /**
+     * Flushes all awaiting I2C data to the I2C bus for consumption.
+     */
     public void i2cFlushBatch() {        
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
@@ -220,8 +306,9 @@ public abstract class CommandChannel {
         }
     }
 
-
-
+    /**
+     * TODO: What does this do?
+     */
     public void i2cCommandClose() {  
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
@@ -235,12 +322,34 @@ public abstract class CommandChannel {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
         }        
     }
-    
-    
+
+    /**
+     * Submits an HTTP GET request asynchronously.
+     *
+     * The response to this HTTP GET will be sent to any HTTPResponseListeners
+     * associated with the listener for this command channel.
+     *
+     * @param domain Root domain to submit the request to (e.g., google.com)
+     * @param port Port to submit the request to.
+     * @param route Route on the domain to submit the request to (e.g., /api/hello)
+     *
+     * @return True if the request was successfully submitted, and false otherwise.
+     */
     public boolean httpGet(CharSequence domain, int port, CharSequence route) {
     	return httpGet(domain,port,route,(HTTPResponseListener)listener);
-    	
+
     }
+
+    /**
+     * Submits an HTTP GET request asynchronously.
+     *
+     * @param host Root domain to submit the request to (e.g., google.com)
+     * @param port Port to submit the request to.
+     * @param route Route on the domain to submit the request to (e.g., /api/hello)
+     * @param listener {@link HTTPResponseListener} that will handle the response.
+     *
+     * @return True if the request was successfully submitted, and false otherwise.
+     */
     public boolean httpGet(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
     	
     	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPGET_100)) {
@@ -258,11 +367,33 @@ public abstract class CommandChannel {
         return false;
     	
     }
-    
+
+    /**
+     * Submits an HTTP POST request asynchronously.
+     *
+     * The response to this HTTP POST will be sent to any HTTPResponseListeners
+     * associated with the listener for this command channel.
+     *
+     * @param domain Root domain to submit the request to (e.g., google.com)
+     * @param port Port to submit the request to.
+     * @param route Route on the domain to submit the request to (e.g., /api/hello)
+     *
+     * @return True if the request was successfully submitted, and false otherwise.
+     */
     public PayloadWriter httpPost(CharSequence domain, int port, CharSequence route) {
     	return httpPost(domain,port,route,(HTTPResponseListener)listener);    	
     }
-    
+
+    /**
+     * Submits an HTTP POST request asynchronously.
+     *
+     * @param host Root domain to submit the request to (e.g., google.com)
+     * @param port Port to submit the request to.
+     * @param route Route on the domain to submit the request to (e.g., /api/hello)
+     * @param listener {@link HTTPResponseListener} that will handle the response.
+     *
+     * @return True if the request was successfully submitted, and false otherwise.
+     */
     public PayloadWriter httpPost(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
     	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPPOST_101)) {
                 	    
@@ -280,7 +411,16 @@ public abstract class CommandChannel {
         	return null;
         }    	
     }
-    
+
+    /**
+     * Subscribes the listener associated with this command channel to
+     * a topic.
+     *
+     * @param topic Topic to subscribe to.
+     *
+     * @return True if the topic was successfully subscribed to, and false
+     *         otherwise.
+     */
     public boolean subscribe(CharSequence topic) {
     	
     	if (null==listener || null == goPipe) {
@@ -289,7 +429,16 @@ public abstract class CommandChannel {
     	
         return subscribe(topic, (PubSubListener)listener);
     }
-    
+
+    /**
+     * Subscribes a listener to a topic on this command channel.
+     *
+     * @param topic Topic to subscribe to.
+     * @param listener Listener to subscribe.
+     *
+     * @return True if the topic was successfully subscribed to, and false
+     *         otherwise.
+     */
     public boolean subscribe(CharSequence topic, PubSubListener listener) {
         if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100)) {
             
@@ -305,10 +454,26 @@ public abstract class CommandChannel {
         return false;
     }
 
+    /**
+     * Unsubscribes the listener associated with this command channel from
+     * a topic.
+     *
+     * @param topic Topic to unsubscribe from.
+     *
+     * @return True if the topic was successfully unsubscribed from, and false otherwise.
+     */
     public boolean unsubscribe(CharSequence topic) {
         return unsubscribe(topic, (PubSubListener)listener);
     }
-    
+
+    /**
+     * Unsubscribes a listener from a topic.
+     *
+     * @param topic Topic to unsubscribe from.
+     * @param listener Listener to unsubscribe.
+     *
+     * @return True if the topic was successfully unsubscribed from, and false otherwise.
+     */
     public boolean unsubscribe(CharSequence topic, PubSubListener listener) {
         if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101)) {
             
@@ -324,8 +489,13 @@ public abstract class CommandChannel {
         return false;
     }
 
-    
-    
+    /**
+     * Changes the state of this command channel's state machine.
+     *
+     * @param state State to transition to.
+     *
+     * @return True if the state was successfully transitioned, and false otherwise.
+     */
     public <E extends Enum<E>> boolean changeStateTo(E state) {
     	 assert(hardware.isValidState(state));
     	 if (!hardware.isValidState(state)) {
@@ -343,8 +513,15 @@ public abstract class CommandChannel {
 
     	return false;
     	
-    }    
-    
+    }
+
+    /**
+     * Opens a topic on this channel for writing.
+     *
+     * @param topic Topic to open.
+     *
+     * @return {@link PayloadWriter} attached to the given topic.
+     */
     public PayloadWriter openTopic(CharSequence topic) {
         
         if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_PUBLISH_103)) {

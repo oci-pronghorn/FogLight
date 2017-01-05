@@ -263,6 +263,7 @@ public abstract class HardwareImpl implements Hardware {
 	}
 	
 
+	public abstract HardwarePlatformType getPlatformType();
 	public abstract int read(Port port); //Platform specific
 	public abstract void write(Port port, int value); //Platform specific
 	public abstract ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes);

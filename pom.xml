@@ -10,10 +10,17 @@
     </properties>
   
     <dependencies>
+        <!-- TODO: New versions of Pronghorn are missing either the NetRequestSchema or NetResponseSchema, causing compilation to fail. -->
+        <!-- TODO: Temporarily made version only go to 0.0.10 to make compilation succeed. -->
+        <!--<dependency>-->
+            <!--<groupId>com.ociweb</groupId>-->
+            <!--<artifactId>Pronghorn</artifactId>-->
+            <!--<version>[0.0.9,0.1.0-SNAPSHOT)</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>com.ociweb</groupId>
             <artifactId>Pronghorn</artifactId>
-            <version>[0.0.9,0.1.0-SNAPSHOT)</version>
+            <version>0.0.10</version>
         </dependency>
 
         <dependency>
@@ -147,6 +154,33 @@
             <artifactId>maven-shade-plugin</artifactId>
             <version>2.4.3</version>
             <executions>
+                 <execution>
+                     <id>piCamExample</id>
+                     <phase>package</phase>
+                     <goals>
+                         <goal>shade</goal>
+                     </goals>
+                     <configuration>
+                         <finalName>PronghornIoT-GrovePi-PiCamTest</finalName>
+                         <filters>
+                             <filter>
+                                 <artifact>*jnr-ffi:jnr-ffi*</artifact>
+                                 <excludes>
+                                     <exclude>**/jni/**</exclude>
+                                 </excludes>
+                             </filter>
+                         </filters>
+
+                         <transformers>
+                             <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                 <manifestEntries>
+                                     <Main-Class>com.ociweb.device.testApp.PiCamTest</Main-Class>
+                                 </manifestEntries>
+                             </transformer>
+                         </transformers>
+
+                     </configuration>
+                 </execution>
                 <execution>
                     <id>piExample</id>
                     <phase>package</phase>
@@ -174,7 +208,6 @@
                             
                     </configuration>
                 </execution>
-                
                  <execution>
                     <id>edExample</id>
                     <phase>package</phase>

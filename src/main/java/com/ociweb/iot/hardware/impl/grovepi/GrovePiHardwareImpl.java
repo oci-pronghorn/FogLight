@@ -1,13 +1,10 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
+import com.ociweb.iot.hardware.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.grove.GroveTwig;
-import com.ociweb.iot.hardware.HardwareConnection;
-import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.I2CConnection;
-import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
@@ -49,7 +46,12 @@ public class GrovePiHardwareImpl extends HardwareImpl {
              PipeConfig<TrafficOrderSchema> orderPipe) {
 		this.commandIndex++;
 		return new PiCommandChannel(gm, this, pipe, i2cPayloadPipe, pubSubConfig, netRequestConfig, orderPipe, commandIndex);	
-	} 
+	}
+
+	@Override
+	public HardwarePlatformType getPlatformType() {
+		return HardwarePlatformType.GROVE_PI;
+	}
     
 	@Override
 	public int read(Port port) { 

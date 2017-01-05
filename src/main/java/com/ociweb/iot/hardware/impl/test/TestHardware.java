@@ -2,6 +2,7 @@ package com.ociweb.iot.hardware.impl.test;
 
 import java.util.Arrays;
 
+import com.ociweb.iot.hardware.HardwarePlatformType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,8 +103,13 @@ public class TestHardware extends HardwareImpl {
     
     public long getLastTime(Port port) {
         return lastTime[port.port];
-    }  
-    
+    }
+
+    @Override
+    public HardwarePlatformType getPlatformType() {
+        return HardwarePlatformType.TEST;
+    }
+
     @Override
     public int read(Port port) {
         return pinData[port.port] + (port.isAnalog() ? (Math.random()<.1 ? 1 : 0) : 0); //adding noise for analog values

@@ -6,7 +6,8 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
+import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -28,7 +29,7 @@ public abstract class CommandChannel {
     protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
     protected final Pipe<GroveRequestSchema> pinOutput; //TODO: find a way to not create if not used like http or message pup/sub
     
-    private Pipe<NetRequestSchema> httpRequest;
+    private Pipe<ClientHTTPRequestSchema> httpRequest;
     private Pipe<MessagePubSub> messagePubSub;
     
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
@@ -60,7 +61,7 @@ public abstract class CommandChannel {
     						 PipeConfig<GroveRequestSchema> pinConfig, 
     					   	 PipeConfig<I2CCommandSchema> i2cConfig,  
                              PipeConfig<MessagePubSub> pubSubConfig,
-                             PipeConfig<NetRequestSchema> netRequestConfig,
+                             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
                              PipeConfig<TrafficOrderSchema> goPipeConfig) {
     	
        this.outputPipes = new Pipe<?>[]{new Pipe<GroveRequestSchema>(pinConfig),
@@ -73,7 +74,7 @@ public abstract class CommandChannel {
        this.goPipe = (Pipe<TrafficOrderSchema>) outputPipes[goPipeIdx];
        this.i2cOutput = (Pipe<I2CCommandSchema>) outputPipes[i2cPipeIdx];
        this.messagePubSub = (Pipe<MessagePubSub>) outputPipes[subPipeIdx];
-       this.httpRequest = (Pipe<NetRequestSchema>) outputPipes[netPipeIdx];
+       this.httpRequest = (Pipe<ClientHTTPRequestSchema>) outputPipes[netPipeIdx];
        this.pinOutput = (Pipe<GroveRequestSchema>) outputPipes[pinPipeIdx];
                              
        if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
@@ -95,11 +96,11 @@ public abstract class CommandChannel {
     	};
     }
     
-    private static Pipe<NetRequestSchema> newNetRequestPipe(PipeConfig<NetRequestSchema> config) {
-    	return new Pipe<NetRequestSchema>(config) {
+    private static Pipe<ClientHTTPRequestSchema> newNetRequestPipe(PipeConfig<ClientHTTPRequestSchema> config) {
+    	return new Pipe<ClientHTTPRequestSchema>(config) {
 			@SuppressWarnings("unchecked")
 			@Override
-			protected DataOutputBlobWriter<NetRequestSchema> createNewBlobWriter() {
+			protected DataOutputBlobWriter<ClientHTTPRequestSchema> createNewBlobWriter() {
 				return new PayloadWriter(this);
 			}
     		
@@ -352,12 +353,12 @@ public abstract class CommandChannel {
      */
     public boolean httpGet(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
     	
-    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPGET_100)) {
+    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100)) {
                 	    
-    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, port);
-    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, host);
-    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, route);
-    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, System.identityHashCode(listener));
+    		PipeWriter.writeInt(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, port);
+    		PipeWriter.writeUTF8(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, host);
+    		PipeWriter.writeUTF8(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, route);
+    		PipeWriter.writeInt(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, System.identityHashCode(listener));
     		PipeWriter.publishWrites(httpRequest);
             
     		publishGo(1,subPipeIdx);
@@ -395,17 +396,17 @@ public abstract class CommandChannel {
      * @return True if the request was successfully submitted, and false otherwise.
      */
     public PayloadWriter httpPost(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
-    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPPOST_101)) {
+    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, ClientHTTPRequestSchema.MSG_HTTPPOST_101)) {
                 	    
-    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1, port);
-    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2, host);
-    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, route);
-    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10, System.identityHashCode(listener));
+    		PipeWriter.writeInt(httpRequest, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1, port);
+    		PipeWriter.writeUTF8(httpRequest, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2, host);
+    		PipeWriter.writeUTF8(httpRequest, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, route);
+    		PipeWriter.writeInt(httpRequest, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10, System.identityHashCode(listener));
 
             publishGo(1,subPipeIdx);
             
             PayloadWriter pw = (PayloadWriter) Pipe.outputStream(messagePubSub);    
-            pw.openField(NetRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5,this);  
+            pw.openField(ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5,this);  
             return pw;
         } else {
         	return null;

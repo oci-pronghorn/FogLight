@@ -17,7 +17,7 @@ import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.schema.MessagePubSub;
@@ -131,7 +131,7 @@ public class TestHardware extends HardwareImpl {
     @Override
     public CommandChannel newCommandChannel(PipeConfig<GroveRequestSchema> pipe, PipeConfig<I2CCommandSchema> i2cPayloadPipe, 
     		 PipeConfig<MessagePubSub> pubSubConfig,
-             PipeConfig<NetRequestSchema> netRequestConfig,
+             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
              PipeConfig<TrafficOrderSchema> orderPipe) {    
        return new DefaultCommandChannel(gm, this, pipe, i2cPayloadPipe, pubSubConfig, netRequestConfig, orderPipe);   //TODO: urgent rename as DefaultCommadnChannel     
     }

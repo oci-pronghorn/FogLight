@@ -6,7 +6,7 @@ import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -18,7 +18,7 @@ public class DefaultCommandChannel extends CommandChannel{
 
 	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, PipeConfig<GroveRequestSchema> output, PipeConfig<I2CCommandSchema> i2cOutput,
 			 PipeConfig<MessagePubSub> pubSubConfig,
-             PipeConfig<NetRequestSchema> netRequestConfig,
+             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
              PipeConfig<TrafficOrderSchema> goPipe) {
 			super(gm, hardware, output, i2cOutput, pubSubConfig, netRequestConfig, goPipe);
 

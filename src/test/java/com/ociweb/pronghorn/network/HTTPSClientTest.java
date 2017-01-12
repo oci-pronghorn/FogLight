@@ -24,7 +24,7 @@ import com.ociweb.pronghorn.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.ReleaseSchema;
-import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -115,7 +115,7 @@ public class HTTPSClientTest {
 		IntHashTable listenerPipeLookup = new IntHashTable(base2SimultaniousConnections+2);
 		IntHashTable.setItem(listenerPipeLookup, 42, 0);//put on pipe 0
 		
-		PipeConfig<NetRequestSchema> netREquestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 2,1<<9);		
+		PipeConfig<ClientHTTPRequestSchema> netREquestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 2,1<<9);		
 		PipeConfig<TrafficReleaseSchema> trafficReleaseConfig = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 2);
 		PipeConfig<TrafficAckSchema> trafficAckConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 2);
 		PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
@@ -125,7 +125,7 @@ public class HTTPSClientTest {
 		PipeConfig<NetResponseSchema> netResponseConfig = new PipeConfig<NetResponseSchema>(NetResponseSchema.instance, 2, 1<<14);
 		
 		//holds new requests
-		Pipe<NetRequestSchema>[] input = new Pipe[inputsCount];		
+		Pipe<ClientHTTPRequestSchema>[] input = new Pipe[inputsCount];		
 		//new requests are not release until this is sent
 		Pipe<TrafficReleaseSchema>[] goPipe = new Pipe[inputsCount]; 
 		//this is the ack back that the request was sent
@@ -207,7 +207,7 @@ public class HTTPSClientTest {
 		while (--i>=0) {
 			ackPipe[i] = new Pipe<TrafficAckSchema>(trafficAckConfig);
 			goPipe[i] = new Pipe<TrafficReleaseSchema>(trafficReleaseConfig); 
-            input[i] = new Pipe<NetRequestSchema>(netREquestConfig);			
+            input[i] = new Pipe<ClientHTTPRequestSchema>(netREquestConfig);			
 			ConsoleJSONDumpStage<TrafficAckSchema> dump = new ConsoleJSONDumpStage<TrafficAckSchema>(gm, ackPipe[i], new PrintStream(contentAck));
 		}
 				
@@ -260,11 +260,11 @@ public class HTTPSClientTest {
 			
 		long start = System.currentTimeMillis();
 
-			PipeWriter.tryWriteFragment(input[0], NetRequestSchema.MSG_HTTPGET_100);
-			PipeWriter.writeUTF8(input[0], NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, "encrypted.google.com");
-			PipeWriter.writeInt(input[0], NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, 42);
-			PipeWriter.writeUTF8(input[0], NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, "/");
-			PipeWriter.writeInt(input[0], NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, 443);
+			PipeWriter.tryWriteFragment(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100);
+			PipeWriter.writeUTF8(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, "encrypted.google.com");
+			PipeWriter.writeInt(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, 42);
+			PipeWriter.writeUTF8(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, "/");
+			PipeWriter.writeInt(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, 443);
 			PipeWriter.publishWrites(input[0]);
 			
 			PipeWriter.tryWriteFragment(goPipe[0], TrafficReleaseSchema.MSG_RELEASE_20);
@@ -351,7 +351,7 @@ public class HTTPSClientTest {
 		IntHashTable.setItem(listenerPipeLookup, 42, 0);//put on pipe 0
 		
 		
-		PipeConfig<NetRequestSchema> netREquestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 30,1<<9);		
+		PipeConfig<ClientHTTPRequestSchema> netREquestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
 		PipeConfig<TrafficReleaseSchema> trafficReleaseConfig = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, 30);
 		PipeConfig<TrafficAckSchema> trafficAckConfig = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, 4);
 		PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 
@@ -360,7 +360,7 @@ public class HTTPSClientTest {
 
 		
 		//holds new requests
-		Pipe<NetRequestSchema>[] input = new Pipe[inputsCount];		
+		Pipe<ClientHTTPRequestSchema>[] input = new Pipe[inputsCount];		
 		//new requests are not release until this is sent
 		Pipe<TrafficReleaseSchema>[] goPipe = new Pipe[inputsCount];
 		//responses from the server	
@@ -380,7 +380,7 @@ public class HTTPSClientTest {
 		while (--k>=0) {
 			ackPipe[k] = new Pipe<TrafficAckSchema>(trafficAckConfig);
 			goPipe[k] = new Pipe<TrafficReleaseSchema>(trafficReleaseConfig); 
-            input[k] = new Pipe<NetRequestSchema>(netREquestConfig);	
+            input[k] = new Pipe<ClientHTTPRequestSchema>(netREquestConfig);	
 		}	
 		
 		Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
@@ -448,12 +448,12 @@ public class HTTPSClientTest {
 				}
 			}
 			
-			Pipe<NetRequestSchema> pipe = input[0];
-			if (PipeWriter.tryWriteFragment(pipe, NetRequestSchema.MSG_HTTPGET_100)) {
-				PipeWriter.writeUTF8(pipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, "encrypted.google.com");
-				PipeWriter.writeInt(pipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, 42);
-				PipeWriter.writeUTF8(pipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, "/");
-				PipeWriter.writeInt(pipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, 443);
+			Pipe<ClientHTTPRequestSchema> pipe = input[0];
+			if (PipeWriter.tryWriteFragment(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100)) {
+				PipeWriter.writeUTF8(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, "encrypted.google.com");
+				PipeWriter.writeInt(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, 42);
+				PipeWriter.writeUTF8(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, "/");
+				PipeWriter.writeInt(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, 443);
 				PipeWriter.publishWrites(pipe);
 				
 				Pipe<TrafficReleaseSchema> pipe2 = goPipe[0];

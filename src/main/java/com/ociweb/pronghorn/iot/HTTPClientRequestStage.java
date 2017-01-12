@@ -11,7 +11,7 @@ import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.ClientConnection;
 import com.ociweb.pronghorn.network.ClientCoordinator;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
-import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -24,7 +24,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 
 	public static final Logger log = LoggerFactory.getLogger(HTTPClientRequestStage.class);
 	
-	private final Pipe<NetRequestSchema>[] input;
+	private final Pipe<ClientHTTPRequestSchema>[] input;
 	private final Pipe<NetPayloadSchema>[] output;
 	private final ClientCoordinator ccm;
     
@@ -48,7 +48,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 	public HTTPClientRequestStage(GraphManager graphManager, 
 			HardwareImpl hardware,
 			ClientCoordinator ccm,
-            Pipe<NetRequestSchema>[] input,
+            Pipe<ClientHTTPRequestSchema>[] input,
             Pipe<TrafficReleaseSchema>[] goPipe,
             Pipe<TrafficAckSchema>[] ackPipe,
             Pipe<NetPayloadSchema>[] output
@@ -71,7 +71,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 	@Override
 	protected void processMessagesForPipe(int activePipe) {
 		
-		    Pipe<NetRequestSchema> requestPipe = input[activePipe];
+		    Pipe<ClientHTTPRequestSchema> requestPipe = input[activePipe];
 
 	        while (PipeReader.hasContentToRead(requestPipe) && hasReleaseCountRemaining(activePipe) 
 	                && isChannelUnBlocked(activePipe)	                
@@ -84,16 +84,16 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 	            int msgIdx = PipeReader.getMsgIdx(requestPipe);
 	            
 				switch (msgIdx) {
-	            			case NetRequestSchema.MSG_HTTPGET_100:
+	            			case ClientHTTPRequestSchema.MSG_HTTPGET_100:
 	            				
 				                {
 				            		final byte[] hostBack = Pipe.blob(requestPipe);
-				            		final int hostPos = PipeReader.readBytesPosition(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);
-				            		final int hostLen = PipeReader.readBytesLength(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);
+				            		final int hostPos = PipeReader.readBytesPosition(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);
+				            		final int hostLen = PipeReader.readBytesLength(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);
 				            		final int hostMask = Pipe.blobMask(requestPipe);
 				                	
-					                int port = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1);
-					                int userId = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10);
+					                int port = PipeReader.readInt(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1);
+					                int userId = PipeReader.readInt(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10);
 					                
 					                long connectionId = ccm.lookup(hostBack, hostPos, hostLen, hostMask, port, userId);	
 					                
@@ -115,9 +115,9 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											
 						                	DataOutputBlobWriter.encodeAsUTF8(activeWriter,"GET");
 						                	
-						                	int len = PipeReader.readDataLength(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
-						                	int  first = PipeReader.readBytesPosition(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
-						                	boolean prePendSlash = (0==len) || ('/' != PipeReader.readBytesBackingArray(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3)[first&Pipe.blobMask(requestPipe)]);  
+						                	int len = PipeReader.readDataLength(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
+						                	int  first = PipeReader.readBytesPosition(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
+						                	boolean prePendSlash = (0==len) || ('/' != PipeReader.readBytesBackingArray(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3)[first&Pipe.blobMask(requestPipe)]);  
 						                	
 											if (prePendSlash) { //NOTE: these can be pre-coverted to bytes so we need not convert on each write. may want to improve.
 												DataOutputBlobWriter.encodeAsUTF8(activeWriter," /");
@@ -126,7 +126,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											}
 											
 											//Reading from UTF8 field and writing to UTF8 encoded field so we are doing a direct copy here.
-											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, activeWriter);
+											PipeReader.readBytes(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, activeWriter);
 											
 											finishWritingHeader(hostBack, hostPos, hostLen, hostMask, activeWriter, implementationVersion, 0);
 						                	DataOutputBlobWriter.closeHighLevelField(activeWriter, NetPayloadSchema.MSG_PLAIN_210_FIELD_PAYLOAD_204);
@@ -140,17 +140,17 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 					                }
 			                	}
 	            		break;
-	            			case NetRequestSchema.MSG_HTTPPOST_101:
+	            			case ClientHTTPRequestSchema.MSG_HTTPPOST_101:
 	            				
 				                {
 				                	
 				            		final byte[] hostBack = Pipe.blob(requestPipe);
-				            		final int hostPos = PipeReader.readBytesPosition(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2);
-				            		final int hostLen = PipeReader.readBytesLength(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2);
+				            		final int hostPos = PipeReader.readBytesPosition(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2);
+				            		final int hostLen = PipeReader.readBytesLength(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2);
 				            		final int hostMask = Pipe.blobMask(requestPipe);
 				                	
-					                int port = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1);
-					                int userId = PipeReader.readInt(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10);
+					                int port = PipeReader.readInt(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1);
+					                int userId = PipeReader.readInt(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10);
 					                
 					                long connectionId = ccm.lookup(hostBack, hostPos, hostLen, hostMask, port, userId);	
 					                //openConnection(activeHost, port, userId, outIdx);
@@ -172,9 +172,9 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 						                			                
 						                	DataOutputBlobWriter.encodeAsUTF8(activeWriter,"POST");
 						                	
-						                	int len = PipeReader.readDataLength(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3);					                	
-						                	int  first = PipeReader.readBytesPosition(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3);					                	
-						                	boolean prePendSlash = (0==len) || ('/' != PipeReader.readBytesBackingArray(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3)[first&Pipe.blobMask(requestPipe)]);  
+						                	int len = PipeReader.readDataLength(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3);					                	
+						                	int  first = PipeReader.readBytesPosition(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3);					                	
+						                	boolean prePendSlash = (0==len) || ('/' != PipeReader.readBytesBackingArray(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3)[first&Pipe.blobMask(requestPipe)]);  
 						                	
 											if (prePendSlash) { //NOTE: these can be pre-coverted to bytes so we need not convert on each write. may want to improve.
 												DataOutputBlobWriter.encodeAsUTF8(activeWriter," /");
@@ -183,7 +183,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											}
 											
 											//Reading from UTF8 field and writing to UTF8 encoded field so we are doing a direct copy here.
-											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, activeWriter);
+											PipeReader.readBytes(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, activeWriter);
 											
 											//TODO: what is the lenght?
 											finishWritingHeader(hostBack, hostPos, hostLen, hostMask, activeWriter, implementationVersion, 0);
@@ -196,7 +196,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											
 											//TODO: must write lenghth in header before we write the payload.
 											//un-tested  post payload here, TODO: need to add support for chunking and length??
-											PipeReader.readBytes(requestPipe, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5, activeWriter);
+											PipeReader.readBytes(requestPipe, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5, activeWriter);
 											
 						                	DataOutputBlobWriter.closeHighLevelField(activeWriter, NetPayloadSchema.MSG_PLAIN_210_FIELD_PAYLOAD_204);
 						                					                	
@@ -231,7 +231,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 
 
 	//TODO: make static.
-	public boolean hasRoomForWrite(Pipe<NetRequestSchema> requestPipe, Pipe<NetPayloadSchema>[] output, ClientCoordinator ccm) {
+	public boolean hasRoomForWrite(Pipe<ClientHTTPRequestSchema> requestPipe, Pipe<NetPayloadSchema>[] output, ClientCoordinator ccm) {
 		int result = -1;
 		//if we go around once and find nothing then stop looking
 		int i = output.length;
@@ -257,22 +257,22 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 	
 	
 	//has side effect fo storing the active connectino as a member so it neeed not be looked up again later.
-	public boolean hasOpenConnection(Pipe<NetRequestSchema> requestPipe, 
+	public boolean hasOpenConnection(Pipe<ClientHTTPRequestSchema> requestPipe, 
 											Pipe<NetPayloadSchema>[] output, ClientCoordinator ccm, int outIdx) {
 		
 		if (PipeReader.peekMsg(requestPipe, -1)) {
 			return com.ociweb.pronghorn.network.HTTPClientRequestStage.hasRoomForEOF(output);
 		}
 		
-		int hostPos =  PipeReader.peekDataPosition(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);
-		int hostLen =  PipeReader.peekDataLength(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);
+		int hostPos =  PipeReader.peekDataPosition(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);
+		int hostLen =  PipeReader.peekDataLength(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);
 
 		byte[] hostBack = Pipe.blob(requestPipe);
 		int hostMask = Pipe.blobMask(requestPipe);
 		
 		
-		int port = PipeReader.peekInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1);
-		int userId = PipeReader.peekInt(requestPipe, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10);		
+		int port = PipeReader.peekInt(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1);
+		int userId = PipeReader.peekInt(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10);		
 						
 		ClientConnection activeConnection = ClientCoordinator.openConnection(ccm, hostBack, hostPos, hostLen, hostMask, port, userId, outIdx, output);
 				

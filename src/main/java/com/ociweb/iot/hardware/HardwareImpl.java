@@ -41,7 +41,7 @@ import com.ociweb.pronghorn.network.NetGraphBuilder;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.ReleaseSchema;
-import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -326,7 +326,7 @@ public abstract class HardwareImpl implements Hardware {
 
 	public abstract CommandChannel newCommandChannel(PipeConfig<GroveRequestSchema> pinPipeConfig, PipeConfig<I2CCommandSchema> i2cPipeConfig, 
 			 PipeConfig<MessagePubSub> pubSubConfig,
-             PipeConfig<NetRequestSchema> netRequestConfig,
+             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
              PipeConfig<TrafficOrderSchema> orderPipeConfig);
 
 	static final boolean debug = false;
@@ -350,7 +350,7 @@ public abstract class HardwareImpl implements Hardware {
 			Pipe<GroveRequestSchema>[] requestPipes,  //one for each command channel 
 			Pipe<I2CCommandSchema>[] i2cPipes,        //one for each command channel 
 			Pipe<MessagePubSub>[] messagePubSub,      //one for each command channel 
-			Pipe<NetRequestSchema>[] netRequestPipes  //one for each command channel
+			Pipe<ClientHTTPRequestSchema>[] netRequestPipes  //one for each command channel
 			) {
 
 		assert(orderPipes.length == i2cPipes.length);
@@ -410,7 +410,7 @@ public abstract class HardwareImpl implements Hardware {
 			assert(masterGoOut[TYPE_NET].length == netRequestPipes.length);
 			
 			
-			PipeConfig<NetRequestSchema> netRequestConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, 30,1<<9);		
+			PipeConfig<ClientHTTPRequestSchema> netRequestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
 			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
 
 			//BUILD GRAPH
@@ -478,7 +478,7 @@ public abstract class HardwareImpl implements Hardware {
 	       
 	}
 
-	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<NetResponseSchema>[] netResponsePipes, Pipe<NetRequestSchema>[] netRequestPipes) {
+	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<NetResponseSchema>[] netResponsePipes, Pipe<ClientHTTPRequestSchema>[] netRequestPipes) {
 		
 		if (isUseNetClient() && IntHashTable.isEmpty(netPipeLookup)) {
 			throw new UnsupportedOperationException("useNetClient is enabled however no HTTPResponseListener instances were registered.");

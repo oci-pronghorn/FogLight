@@ -9,7 +9,7 @@ import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -28,7 +28,7 @@ public class PiCommandChannel extends CommandChannel{
 
 	public PiCommandChannel(GraphManager gm, HardwareImpl hardware, PipeConfig<GroveRequestSchema> output, PipeConfig<I2CCommandSchema> i2cOutput,  
 			 PipeConfig<MessagePubSub> pubSubConfig,
-             PipeConfig<NetRequestSchema> netRequestConfig,
+             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
              PipeConfig<TrafficOrderSchema> goPipe, byte commandIndex) { 
 		super(gm, hardware, output, i2cOutput, pubSubConfig, netRequestConfig, goPipe); 
 		this.i2cPipeIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital

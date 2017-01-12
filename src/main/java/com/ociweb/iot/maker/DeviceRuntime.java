@@ -19,7 +19,7 @@ import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.network.schema.NetRequestSchema;
+import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -86,7 +86,7 @@ public class DeviceRuntime {
     
     //////////
     //Pipes containing HTTP requests.
-    private final PipeConfig<NetRequestSchema> requestNetConfig = new PipeConfig<NetRequestSchema>(NetRequestSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
+    private final PipeConfig<ClientHTTPRequestSchema> requestNetConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
     
     
     
@@ -433,7 +433,7 @@ public class DeviceRuntime {
                             GraphManager.allPipesOfType(gm, GroveRequestSchema.instance), 
                             GraphManager.allPipesOfType(gm, I2CCommandSchema.instance),
                             GraphManager.allPipesOfType(gm, MessagePubSub.instance),
-                            GraphManager.allPipesOfType(gm, NetRequestSchema.instance)
+                            GraphManager.allPipesOfType(gm, ClientHTTPRequestSchema.instance)
                );
     
        

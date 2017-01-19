@@ -8,7 +8,7 @@ import java.io.IOException;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public final class RS232Native {
+public final class RS232NativeLinuxBacking {
 
     static {
         try {
@@ -18,7 +18,7 @@ public final class RS232Native {
         }
     }
 
-    private RS232Native() {}
+    private RS232NativeLinuxBacking() {}
 
     // Standard baud rates.
     public static final int B9600 =  0000015;

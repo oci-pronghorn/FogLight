@@ -9,11 +9,11 @@ public class RS232Example {
     // TODO : Simple test only.
     public static void main(String[] args) {
         try {
-            int fd = RS232Native.open("/dev/ttys004", RS232Native.B19200);
-            int fd2 = RS232Native.open("/dev/ttys005", RS232Native.B19200);
-            RS232Native.write(fd, "Bazinga");
+            RS232Client client1 = new RS232Client("/dev/ttys004", RS232NativeLinuxBacking.B19200);
+            RS232Client client2 = new RS232Client("/dev/ttys005", RS232NativeLinuxBacking.B19200);
+            client1.write("bazinga");
             try {
-                String read = RS232Native.read(fd2, 7);
+                String read = client2.read(7);
                 System.out.println("Read: " + read.length());
                 System.out.println(read);
             } catch (Exception e) {

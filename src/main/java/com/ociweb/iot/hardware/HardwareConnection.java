@@ -6,29 +6,26 @@ public class HardwareConnection {
 	public final int responseMS;
     public final int movingAverageWindowMS;
     public final boolean sendEveryValue;
-    public final byte connection;
+    public final byte register;
 
     public static final int DEFAULT_AVERAGE = 1000;
     
     
-	public HardwareConnection(IODevice twig, int connection, int responseMS, int movingAverageWindowMS, boolean sendEveryValue){
+	public HardwareConnection(IODevice twig, int register, int responseMS, int movingAverageWindowMS, boolean sendEveryValue){
 		this.twig = twig;
-		this.responseMS = responseMS;
-		this.movingAverageWindowMS = movingAverageWindowMS;
+		this.responseMS = (responseMS==-1)?twig.response():responseMS;
+		this.movingAverageWindowMS = (movingAverageWindowMS==-1)?HardwareConnection.DEFAULT_AVERAGE:movingAverageWindowMS;
 		this.sendEveryValue = sendEveryValue;
-		this.connection = (byte)connection;
+		this.register = (byte)register;
 	}
 
     public HardwareConnection(IODevice twig, int connection) {
     	this(twig, connection, twig.response(), HardwareConnection.DEFAULT_AVERAGE, false);
-        assert(connection<255 && connection>=0);
     }
     
     public HardwareConnection(IODevice twig, int connection, int customResponse) {
-    	this(twig, connection, Math.max(customResponse, twig.response()), HardwareConnection.DEFAULT_AVERAGE, false);
-        assert(connection<255 && connection>=0);        
+    	this(twig, connection, Math.max(customResponse, twig.response()), HardwareConnection.DEFAULT_AVERAGE, false);       
     }
     
-
 	
 }

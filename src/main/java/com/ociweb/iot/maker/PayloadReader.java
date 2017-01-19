@@ -1,13 +1,19 @@
 package com.ociweb.iot.maker;
 
-import com.ociweb.pronghorn.iot.schema.MessageSubscription;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 
-public class PayloadReader extends DataInputBlobReader<MessageSubscription>{
+@SuppressWarnings("rawtypes")
+public class PayloadReader extends DataInputBlobReader{
 
-    public PayloadReader(Pipe<MessageSubscription> pipe) {
+    public PayloadReader(Pipe pipe) {
         super(pipe);
     }
+    
+    //TODO: requires support for mark
+    //TODO: as with PayloadWriter needs a bounds check for the makers
+    
+    
+    
 
 }

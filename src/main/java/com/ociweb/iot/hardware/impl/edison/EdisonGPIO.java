@@ -24,7 +24,7 @@ public class EdisonGPIO {
         int j = usedLines.length;
         while (--j>=0) {       
             
-            int i = usedLines[j].connection;
+            int i = usedLines[j].register;
             if (usedLines[j].twig.isPWM()) {
                 assert(usedLines[j].twig.isOutput()) : "PWM must also be output";
                 pwmPins.ensurePMWDevice(i,DEFAULT_PWM_PERIOD_NS);
@@ -54,7 +54,7 @@ public class EdisonGPIO {
         
         int j = usedLines.length;
         while (--j>=0) {                
-            int i = usedLines[j].connection;       
+            int i = usedLines[j].register;       
             gpioLinuxPins.removeDevice(i);
             gpioOutputEnablePins.removeDevice(i);
             gpioPullupEnablePins.removeDevice(i); 

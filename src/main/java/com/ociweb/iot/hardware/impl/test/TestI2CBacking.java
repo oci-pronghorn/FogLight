@@ -87,8 +87,7 @@ public class TestI2CBacking implements I2CBacking{
 
     protected void consoleSimulationLCD(byte address, byte[] message, int length) {
         if (62==address & '@'==message[0]) {
-            
-        	try {
+
 	        	for(int i = 1; i<length; i++) {
 	        		
 	        		byte b = message[i];
@@ -99,12 +98,7 @@ public class TestI2CBacking implements I2CBacking{
 	        		}
 	        		
 	        	}
-        	} catch (IOException e) {
-        		throw new RuntimeException(e);
-        	}
- 
-            
-            
+
             
             newLineNeeded = true;
         } else {
@@ -118,11 +112,8 @@ public class TestI2CBacking implements I2CBacking{
                 }
                 
                 System.out.print("                         I2C Write to Addr:"+address+"  ");            
-                try {
-                    Appendables.appendArray(System.out, '[', message, 0, Integer.MAX_VALUE, ']', length).append('\n');
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                Appendables.appendArray(System.out, '[', message, 0, Integer.MAX_VALUE, ']', length).append('\n');
+
             }
             
         }

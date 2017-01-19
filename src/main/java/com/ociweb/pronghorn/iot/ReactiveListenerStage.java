@@ -1,7 +1,5 @@
 package com.ociweb.pronghorn.iot;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,20 +7,28 @@ import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.HTTPResponseListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.ListenerFilter;
 import com.ociweb.iot.maker.PayloadReader;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RestListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
-import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.iot.maker.StateChangeListener;
+import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.iot.schema.MessageSubscription;
+import com.ociweb.pronghorn.network.ClientConnection;
+import com.ociweb.pronghorn.network.ClientCoordinator;
+import com.ociweb.pronghorn.network.config.HTTPContentType;
+import com.ociweb.pronghorn.network.config.HTTPSpecification;
+import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.pipe.PipeReaderUTF8MutableCharSquence;
+import com.ociweb.pronghorn.schema.MessageSubscription;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
@@ -41,15 +47,13 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
   
     private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStage.class); 
     
-    private static final int MAX_SENSORS = 32;
-    
     protected MAvgRollerLong[] rollingMovingAveragesAnalog;
     protected MAvgRollerLong[] rollingMovingAveragesDigital;    
     private boolean startupCompleted;
     
     protected int[] oversampledAnalogValues;
 
-    private static final int MAX_CONNECTIONS = 10;
+    private static final int MAX_PORTS = 10;
     
     //for analog values returns the one with the longest run within the last n samples
     protected static final int OVERSAMPLE = 3; //  (COUNT), SAMPLE1, ... SAMPLEn
@@ -59,18 +63,21 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     protected long[] lastDigitalTimes;
     
     protected boolean[] sendEveryAnalogValue;
+    protected boolean[] sendEveryDigitalValue;
+    
+    
     protected int[] lastAnalogValues;
     protected long[] lastAnalogTimes;
     
     private final Enum[] states;
     
+    private boolean timeEvents = false;
+    
     /////////////////////
     //Listener Filters
     /////////////////////    
-    private int[] includedAnalogs;//if null then all values are accepted
-    private int[] excludedAnalogs;//if null then no values are excluded
-    private int[] includedDigitals;//if null then all values are accepted
-    private int[] excludedDigitals;//if null then no values are excluded
+    private Port[] includedPorts;//if null then all values are accepted
+    private Port[] excludedPorts;//if null then no values are excluded
     private int[] includedI2Cs;//if null then all values are accepted
     private int[] excludedI2Cs;//if null then no values are excluded
     private long[] includedToStates;
@@ -81,6 +88,15 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     /////////////////////
     private Number stageRate;
     private final GraphManager graphManager;
+    private int timeProcessWindow;
+
+    private PipeReaderUTF8MutableCharSquence workspace = new PipeReaderUTF8MutableCharSquence();
+    private PayloadReader payloadReader;
+    
+    private final StringBuilder workspaceHost = new StringBuilder();
+    
+    private HTTPSpecification httpSpec;
+    private final ClientCoordinator ccm = null ;//TODO: pass in? get from hardware!!!!
     
     public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 
@@ -97,32 +113,24 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                    
         //allow for shutdown upon shutdownRequest we have new content
         GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
-        
+                
     }
 
-    private void setupMovingAverages(MAvgRollerLong[] target, HardwareConnection[] con) {
+    private void setupMovingAverages(HardwareImpl hardware, MAvgRollerLong[] target, HardwareConnection[] con) {
         int i = con.length;
-        while (--i >= 0) {
-            
-              int ms   = con[i].movingAverageWindowMS;
-              int rate = con[i].responseMS;
-              System.out.println("count "+(ms/rate)+" ms"+ms+"  rate"+rate);
-              
-              target[con[i].connection] = new MAvgRollerLong(ms/rate);
-              System.out.println("expecting moving average on connection "+con[i].connection);
+        while (--i >= 0) {            
+              target[hardware.convertToPort(con[i].register)] = new MAvgRollerLong(con[i].movingAverageWindowMS/con[i].responseMS);
         }        
     }
     
     
     
-    public void setTimeEventSchedule(long rate) {
+    public void setTimeEventSchedule(long rate, long start) {
         
         timeRate = rate;
-        long now = hardware.currentTimeMillis();
-        if (timeTrigger <= now) {
-            timeTrigger = now + timeRate;
-        }
-        
+        timeTrigger = start;
+
+        timeEvents = (0 != timeRate) && (listener instanceof TimeListener);
     }
     
     protected int findStableReading(int tempValue, int connector) { 
@@ -174,29 +182,47 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     @Override
     public void startup() {
         //Init all the moving averages to the right size
-        rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_SENSORS];
-        rollingMovingAveragesDigital = new MAvgRollerLong[MAX_SENSORS];
+        rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_PORTS];
+        rollingMovingAveragesDigital = new MAvgRollerLong[MAX_PORTS];
         
-        setupMovingAverages(rollingMovingAveragesAnalog, hardware.getAnalogInputs());
+        HardwareConnection[] analogInputs = hardware.getAnalogInputs();
+        HardwareConnection[] digitalInputs = hardware.getDigitalInputs();
+        
+		setupMovingAverages(hardware, rollingMovingAveragesAnalog, analogInputs);
               
-        setupMovingAverages(rollingMovingAveragesDigital, hardware.getDigitalInputs());
+        setupMovingAverages(hardware, rollingMovingAveragesDigital, hardware.getDigitalInputs());
           
-        lastDigitalValues = new int[MAX_CONNECTIONS];
-        lastAnalogValues = new int[MAX_CONNECTIONS];
+        lastDigitalValues = new int[MAX_PORTS];
+        lastAnalogValues = new int[MAX_PORTS];
         
-        sendEveryAnalogValue = new boolean[MAX_CONNECTIONS];
-        int a = hardware.getAnalogInputs().length;
-        while (--a>=0) {
-        	HardwareConnection con = hardware.getAnalogInputs()[a];
-        	sendEveryAnalogValue[con.connection] = con.sendEveryValue;        	
+        sendEveryAnalogValue = new boolean[MAX_PORTS];
+        sendEveryDigitalValue = new boolean[MAX_PORTS];
+        
+        int a = analogInputs.length;
+        while (--a>=0) {        	
+        	HardwareConnection con = analogInputs[a];
+        	//System.out.println("seems wrong to covert this: "+con.register);
+        	sendEveryAnalogValue[hardware.convertToPort(con.register)] = con.sendEveryValue;
         }
         
-        lastDigitalTimes = new long[MAX_CONNECTIONS];
-        lastAnalogTimes = new long[MAX_CONNECTIONS];
+        int d = digitalInputs.length;
+        while (--d>=0) {        	
+        	HardwareConnection con = digitalInputs[d];
+        	//System.out.println("seems wrong to covert this: "+con.register);
+        	sendEveryDigitalValue[hardware.convertToPort(con.register)] = con.sendEveryValue;        	
+        }
+        
+        
+        
+        lastDigitalTimes = new long[MAX_PORTS];
+        lastAnalogTimes = new long[MAX_PORTS];
                     
-        oversampledAnalogValues = new int[MAX_CONNECTIONS*OVERSAMPLE_STEP];
+        oversampledAnalogValues = new int[MAX_PORTS*OVERSAMPLE_STEP];
         
         stageRate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
+        
+        timeProcessWindow = (null==stageRate? 0 : (int)(stageRate.longValue()/MS_to_NS));
+        
         
         
         //Do last so we complete all the initializations first
@@ -209,7 +235,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     @Override
     public void run() {
         
-        processTimeEvents(listener);
+        if (timeEvents) {         	
+			processTimeEvents((TimeListener)listener, timeTrigger);            
+		}
         
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         
@@ -223,11 +251,17 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
             if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
             } else
-            if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {                
-                consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);
+            if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {
+            	//listener may be analog or digital if we are using the grovePi board            	
+            	consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);            	
+            	
             } else
             if (Pipe.isForSchema(localPipe, MessageSubscription.instance)) {                
                 consumePubSubMessage(listener, (Pipe<MessageSubscription>) localPipe);
+            } else 
+            if (Pipe.isForSchema(localPipe, NetResponseSchema.instance)) {
+               //should only have this pipe if listener is also instance of HTTPResponseListener
+               consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) localPipe);
             } else 
             {
                 logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(localPipe));
@@ -237,30 +271,68 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
         
     }
 
-    private StringBuilder workspace = new StringBuilder();
-    private PayloadReader payloadReader;
     
-    private void consumePubSubMessage(Object listener, Pipe<MessageSubscription> p) {
+    private void consumeNetResponse(HTTPResponseListener listener, Pipe<NetResponseSchema> p) {
+    	 while (PipeReader.tryReadFragment(p)) {                
+             
+             int msgIdx = PipeReader.getMsgIdx(p);
+             switch (msgIdx) {
+             case NetResponseSchema.MSG_RESPONSE_101:
+            	 
+            	 long ccId1 = PipeReader.readLong(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_CONNECTIONID_1);
+            	 ClientConnection cc = (ClientConnection)ccm.get(ccId1, 0);
+            	 
+            	 if (null!=cc) {
+	            	 PayloadReader reader = (PayloadReader)PipeReader.inputStream(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_PAYLOAD_3);	            	 
+	            	 short statusId = reader.readShort();	
+	            	 short typeHeader = reader.readShort();
+	            	 short typeId = 0;
+	            	 if (6==typeHeader) {//may not have type
+	            		 assert(6==typeHeader) : "should be 6 was "+typeHeader;
+	            		 typeId = reader.readShort();	            	 
+	            		 short headerEnd = reader.readShort();
+	            		 assert(-1==headerEnd) : "header end should be -1 was "+headerEnd;
+	            	 } else {
+	            		 assert(-1==typeHeader) : "header end should be -1 was "+typeHeader;
+	            	 }
+	            	 
+	            	 if (null==httpSpec) {
+	            		 httpSpec = HTTPSpecification.defaultSpec();
+	            	 }
+	            	 
+	            	 listener.responseHTTP(cc.getHost(), cc.getPort(), statusId, (HTTPContentType)httpSpec.contentTypes[typeId], reader);            	 
+	            	 //cc.incResponsesReceived(); NOTE: can we move this here instead of in the socket listener??
+            	             	 
+            	 } //else do not send, wait for closed message
+            	 break;
+             case NetResponseSchema.MSG_CLOSED_10:
+            	 
+            	 workspaceHost.setLength(0);
+            	 PipeReader.readUTF8(p, NetResponseSchema.MSG_CLOSED_10_FIELD_HOST_4, workspaceHost);
+            	 listener.responseHTTP(workspaceHost,PipeReader.readInt(p, NetResponseSchema.MSG_CLOSED_10_FIELD_PORT_5),(short)-1,null,null);    
+            	 
+            	 break;
+             default:
+                 throw new UnsupportedOperationException("Unknown id: "+msgIdx);
+             }
+             
+    	 }
+    			
+    	
+	}
+
+	private void consumePubSubMessage(Object listener, Pipe<MessageSubscription> p) {
         while (PipeReader.tryReadFragment(p)) {                
             
             int msgIdx = PipeReader.getMsgIdx(p);
             switch (msgIdx) {
                 case MessageSubscription.MSG_PUBLISH_103:
                     if (listener instanceof PubSubListener) {
-	                    workspace.setLength(0);
-	                    CharSequence topic = PipeReader.readUTF8(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1, workspace);               
-	                    
-	                    if (null==payloadReader) {
-	                        payloadReader = new PayloadReader(p); 
-	                    }
-	                    
-	                    payloadReader.openHighLevelAPIField(MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3);
-	
-	//                    if (! payloadReader.markSupported() ) {
-	//                        logger.warn("we need mark to be suppported for payloads in pubsub and http."); //TODO: need to implement mark, urgent.                      
-	//                    }
-	                    
-	                    ((PubSubListener)listener).message(topic, payloadReader);
+                    	                    	
+                    	CharSequence topic = workspace.setToField(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1);
+	  
+	                    assert(null!=topic) : "Callers must be free to write topic.equals(x) with no fear that topic is null.";	                    
+	                    ((PubSubListener)listener).message(topic,  (PayloadReader)PipeReader.inputStream(p, MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3));
                     }
                     break;
                 case MessageSubscription.MSG_STATECHANGED_71:
@@ -268,11 +340,20 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 		
                 		int oldOrdinal = PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8);
                 		int newOrdinal = PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9);
+                		
+                		assert(oldOrdinal != newOrdinal) : "Stage change must actualt change the state!";
+                		
                 		if (isIncluded(newOrdinal, includedToStates) && isIncluded(oldOrdinal, includedFromStates) &&
                 			isNotExcluded(newOrdinal, excludedToStates) && isNotExcluded(oldOrdinal, excludedFromStates) ) {			                			
                 			((StateChangeListener)listener).stateChange(states[oldOrdinal], states[newOrdinal]);
                 		}
 						
+                	} else {
+                		//Reactive listener can store the state here
+                		
+                		//TODO: important feature, in the future we can keep the state and add new filters like
+                		//      only accept digital reads when we are in state X
+                		
                 	}
                     break;
                 case -1:
@@ -292,28 +373,26 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
 	private static final long MS_to_NS = 1_000_000;
 
-	private void processTimeEvents(Object listener) {
-        //if we do have a clock schedule
-        if (0 != timeRate) {
-            if (listener instanceof TimeListener) {
-                            	
-                long timeToWait = (timeTrigger-hardware.currentTimeMillis())*MS_to_NS;
-                if (null!=stageRate && (timeToWait >= stageRate.longValue())) { //if its not near, leave
-                	return;
-                }
-                while (hardware.currentTimeMillis()<timeTrigger) {
-                	Thread.yield();
-                	if (Thread.interrupted()) {
-                		Thread.currentThread().interrupt();
-                		return;
-                	}
-                }
-                ((TimeListener)listener).timeEvent(timeTrigger);
-                timeTrigger += timeRate;
-                
-            }
-        }
-    }
+	private void processTimeEvents(TimeListener listener, long trigger) {
+		
+		long msRemaining = (trigger-hardware.currentTimeMillis()); 
+		if (msRemaining > timeProcessWindow) {
+			//if its not near, leave
+			return;
+		}
+		if (msRemaining>1) {
+			try {
+				Thread.sleep(msRemaining-1);
+			} catch (InterruptedException e) {
+			}
+		}		
+		while (hardware.currentTimeMillis() < trigger) {
+			Thread.yield();                	
+		}
+		
+		listener.timeEvent(trigger);
+		timeTrigger += timeRate;
+	}
 
 
     private void consumeRestMessage(Object listener2, Pipe<?> p) {
@@ -324,7 +403,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 int msgIdx = PipeReader.getMsgIdx(p);
                 
                 //no need to check instance of since this was registered and we have a pipe
-                ((RestListener)listener).restRequest(1, null, null);
+                ((RestListener)listener).restRequest(1, null);
                 
                 //done reading message off pipe
                 PipeReader.releaseReadLock(p);
@@ -358,7 +437,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     }
 
 	protected void processI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-		if (listener instanceof I2CListener) {
+
 			int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
 			long time = PipeReader.readLong(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
 			int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
@@ -368,9 +447,8 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 			int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 			int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 		    
-		    commonI2CEventProcessing((I2CListener)listener, addr, register, time, backing, position, length, mask);
-		   
-		}
+		    commonI2CEventProcessing((I2CListener) listener, addr, register, time, backing, position, length, mask);
+
 	}
 
     
@@ -384,7 +462,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 
                 case GroveResponseSchema.MSG_ANALOGSAMPLE_30:
                     if (listener instanceof AnalogListener) {                        
-                        commonAnalogEventProcessing(PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31),
+                        commonAnalogEventProcessing(Port.ANALOGS[PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31)],
                         				            PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11), 
                         				            PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32), 
                         				            (AnalogListener)listener);
@@ -394,7 +472,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                 case GroveResponseSchema.MSG_DIGITALSAMPLE_20:
                     
                     if (listener instanceof DigitalListener) {
-                        commonDigitalEventProcessing(PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21), 
+                        commonDigitalEventProcessing(Port.DIGITALS[PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21)], 
                         		                     PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_TIME_11), 
                         		                     PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22), 
                         		                     (DigitalListener)listener);
@@ -410,7 +488,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
                         int speed = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_SPEED_74);
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_PREVDURATION_75);
                         
-                        ((RotaryListener)listener).rotaryEvent(connector, time, value, delta, speed);
+                        ((RotaryListener)listener).rotaryEvent(Port.DIGITALS[connector], time, value, delta, speed);
                                             
                     }   
                 break;
@@ -437,43 +515,59 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 	    
     
-	protected void commonDigitalEventProcessing(int connector, long time, int value, DigitalListener dListener) {
+	protected void commonDigitalEventProcessing(Port port, long time, int value, DigitalListener dListener) {
 		
-		if (isIncluded(connector, includedDigitals) && isNotExcluded(connector, excludedDigitals)) {
+		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 
-			if(value!=lastDigitalValues[connector]){  //TODO: add switch   
-				dListener.digitalEvent(connector, time, 0==lastDigitalTimes[connector] ? -1 : time-lastDigitalTimes[connector], value);
-			    lastDigitalValues[connector] = value;
-			    lastDigitalTimes[connector] = time;
+			if (sendEveryDigitalValue[port.port]) {
+				dListener.digitalEvent(port, time, 0==lastDigitalTimes[port.port] ? -1 : time-lastDigitalTimes[port.port], value);				
+				if(value!=lastDigitalValues[port.port]){  
+					lastDigitalValues[port.port] = value;
+			    	lastDigitalTimes[port.port] = time;
+				}
+				
+			} else {			
+				if(value!=lastDigitalValues[port.port]){  
+					dListener.digitalEvent(port, time, 0==lastDigitalTimes[port.port] ? -1 : time-lastDigitalTimes[port.port], value);
+				    lastDigitalValues[port.port] = value;
+				    lastDigitalTimes[port.port] = time;
+				}
 			}
 		}
 	}
 
-	protected void commonAnalogEventProcessing(int connector, long time, int value, AnalogListener aListener) {
+	protected void commonAnalogEventProcessing(Port port, long time, int value, AnalogListener aListener) {
 		
-		if (isIncluded(connector, includedAnalogs) && isNotExcluded(connector, excludedAnalogs)) {
+		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 			
-			int runningValue = sendEveryAnalogValue[connector] ? value : findStableReading(value, connector);             
+			int runningValue = sendEveryAnalogValue[port.port] ? value : findStableReading(value, port.port);             
 			
-			MAvgRollerLong.roll(rollingMovingAveragesAnalog[connector], runningValue);                                                
+			//logger.debug(port+" send every value "+sendEveryAnalogValue[port.port]);
+			
+			MAvgRollerLong.roll(rollingMovingAveragesAnalog[port.port], runningValue);                                                
 			
 			int mean = runningValue;
-			if (MAvgRollerLong.isValid(rollingMovingAveragesAnalog[connector])) {
-				mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[connector]);
+			if (MAvgRollerLong.isValid(rollingMovingAveragesAnalog[port.port])) {
+				mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[port.port]);
 			}
 			
-			if (sendEveryAnalogValue[connector]) {
-				
-				aListener.analogEvent(connector, time, 0==lastAnalogTimes[connector] ? Long.MAX_VALUE : time-lastAnalogTimes[connector], mean, runningValue);
-				lastAnalogTimes[connector] = time;   
+			if (sendEveryAnalogValue[port.port]) {
+				//set time first so this is 0 the moment it shows up
+				//since we send every read we can send the age as greater and geater values as long as it does not change.
+				if(runningValue!=lastAnalogValues[port.port]){ 
+					lastAnalogTimes[port.port] = time;   
+					lastAnalogValues[port.port] = runningValue;
+				}
+				aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
 				
 			} else {								
-				if(value!=lastAnalogValues[connector]){   //TODO: add switch
-					
-					aListener.analogEvent(connector, time, 0==lastAnalogTimes[connector] ? Long.MAX_VALUE : time-lastAnalogTimes[connector], mean, runningValue);
+				if(runningValue!=lastAnalogValues[port.port]){ 
+										
+					//the duration here is the duration of how long the previous value was held.
+					aListener.analogEvent(port, time, 0==lastAnalogTimes[port.port] ? Long.MAX_VALUE : time-lastAnalogTimes[port.port], mean, runningValue);
 				   
-					lastAnalogValues[connector] = value;
-				    lastAnalogTimes[connector] = time;
+					lastAnalogValues[port.port] = runningValue;
+				    lastAnalogTimes[port.port] = time;
 				}
 			}
 		}
@@ -494,11 +588,11 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		return true;
 	}
 	
-	private boolean isNotExcluded(int connector, int[] excluded) {
+	private <T> boolean isNotExcluded(T port, T[] excluded) {
 		if (null!=excluded) {
 			int e = excluded.length;
 			while (--e>=0) {
-				if (excluded[e]==connector) {
+				if (excluded[e]==port) {
 					return false;
 				}
 			}
@@ -506,11 +600,36 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		return true;
 	}
 
-	private boolean isIncluded(int connector, int[] included) {
+	private boolean isNotExcluded(int a, int[] excluded) {
+		if (null!=excluded) {
+			int e = excluded.length;
+			while (--e>=0) {
+				if (excluded[e]==a) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	private <T> boolean isIncluded(T port, T[] included) {
 		if (null!=included) {
 			int i = included.length;
 			while (--i>=0) {
-				if (included[i]==connector) {
+				if (included[i]==port) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return true;
+	}
+	
+	private boolean isIncluded(int a, int[] included) {
+		if (null!=included) {
+			int i = included.length;
+			while (--i>=0) {
+				if (included[i]==a) {
 					return true;
 				}
 			}
@@ -520,65 +639,37 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 	
 	@Override
-	public ListenerFilter includeAnalogConnections(int... connections) {
-		if (!startupCompleted && listener instanceof AnalogListener) {
-			includedAnalogs = connections;
+	public ListenerFilter includePorts(Port ... ports) {
+		if (!startupCompleted && (listener instanceof AnalogListener || listener instanceof DigitalListener)) {
+			includedPorts = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
 	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
 	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
+	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister or DigitalListener in order to call this method.");
 	    	}
 		}
 	}
 
 	@Override
-	public ListenerFilter excludeAnalogConnections(int... connections) {
-		if (!startupCompleted && listener instanceof AnalogListener) {
-			excludedAnalogs = connections;
+	public ListenerFilter excludePorts(Port ... ports) {
+		if (!startupCompleted && (listener instanceof AnalogListener || listener instanceof DigitalListener)) {
+			excludedPorts = ports;
 			return this;
 		} else {
 			if (startupCompleted) {
 	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
 	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister in order to call this method.");
+	    		throw new UnsupportedOperationException("The Listener must be an instance of AnalogLister or DigitalListener in order to call this method.");
 	    	}
 		}
-	}
-
-	@Override
-	public ListenerFilter includeDigitalConnections(int... connections) {
-		if (!startupCompleted && listener instanceof DigitalListener) {
-			includedDigitals = connections;
-			return this;
-		} else {
-			if (startupCompleted) {
-	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
-	    	}
-		}
-	}
-
-	@Override
-	public ListenerFilter excludeDigitalConnections(int... connections) {
-		if (!startupCompleted && listener instanceof DigitalListener) {
-			excludedDigitals = connections;
-			return this;
-	    } else {
-	    	if (startupCompleted) {
-	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of DigitalLister in order to call this method.");
-	    	}
-	    }
 	}
 
 	@Override
 	public ListenerFilter addSubscription(CharSequence topic) {		
 		if (!startupCompleted && listener instanceof PubSubListener) {
-			hardware.addStartupSubscription(topic, System.identityHashCode(this));		
+			hardware.addStartupSubscription(topic, System.identityHashCode(listener));		
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -590,9 +681,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter includeI2CConnections(int... connections) {
+	public ListenerFilter includeI2CConnections(int ... addresses) {
 		if (!startupCompleted && listener instanceof I2CListener) {
-			includedI2Cs = connections;
+			includedI2Cs = addresses;
 			return this;
 		} else {
 			if (startupCompleted) {
@@ -604,9 +695,9 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter excludeI2CConnections(int... connections) {
+	public ListenerFilter excludeI2CConnections(int... addresses) {
 		if (!startupCompleted && listener instanceof I2CListener) {
-			excludedI2Cs = connections;
+			excludedI2Cs = addresses;
 			return this;
 	    } else {
 	    	if (startupCompleted) {
@@ -645,6 +736,12 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		}
 	}
 
+	
+	@Override
+	public <E extends Enum<E>> ListenerFilter includeStateChangeToAndFrom(E ... state) {
+		return includeStateChangeTo(state).includeStateChangeFrom(state);
+	}
+	
 	@Override
 	public <E extends Enum<E>> ListenerFilter includeStateChangeFrom(E ... state) {
 		if (!startupCompleted && listener instanceof StateChangeListener) {
@@ -679,7 +776,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		int b = maxOrdinal & 0x3F;		
 		int longsCount = a+(b==0?0:1);
 		
-		long[] array = new long[longsCount];
+		long[] array = new long[longsCount+1];
 				
 		int i = state.length;
 		while (--i>=0) {			

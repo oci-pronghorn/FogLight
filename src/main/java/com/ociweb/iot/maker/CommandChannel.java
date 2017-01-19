@@ -1,31 +1,39 @@
 package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.MessagePubSubStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+import com.ociweb.pronghorn.network.schema.NetRequestSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.schema.MessagePubSub;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Pool;
+import static com.ociweb.iot.maker.Port.*;
 
+/**
+ * Represents a dedicated channel for communicating with a single device
+ * or resource on an IoT system.
+ */
 public abstract class CommandChannel {
 
-    protected final Pipe<?>[] outputPipes;
+    private final Pipe<?>[] outputPipes;
     protected final Pipe<TrafficOrderSchema> goPipe;
-    protected final Pipe<MessagePubSub> messagePubSub;
-    protected final Pipe<I2CCommandSchema> i2cOutput;
-    protected final Pipe<GroveRequestSchema> output;
+    
+    protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
+    protected final Pipe<GroveRequestSchema> pinOutput; //TODO: find a way to not create if not used like http or message pup/sub
+    
+    private Pipe<NetRequestSchema> httpRequest;
+    private Pipe<MessagePubSub> messagePubSub;
     
     protected AtomicBoolean aBool = new AtomicBoolean(false);   
 
-    public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog vs digital
+    public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog .0vs digital
     protected static final long MS_TO_NS = 1_000_000;
     
     protected DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
@@ -36,37 +44,84 @@ public abstract class CommandChannel {
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
     protected final int maxCommands = 50;
     
-    private long topicKeyGen;
-    
-    Pool<PayloadWriter> payloadWriterPool;
     private final int maxOpenTopics = 1;
     
     protected final int pinPipeIdx = 0; 
     protected final int i2cPipeIdx = 1;
     protected final int subPipeIdx = 2;
+    protected final int netPipeIdx = 3;
+    protected final int goPipeIdx = 4;
+    
+    
     private HardwareImpl hardware;
+	private final int MAX_COMMAND_FRAGMENTS_SIZE;
         
     protected CommandChannel(GraphManager gm, HardwareImpl hardware,
-                             Pipe<GroveRequestSchema> output, Pipe<I2CCommandSchema> i2cOutput,  Pipe<MessagePubSub> messagePubSub,  //avoid adding more and see how they can be combined.
-                             Pipe<TrafficOrderSchema> goPipe) {
-       this.outputPipes = new Pipe<?>[]{output,i2cOutput,messagePubSub,goPipe};
-       this.goPipe = goPipe;
-       this.messagePubSub = messagePubSub;
-       this.i2cOutput = i2cOutput;
+    						 PipeConfig<GroveRequestSchema> pinConfig, 
+    					   	 PipeConfig<I2CCommandSchema> i2cConfig,  
+                             PipeConfig<MessagePubSub> pubSubConfig,
+                             PipeConfig<NetRequestSchema> netRequestConfig,
+                             PipeConfig<TrafficOrderSchema> goPipeConfig) {
+    	
+       this.outputPipes = new Pipe<?>[]{new Pipe<GroveRequestSchema>(pinConfig),
+    	                                new Pipe<I2CCommandSchema>(i2cConfig),
+    	                                newPubSubPipe(pubSubConfig),
+    	                                hardware.isUseNetClient() ? newNetRequestPipe(netRequestConfig) : null,
+    	                                new Pipe<TrafficOrderSchema>(goPipeConfig)};
+       
+       //using index helps avoid bugs by ensuring we use and known these index values.
+       this.goPipe = (Pipe<TrafficOrderSchema>) outputPipes[goPipeIdx];
+       this.i2cOutput = (Pipe<I2CCommandSchema>) outputPipes[i2cPipeIdx];
+       this.messagePubSub = (Pipe<MessagePubSub>) outputPipes[subPipeIdx];
+       this.httpRequest = (Pipe<NetRequestSchema>) outputPipes[netPipeIdx];
+       this.pinOutput = (Pipe<GroveRequestSchema>) outputPipes[pinPipeIdx];
                              
        if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
            throw new UnsupportedOperationException("maxCommands too large or pipe is too small, pipe size must be at least "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
        }
        this.hardware = hardware;
-       this.output = output;
+       
+       MAX_COMMAND_FRAGMENTS_SIZE = Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands;
     }
     
+    private static Pipe<MessagePubSub> newPubSubPipe(PipeConfig<MessagePubSub> config) {
+    	return new Pipe<MessagePubSub>(config) {
+			@SuppressWarnings("unchecked")
+			@Override
+			protected DataOutputBlobWriter<MessagePubSub> createNewBlobWriter() {
+				return new PayloadWriter(this);
+			}
+    		
+    	};
+    }
+    
+    private static Pipe<NetRequestSchema> newNetRequestPipe(PipeConfig<NetRequestSchema> config) {
+    	return new Pipe<NetRequestSchema>(config) {
+			@SuppressWarnings("unchecked")
+			@Override
+			protected DataOutputBlobWriter<NetRequestSchema> createNewBlobWriter() {
+				return new PayloadWriter(this);
+			}
+    		
+    	};   	
+    	
+    }
 
+    Pipe<?>[] getOutputPipes() {
+    	return outputPipes;
+    }
+    
+    
     void setListener(Object listener) {
         if (null != this.listener) {
             throw new UnsupportedOperationException("Bad Configuration, A CommandChannel can only be held and used by a single listener lambda/class");
         }
         this.listener = listener;
+        
+        
+        
+        
+        
     }
 
     
@@ -87,19 +142,94 @@ public abstract class CommandChannel {
     protected boolean exitBlockOk() {
         return aBool.compareAndSet(true, false);
     }
-    
-    public abstract boolean block(long msDuration);
-    public abstract boolean digitalBlock(int connector, long durationMilli);
-    public abstract boolean analogBlock(int connector, long durationMilli);
-    
-    public abstract boolean blockUntil(int connector, long time);
-    public abstract boolean digitalSetValue(int connector, int value);
-    public abstract boolean digitalSetValueAndBlock(int connector, int value, long durationMilli);
-    public abstract boolean digitalPulse(int connector);
-    public abstract boolean digitalPulse(int connector, long durationNanos);
-    public abstract boolean analogSetValue(int connector, int value);
-    public abstract boolean analogSetValueAndBlock(int connector, int value, long durationMilli);
 
+    /**
+     * Causes this channel to delay processing any actions until the specified
+     * amount of time has elapsed.
+     *
+     * @param msDuration Milliseconds to delay.
+     *
+     * @return True if blocking was successful, and false otherwise.
+     */
+    public abstract boolean block(long msDuration);
+
+    /**
+     * Causes this channel to delay processing any actions on a given {@link Port}
+     * until the specified amount of time has elapsed.
+     *
+     * @param port Port to temporarily stop processing actions on.
+     * @param durationMilli Milliseconds until the port will process actions again.
+     *
+     * @return True if blocking was successful, and false otherwise.
+     */
+    public abstract boolean block(Port port, long durationMilli);
+
+    /**
+     * Causes this channel to delay processing any actions on a given {@link Port}
+     * until the specified UNIX time is reached.
+     *
+     * @param port Port to temporarily stop processing actions on.
+     * @param time Time, in milliseconds, since the UNIX epoch that indicates
+     *             when actions should resume processing.
+     *
+     * @return True if blocking was successful, and false otherwise.
+     */
+    public abstract boolean blockUntil(Port port, long time);
+
+    /**
+     * Sets the value of an analog/digital port on this command channel.
+     *
+     * @param port {@link Port} to set the value of.
+     * @param value Value to set the port to.
+     *
+     * @return True if the port could be set, and false otherwise.
+     */
+    public abstract boolean setValue(Port port, int value);
+
+    /**
+     * Sets the value of an analog/digital port on this command channel and then
+     * delays processing of all future actions on this port until a specified
+     * amount of time passes.
+     *
+     * @param port {@link Port} to set the value of.
+     * @param value Value to set the port to.
+     * @param durationMilli Time in milliseconds to delay processing of future actions
+     *                      on this port.
+     *
+     * @return True if the port could be set, and false otherwise.
+     */
+    public abstract boolean setValueAndBlock(Port port, int value, long durationMilli);
+
+    /**
+     * "Pulses" a given port, setting its state to True/On and them immediately
+     * setting its state to False/Off.
+     *
+     * @param port {@link Port} to pulse.
+     *
+     * @return True if the port could be pulsed, and false otherwise.
+     */
+    public abstract boolean digitalPulse(Port port);
+
+    /**
+     * "Pulses" a given port, setting its state to True/On and them immediately
+     * setting its state to False/Off.
+     *
+     * @param port {@link Port} to pulse.
+     * @param durationNanos Time in nanoseconds to sustain the pulse for.
+     *
+     * @return True if the port could be pulsed, and false otherwise.
+     */
+    public abstract boolean digitalPulse(Port port, long durationNanos);
+
+    /**
+     * Opens an I2C connection.
+     *
+     * @param targetAddress I2C address to open a connection to.
+     *
+     * @return An {@link DataOutputBlobWriter} with an {@link I2CCommandSchema} that's
+     *         connected to the specified target address.
+     *
+     */
     public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
@@ -122,10 +252,13 @@ public abstract class CommandChannel {
         }
         
     }
-    
 
-
-    
+    /**
+     * Triggers a delay for a given I2C address.
+     *
+     * @param targetAddress I2C address to trigger a delay on.
+     * @param durationNanos Time in nanoseconds to delay.
+     */
     public void i2cDelay(int targetAddress, long durationNanos) {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
@@ -150,15 +283,18 @@ public abstract class CommandChannel {
         }
         
     }
-    
+
+    /**
+     * @return True if the I2C bus is ready for communication, and false otherwise.
+     */
     public boolean i2cIsReady() {
-        
-        return PipeWriter.hasRoomForWrite(goPipe) &&         
-                PipeWriter.hasRoomForFragmentOfSize(i2cOutput, Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands);
+        return PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, MAX_COMMAND_FRAGMENTS_SIZE);
        
     }
-    
 
+    /**
+     * Flushes all awaiting I2C data to the I2C bus for consumption.
+     */
     public void i2cFlushBatch() {        
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
@@ -170,8 +306,9 @@ public abstract class CommandChannel {
         }
     }
 
-
-
+    /**
+     * TODO: What does this do?
+     */
     public void i2cCommandClose() {  
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
@@ -183,14 +320,125 @@ public abstract class CommandChannel {
             PipeWriter.publishWrites(i2cOutput);
         } finally {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-        }
-        
+        }        
     }
-    
+
+    /**
+     * Submits an HTTP GET request asynchronously.
+     *
+     * The response to this HTTP GET will be sent to any HTTPResponseListeners
+     * associated with the listener for this command channel.
+     *
+     * @param domain Root domain to submit the request to (e.g., google.com)
+     * @param port Port to submit the request to.
+     * @param route Route on the domain to submit the request to (e.g., /api/hello)
+     *
+     * @return True if the request was successfully submitted, and false otherwise.
+     */
+    public boolean httpGet(CharSequence domain, int port, CharSequence route) {
+    	return httpGet(domain,port,route,(HTTPResponseListener)listener);
+
+    }
+
+    /**
+     * Submits an HTTP GET request asynchronously.
+     *
+     * @param host Root domain to submit the request to (e.g., google.com)
+     * @param port Port to submit the request to.
+     * @param route Route on the domain to submit the request to (e.g., /api/hello)
+     * @param listener {@link HTTPResponseListener} that will handle the response.
+     *
+     * @return True if the request was successfully submitted, and false otherwise.
+     */
+    public boolean httpGet(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
+    	
+    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPGET_100)) {
+                	    
+    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, port);
+    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, host);
+    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, route);
+    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, System.identityHashCode(listener));
+    		PipeWriter.publishWrites(httpRequest);
+            
+    		publishGo(1,subPipeIdx);
+            
+            return true;
+        }        
+        return false;
+    	
+    }
+
+    /**
+     * Submits an HTTP POST request asynchronously.
+     *
+     * The response to this HTTP POST will be sent to any HTTPResponseListeners
+     * associated with the listener for this command channel.
+     *
+     * @param domain Root domain to submit the request to (e.g., google.com)
+     * @param port Port to submit the request to.
+     * @param route Route on the domain to submit the request to (e.g., /api/hello)
+     *
+     * @return True if the request was successfully submitted, and false otherwise.
+     */
+    public PayloadWriter httpPost(CharSequence domain, int port, CharSequence route) {
+    	return httpPost(domain,port,route,(HTTPResponseListener)listener);    	
+    }
+
+    /**
+     * Submits an HTTP POST request asynchronously.
+     *
+     * @param host Root domain to submit the request to (e.g., google.com)
+     * @param port Port to submit the request to.
+     * @param route Route on the domain to submit the request to (e.g., /api/hello)
+     * @param listener {@link HTTPResponseListener} that will handle the response.
+     *
+     * @return True if the request was successfully submitted, and false otherwise.
+     */
+    public PayloadWriter httpPost(CharSequence host, int port, CharSequence route, HTTPResponseListener listener) {
+    	if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(httpRequest, NetRequestSchema.MSG_HTTPPOST_101)) {
+                	    
+    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PORT_1, port);
+    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_HOST_2, host);
+    		PipeWriter.writeUTF8(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_PATH_3, route);
+    		PipeWriter.writeInt(httpRequest, NetRequestSchema.MSG_HTTPPOST_101_FIELD_LISTENER_10, System.identityHashCode(listener));
+
+            publishGo(1,subPipeIdx);
+            
+            PayloadWriter pw = (PayloadWriter) Pipe.outputStream(messagePubSub);    
+            pw.openField(NetRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5,this);  
+            return pw;
+        } else {
+        	return null;
+        }    	
+    }
+
+    /**
+     * Subscribes the listener associated with this command channel to
+     * a topic.
+     *
+     * @param topic Topic to subscribe to.
+     *
+     * @return True if the topic was successfully subscribed to, and false
+     *         otherwise.
+     */
     public boolean subscribe(CharSequence topic) {
+    	
+    	if (null==listener || null == goPipe) {
+    		throw new UnsupportedOperationException("Can not subscribe before startup. Call addSubscription when registering listener."); 
+    	}
+    	
         return subscribe(topic, (PubSubListener)listener);
     }
-    
+
+    /**
+     * Subscribes a listener to a topic on this command channel.
+     *
+     * @param topic Topic to subscribe to.
+     * @param listener Listener to subscribe.
+     *
+     * @return True if the topic was successfully subscribed to, and false
+     *         otherwise.
+     */
     public boolean subscribe(CharSequence topic, PubSubListener listener) {
         if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_SUBSCRIBE_100)) {
             
@@ -206,10 +454,26 @@ public abstract class CommandChannel {
         return false;
     }
 
+    /**
+     * Unsubscribes the listener associated with this command channel from
+     * a topic.
+     *
+     * @param topic Topic to unsubscribe from.
+     *
+     * @return True if the topic was successfully unsubscribed from, and false otherwise.
+     */
     public boolean unsubscribe(CharSequence topic) {
         return unsubscribe(topic, (PubSubListener)listener);
     }
-    
+
+    /**
+     * Unsubscribes a listener from a topic.
+     *
+     * @param topic Topic to unsubscribe from.
+     * @param listener Listener to unsubscribe.
+     *
+     * @return True if the topic was successfully unsubscribed from, and false otherwise.
+     */
     public boolean unsubscribe(CharSequence topic, PubSubListener listener) {
         if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_UNSUBSCRIBE_101)) {
             
@@ -225,8 +489,13 @@ public abstract class CommandChannel {
         return false;
     }
 
-    
-    
+    /**
+     * Changes the state of this command channel's state machine.
+     *
+     * @param state State to transition to.
+     *
+     * @return True if the state was successfully transitioned, and false otherwise.
+     */
     public <E extends Enum<E>> boolean changeStateTo(E state) {
     	 assert(hardware.isValidState(state));
     	 if (!hardware.isValidState(state)) {
@@ -244,20 +513,23 @@ public abstract class CommandChannel {
 
     	return false;
     	
-    }    
-    
+    }
+
+    /**
+     * Opens a topic on this channel for writing.
+     *
+     * @param topic Topic to open.
+     *
+     * @return {@link PayloadWriter} attached to the given topic.
+     */
     public PayloadWriter openTopic(CharSequence topic) {
         
         if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(messagePubSub, MessagePubSub.MSG_PUBLISH_103)) {
-        
-            if (null==payloadWriterPool) {
-                lazyInitOfPool(); //must be after the listener has init all the pipes., TODO: could be done when we assign the lister, if we do.
-            }
             
-            long key = ++topicKeyGen;
             PipeWriter.writeUTF8(messagePubSub, MessagePubSub.MSG_PUBLISH_103_FIELD_TOPIC_1, topic);            
-            PayloadWriter pw = payloadWriterPool.get(key);            
-            pw.openField(key);            
+            PayloadWriter pw = (PayloadWriter) Pipe.outputStream(messagePubSub);
+            		          
+            pw.openField(MessagePubSub.MSG_PUBLISH_103_FIELD_PAYLOAD_3,this);            
                         
             return pw;
             
@@ -268,15 +540,6 @@ public abstract class CommandChannel {
         }
     }
 
-
-    private void lazyInitOfPool() {
-        PayloadWriter[] members = new PayloadWriter[maxOpenTopics];       
-        payloadWriterPool = new Pool<PayloadWriter>(members);
-        int m = maxOpenTopics;
-        while (--m >= 0) {
-            members[m] = new PayloadWriter(messagePubSub, this);
-        }
-    }
 
 
 

@@ -51,6 +51,11 @@ public class NunchuckTwig implements IODevice{
 	}
 
 	@Override
+    public int scanDelay() {
+    	return 0;
+    }
+    
+	@Override
 	public boolean isOutput() {
 		return false;
 	}
@@ -65,11 +70,6 @@ public class NunchuckTwig implements IODevice{
 		return 0;
 	}
 
-	@Override
-	public boolean isGrove() {
-		return false;
-	}
-    
 	@Override
     public int response() {       
        return 10;      

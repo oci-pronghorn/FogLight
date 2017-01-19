@@ -8,6 +8,7 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.Util;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -110,7 +111,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		//configure each sensor
 
-		hardware.beginPinConfiguration();
+		//hardware.beginPinConfiguration();
 
 		int i;
 
@@ -121,21 +122,21 @@ public class ReadDeviceInputStage extends PronghornStage {
 				IODevice twig = hardware.getDigitalInputs()[i].twig;
 
 				if (twig == GroveTwig.RotaryEncoder) {
-					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].connection; //just the low address
+					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register; //just the low address
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
 				} else if (twig == GroveTwig.Button) {                    
-					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].connection;
+					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register;
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
 				} else {                               
 					int idx = Util.reverseBits(sliceCount++);                   
 				}
-				System.out.println("configured "+twig+" on connection "+hardware.getDigitalInputs()[i].connection);
+				System.out.println("configured "+twig+" on connection "+hardware.getDigitalInputs()[i].register);
 			         
 		}                   
 
-		hardware.endPinConfiguration(); //TODO: questionalble, should move else where.
+		//hardware.endPinConfiguration(); //TODO: questionalble, should move else where.
 
 		blockStartTime = hardware.nanoTime();//critical Pronghorn contract ensure this start is called by the same thread as run
 	}
@@ -169,21 +170,21 @@ public class ReadDeviceInputStage extends PronghornStage {
 				}
 
 				HardwareConnection hc = adConnections[inProgressIdx];
-				int connector = hc.connection;
+				int connector = hc.register;
 				
 				if (hc.twig.pinsUsed()>1) {
 					//rotary encoder
 					//low level write
-					readRotaryEncoder(connector, connector, hardware.currentTimeMillis()); //TODO: hack for now, needs more testing.
+					readRotaryEncoder(connector, Port.DIGITALS[connector], hardware.currentTimeMillis()); //TODO: hack for now, needs more testing.
 				} else if (1==hc.twig.range()) {
 					//digital read
-					int fieldValue = hardware.digitalRead(connector);
+					int fieldValue = hardware.read(Port.DIGITALS[connector]);
 					//low level write
 					writeBit(responsePipe, connector, hardware.currentTimeMillis(), fieldValue);
 										
 				} else {
 					//analog read
-   				    int intValue = hardware.analogRead(connector);
+   				    int intValue = hardware.read(Port.DIGITALS[connector]);
 					//low level write
 					writeInt(responsePipe, connector, hardware.currentTimeMillis(), intValue);	
 				}
@@ -197,13 +198,13 @@ public class ReadDeviceInputStage extends PronghornStage {
 	}
 
 
-	private void readRotaryEncoder(int j, int connector, long timeMS) {
+	private void readRotaryEncoder(int j, Port port, long timeMS) {
 		byte rotaryPoll=3;
 		int maxCycles = 80; //what if stuck in middle must detect.
 		do {
 			//TODO: how do we know we have these two on the same clock?
-			int r1  = hardware.digitalRead(connector); 
-			int r2  = hardware.digitalRead(connector+1); 
+			int r1  = hardware.read(port); 
+			int r2  = hardware.read(Port.DIGITALS[port.port+1]); 
 
 			rotaryPoll = (byte)((r1<<1)|r2);
 
@@ -230,7 +231,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		if (frequentScriptLastPublished[j]!=rotationState[j] && Pipe.hasRoomForWrite(responsePipe)) {
 			int speed = (int)Math.min( (cycles - rotationLastCycle[j]), Integer.MAX_VALUE);
-			writeRotation(responsePipe, connector, hardware.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
+			writeRotation(responsePipe, port.port, hardware.currentTimeMillis(), rotationState[j], rotationState[j]-frequentScriptLastPublished[j], speed);
 
 			frequentScriptLastPublished[j] = rotationState[j];
 			rotationLastCycle[j] = cycles;

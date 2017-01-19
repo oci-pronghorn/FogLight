@@ -8,12 +8,25 @@ import com.ociweb.iot.hardware.HardwareConnection;
  *       GPIO 3 is SCL on an RPi
  *
  * TODO: Only pins we're actually using/care about are 2 and 3.
- *
+ * 
  * @author Brandon Sanders [brandon@alicorn.io]
+ * @author Alex Herriott
  */
 public class GrovePiConstants {
+	
+	public static final byte BOARD_ADDR = 0x04;
     
-    public static final short[] GPIO_PINS = new short[] {
+    public static final byte START_BYTE = 0x01;
+    public static final byte DIGITAL_READ = 0x01;
+    public static final byte DIGITAL_WRITE = 0x02;
+    public static final byte ANALOG_READ = 0x03;
+    public static final byte ANALOG_WRITE = 0x04;
+    public static final byte PIN_MODE = 0x05;
+    public static final byte ULTRASONIC_RANGER = 0x07;
+    public static final byte OUTPUT = 0x01;
+    public static final byte INPUT = 0x00;
+	
+	public static final short[] GPIO_PINS = new short[] {
         2,
         3,
 //        5,
@@ -105,7 +118,7 @@ public class GrovePiConstants {
         40
     };
     
-    public static final int[] DIGITAL_PIN_TO_REGISTER = new int[] {
+    public static final int[] DIGITAL_PORT_TO_REGISTER = new int[] {
     		0,
     		1,
     		2,
@@ -117,13 +130,13 @@ public class GrovePiConstants {
     		8,
     };
     
-    public static final int[] ANALOG_PIN_TO_REGISTER = new int[] {
+    public static final int[] ANALOG_PORT_TO_REGISTER = new int[] {
     		14,
     		15,
     		16	
     };
     
-    public static final int[] REGISTER_TO_PIN = new int[] {
+    public static final int[] REGISTER_TO_PORT = new int[] {
     		0,
     		1,
     		2,

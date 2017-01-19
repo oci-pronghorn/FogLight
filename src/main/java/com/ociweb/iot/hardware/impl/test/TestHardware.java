@@ -2,22 +2,30 @@ package com.ociweb.iot.hardware.impl.test;
 
 import java.util.Arrays;
 
+import com.ociweb.iot.hardware.HardwarePlatformType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.MessagePubSub;
 import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
+import com.ociweb.pronghorn.network.schema.NetRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.schema.MessagePubSub;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
+
+import static com.ociweb.iot.maker.Port.*;
 
 public class TestHardware extends HardwareImpl {
 
@@ -37,6 +45,7 @@ public class TestHardware extends HardwareImpl {
     
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking());
+        //logger.trace("You are running on the test hardware.");
     }
     
     
@@ -84,55 +93,47 @@ public class TestHardware extends HardwareImpl {
         Arrays.fill(lastTime, 0);
     }
     
-    public int getCapturedHigh(int connector) {
-        return pinHighValues[connector];
+    public int getCapturedHigh(Port port) {
+        return pinHighValues[port.port];
     }    
     
-    public long getFirstTime(int connector) {
-        return firstTime[connector];
+    public long getFirstTime(Port  port) {
+        return firstTime[port.port];
     }    
     
-    public long getLastTime(int connector) {
-        return lastTime[connector];
-    }  
-    
-    @Override
-    public int digitalRead(int connector) {
-        return pinData[connector];
+    public long getLastTime(Port port) {
+        return lastTime[port.port];
     }
 
     @Override
-    public int analogRead(int connector) {
-    	int noise = Math.random()<.1 ? 1 : 0;
-    	
-        return pinData[connector] + noise;
+    public HardwarePlatformType getPlatformType() {
+        return HardwarePlatformType.TEST;
     }
 
     @Override
-    public void digitalWrite(int connector, int value) {
-        pinHighValues[connector] = Math.max(pinHighValues[connector], value);
-        pinData[connector]=value;
-        lastTime[connector] = lastProvidedTime;
-        if (0==firstTime[connector]) {
-            firstTime[connector]=lastProvidedTime;
+    public int read(Port port) {
+        return pinData[port.port] + (port.isAnalog() ? (Math.random()<.1 ? 1 : 0) : 0); //adding noise for analog values
+    }
+
+
+    @Override
+    public void write(Port port, int value) {
+        pinHighValues[port.port] = Math.max(pinHighValues[port.port], value);
+        pinData[port.port]=value;
+        lastTime[port.port] = lastProvidedTime;
+        if (0==firstTime[port.port]) {
+            firstTime[port.port]=lastProvidedTime;
         }
-        logger.info("digital connection {} set to {} at {}",connector,value,lastProvidedTime);
+        logger.debug("port {} set to {} at {}",port,value,lastProvidedTime);
     }
 
-    @Override
-    public void analogWrite(int connector, int value) {
-        pinHighValues[connector] = Math.max(pinHighValues[connector], value);
-        pinData[connector]=value;
-        lastTime[connector] = lastProvidedTime;
-        if (0==firstTime[connector]) {
-            firstTime[connector]=lastProvidedTime;
-        }        
-        logger.info("analog connection {} set to {} at {}",connector,value,lastProvidedTime);
-    }
     
     @Override
-    public CommandChannel newCommandChannel(Pipe<GroveRequestSchema> pipe, Pipe<I2CCommandSchema> i2cPayloadPipe, Pipe<MessagePubSub> messagePubSub, Pipe<TrafficOrderSchema> orderPipe) {    
-       return new DefaultCommandChannel(gm, this, pipe, i2cPayloadPipe, messagePubSub, orderPipe);   //TODO: urgent rename as DefaultCommadnChannel     
+    public CommandChannel newCommandChannel(PipeConfig<GroveRequestSchema> pipe, PipeConfig<I2CCommandSchema> i2cPayloadPipe, 
+    		 PipeConfig<MessagePubSub> pubSubConfig,
+             PipeConfig<NetRequestSchema> netRequestConfig,
+             PipeConfig<TrafficOrderSchema> orderPipe) {    
+       return new DefaultCommandChannel(gm, this, pipe, i2cPayloadPipe, pubSubConfig, netRequestConfig, orderPipe);   //TODO: urgent rename as DefaultCommadnChannel     
     }
     
     @Override

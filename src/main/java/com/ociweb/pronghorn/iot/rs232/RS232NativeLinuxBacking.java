@@ -8,41 +8,27 @@ import java.io.IOException;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public final class RS232NativeLinuxBacking {
+public final class RS232NativeLinuxBacking implements RS232NativeBacking {
 
     static {
         try {
-            System.load(new File(".").getCanonicalPath() + File.separator + "rs232.so");
+            // TODO: Hard-coded for linux systems.
+            // TODO: Uses external native utils stuff for convenience. May consider alternative?
+            String arch = System.getenv("os.arch");
+            if (arch.contains("arm")) {
+                NativeUtils.loadLibraryFromJar("/jni/arm-linux/rs232.so");
+            } else {
+                NativeUtils.loadLibraryFromJar("/jni/i386-linux/rs232.so");
+            }
+//            System.load(new File(".").getCanonicalPath() + File.separator + "rs232.so");
         } catch (UnsatisfiedLinkError | IOException e) {
             e.printStackTrace();
         }
     }
 
-    private RS232NativeLinuxBacking() {}
-
-    // Standard baud rates.
-    public static final int B9600 =  0000015;
-    public static final int B19200 = 0000016;
-    public static final int B38400 = 0000017;
-    public static final int B57600 = 0010001;
-    public static final int B115200 = 0010002;
-    public static final int B230400 = 0010003;
-    public static final int B460800 = 0010004;
-    public static final int B500000 = 0010005;
-    public static final int B576000 = 0010006;
-    public static final int B921600 = 0010007;
-    public static final int B1000000 = 0010010;
-    public static final int B1152000 = 0010011;
-    public static final int B1500000 = 0010012;
-    public static final int B2000000 = 0010013;
-    public static final int B2500000 = 0010014;
-    public static final int B3000000 = 0010015;
-    public static final int B3500000 = 0010016;
-    public static final int B4000000 = 0010017;
-
     // Native methods.
-    public static native int open(String port, int baud);
-    public static native int write(int fd, String message);
-    public static native String readBlocking(int fd, int size);
-    public static native String read(int fd, int size);
+    public native int open(String port, int baud);
+    public native int write(int fd, String message);
+    public native String readBlocking(int fd, int size);
+    public native String read(int fd, int size);
 }

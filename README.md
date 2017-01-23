@@ -58,5 +58,16 @@ Of course, this is just a simple example; for more interesting examples that dem
 ## Notes for Contributors ##
 This project contains specially compiled version of the libjffi-1.2.so file for use with the Edison (i386-linux) and Pi (arm-Linux). Additionally, Libjffi is broken on Raspberry Pi's, requiring a manual recompile which is talked about [here](https://github.com/jruby/jruby/issues/1561#issuecomment-67953147).
 
+### Building Native Dependencies ###
+Whenever the native C code is modified, it must be rebuilt on all of the target Pronghorn platforms and have its artifacts pushed back up to this repository. To re-build individual artifacts for each platform, perform the following steps:
+
+1. Clone the Pronghorn repository down to your device (e.g., a Raspberry Pi or Intel Edison).
+2. Within the root of the cloned repository, execute the appropriate script (build-arm-linux.sh or build-i386-linux.sh, for Raspberry Pis and Intel Edisons respectively). For Pis, for example, you would execute `sh build-arm-linux.sh`.
+3. A variety of '.so' files should be generated under resources/jni.
+4. Commit the changes (which should only include `.so` files).
+5. Push the changes.
+
+Once the artifacts are properly built, you should be able to simply run `mvn clean packge` as normal and use the PronghornIoT jar.
+
 ## Sponsors ##
 Interested in sponsoring the development of the Pronghorn Embedded Toolkit? Contact [tippyn@ociweb.com](mailto:tippyn@ociweb.com).

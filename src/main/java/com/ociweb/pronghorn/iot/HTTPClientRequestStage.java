@@ -75,7 +75,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 
 	        while (PipeReader.hasContentToRead(requestPipe) && hasReleaseCountRemaining(activePipe) 
 	                && isChannelUnBlocked(activePipe)	                
-	                && hasRoomForWrite(requestPipe, output, ccm)
+	                && hasOpenConnection(requestPipe, output, ccm)
 	                && PipeReader.tryReadFragment(requestPipe) ){
 	  	    
 	        	
@@ -108,6 +108,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 						                if (PipeWriter.tryWriteFragment(outputPipe, NetPayloadSchema.MSG_PLAIN_210) ) {
 						                    	
 						                	PipeWriter.writeLong(outputPipe, NetPayloadSchema.MSG_PLAIN_210_FIELD_CONNECTIONID_201, connectionId);
+						                	PipeWriter.writeLong(outputPipe, NetPayloadSchema.MSG_PLAIN_210_FIELD_ARRIVALTIME_210, System.currentTimeMillis());
 						                	PipeWriter.writeLong(outputPipe, NetPayloadSchema.MSG_PLAIN_210_FIELD_POSITION_206, 0);
 						                	
 						                	DataOutputBlobWriter<NetPayloadSchema> activeWriter = PipeWriter.outputStream(outputPipe);
@@ -229,36 +230,9 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 		
 	}
 
-
-	//TODO: make static.
-	public boolean hasRoomForWrite(Pipe<ClientHTTPRequestSchema> requestPipe, Pipe<NetPayloadSchema>[] output, ClientCoordinator ccm) {
-		int result = -1;
-		//if we go around once and find nothing then stop looking
-		int i = output.length;
-		while (--i>=0) {
-			//next idx		
-			if (++activeOutIdx == output.length) {
-				activeOutIdx = 0;
-			}
-			//does this one have room
-			if (PipeWriter.hasRoomForWrite(output[activeOutIdx])) {
-				result = activeOutIdx;
-				break;
-			}
-		}
-		int outIdx = result;
-		if (-1 == outIdx) {
-			return false;
-		}
-		
-		return hasOpenConnection(requestPipe, output, ccm, outIdx);
-
-	}
-	
-	
 	//has side effect fo storing the active connectino as a member so it neeed not be looked up again later.
 	public boolean hasOpenConnection(Pipe<ClientHTTPRequestSchema> requestPipe, 
-											Pipe<NetPayloadSchema>[] output, ClientCoordinator ccm, int outIdx) {
+											Pipe<NetPayloadSchema>[] output, ClientCoordinator ccm) {
 		
 		if (PipeReader.peekMsg(requestPipe, -1)) {
 			return com.ociweb.pronghorn.network.HTTPClientRequestStage.hasRoomForEOF(output);
@@ -274,7 +248,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 		int port = PipeReader.peekInt(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1);
 		int userId = PipeReader.peekInt(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10);		
 						
-		ClientConnection activeConnection = ClientCoordinator.openConnection(ccm, hostBack, hostPos, hostLen, hostMask, port, userId, outIdx, output);
+		ClientConnection activeConnection = ClientCoordinator.openConnection(ccm, hostBack, hostPos, hostLen, hostMask, port, userId, output);
 				
 		
 		if (null != activeConnection) {
@@ -309,7 +283,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 		}
 		
 		
-		outIdx = activeConnection.requestPipeLineIdx(); //this should be done AFTER any handshake logic
+		int outIdx = activeConnection.requestPipeLineIdx(); //this should be done AFTER any handshake logic
 		Pipe<NetPayloadSchema> pipe = output[outIdx];
 		if (!PipeWriter.hasRoomForWrite(pipe)) {
 			return false;

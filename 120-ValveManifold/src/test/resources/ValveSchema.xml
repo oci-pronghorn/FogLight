@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+
+
+   <template name="ManifoldSerialNumberMessage" id="310">
+     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="ManifoldSerialNumber" id="10"/>
+   </template>   
+
+   <template name="ValveSerialNumberMessage" id="311">
+     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="ValveSerialNumber" id="11"/>
+   </template>   
+
+   <template name="LifeCycleCountMessage" id="312">
+     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="ValveSerialNumber" id="12"/>
+   </template>   
+
+   <template name="SupplyPressureMessage" id="313">
+     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="SupplyPressure" id="13"/>
+   </template>   
+
+   <template name="DurationOfLast1_4SignalMessage" id="314">
+     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="DurationOfLast1_4Signal" id="14"/>
+   </template>   
+
+   <template name="DurationOfLast1_2SignalMessage" id="315">
+     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="DurationOfLast1_2Signal" id="15"/>
+   </template>   
+
+   <template name="EqualizationAveragePressureMessage" id="316">
+     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="EqualizationAveragePressure" id="16"/>
+   </template>   
+
+   <template name="EqualizationPressureRateMessage" id="317">
+     <uInt32 name="Station" id="1"/>     
+     <int32 name="EqualizationPressureRate" id="17"/>
+   </template>   
+   
+   <template name="ResidualOfDynamicAnalysisMessage" id="318">
+     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="ResidualOfDynamicAnalysis" id="18"/>
+   </template>   
+   
+   <template name="PartNumberMessage" id="330">
+     <uInt32 name="Station" id="1"/>     
+     <string name="PartNumber" id="30" charset="unicode"/>
+   </template>
+   
+   <template name="ValueFault/False" id="340">
+     <uInt32 name="Station" id="1"/>
+   </template>
+
+   <template name="ValueFault/True" id="341">
+     <uInt32 name="Station" id="1"/>
+   </template>
+   
+   <template name="PressureFault/Low" id="350">
+     <uInt32 name="Station" id="1"/>
+   </template>
+
+   <template name="PressureFault/None" id="351">
+     <uInt32 name="Station" id="1"/>
+   </template>
+
+   <template name="PressureFault/High" id="352">
+     <uInt32 name="Station" id="1"/>
+   </template>
+
+   <template name="LeakFault/False" id="360">
+     <uInt32 name="Station" id="1"/>
+   </template>
+
+   <template name="LeakFault/True" id="361">
+     <uInt32 name="Station" id="1"/>
+   </template>
+      
+</templates>

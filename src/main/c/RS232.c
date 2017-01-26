@@ -1,4 +1,5 @@
 #include <stdio.h>   /* Standard input/output definitions */
+#include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <fcntl.h>   /* File control definitions */
@@ -32,31 +33,43 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
     }
 }
 
-JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_write(JNIEnv *env, jobject object, jint fd, jstring message) {
-    const char *actualMessage = (*env)->GetStringUTFChars(env, message, NULL);
+JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_write(JNIEnv *env, jobject object, jint fd, jbyteArray message) {
+    jbyte* buffer = (*env)->GetByteArrayElements(env, message, NULL);
+    int textLength = strlen((const char*) buffer);
+    char* actualMessage = malloc(textLength + 1);
+    memcpy(actualMessage, buffer, textLength);
+    actualMessage[textLength] = '\0';
+    (*env)->ReleaseByteArrayElements(env, message, buffer, 0);
+
     return write(fd, actualMessage, strlen(actualMessage));
 }
 
-JNIEXPORT jstring JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_readBlocking(JNIEnv *env, jobject object, jint fd, jint size) {
+JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_readBlocking(JNIEnv *env, jobject object, jint fd, jint size) {
     fcntl(fd, F_SETFL, 0);
     char msg[size];
     read(fd, msg, size);
-    return (*env)->NewStringUTF(env, msg);
+    jbyteArray array = (*env)->NewByteArray(env, size);
+    (*env)->SetByteArrayRegion(env, array, 0, size, (jbyte *) msg);
+    return array;
 }
 
-JNIEXPORT jstring JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_read(JNIEnv *env, jobject object, jint fd, jint size) {
+JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_read(JNIEnv *env, jobject object, jint fd, jint size) {
     fcntl(fd, F_SETFL, FNDELAY);
     char msg[size];
     int readSize = read(fd, msg, size);
     if (readSize == size) {
-        return (*env)->NewStringUTF(env, msg);
+        jbyteArray array = (*env)->NewByteArray(env, size);
+        (*env)->SetByteArrayRegion(env, array, 0, size, (jbyte *) msg);
+        return array;
     } else {
         if (readSize < 0) {
-            return (*env) ->NewStringUTF(env, "");
+            return (*env)->NewByteArray(env, 0);
         }
 
         char actualMessage[readSize];
         strncpy(actualMessage, msg, readSize);
-        return (*env)->NewStringUTF(env, actualMessage);
+        jbyteArray array = (*env)->NewByteArray(env, readSize);
+        (*env)->SetByteArrayRegion(env, array, 0, readSize, (jbyte *) actualMessage);
+        return array;
     }
 }

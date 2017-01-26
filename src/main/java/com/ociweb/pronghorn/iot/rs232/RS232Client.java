@@ -72,7 +72,7 @@ public class RS232Client {
      *
      * @return TODO: Some status code.
      */
-    public int write(String message) {
+    public int write(byte[] message) {
         if (connected) {
             return backing.write(fd, message);
         } else {
@@ -95,7 +95,7 @@ public class RS232Client {
         if (connected) {
 //            return backing.readBlocking(fd, size);
             // TODO: Which charset?
-            return backing.readBlocking(fd, size).getBytes(Charset.forName("UTF-8"));
+            return backing.readBlocking(fd, size);
         } else {
             return new byte[0];
         }
@@ -118,7 +118,7 @@ public class RS232Client {
     public byte[] read(int size) {
         if (connected) {
 //            return backing.read(fd, size);
-            return backing.read(fd, size).getBytes(Charset.forName("UTF-8"));
+            return backing.read(fd, size);
         } else {
             return new byte[0];
         }

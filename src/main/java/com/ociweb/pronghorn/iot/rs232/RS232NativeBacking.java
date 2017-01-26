@@ -48,8 +48,6 @@ public interface RS232NativeBacking {
     /**
      * Writes a message to a serial port on the underlying system.
      *
-     * TODO: This could be optimized to use chars instead of strings.
-     *
      * @param fd File descriptor for the port, obtained from a call
      *           to {@link #open(String, int)}
      *
@@ -57,7 +55,7 @@ public interface RS232NativeBacking {
      *
      * @return TODO: Some status code.
      */
-    int write(int fd, String message);
+    int write(int fd, byte[] message);
 
     /**
      * Reads a message from the underlying serial port. This function
@@ -69,28 +67,28 @@ public interface RS232NativeBacking {
      *
      * @param size Size of the message to read.
      *
-     * @return A string representing the read message. The length of
-     *         the string will be exactly equal to the size parameter
+     * @return A byte array representing the read message. The length of
+     *         the array will be exactly equal to the size parameter
      *         passed to this method.
      */
-    String readBlocking(int fd, int size);
+    byte[] readBlocking(int fd, int size);
 
     /**
      * Reads a message from the underlying serial port. This function
      * will return immediately with any available data up to the given
      * size to read; it is possible for this function to return an empty
-     * string.
+     * array.
      *
      * @param fd File descriptor for the port, obtained from a call
      *           to {@link #open(String, int)}
      *
      * @param size Size of the message to read.
      *
-     * @return A string representing the read message. The length
-     *         of the string will be at most equal to the size
+     * @return A byte array representing the read message. The length
+     *         of the array will be at most equal to the size
      *         parameter passed to this method, but it may be
      *         smaller if there were no available bytes to read
      *         when this function was invoked.
      */
-    String read(int fd, int size);
+    byte[] read(int fd, int size);
 }

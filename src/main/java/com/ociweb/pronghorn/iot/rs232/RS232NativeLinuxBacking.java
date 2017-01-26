@@ -1,5 +1,8 @@
 package com.ociweb.pronghorn.iot.rs232;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -10,17 +13,24 @@ import java.io.IOException;
  */
 public final class RS232NativeLinuxBacking implements RS232NativeBacking {
 
+    private static final Logger logger = LoggerFactory.getLogger(RS232NativeLinuxBacking.class);
+
     static {
         try {
             // TODO: Hard-coded for linux systems.
             // TODO: Uses external native utils stuff for convenience. May consider alternative?
-            String arch = System.getenv("os.arch");
+            String arch = System.getProperty("os.arch");
             if (arch.contains("arm")) {
                 NativeUtils.loadLibraryFromJar("/jni/arm-linux/rs232.so");
             } else {
-                NativeUtils.loadLibraryFromJar("/jni/i386-linux/rs232.so");
+                try {
+                    NativeUtils.loadLibraryFromJar("/jni/i386-linux/rs232.so");
+                } catch (Exception e) {
+                    logger.warn("Fallback i386 linux libraries failed to load. Attempting to load rs232.so from working directory.");
+                    System.load(new File(".").getCanonicalPath() + File.separator + "rs232.so");
+                }
             }
-//            System.load(new File(".").getCanonicalPath() + File.separator + "rs232.so");
+
         } catch (UnsatisfiedLinkError | IOException e) {
             e.printStackTrace();
         }
@@ -28,7 +38,7 @@ public final class RS232NativeLinuxBacking implements RS232NativeBacking {
 
     // Native methods.
     public native int open(String port, int baud);
-    public native int write(int fd, String message);
-    public native String readBlocking(int fd, int size);
-    public native String read(int fd, int size);
+    public native int write(int fd, byte[] message);
+    public native byte[] readBlocking(int fd, int size);
+    public native byte[] read(int fd, int size);
 }

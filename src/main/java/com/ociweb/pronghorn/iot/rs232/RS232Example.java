@@ -11,9 +11,9 @@ public class RS232Example {
         try {
             RS232Client client1 = new RS232Client("/dev/ttys004", RS232Client.B19200);
             RS232Client client2 = new RS232Client("/dev/ttys005", RS232Client.B19200);
-            client1.write("bazinga");
+            client1.write("bazinga".getBytes("UTF-8"));
             try {
-                String read = client2.read(7);
+                String read = new String(client2.read(7), "UTF-8");
                 System.out.println("Read: " + read.length());
                 System.out.println(read);
             } catch (Exception e) {

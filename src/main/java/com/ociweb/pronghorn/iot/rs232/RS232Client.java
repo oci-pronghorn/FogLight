@@ -81,6 +81,19 @@ public class RS232Client {
     }
 
     /**
+     * Returns the number of available bytes for reading on this serial port.
+     *
+     * @return The number of bytes currently available for reading on this serial port.
+     */
+    public int getAvailableBytes() {
+        if (connected) {
+            return backing.getAvailableBytes(fd);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
      * Reads a message from this serial port. This function
      * will block until the given number of bytes (indicated by the
      * size parameter) are read.
@@ -93,8 +106,6 @@ public class RS232Client {
      */
     public byte[] readBlocking(int size) {
         if (connected) {
-//            return backing.readBlocking(fd, size);
-            // TODO: Which charset?
             return backing.readBlocking(fd, size);
         } else {
             return new byte[0];
@@ -117,7 +128,6 @@ public class RS232Client {
      */
     public byte[] read(int size) {
         if (connected) {
-//            return backing.read(fd, size);
             return backing.read(fd, size);
         } else {
             return new byte[0];

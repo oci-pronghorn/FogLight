@@ -6,6 +6,7 @@
 #include <errno.h>   /* Error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
 #include <jni.h>
+#include <sys/ioctl.h>
 
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_open(JNIEnv *env, jobject object, jstring port, jint baud) {
     const char *actualPort = (*env)->GetStringUTFChars(env, port, NULL);
@@ -42,6 +43,12 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
     (*env)->ReleaseByteArrayElements(env, message, buffer, 0);
 
     return write(fd, actualMessage, strlen(actualMessage));
+}
+
+JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_getAvailableBytes(JNIEnv *env, jobject object, jint fd) {
+    int bytes;
+    ioctl(fd, FIONREAD, &bytes);
+    return bytes;
 }
 
 JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_readBlocking(JNIEnv *env, jobject object, jint fd, jint size) {

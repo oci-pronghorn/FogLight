@@ -58,6 +58,16 @@ public interface RS232NativeBacking {
     int write(int fd, byte[] message);
 
     /**
+     * Returns the number of available bytes for reading on the serial port.
+     *
+     * @param fd File descriptor for the port, obtained from a call
+     *           to {@link #open(String, int)}
+     *
+     * @return The number of bytes currently available for reading on the serial port.
+     */
+    int getAvailableBytes(int fd);
+
+    /**
      * Reads a message from the underlying serial port. This function
      * will block until the given number of bytes (indicated by the
      * size parameter) are read.

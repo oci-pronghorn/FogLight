@@ -22,7 +22,7 @@ public class RS232Example {
                     e.printStackTrace();
                 }
 
-                Thread.sleep(25);
+                Thread.sleep(250);
             }
         } catch (Exception e) {
             System.err.println("Exception encountered when doing serial things: " + e.getMessage());

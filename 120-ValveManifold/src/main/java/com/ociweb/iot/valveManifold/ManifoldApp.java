@@ -11,6 +11,7 @@ import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
+import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
 
 public class ManifoldApp {
 
@@ -42,8 +43,11 @@ public class ManifoldApp {
 		Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
 		
 		UARTDataStage.instance(gm, uartBytesPipe);
-		ValveDataParserStage.instance(gm, uartBytesPipe, valveDataPipe);		
-		MQTTPublishPAHOStage.instance(gm, valveDataPipe,"tcp://127.0.0.1:1883","42");
+		ValveDataParserStage.instance(gm, uartBytesPipe, valveDataPipe);	
+		
+		new ConsoleJSONDumpStage(gm, valveDataPipe);
+		
+		//MQTTPublishPAHOStage.instance(gm, valveDataPipe,"tcp://127.0.0.1:1883","42");
 				
 		MonitorConsoleStage.attach(gm);
 	}

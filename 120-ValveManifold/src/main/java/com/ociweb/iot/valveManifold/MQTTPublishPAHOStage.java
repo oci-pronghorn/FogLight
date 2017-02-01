@@ -42,6 +42,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 		this.connOptions.setCleanSession(true);
 		this.connOptions.setKeepAliveInterval(0);
 		this.connOptions.setConnectionTimeout(0);
+		
 		this.serverURI = serverURI;
 		this.clientId = clientId;
 	}
@@ -142,7 +143,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 		    	}
 
 		        MqttMessage message = new MqttMessage();
-	
+		        	
 		        message.setPayload(data);
 		        message.setRetained(retained);
 		        message.setQos(QOS);

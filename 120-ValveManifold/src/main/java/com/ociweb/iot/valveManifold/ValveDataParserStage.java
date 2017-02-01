@@ -88,7 +88,7 @@ public class ValveDataParserStage extends PronghornStage {
 		    }
 		}
 		//release all the bytes we ahve consumed in the above loop.
-		Pipe.releasePendingAsReadLock(output, originalLen-reader.sourceLen);
+		Pipe.releasePendingAsReadLock(input, originalLen-reader.sourceLen);
 		
 	}
 
@@ -157,6 +157,24 @@ public class ValveDataParserStage extends PronghornStage {
 		}
 	}
 
+	
+//	Manifold serial number: u32
+//	Station number: u8
+//	Valve serial number: u32
+//	Part number: string
+//	Life cycle count: u32
+//	Valve fault: u8
+//	Pressure fault: 1-character string
+//	Leak fault: u8
+//	Supply pressure: u16
+//	Duration of last 1-4 signal: u32
+//	Duration of last 1-2 signal: u32
+//
+//	Equalization average pressure: u16
+//	Equalization pressure rate: i16
+//	Residual of dynamic analysis: u16
+
+	
 	
     //package protected for testing
 	static TrieParser buildParser() {

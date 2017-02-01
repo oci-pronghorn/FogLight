@@ -23,5 +23,7 @@
     <module>110-GasPumpSimulator</module>
     <module>500-MatrixTest</module>
     <module>400-IoTGateway</module>
+    <module>600-HZDemo</module>
+    <module>650-CassandraDemo</module>
   </modules>
 </project>

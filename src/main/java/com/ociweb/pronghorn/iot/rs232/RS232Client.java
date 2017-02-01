@@ -140,7 +140,7 @@ public class RS232Client {
      * @param buffer
      * @param start
      * @param maxLength
-     * @return
+
      */
     public int readInto(byte[] buffer, int start, int maxLength) {
         byte[] read = read(maxLength);
@@ -172,17 +172,17 @@ public class RS232Client {
      * @param buffer2
      * @param start2
      * @param maxLength2
-     * @return
+
      */
     public int readInto(byte[] buffer1, int start1, int maxLength1,
                         byte[] buffer2, int start2, int maxLength2) {
         byte[] read = read(maxLength1 + maxLength2);
-
+        assert(read.length<(maxLength1 + maxLength2));
         if (read.length > 0) {
             int readBytes = 0;
 
             for (int i = 0; i < maxLength1; i++) {
-                if (readBytes > read.length) {
+                if (readBytes >= read.length) {
                     break;
                 }
 
@@ -191,7 +191,7 @@ public class RS232Client {
             }
 
             for (int i = 0; i < maxLength2; i++) {
-                if (readBytes > read.length) {
+                if (readBytes >= read.length) {
                     break;
                 }
 

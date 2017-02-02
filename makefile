@@ -8,6 +8,7 @@ clean:
 
 edison:
 	@echo "This target MUST be run on a platform with JAVA_HOME properly configured and with the Edison cross compiler installed."
+	@echo "If this build fails, make sure you remembered to source the edison environmental variables before running."
 	@i586-poky-linux-gcc -lmraa -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -shared -o src/main/resources/jni/i386-Linux/rs232.so -fPIC src/main/c/RS232.c
 
 pi:

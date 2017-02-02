@@ -21,10 +21,10 @@ public final class RS232NativeLinuxBacking implements RS232NativeBacking {
             // TODO: Uses external native utils stuff for convenience. May consider alternative?
             String arch = System.getProperty("os.arch");
             if (arch.contains("arm")) {
-                NativeUtils.loadLibraryFromJar("/jni/arm-linux/rs232.so");
+                NativeUtils.loadLibraryFromJar("/jni/arm-Linux/rs232.so");
             } else {
                 try {
-                    NativeUtils.loadLibraryFromJar("/jni/i386-linux/rs232.so");
+                    NativeUtils.loadLibraryFromJar("/jni/i386-Linux/rs232.so");
                 } catch (Exception e) {
                     logger.warn("Fallback i386 linux libraries failed to load. Attempting to load rs232.so from working directory.");
                     System.load(new File(".").getCanonicalPath() + File.separator + "rs232.so");

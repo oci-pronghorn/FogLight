@@ -12,10 +12,15 @@ public class RS232Example {
             RS232Client client1 = new RS232Client("/dev/ttys004", RS232Client.B9600);
             RS232Client client2 = new RS232Client("/dev/ttys005", RS232Client.B9600);
             for (int i = 0; i < 100; i++) {
-                client1.write(("bazinga #" + i).getBytes("UTF-8"));
+                String str = "bazinga #" + i;
+                client1.write((str).getBytes("UTF-8"));
+
+                Thread.sleep(250);
+
                 try {
                     System.out.println("Available Bytes: " + client2.getAvailableBytes());
-                    String read = new String(client2.read(7), "UTF-8");
+                    byte[] bytes = client2.read(50);
+                    String read = new String(bytes, "UTF-8");
                     System.out.println("Bytes Read: " + read.length());
                     System.out.println("Value Read: " + read);
                 } catch (Exception e) {

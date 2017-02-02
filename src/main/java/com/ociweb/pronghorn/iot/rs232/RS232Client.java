@@ -140,24 +140,10 @@ public class RS232Client {
      * @param buffer
      * @param start
      * @param maxLength
-
      */
     public int readInto(byte[] buffer, int start, int maxLength) {
-        byte[] read = read(maxLength);
-
-        if (read.length > 0) {
-            int readBytes = 0;
-
-            for (int i = 0; i < maxLength; i++) {
-                if (readBytes > read.length) {
-                    break;
-                }
-
-                buffer[start + i] = read[readBytes];
-                readBytes += 1;
-            }
-
-            return readBytes;
+        if (connected) {
+            return backing.readInto(fd, buffer, start, maxLength);
         } else {
             return -1;
         }
@@ -172,36 +158,14 @@ public class RS232Client {
      * @param buffer2
      * @param start2
      * @param maxLength2
-
      */
     public int readInto(byte[] buffer1, int start1, int maxLength1,
                         byte[] buffer2, int start2, int maxLength2) {
-        byte[] read = read(maxLength1 + maxLength2);
-        assert(read.length<(maxLength1 + maxLength2));
-        if (read.length > 0) {
-            int readBytes = 0;
-
-            for (int i = 0; i < maxLength1; i++) {
-                if (readBytes >= read.length) {
-                    break;
-                }
-
-                buffer1[start1 + i] = read[readBytes];
-                readBytes += 1;
-            }
-
-            for (int i = 0; i < maxLength2; i++) {
-                if (readBytes >= read.length) {
-                    break;
-                }
-
-                buffer2[start2 + i] = read[readBytes];
-                readBytes += 1;
-            }
-
-            return readBytes;
+        if (connected) {
+            return backing.readIntoTwo(fd, buffer1, start1, maxLength1,
+                                           buffer2, start2, maxLength2);
         } else {
-            return -1;
+            return  -1;
         }
     }
 }

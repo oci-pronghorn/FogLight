@@ -101,4 +101,28 @@ public interface RS232NativeBacking {
      *         when this function was invoked.
      */
     byte[] read(int fd, int size);
+
+    /**
+     * TODO:
+     *
+     * @param fd
+     * @param buffer
+     * @param start
+     * @param maxLength
+     */
+    int readInto(int fd, byte[] buffer, int start, int maxLength);
+
+    /**
+     * TODO:
+     *
+     * @param fd
+     * @param buffer1
+     * @param start1
+     * @param maxLength1
+     * @param buffer2
+     * @param start2
+     * @param maxLength2
+     */
+    int readIntoTwo(int fd, byte[] buffer1, int start1, int maxLength1,
+                            byte[] buffer2, int start2, int maxLength2);
 }

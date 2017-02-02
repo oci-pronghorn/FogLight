@@ -62,7 +62,7 @@ This project contains specially compiled version of the libjffi-1.2.so file for 
 Whenever the native C code is modified, it must be rebuilt on all of the target Pronghorn platforms and have its artifacts pushed back up to this repository. To re-build individual artifacts for each platform, perform the following steps:
 
 1. Clone the Pronghorn repository down to your device (e.g., a Raspberry Pi or Intel Edison).
-2. Within the root of the cloned repository, execute the appropriate script (build-arm-linux.sh or build-i386-linux.sh, for Raspberry Pis and Intel Edisons respectively). For Pis, for example, you would execute `sh build-arm-linux.sh`.
+2. Within the root of the cloned repository, execute the appropriate make target (pi for Pi's, edison for Edisons). The make commands will give you instructions if you do it wrong.
 3. A variety of '.so' files should be generated under resources/jni.
 4. Commit the changes (which should only include `.so` files).
 5. Push the changes.

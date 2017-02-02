@@ -17,17 +17,17 @@ public final class RS232NativeLinuxBacking implements RS232NativeBacking {
 
     static {
         try {
-            // TODO: Hard-coded for linux systems.
-            // TODO: Uses external native utils stuff for convenience. May consider alternative?
-            String arch = System.getProperty("os.arch");
-            if (arch.contains("arm")) {
-                NativeUtils.loadLibraryFromJar("/jni/arm-Linux/rs232.so");
+            if (new File("rs232.so").exists()) {
+                logger.info("rs232.so detected in working directory. Loading this file instead of the packaged one.");
+                System.load(new File(".").getCanonicalPath() + File.separator + "rs232.so");
             } else {
-                try {
+                // TODO: Hard-coded for linux systems.
+                // TODO: Uses external native utils stuff for convenience. May consider alternative?
+                String arch = System.getProperty("os.arch");
+                if (arch.contains("arm")) {
+                    NativeUtils.loadLibraryFromJar("/jni/arm-Linux/rs232.so");
+                } else {
                     NativeUtils.loadLibraryFromJar("/jni/i386-Linux/rs232.so");
-                } catch (Exception e) {
-                    logger.warn("Fallback i386 linux libraries failed to load. Attempting to load rs232.so from working directory.");
-                    System.load(new File(".").getCanonicalPath() + File.separator + "rs232.so");
                 }
             }
 
@@ -42,4 +42,7 @@ public final class RS232NativeLinuxBacking implements RS232NativeBacking {
     public native int getAvailableBytes(int fd);
     public native byte[] readBlocking(int fd, int size);
     public native byte[] read(int fd, int size);
+    public native int readInto(int fd, byte[] rawBuffer, int start, int maxLength);
+    public native int readIntoTwo(int fd, byte[] rawBuffer1, int start1, int maxLength1,
+                                          byte[] rawBuffer2, int start2, int maxLength2);
 }

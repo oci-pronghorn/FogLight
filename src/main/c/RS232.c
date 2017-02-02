@@ -121,7 +121,8 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
     if (readLength > 0) {
         int readBytes = 0;
 
-        for (int i = 0; i < maxLength; i++) {
+        int i;
+        for (i = 0; i < maxLength; i++) {
             if (readBytes > readLength) {
                 break;
             }
@@ -154,6 +155,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
             // Open first JNI byte array.
             jbyte* buffer1 = (*env)->GetByteArrayElements(env, rawBuffer1, NULL);
 
+            int i;
             for (int i = 0; i < maxLength1; i++) {
                 if (readBytes >= readLength) {
                     break;
@@ -167,7 +169,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
             (*env)->ReleaseByteArrayElements(env, rawBuffer1, buffer1, 0);
             jbyte* buffer2 = (*env)->GetByteArrayElements(env, rawBuffer2, NULL);
 
-            for (int i = 0; i < maxLength2; i++) {
+            for (i = 0; i < maxLength2; i++) {
                 if (readBytes >= readLength) {
                     break;
                 }

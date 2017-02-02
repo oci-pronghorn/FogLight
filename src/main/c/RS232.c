@@ -156,7 +156,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
             jbyte* buffer1 = (*env)->GetByteArrayElements(env, rawBuffer1, NULL);
 
             int i;
-            for (int i = 0; i < maxLength1; i++) {
+            for (i = 0; i < maxLength1; i++) {
                 if (readBytes >= readLength) {
                     break;
                 }

@@ -12,5 +12,5 @@ edison:
 	@i586-poky-linux-gcc -lmraa -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -shared -o src/main/resources/jni/i386-Linux/rs232.so -fPIC src/main/c/RS232.c
 
 pi:
-	@echo "This target MUST be run on the platform you are building for with JAVA_HOME properly configured."
-	@gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -shared -o src/main/resources/jni/arm-Linux/rs232.so -fPIC src/main/c/RS232.c
+	@echo "This target MUST be run on a platform with JAVA_HOME properly configured and the g++-arm-linux-gnuabihf cross compiler package installed."
+	@arm-linux-gnueabihf-gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -shared -o src/main/resources/jni/arm-Linux/rs232.so -fPIC src/main/c/RS232.c

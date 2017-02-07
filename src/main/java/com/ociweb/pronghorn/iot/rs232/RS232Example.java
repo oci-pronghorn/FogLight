@@ -9,9 +9,9 @@ public class RS232Example {
     // TODO : Simple test only.
     public static void main(String[] args) {
         try {
-            RS232Client client1 = new RS232Client("/dev/ttys004", RS232Client.B9600);
-            RS232Client client2 = new RS232Client("/dev/ttys005", RS232Client.B9600);
-            for (int i = 0; i < 100; i++) {
+            RS232Client client1 = new RS232Client("/dev/ttys002", RS232Client.B9600);
+            RS232Client client2 = new RS232Client("/dev/ttys003", RS232Client.B9600);
+            for (int i = 0; i < 10; i++) {
                 String str = "bazinga #" + i;
                 client1.write((str).getBytes("UTF-8"));
 
@@ -19,9 +19,12 @@ public class RS232Example {
 
                 try {
                     System.out.println("Available Bytes: " + client2.getAvailableBytes());
-                    byte[] bytes = client2.read(50);
-                    String read = new String(bytes, "UTF-8");
-                    System.out.println("Bytes Read: " + read.length());
+                    byte[] bytes = new byte[50];
+                    int readSize = client2.readInto(bytes, 0, 50);
+//                    byte[] bytes = client2.read(50);
+//                    int readSize = bytes.length;
+                    String read = new String(bytes, 0, readSize,"UTF-8");
+                    System.out.println("Bytes Read: " + readSize);
                     System.out.println("Value Read: " + read);
                 } catch (Exception e) {
                     e.printStackTrace();

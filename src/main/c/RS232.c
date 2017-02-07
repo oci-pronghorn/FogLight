@@ -54,6 +54,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
 JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_readBlocking(JNIEnv *env, jobject object, jint fd, jint size) {
     fcntl(fd, F_SETFL, 0);
     char msg[size];
+    memset(msg, '\0', sizeof msg);
     read(fd, msg, size);
     jbyteArray array = (*env)->NewByteArray(env, size);
     (*env)->SetByteArrayRegion(env, array, 0, size, (jbyte *) msg);
@@ -63,6 +64,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinu
 JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_read(JNIEnv *env, jobject object, jint fd, jint size) {
     fcntl(fd, F_SETFL, FNDELAY);
     char msg[size];
+    memset(msg, '\0', sizeof msg);
     int readSize = read(fd, msg, size);
     if (readSize == size) {
         jbyteArray array = (*env)->NewByteArray(env, size);
@@ -81,53 +83,27 @@ JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinu
     }
 }
 
-/**
- * Macro to expedite RS232 reads natively. Assigns the result of
- * the read to a new local variable, readBytesArray. Only
- * used by the below two functions.
- *
- * Created because code duplication was uglier and fiddling with
- * array allocation of dynamic sizes was painful.
- */
-#define readRS232(fd, size) fcntl(fd, F_SETFL, FNDELAY); \
-    char* readBytesArray; \
-    char msg[size]; \
-    int readSize = read(fd, msg, size); \
-    if (readSize == size) { \
-        readBytesArray = msg; \
-    } else { \
-        if (readSize < 0) { \
-            char empty[0]; \
-            readBytesArray = empty; \
-        } else { \
-            char actualMessage[readSize]; \
-            strncpy(actualMessage, msg, readSize); \
-            readBytesArray = actualMessage; \
-        } \
-    }
-
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_readInto(JNIEnv *env, jobject object, jint fd, jbyteArray rawBuffer, jint start, jint maxLength) {
 
     // Create our readBytesArray.
-    readRS232(fd, maxLength);
-
-    // Remember in C that sizeof returns size in bytes. Divide by number of bytes
-    // in the char data type to get the actual number of elements.
-    int readLength = sizeof(readBytesArray) / sizeof(char);
+    fcntl(fd, F_SETFL, FNDELAY);
+    char msg[maxLength];
+    memset(msg, '\0', sizeof msg);
+    int readSize = read(fd, msg, maxLength);
 
     jbyte* buffer = (*env)->GetByteArrayElements(env, rawBuffer, NULL);
     // jsize bufferLength = (*env)->GetArrayLength(env, rawBuffer);
 
-    if (readLength > 0) {
+    if (readSize > 0) {
         int readBytes = 0;
 
         int i;
         for (i = 0; i < maxLength; i++) {
-            if (readBytes > readLength) {
+            if (readBytes > readSize) {
                 break;
             }
 
-            buffer[start + i] = readBytesArray[readBytes];
+            buffer[start + i] = msg[readBytes];
             readBytes += 1;
         }
 
@@ -143,13 +119,13 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
                         jbyteArray rawBuffer2, jint start2, jint maxLength2) {
 
         // Create our readBytesArray.
-        readRS232(fd, maxLength1 + maxLength2);
+        int maxLength = maxLength1 + maxLength2;
+        fcntl(fd, F_SETFL, FNDELAY);
+        char msg[maxLength];
+        memset(msg, '\0', sizeof msg);
+        int readSize = read(fd, msg, maxLength);
 
-        // Remember in C that sizeof returns size in bytes. Divide by number of bytes
-        // in the char data type to get the actual number of elements.
-        int readLength = sizeof(readBytesArray) / sizeof(char);
-
-        if (readLength > 0) {
+        if (readSize > 0) {
             int readBytes = 0;
 
             // Open first JNI byte array.
@@ -157,11 +133,11 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
 
             int i;
             for (i = 0; i < maxLength1; i++) {
-                if (readBytes >= readLength) {
+                if (readBytes >= readSize) {
                     break;
                 }
 
-                buffer1[start1 + i] = readBytesArray[readBytes];
+                buffer1[start1 + i] = msg[readBytes];
                 readBytes += 1;
             }
 
@@ -170,11 +146,11 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
             jbyte* buffer2 = (*env)->GetByteArrayElements(env, rawBuffer2, NULL);
 
             for (i = 0; i < maxLength2; i++) {
-                if (readBytes >= readLength) {
+                if (readBytes >= readSize) {
                     break;
                 }
 
-                buffer2[start2 + i] = readBytesArray[readBytes];
+                buffer2[start2 + i] = msg[readBytes];
                 readBytes += 1;
             }
 

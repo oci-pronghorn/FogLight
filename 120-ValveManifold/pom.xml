@@ -192,7 +192,7 @@
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
           <injar>uber120-ValveManifold.jar</injar>
-          <outjar>110-ValveManifold.jar</outjar>
+          <outjar>120-ValveManifold.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

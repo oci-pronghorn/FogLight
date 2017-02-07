@@ -31,7 +31,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 	private static final Logger logger = LoggerFactory.getLogger(MQTTPublishPAHOStage.class);
 		
 
-	public static void instance(GraphManager gm, Pipe<ValveSchema> input, String serverURI, String clientId) {
+	public static void newInstance(GraphManager gm, Pipe<ValveSchema> input, String serverURI, String clientId) {
 		new MQTTPublishPAHOStage(gm, input, serverURI, clientId);
 	}
 	
@@ -47,6 +47,16 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 		this.clientId = clientId;
 	}
 
+	@Override
+	public void startup() {
+		//logger.info("started up");
+	}
+	
+	@Override
+	public void shutdown() {
+		//logger.info("shutdown");
+	}
+	
 	@Override
 	public void run() {
 		FieldReferenceOffsetManager from = Pipe.from(input);
@@ -112,7 +122,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 			Appendables.appendValue(mqttTopic, "/",stationId,"/");			
 			mqttTopic.append(dataTopic);
 						
-			System.err.println(mqttTopic);
+	//		System.err.println(mqttTopic);
 			
 			message(mqttTopic,data);
 			
@@ -152,7 +162,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 		        client.setTimeToWait(-1);
 	
 	
-		        logger.info("publish MQTT {} {}",QOS, topic);
+		        logger.info("publish MQTT QOS: {} topic: {}",QOS, topic);
 		        
 		        client.publish(topic.toString(), message);
 	
@@ -160,7 +170,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 
 	      } catch (MqttException e) {
 	    	  client = null;
-	    	  logger.warn("Unable to send payload",e);
+	    	  logger.warn("Unable to send payload, is the MQTT broaker {} up and running?",serverURI,e);
 	      }
 	}
 

@@ -37,28 +37,28 @@ public class UARTDataParserTest {
 		
 		assertEquals(1, TrieParserReader.capturedLongField(reader, 0));
 		
-		assertEquals(ValveSchema.MSG_VALVESERIALNUMBERMESSAGE_311, (int)TrieParserReader.parseNext(reader, trie));
+		assertEquals(ValveSchema.MSG_VALVESERIALNUMBER_311, (int)TrieParserReader.parseNext(reader, trie));
 		
 		assertEquals(100100, TrieParserReader.capturedLongField(reader, 0));
 				
-		assertEquals(ValveSchema.MSG_PARTNUMBERMESSAGE_330, (int)TrieParserReader.parseNext(reader, trie));
+		assertEquals(ValveSchema.MSG_PARTNUMBER_330, (int)TrieParserReader.parseNext(reader, trie));
 		
 		StringBuilder target = new StringBuilder();
 		TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, target);
 		assertEquals("NX-DCV-SM-BLU-1-1-VO-L1-SO-OO",target.toString());
 		
-		assertEquals(ValveSchema.MSG_RESIDUALOFDYNAMICANALYSISMESSAGE_318, (int)TrieParserReader.parseNext(reader, trie));
+		assertEquals(ValveSchema.MSG_RESIDUALOFDYNAMICANALYSIS_318, (int)TrieParserReader.parseNext(reader, trie));
 		
 		assertEquals(-100, TrieParserReader.capturedLongField(reader, 0));
 		
-		assertEquals(ValveSchema.MSG_LIFECYCLECOUNTMESSAGE_312, (int)TrieParserReader.parseNext(reader, trie));
+		assertEquals(ValveSchema.MSG_LIFECYCLECOUNT_312, (int)TrieParserReader.parseNext(reader, trie));
 		assertEquals(184587, TrieParserReader.capturedLongField(reader, 0));
 				
 		assertEquals(ValveSchema.MSG_LEAKFAULT_FALSE_360, (int)TrieParserReader.parseNext(reader, trie));		
 		assertEquals(ValveSchema.MSG_PRESSUREFAULT_LOW_350, (int)TrieParserReader.parseNext(reader, trie));
 		assertEquals(ValveSchema.MSG_VALUEFAULT_FALSE_340, (int)TrieParserReader.parseNext(reader, trie));
 		
-		assertEquals(ValveSchema.MSG_SUPPLYPRESSUREMESSAGE_313, (int)TrieParserReader.parseNext(reader, trie));
+		assertEquals(ValveSchema.MSG_SUPPLYPRESSURE_313, (int)TrieParserReader.parseNext(reader, trie));
 		assertEquals(80, TrieParserReader.capturedLongField(reader, 0));
 		
 		assertEquals(DATA_END, (int)TrieParserReader.parseNext(reader, trie));

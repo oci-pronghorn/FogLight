@@ -11,7 +11,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	private final Pipe<RawDataSchema> output;
 	private int x = 0;
 	
-	public static void instance(GraphManager gm, Pipe<RawDataSchema> output) {
+	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output) {
 		new SimulatedUARTDataStage(gm, output);
 		
 	}
@@ -59,7 +59,9 @@ public class SimulatedUARTDataStage extends PronghornStage{
 				writer.append("sp80");
 			}
 			
-			writer.append("]");
+			writer.append("]\n\r\n\r");
+			
+			// [st0sn101539pn"NX-DCV-SM-BLU-2-I-V0-L0-S0-00"cc31677vf0pf"L"lf0pp1]
 			
 			writer.closeLowLevelField();
 			

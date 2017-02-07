@@ -1,5 +1,9 @@
 package com.ociweb.iot.valveManifold;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.iot.valveManifold.schema.ValveSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -7,13 +11,18 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
 public class ValveDataParserStage extends PronghornStage {
 	
+	private final static Logger logger = LoggerFactory.getLogger(ValveDataParserStage.class);
+	
 	public static final int DATA_START = 						1;
 	public static final int DATA_END =   						2;
+	public static final int DATA_IGNORE =   					3;
+	
 	
 	private TrieParser trie;
 	private TrieParserReader reader;
@@ -23,7 +32,7 @@ public class ValveDataParserStage extends PronghornStage {
 	private boolean EOF_Detected = false;
 	private int stationNumber;
 	
-	public static void instance(GraphManager gm, Pipe<RawDataSchema> input, Pipe<ValveSchema> output) {
+	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> input, Pipe<ValveSchema> output) {
 		new ValveDataParserStage(gm, input, output);		
 	}
 	
@@ -38,10 +47,12 @@ public class ValveDataParserStage extends PronghornStage {
 	public void startup() {
 		trie = buildParser();
 		reader = new TrieParserReader(1);
+		//logger.info("started up");
 	}
 	
 	@Override
 	public void shutdown() {
+		//logger.info("shutting down");
 		Pipe.spinBlockForRoom(output, Pipe.EOF_SIZE);
 		Pipe.publishEOF(output);
 	}
@@ -49,11 +60,19 @@ public class ValveDataParserStage extends PronghornStage {
 	@Override
 	public void run() {
 		
-		while ((Pipe.hasContentToRead(input)||EOF_Detected) && Pipe.hasRoomForWrite(output)) {
+		//logger.info("called run");
+		while ((TrieParserReader.parseHasContent(reader)||Pipe.hasContentToRead(input)||EOF_Detected) && Pipe.hasRoomForWrite(output)) {
 		
-			readDataIntoParser(); //load all we can into the parser			
-			publishAvailData(); //parse everything we can 
+			//logger.info("has content to read");
 			
+			readDataIntoParser(); //load all we can into the parser			
+			if (!publishAvailData()) { //parse everything we can 
+								
+				StringBuilder unparsed = new StringBuilder();
+				Appendables.appendUTF8(unparsed, input.blobRing, reader.sourcePos, reader.sourceLen, input.blobMask);
+
+				return;//come back later, could not parse what we have so far.
+			}
 			if ( (!TrieParserReader.parseHasContent(reader)) && EOF_Detected) {
 				requestShutdown();
 				return;
@@ -61,50 +80,66 @@ public class ValveDataParserStage extends PronghornStage {
 			}
 		}
 		
+		
+
 	}
 
-	private void publishAvailData() {
-		
+	private boolean publishAvailData() {
+				
 		int originalLen = reader.sourceLen;
 		while (Pipe.hasRoomForWrite(output)) {
-			
+				
+			int oldPos = reader.sourcePos;
 			int parsedId = (int)TrieParserReader.parseNext(reader, trie);
 		    if (parsedId>0) {
 		    	//valid values
-			     
-				if (DATA_START==parsedId) {
-					stationNumber = (int)TrieParserReader.capturedLongField(reader, 0);
-				} else if (DATA_END==parsedId){				
-					//clear the st so it is not used for unexpected content
-					stationNumber = -1;
-				} else {
-					if (stationNumber != -1) {						
-						publishSingleMessage(parsedId);						
-					}					
-				}
+
+		    	if (DATA_IGNORE!=parsedId) {
+					if (DATA_START==parsedId) {
+						stationNumber = (int)TrieParserReader.capturedLongField(reader, 0);
+					} else if (DATA_END==parsedId){				
+						//clear the st so it is not used for unexpected content
+						stationNumber = -1;
+					} else {
+						if (stationNumber != -1) {						
+							publishSingleMessage(parsedId);						
+						}					
+					}
+		    	}
 			    	
 		    } else {
-		    	break;//exit the while we need read more content
+		    	
+		    	assert (reader.sourcePos==oldPos);
+		    	
+		    	int length = originalLen-reader.sourceLen;
+				Pipe.releasePendingAsReadLock(input, length);
+		    	//exit the while we need read more content
+		    	return false;
 		    }
 		}
 		//release all the bytes we ahve consumed in the above loop.
-		Pipe.releasePendingAsReadLock(input, originalLen-reader.sourceLen);
+		int length = originalLen-reader.sourceLen;
+		Pipe.releasePendingAsReadLock(input, length);
+
+		return true;
 		
 	}
 
 	private void publishSingleMessage(int parsedId) {
 		final int size = Pipe.addMsgIdx(output, parsedId);
 		Pipe.addIntValue(stationNumber,output);
-							
+					
+		//logger.info("publish message stationNo:{} type:{} ",stationNumber, parsedId);
+		
 		switch (parsedId) {
 
-			case ValveSchema.MSG_PARTNUMBERMESSAGE_330:
+			case ValveSchema.MSG_PARTNUMBER_330:
 				
 				DataOutputBlobWriter<ValveSchema> writer = Pipe.outputStream(output);
 				writer.openField();
 				TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, writer);
 				writer.closeLowLevelField();
-		
+
 				break;						
 			case ValveSchema.MSG_VALUEFAULT_FALSE_340:	
 			case ValveSchema.MSG_VALUEFAULT_TRUE_341:
@@ -116,6 +151,7 @@ public class ValveDataParserStage extends PronghornStage {
 				//NOTE: nothing to do here we have no payload
 				break;						
 			default:
+
 				//simple value
 				Pipe.addIntValue((int)TrieParserReader.capturedLongField(reader, 0), output);
 				
@@ -135,8 +171,9 @@ public class ValveDataParserStage extends PronghornStage {
 					//we have old data so just add the new data to it.						
 					int meta = Pipe.takeRingByteMetaData(input);
 					int length    = Pipe.takeRingByteLen(input);
-					Pipe.bytePosition(meta, input, length); //moves byte counter forward.
-					reader.sourceLen+=length;
+					int pos = Pipe.bytePosition(meta, input, length); //moves byte counter forward.
+					
+					reader.sourceLen+=length;				
 					
 				} else {
 					TrieParserReader.parseSetup(reader, input);
@@ -145,6 +182,7 @@ public class ValveDataParserStage extends PronghornStage {
 				Pipe.confirmLowLevelRead(input, Pipe.sizeOf(RawDataSchema.instance, RawDataSchema.MSG_CHUNKEDSTREAM_1)); 
 				Pipe.readNextWithoutReleasingReadLock(input);
 									
+				
 			} else {
 				
 				assert(-1 == msgIdx);
@@ -180,19 +218,29 @@ public class ValveDataParserStage extends PronghornStage {
 	static TrieParser buildParser() {
 		
 		TrieParser tp = new TrieParser(256,1,true,true);
-
+		
+		/////////////////////////
+		//these are needed to "capture" error cases early, the tighter we make them the sooner we find the issues.
+		tp.setMaxNumericLengthCapturable(16);
+		tp.setMaxBytesCapturable(36);
+        /////////////////////////
+		
 		tp.setUTF8Value("[st%u",        DATA_START);
 		
-		tp.setUTF8Value("mn%i",         ValveSchema.MSG_MANIFOLDSERIALNUMBERMESSAGE_310);
-		tp.setUTF8Value("sn%i",        	ValveSchema.MSG_VALVESERIALNUMBERMESSAGE_311);
-		tp.setUTF8Value("pn\"%b\"",    	ValveSchema.MSG_PARTNUMBERMESSAGE_330);
-		tp.setUTF8Value("cc%i",     	ValveSchema.MSG_LIFECYCLECOUNTMESSAGE_312);
-		tp.setUTF8Value("sp%i",     	ValveSchema.MSG_SUPPLYPRESSUREMESSAGE_313);		
-		tp.setUTF8Value("da%i",     	ValveSchema.MSG_DURATIONOFLAST1_4SIGNALMESSAGE_314);		
-		tp.setUTF8Value("db%i",     	ValveSchema.MSG_DURATIONOFLAST1_2SIGNALMESSAGE_315);		
-		tp.setUTF8Value("ap%i",     	ValveSchema.MSG_EQUALIZATIONAVERAGEPRESSUREMESSAGE_316);		
-		tp.setUTF8Value("ep%i",     	ValveSchema.MSG_EQUALIZATIONPRESSURERATEMESSAGE_317);		
-		tp.setUTF8Value("lr%i",     	ValveSchema.MSG_RESIDUALOFDYNAMICANALYSISMESSAGE_318);		
+		tp.setUTF8Value("mn%i",         ValveSchema.MSG_MANIFOLDSERIALNUMBER_310);
+		tp.setUTF8Value("sn%i",        	ValveSchema.MSG_VALVESERIALNUMBER_311);
+		tp.setUTF8Value("pn\"%b\"",    	ValveSchema.MSG_PARTNUMBER_330);
+		tp.setUTF8Value("cc%i",     	ValveSchema.MSG_LIFECYCLECOUNT_312);
+		
+		tp.setUTF8Value("sp%i",     	ValveSchema.MSG_SUPPLYPRESSURE_313);	
+		
+		tp.setUTF8Value("pp%i",     	ValveSchema.MSG_PRESSUREPOINT_319);		
+		
+		tp.setUTF8Value("da%i",     	ValveSchema.MSG_DURATIONOFLAST1_4SIGNAL_314);		
+		tp.setUTF8Value("db%i",     	ValveSchema.MSG_DURATIONOFLAST1_2SIGNAL_315);		
+		tp.setUTF8Value("ap%i",     	ValveSchema.MSG_EQUALIZATIONAVERAGEPRESSURE_316);		
+		tp.setUTF8Value("ep%i",     	ValveSchema.MSG_EQUALIZATIONPRESSURERATE_317);		
+		tp.setUTF8Value("lr%i",     	ValveSchema.MSG_RESIDUALOFDYNAMICANALYSIS_318);		
 					
 		tp.setUTF8Value("vf0",     		ValveSchema.MSG_VALUEFAULT_FALSE_340);
 		tp.setUTF8Value("vf1",     		ValveSchema.MSG_VALUEFAULT_TRUE_341);
@@ -208,6 +256,10 @@ public class ValveDataParserStage extends PronghornStage {
 				
 		
 		tp.setUTF8Value("]",         	DATA_END);
+		
+		tp.setUTF8Value("\n",      	    DATA_IGNORE);
+		tp.setUTF8Value("\r",      	    DATA_IGNORE);
+		
 				
 		return tp;
 		

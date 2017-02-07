@@ -2,7 +2,11 @@ package com.ociweb.iot.valveManifold;
 
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.iot.valveManifold.schema.ValveSchema;
+import com.ociweb.pronghorn.HTTPServer;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
@@ -12,17 +16,24 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
+import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 
 public class ManifoldApp {
 
-	private static final PipeConfig<ValveSchema> valveDataPipeConfig = new PipeConfig<ValveSchema>(ValveSchema.instance, 200, 64);
-	private static final PipeConfig<RawDataSchema> uartBytesPipeConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 200, 512);
+	private static final PipeConfig<RawDataSchema> uartBytesPipeConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 40, 400);
+	private static final PipeConfig<ValveSchema> valveDataPipeConfig = new PipeConfig<ValveSchema>(ValveSchema.instance, 40, 100);
+	private static final Logger logger = LoggerFactory.getLogger(ManifoldApp.class);
 	
 	private static ManifoldApp instance;	
 	private final GraphManager gm;
-	private final int rateInNS = 200_000; 
+	private final int rateInNS = 25_000_000; //once per 25 ms
+	private final String gatewayHost;
+	private final String clientId;
 	
-	public ManifoldApp() {
+	public ManifoldApp(String gatewayHost, String clientId) {
+		
+		this.gatewayHost = gatewayHost;
+		this.clientId = clientId;
 		
 		gm = new GraphManager();
 		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, rateInNS); 		
@@ -31,28 +42,38 @@ public class ManifoldApp {
 	
 	public static void main(String[] args) {
 		
-		instance = new ManifoldApp();
+		String gatewayHost = HTTPServer.getOptArg("-host", "--h", args, "127.0.0.1");	
+		String clientId = HTTPServer.getOptArg("-clientName", "--n", args, "UnknownManifold");	
+		
+		instance = new ManifoldApp(gatewayHost, clientId);
 		instance.buildGraph();
 		instance.runGraph();
-		
+				
 	}	
 	
 	public void buildGraph() {
+		//logger.info("build graph");
 		
 		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
 		Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
 		
-		UARTDataStage.instance(gm, uartBytesPipe);
-		ValveDataParserStage.instance(gm, uartBytesPipe, valveDataPipe);	
+		//	SimulatedUARTDataStage.newInstance(gm, uartBytesPipe); //for making fake data
 		
-		new ConsoleJSONDumpStage(gm, valveDataPipe);
-		
-		//MQTTPublishPAHOStage.instance(gm, valveDataPipe,"tcp://127.0.0.1:1883","42");
+		UARTDataStage.newInstance(gm, uartBytesPipe); //take the raw data off the UART and put it on the pipe		
 				
-		MonitorConsoleStage.attach(gm);
+		//ConsoleJSONDumpStage.newInstance(gm, uartBytesPipe ); //for reading the raw uart to the console
+		
+		ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages	
+		
+		MQTTPublishPAHOStage.newInstance(gm, valveDataPipe,"tcp://"+gatewayHost+":1883",clientId);//send data to the gateway
+			
+		//ConsoleJSONDumpStage.newInstance(gm, valveDataPipe ); //for reading JSON versions of the data at the console.
+		//PipeCleanerStage.newInstance(gm, valveDataPipe);
+		
 	}
 	
 	public void runGraph() {
+		//logger.info("run graph");
 		
 		StageScheduler scheduler = new ThreadPerStageScheduler(gm);
 		
@@ -64,9 +85,32 @@ public class ManifoldApp {
 		});
 		
 		scheduler.startup();		
-		
+		//logger.info("running graph");
 	}
 	
-	
+	public static String reportChoice(final String longName, final String shortName, final String value) {
+	    System.out.print(longName);
+	    System.out.print(" ");
+	    System.out.print(shortName);
+	    System.out.print(" ");
+	    System.out.println(value);
+	    return value;
+	}
+
+
+	public static String getOptArg(String longName, String shortName, String[] args, String defaultValue) {
+	    
+	    String prev = null;
+	    for (String token : args) {
+	        if (longName.equals(prev) || shortName.equals(prev)) {
+	            if (token == null || token.trim().length() == 0 || token.startsWith("-")) {
+	                return defaultValue;
+	            }
+	            return reportChoice(longName, shortName, token.trim());
+	        }
+	        prev = token;
+	    }
+	    return reportChoice(longName, shortName, defaultValue);
+	}
 	
 }

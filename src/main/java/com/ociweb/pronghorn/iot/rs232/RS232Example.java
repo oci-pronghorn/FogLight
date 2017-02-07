@@ -9,8 +9,8 @@ public class RS232Example {
     // TODO : Simple test only.
     public static void main(String[] args) {
         try {
-            RS232Client client1 = new RS232Client("/dev/ttys002", RS232Client.B9600);
-            RS232Client client2 = new RS232Client("/dev/ttys003", RS232Client.B9600);
+            RS232Client client1 = new RS232Client(System.getProperty("user.home") + "/dev/ttyVS1", RS232Client.B9600);
+            RS232Client client2 = new RS232Client(System.getProperty("user.home") + "/dev/ttyVS2", RS232Client.B9600);
             for (int i = 0; i < 10; i++) {
                 String str = "bazinga #" + i;
                 client1.write((str).getBytes("UTF-8"));

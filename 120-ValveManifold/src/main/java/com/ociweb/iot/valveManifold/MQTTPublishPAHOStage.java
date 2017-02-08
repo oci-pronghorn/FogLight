@@ -29,7 +29,9 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 	private final String clientId;
 	private final String root = "manifold";
 	private static final Logger logger = LoggerFactory.getLogger(MQTTPublishPAHOStage.class);
-		
+
+	private static final long TIME_LIMIT = 10_000;// 10 SECONDS
+	private long nextMessageTime = System.currentTimeMillis()+TIME_LIMIT;	
 
 	public static void newInstance(GraphManager gm, Pipe<ValveSchema> input, String serverURI, String clientId) {
 		new MQTTPublishPAHOStage(gm, input, serverURI, clientId);
@@ -62,6 +64,12 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 		FieldReferenceOffsetManager from = Pipe.from(input);
 		StringBuilder mqttTopic = new StringBuilder();
 		
+		if (!Pipe.hasContentToRead(input) && System.currentTimeMillis()>nextMessageTime) {
+		
+			logger.info("no data to publish");
+			
+			nextMessageTime = System.currentTimeMillis()+TIME_LIMIT;	
+		}
 		
 		while (Pipe.hasContentToRead(input)) {
 					
@@ -163,6 +171,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 	
 	
 		        logger.info("publish MQTT QOS: {} topic: {}",QOS, topic);
+		        nextMessageTime = System.currentTimeMillis()+TIME_LIMIT;
 		        
 		        client.publish(topic.toString(), message);
 	

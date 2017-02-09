@@ -24,7 +24,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 	private MqttConnectOptions connOptions;
 	private MqttClient client;
 	private final int QOS = 1;
-	private final boolean retained = false;  //TOOD: should this be true??
+	private final boolean retained = true;//gateway must hold last value unil it is replaced.
 	private final String serverURI;
 	private final String clientId;
 	private final String root = "manifold";
@@ -56,7 +56,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 	
 	@Override
 	public void shutdown() {
-		//logger.info("shutdown");
+		System.exit(-1); //take down the entire app.
 	}
 	
 	@Override
@@ -66,9 +66,9 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 		
 		if (!Pipe.hasContentToRead(input) && System.currentTimeMillis()>nextMessageTime) {
 		
-			logger.info("no data to publish");
-			
-			nextMessageTime = System.currentTimeMillis()+TIME_LIMIT;	
+			logger.info("no data to publish");			
+			nextMessageTime = System.currentTimeMillis()+TIME_LIMIT;
+
 		}
 		
 		while (Pipe.hasContentToRead(input)) {

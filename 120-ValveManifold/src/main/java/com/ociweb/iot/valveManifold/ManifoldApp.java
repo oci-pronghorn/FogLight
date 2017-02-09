@@ -26,7 +26,7 @@ public class ManifoldApp {
 	
 	private static ManifoldApp instance;	
 	private final GraphManager gm;
-	private final int rateInNS = 25_000_000; //once per 25 ms
+	private final int rateInNS = 100_000; 
 	private final String gatewayHost;
 	private final String clientId;
 	

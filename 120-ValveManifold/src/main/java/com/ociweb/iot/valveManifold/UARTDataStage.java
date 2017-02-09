@@ -33,7 +33,7 @@ public class UARTDataStage extends PronghornStage{
 
 	@Override 
 	public void startup() {
-        client = new RS232Client("/dev/ttyMFD1", RS232Client.B115200);
+        client = new RS232Client("/dev/ttyMFD1", RS232Client.B9600);
         //logger.info("started up");
 	}
 	

@@ -19,9 +19,11 @@ import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 
 public class ManifoldApp {
+	
+	private static final int maxMSG = 30 * 10 * 60; //one min of data for 10 values.	
 
-	private static final PipeConfig<RawDataSchema> uartBytesPipeConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 40, 400);
-	private static final PipeConfig<ValveSchema> valveDataPipeConfig = new PipeConfig<ValveSchema>(ValveSchema.instance, 40, 100);
+	private static final PipeConfig<RawDataSchema> uartBytesPipeConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance, 100, 400);
+	private static final PipeConfig<ValveSchema> valveDataPipeConfig = new PipeConfig<ValveSchema>(ValveSchema.instance, maxMSG, 100);
 	private static final Logger logger = LoggerFactory.getLogger(ManifoldApp.class);
 	
 	private static ManifoldApp instance;	

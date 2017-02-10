@@ -33,6 +33,9 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 	private static final long TIME_LIMIT = 10_000;// 10 SECONDS
 	private long nextMessageTime = System.currentTimeMillis()+TIME_LIMIT;	
 
+	private StringBuilder mqttTopic = new StringBuilder();
+	private byte[] data = null;
+	
 	public static void newInstance(GraphManager gm, Pipe<ValveSchema> input, String serverURI, String clientId) {
 		new MQTTPublishPAHOStage(gm, input, serverURI, clientId);
 	}
@@ -61,8 +64,26 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 	
 	@Override
 	public void run() {
-		FieldReferenceOffsetManager from = Pipe.from(input);
-		StringBuilder mqttTopic = new StringBuilder();
+		
+		///////////////////
+		//retry old data
+		///////////////
+		if ((data!=null) && (mqttTopic.length()>0)) {
+			//we have old data which was never sent due to network problems, try sending it again.
+			if (message(mqttTopic,data)) {
+				mqttTopic.setLength(0);
+				data = null;
+			} else {
+				//we had another failure so back-off
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+				}
+				return;
+			}
+		}
+		//////////////
+		//////////////
 		
 		if (!Pipe.hasContentToRead(input) && System.currentTimeMillis()>nextMessageTime) {
 		
@@ -85,13 +106,12 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 			
 			int size = Pipe.sizeOf(input, msgIdx);
 			
-			String dataTopic = from.fieldNameScript[msgIdx]; //skip over id to the field;
+			String dataTopic = Pipe.from(input).fieldNameScript[msgIdx]; //skip over id to the field;
 			
 
 			
 			int stationId = Pipe.takeInt(input);
 			
-			byte[] data = null;
 			switch (size) {
 			
 				case 3:
@@ -132,7 +152,10 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 						
 	//		System.err.println(mqttTopic);
 			
-			message(mqttTopic,data);
+			if (message(mqttTopic,data)) {
+				mqttTopic.setLength(0);
+				data = null;
+			}
 			
 			Pipe.confirmLowLevelRead(input, size);
 			Pipe.releaseReadLock(input);
@@ -153,7 +176,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
     
     
 	
-	public void message(StringBuilder topic, byte[] data) {
+	public boolean message(StringBuilder topic, byte[] data) {
 
 	    try {
 		    	if (null==client) {
@@ -168,18 +191,18 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 	
 		        client.connect(connOptions);
 		        client.setTimeToWait(-1);
-	
-	
-		        logger.info("publish MQTT QOS: {} topic: {}",QOS, topic);
+		
 		        nextMessageTime = System.currentTimeMillis()+TIME_LIMIT;
 		        
 		        client.publish(topic.toString(), message);
 	
 		        client.disconnect();
-
+		        logger.info("publish MQTT QOS: {} topic: {}",QOS, topic);
+		        return true;
 	      } catch (MqttException e) {
 	    	  client = null;
 	    	  logger.warn("Unable to send payload, is the MQTT broaker {} up and running?",serverURI,e);
+	    	  return false;
 	      }
 	}
 

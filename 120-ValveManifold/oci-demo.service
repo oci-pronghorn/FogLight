@@ -1,6 +1,8 @@
 [Unit]
 Description=oci-demo
-After=network.target
+Requires=network-online.target
+After=systemd-timesyncd.service rc-local.service 
+AllowIsolate=yes
 
 [Service]
 ExecStart=/home/root/launch-oci-demo.sh

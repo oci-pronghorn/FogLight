@@ -87,6 +87,34 @@ JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinu
     }
 }
 
+JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_writeFrom(JNIEnv *env, jobject object, jint fd, jbyteArray rawBuffer, jint start, jint maxLength) {
+    jbyte* buffer = (*env)->GetByteArrayElements(env, rawBuffer, NULL);
+    char* actualMessage = malloc(maxLength + 1);
+    memcpy(actualMessage, &buffer[start], maxLength * sizeof(char));
+    actualMessage[maxLength] = '\0';
+    (*env)->ReleaseByteArrayElements(env, rawBuffer, buffer, 0);
+
+    return write(fd, actualMessage, strlen(actualMessage));
+}
+
+JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_writeFromTwo(JNIEnv *env, jobject object, jint fd,
+                        jbyteArray rawBuffer1, jint start1, jint maxLength1,
+                        jbyteArray rawBuffer2, jint start2, jint maxLength2) {
+
+    int len1 = Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_writeFrom(env, object, fd, rawBuffer1, start1, maxLength1);
+
+    if (len1 != -1) {
+        int len2 = Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_writeFrom(env, object, fd, rawBuffer2, start2, maxLength2);
+        if (len2 != -1) {
+            return len1 + len2;
+        } else {
+            return len1;
+        }
+    } else {
+        return -1;
+    }
+}
+
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_readInto(JNIEnv *env, jobject object, jint fd, jbyteArray rawBuffer, jint start, jint maxLength) {
 
     // Create our readBytesArray.

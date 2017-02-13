@@ -84,12 +84,40 @@ public class RS232ClientTest {
             // TODO: 10 MS seems to be a good space for general testing...the ports aren't that fast.
             Thread.sleep(10);
 
-            try {
-                String read = new String(client2.read(50), "UTF-8");
-                Assert.assertTrue(read.contains(str));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            String read = new String(client2.read(50), "UTF-8");
+            Assert.assertTrue(read.contains(str));
+        }
+    }
+
+    @Test
+    public void shouldWriteBytesFromArrays() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            String str = "bazinga #" + i;
+            int write = client1.writeFrom(str.getBytes("UTF-8"), 0, str.length());
+
+            // TODO: 10 MS seems to be a good space for general testing...the ports aren't that fast.
+            Thread.sleep(10);
+
+            Assert.assertEquals(str.length(), write);
+            Assert.assertTrue(new String(client2.read(50), "UTF-8").contains(str));
+        }
+    }
+
+    @Test
+    public void shouldWriteBytesFromTwoArrays() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            String str = "bazinga #" + i;
+            String str2 = "bazoinga #" + i;
+            int write = client1.writeFrom(str.getBytes("UTF-8"), 0, str.length(),
+                                          str2.getBytes("UTF-8"), 0, str2.length());
+
+            // TODO: 10 MS seems to be a good space for general testing...the ports aren't that fast.
+            Thread.sleep(10);
+
+            Assert.assertEquals(str.length() + str2.length(), write);
+            String read = new String(client2.read(50), "UTF-8");
+            Assert.assertTrue(read.contains(str));
+            Assert.assertTrue(read.contains(str2));
         }
     }
 
@@ -102,14 +130,10 @@ public class RS232ClientTest {
             // TODO: 10 MS seems to be a good space for general testing...the ports aren't that fast.
             Thread.sleep(10);
 
-            try {
-                byte[] bytes = new byte[50];
-                int readSize = client2.readInto(bytes, 0, 50);
-                String read = new String(bytes, 0, readSize,"UTF-8");
-                Assert.assertTrue(read.contains(str));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            byte[] bytes = new byte[50];
+            int readSize = client2.readInto(bytes, 0, 50);
+            String read = new String(bytes, 0, readSize,"UTF-8");
+            Assert.assertTrue(read.contains(str));
         }
     }
 }

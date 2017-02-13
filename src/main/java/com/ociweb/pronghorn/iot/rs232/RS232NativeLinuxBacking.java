@@ -43,6 +43,9 @@ public final class RS232NativeLinuxBacking implements RS232NativeBacking {
     public native int getAvailableBytes(int fd);
     public native byte[] readBlocking(int fd, int size);
     public native byte[] read(int fd, int size);
+    public native int writeFrom(int fd, byte[] rawBuffer, int start, int maxLength);
+    public native int writeFromTwo(int fd, byte[] rawBuffer1, int start1, int maxLength1,
+                                           byte[] rawBuffer2, int start2, int maxLength2);
     public native int readInto(int fd, byte[] rawBuffer, int start, int maxLength);
     public native int readIntoTwo(int fd, byte[] rawBuffer1, int start1, int maxLength1,
                                           byte[] rawBuffer2, int start2, int maxLength2);

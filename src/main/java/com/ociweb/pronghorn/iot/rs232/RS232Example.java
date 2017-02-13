@@ -21,8 +21,6 @@ public class RS232Example {
                     System.out.println("Available Bytes: " + client2.getAvailableBytes());
                     byte[] bytes = new byte[50];
                     int readSize = client2.readInto(bytes, 0, 50);
-//                    byte[] bytes = client2.read(50);
-//                    int readSize = bytes.length;
                     String read = new String(bytes, 0, readSize,"UTF-8");
                     System.out.println("Bytes Read: " + readSize);
                     System.out.println("Value Read: " + read);

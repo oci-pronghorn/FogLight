@@ -159,6 +159,47 @@ public class RS232Client {
      * @param buffer
      * @param start
      * @param maxLength
+     *
+     * @return
+     */
+    public int writeFrom(byte[] buffer, int start, int maxLength) {
+        if (connected) {
+            return backing.writeFrom(fd, buffer, start, maxLength);
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * TODO:
+     *
+     * @param buffer1
+     * @param start1
+     * @param maxLength1
+     * @param buffer2
+     * @param start2
+     * @param maxLength2
+     *
+     * @return
+     */
+    public int writeFrom(byte[] buffer1, int start1, int maxLength1,
+                         byte[] buffer2, int start2, int maxLength2) {
+        if (connected) {
+            return backing.writeFromTwo(fd, buffer1, start1, maxLength1,
+                                            buffer2, start2, maxLength2);
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * TODO:
+     *
+     * @param buffer
+     * @param start
+     * @param maxLength
+     *
+     * @return
      */
     public int readInto(byte[] buffer, int start, int maxLength) {
         if (connected) {
@@ -177,6 +218,8 @@ public class RS232Client {
      * @param buffer2
      * @param start2
      * @param maxLength2
+     *
+     * @return
      */
     public int readInto(byte[] buffer1, int start1, int maxLength1,
                         byte[] buffer2, int start2, int maxLength2) {

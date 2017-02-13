@@ -34,8 +34,11 @@ public class RS232ClientTest {
             // Generate make artifacts.
             Process p = Runtime.getRuntime().exec("/usr/bin/make", new String[]{"JAVA_HOME=" + jHome});
             p.waitFor();
+
+            // Validate Make artifacts.
+            Assume.assumeTrue("Make did not execute correctly. Skipping test.", p.exitValue() == 0);
         } catch (Exception e) {
-            Assume.assumeNoException("Failed to start Socat. Do you have it installed on this system? Error: " + e.getMessage(), e);
+            Assume.assumeNoException("Failed to invoke Make. Skipping test. Do you have it installed on this system? Error: " + e.getMessage(), e);
         }
 
         // Start Socat.
@@ -48,7 +51,7 @@ public class RS232ClientTest {
                 Runtime.getRuntime().exec("make clean").waitFor();
             } catch (Exception e2) { /* Quietly fail. */ }
 
-            Assume.assumeNoException("Failed to start Socat. Do you have it installed on this system? Error: " + e.getMessage(), e);
+            Assume.assumeNoException("Failed to start Socat. Skipping test. Do you have it installed on this system? Error: " + e.getMessage(), e);
         }
 
         // TODO: Test at different bauds?

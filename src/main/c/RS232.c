@@ -34,6 +34,10 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
     }
 }
 
+JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_close(JNIEnv *env, jobject object, jint fd) {
+    return close(fd);
+}
+
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_write(JNIEnv *env, jobject object, jint fd, jbyteArray message) {
     jbyte* buffer = (*env)->GetByteArrayElements(env, message, NULL);
     int textLength = strlen((const char*) buffer);

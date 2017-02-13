@@ -64,6 +64,25 @@ public class RS232Client {
     }
 
     /**
+     * Closes this serial port.
+     *
+     * @return Status code of the close operation.
+     */
+    public int close() {
+        if (connected) {
+            int status = backing.close(fd);
+            if (status == 0) {
+                connected = false;
+                return 0;
+            } else {
+                return -1;
+            }
+        } else {
+            return -1;
+        }
+    }
+
+    /**
      * Writes a message to this serial port.
      *
      * TODO: This could be optimized to use chars instead of strings.

@@ -1,6 +1,6 @@
 default:
 	@echo "Building developer instant-gratification files. Run the edison or pi targets for building those respective artifacts. Run the clean target before publishing changes."
-	@gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/darwin" -I"${JAVA_HOME}/include/linux" -shared -o rs232.so -fPIC src/main/c/RS232.c
+	gcc -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin -I${JAVA_HOME}/include/linux -shared -o rs232.so -fPIC src/main/c/RS232.c
 
 clean:
 	@echo "Clearing developer instant-gratification files."

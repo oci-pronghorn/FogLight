@@ -46,6 +46,16 @@ public interface RS232NativeBacking {
     int open(String port, int baud);
 
     /**
+     * Closes a serial port on the underlying system.
+     *
+     * @param fd File descriptor for the port, obtained from a call
+     *           to {@link #open(String, int)}
+     *
+     * @return Status code of the close operation.
+     */
+    int close(int fd);
+
+    /**
      * Writes a message to a serial port on the underlying system.
      *
      * @param fd File descriptor for the port, obtained from a call

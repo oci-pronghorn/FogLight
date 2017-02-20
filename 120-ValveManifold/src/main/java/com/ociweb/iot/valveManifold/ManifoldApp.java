@@ -46,23 +46,26 @@ public class ManifoldApp {
 		
 		String gatewayHost = HTTPServer.getOptArg("-host", "--h", args, "127.0.0.1");	
 		String clientId = HTTPServer.getOptArg("-clientName", "--n", args, "UnknownManifold");	
+		String runSimulation = HTTPServer.getOptArg("-simulation", "--s", args, "False");
 		
 		instance = new ManifoldApp(gatewayHost, clientId);
-		instance.buildGraph();
+		instance.buildGraph(Boolean.parseBoolean(runSimulation));
 		instance.runGraph();
 				
 	}	
 	
-	public void buildGraph() {
+	public void buildGraph(boolean simulate) {
 		//logger.info("build graph");
 		
 		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
 		Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
 		
-		//	SimulatedUARTDataStage.newInstance(gm, uartBytesPipe); //for making fake data
+		if (simulate) {
+			SimulatedUARTDataStage.newInstance(gm, uartBytesPipe); //for making fake data
+		} else {
+			UARTDataStage.newInstance(gm, uartBytesPipe); //take the raw data off the UART and put it on the pipe		
+		}
 		
-		UARTDataStage.newInstance(gm, uartBytesPipe); //take the raw data off the UART and put it on the pipe		
-				
 		//ConsoleJSONDumpStage.newInstance(gm, uartBytesPipe ); //for reading the raw uart to the console
 		
 		ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages	

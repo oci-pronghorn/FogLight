@@ -117,10 +117,10 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 				case 3:
 					int idx = dataTopic.indexOf('/');
 					assert(idx>=0);
+					//System.err.println("data to send: "+dataTopic.substring(idx+1));
 					//the body is in the dataTopic
 					data = dataTopic.substring(idx+1).getBytes();
 					dataTopic = dataTopic.substring(0, idx);										
-					
 				break;
 				case 4:
 					//single int value
@@ -172,8 +172,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
         buf[pos++] = (byte)(v >>> 8);
         buf[pos++] = (byte) v;
         return pos;
-    }
-    
+    }    
     
 	
 	public boolean message(StringBuilder topic, byte[] data) {

@@ -5,11 +5,26 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.Appendables;
 
 public class SimulatedUARTDataStage extends PronghornStage{
 
 	private final Pipe<RawDataSchema> output;
 	private int x = 0;
+	private final int VALVECOUNT = 6;
+	private int valve = 0;
+	private long nextRun;
+	
+	String[] snArray;
+	String[] pnArray;
+	int[]    ccArray;
+	
+	String[] pfArray = new String[] {"H","L","N","N" ,"N","N","N","N" ,"N","N","N","N" ,"N","N","N","N"};
+	String[] spArray = new String[] {"100","10","80","80" ,"80","80","80","80" ,"80","80","80","80" ,"80","80","80","80"};
+	
+	String[] lfArray = new String[] {"1", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
+	String[] vfArray = new String[] {"0", "1", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
+		
 	
 	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output) {
 		new SimulatedUARTDataStage(gm, output);
@@ -19,11 +34,19 @@ public class SimulatedUARTDataStage extends PronghornStage{
 		super(graphManager, NONE, output);
 		this.output = output;
 		
-		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 1_000_000_000, this); //testing once per second.
 	}
 
 	@Override 
 	public void startup() {
+		int i = VALVECOUNT;
+		snArray = new String[i];
+		pnArray = new String[i];
+		ccArray = new int[i];
+		while (--i>=0) {
+			snArray[i] = (i+"010010");
+			pnArray[i] = "\""+ i +"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"";
+			ccArray[i] = 100+i;
+		}
 		
 		
 	}
@@ -37,27 +60,49 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	@Override
 	public void run() {
 		
+		long now = System.currentTimeMillis();
+		if (now<nextRun) {
+			return;
+		}		
+		
 	    if (Pipe.hasRoomForWrite(output)) {
 		
 			final int size = Pipe.addMsgIdx(output, RawDataSchema.MSG_CHUNKEDSTREAM_1);
 			
 			DataOutputBlobWriter<RawDataSchema> writer = Pipe.outputStream(output);
 			writer.openField();
-			writer.append("[st1");
+			writer.append("[");
 			
-			writer.append("sn100100");
-			writer.append("pn\"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"");			
-			writer.append("lr-100");			
-			writer.append("cc184587");			
-			writer.append("lf0");			
-			writer.append("pf\"L\"");			
-			writer.append("vf1");
+			writer.append("st");
+			Appendables.appendValue(writer, valve);
+					
+			writer.append("sn");
+			writer.append(snArray[valve]);
 			
-			if ((++x&2)==0) {
-				writer.append("sp82");
-			} else {
-				writer.append("sp80");
-			}
+			writer.append("pn");
+			writer.append(pnArray[valve]);			
+			
+			writer.append("lr");
+			writer.append("-100");			
+			
+			writer.append("cc");
+			int cc = ++ccArray[valve];
+			Appendables.appendValue(writer, cc);			
+			
+			writer.append("lf");
+			writer.append(lfArray[cc&0xF]);			
+			
+			writer.append("pf");
+			writer.append("\""+ pfArray[cc&0xF]+"\"");		//L H N 	
+			
+			writer.append("vf");
+			writer.append(vfArray[cc&0xF]);
+			
+			writer.append("sp");
+			writer.append(spArray[cc&0xF]);
+			
+			writer.append("pp");
+			writer.append("1");
 			
 			writer.append("]\n\r\n\r");
 			
@@ -69,8 +114,16 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			Pipe.publishWrites(output);
 			
 			//requestShutdown();
-	    }
+			
+			if (++valve>=VALVECOUNT) {
+				nextRun = System.currentTimeMillis()+1000;//1 second from now.
+				valve = 0;
+			}
+			
+	  }
 		
+	    
+	    
 		
 	}
 

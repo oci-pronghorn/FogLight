@@ -20,7 +20,10 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	int[]    ccArray;
 	
 	String[] pfArray = new String[] {"H","L","N","N" ,"N","N","N","N" ,"N","N","N","N" ,"N","N","N","N"};
+	
 	String[] spArray = new String[] {"100","10","80","80" ,"80","80","80","80" ,"80","80","80","80" ,"80","80","80","80"};
+	String[] ppArray = new String[] {"90","12","70","70" ,"70","70","70","70" ,"70","70","70","70" ,"70","70","70","70"};
+	
 	
 	String[] lfArray = new String[] {"1", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
 	String[] vfArray = new String[] {"0", "1", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
@@ -102,7 +105,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			writer.append(spArray[cc&0xF]);
 			
 			writer.append("pp");
-			writer.append("1");
+			writer.append(ppArray[cc&0xF]);
 			
 			writer.append("]\n\r\n\r");
 			

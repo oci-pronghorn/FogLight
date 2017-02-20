@@ -80,25 +80,6 @@ public class UARTDataStage extends PronghornStage{
 
 	private int copy(ByteBuffer[] buffers) {
 		
-		
-//		//System.err.println("avail "+client.getAvailableBytes());
-//
-//		int size = Math.min(client.getAvailableBytes(), buffers[0].remaining());
-//		
-//		byte[] result = client.read(size);
-//		
-//		
-//		if (null==result || result.length==0) {
-//			return 0;
-//		}
-//		
-//		System.arraycopy(result, 0, buffers[0].array(), buffers[0].position(), result.length);
-//		return result.length;
-		
-///////////////////////
-	//ABOVE IS A PATCH UNTIL THE BINARY C CODE GETS FIXED
-///////////////////////
-		
 		int readCount = client.readInto(buffers[0].array(), 
 				buffers[0].position(), 
 				buffers[0].remaining(), 

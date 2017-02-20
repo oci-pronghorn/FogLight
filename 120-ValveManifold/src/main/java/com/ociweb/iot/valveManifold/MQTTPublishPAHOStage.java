@@ -161,8 +161,6 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 			Pipe.releaseReadLock(input);
 
 		}
-		
-		
 	}
 	
 	

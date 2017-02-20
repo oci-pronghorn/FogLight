@@ -31,6 +31,7 @@ public class ValveDataParserStage extends PronghornStage {
 	private Pipe<ValveSchema> output;
 	private boolean EOF_Detected = false;
 	private int stationNumber;
+	private boolean isNew = true;
 	
 	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> input, Pipe<ValveSchema> output) {
 		new ValveDataParserStage(gm, input, output);		
@@ -67,10 +68,6 @@ public class ValveDataParserStage extends PronghornStage {
 			
 			readDataIntoParser(); //load all we can into the parser			
 			if (!publishAvailData()) { //parse everything we can 
-								
-				StringBuilder unparsed = new StringBuilder();
-				Appendables.appendUTF8(unparsed, input.blobRing, reader.sourcePos, reader.sourceLen, input.blobMask);
-
 				return;//come back later, could not parse what we have so far.
 			}
 			if ( (!TrieParserReader.parseHasContent(reader)) && EOF_Detected) {
@@ -79,12 +76,20 @@ public class ValveDataParserStage extends PronghornStage {
 				
 			}
 		}
-		
-		
 
 	}
 
 	private boolean publishAvailData() {
+				
+		if (isNew) {
+			//nothing happens until we find '['
+			if (TrieParserReader.parseSkipUntil(reader,'[')) {
+				isNew=false;	
+				//continue on to parse
+			} else {
+				return false; //the beginning of a data pack was not found, try again later.
+			}
+		}
 				
 		int originalLen = reader.sourceLen;
 		while (Pipe.hasRoomForWrite(output)) {
@@ -107,6 +112,7 @@ public class ValveDataParserStage extends PronghornStage {
 					}
 		    	}
 			    	
+		    	
 		    } else {
 		    	
 		    	assert (reader.sourcePos==oldPos);

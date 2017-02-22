@@ -28,7 +28,7 @@ public class ManifoldApp {
 	
 	private static ManifoldApp instance;	
 	private final GraphManager gm;
-	private final int rateInNS = 100_000; 
+	private final int rateInNS = 2_000; 
 	private final String gatewayHost;
 	private final String clientId;
 	

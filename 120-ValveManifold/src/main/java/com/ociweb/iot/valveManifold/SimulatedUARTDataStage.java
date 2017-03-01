@@ -11,9 +11,10 @@ public class SimulatedUARTDataStage extends PronghornStage{
 
 	private final Pipe<RawDataSchema> output;
 	private int x = 0;
-	private final int VALVECOUNT = 6;
+	private final int valveCount;
 	private int valve = 0;
 	private long nextRun;
+	private final int countBase;
 	
 	String[] snArray;
 	String[] pnArray;
@@ -21,7 +22,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	
 	String[] pfArray = new String[] {"H","L","N","N" ,"N","N","N","N" ,"N","N","N","N" ,"N","N","N","N"};
 	
-	String[] spArray = new String[] {"100","10","80","80" ,"80","80","80","80" ,"80","80","80","80" ,"80","80","80","80"};
+	String[] spArray = new String[] {"100","60","80","80" ,"80","80","80","80" ,"80","80","80","80" ,"80","80","80","80"};
 	String[] ppArray = new String[] {"90","12","70","70" ,"70","70","70","70" ,"70","70","70","70" ,"70","70","70","70"};
 	
 	
@@ -29,26 +30,27 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	String[] vfArray = new String[] {"0", "1", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
 		
 	
-	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output) {
-		new SimulatedUARTDataStage(gm, output);
+	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output, int valveCount, int countBase) {
+		new SimulatedUARTDataStage(gm, output, valveCount, countBase);
 		
 	}
-	public SimulatedUARTDataStage(GraphManager graphManager, Pipe<RawDataSchema> output) {
+	public SimulatedUARTDataStage(GraphManager graphManager, Pipe<RawDataSchema> output, int valveCount, int countBase) {
 		super(graphManager, NONE, output);
 		this.output = output;
-		
+		this.valveCount = valveCount;
+		this.countBase = countBase;
 	}
 
 	@Override 
 	public void startup() {
-		int i = VALVECOUNT;
+		int i = valveCount;
 		snArray = new String[i];
 		pnArray = new String[i];
 		ccArray = new int[i];
 		while (--i>=0) {
 			snArray[i] = (i+"010010");
 			pnArray[i] = "\""+ i +"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"";
-			ccArray[i] = 100+i;
+			ccArray[i] = countBase+i;
 		}
 		
 		
@@ -118,7 +120,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			
 			//requestShutdown();
 			
-			if (++valve>=VALVECOUNT) {
+			if (++valve>=valveCount) {
 				nextRun = System.currentTimeMillis()+1000;//1 second from now.
 				valve = 0;
 			}

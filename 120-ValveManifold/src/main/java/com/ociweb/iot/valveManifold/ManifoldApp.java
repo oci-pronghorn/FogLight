@@ -57,24 +57,44 @@ public class ManifoldApp {
 	public void buildGraph(boolean simulate) {
 		//logger.info("build graph");
 		
-		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
-		Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
-		
-		if (simulate) {
-			SimulatedUARTDataStage.newInstance(gm, uartBytesPipe); //for making fake data
-		} else {
+		if (!simulate) {
+			
+			Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
+			Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
+			
 			UARTDataStage.newInstance(gm, uartBytesPipe); //take the raw data off the UART and put it on the pipe		
+			
+			ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages	
+			
+			MQTTPublishPAHOStage.newInstance(gm, valveDataPipe,"tcp://"+gatewayHost+":1883",clientId);//send data to the gateway
+			
+			
+		} else {
+			//build up simulators
+	
+			singleSimulatedManifold("1", 5, 10);
+			singleSimulatedManifold("2", 5, 1000);
+			singleSimulatedManifold("3", 5, 10000);
+			singleSimulatedManifold("4", 5, 100000);
+			singleSimulatedManifold("5", 5, 1000000);
+						
+//			The manifold ids are 1, 2, 3, 4, and 5.
+//			The one they focus on is in the lower left corner and is id 4.
+//			The valve ids go from 0 to 5 on each manifold.
 		}
 		
-		//ConsoleJSONDumpStage.newInstance(gm, uartBytesPipe ); //for reading the raw uart to the console
+
 		
+	}
+
+	private void singleSimulatedManifold(String client, int valves, int base) {
+		Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);			
+		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
+		
+		SimulatedUARTDataStage.newInstance(gm, uartBytesPipe, valves, base); //for making fake data			
 		ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages	
 		
-		MQTTPublishPAHOStage.newInstance(gm, valveDataPipe,"tcp://"+gatewayHost+":1883",clientId);//send data to the gateway
-			
-		//ConsoleJSONDumpStage.newInstance(gm, valveDataPipe ); //for reading JSON versions of the data at the console.
-		//PipeCleanerStage.newInstance(gm, valveDataPipe);
-		
+		MQTTPublishPAHOStage.newInstance(gm, valveDataPipe, "tcp://"+gatewayHost+":1883", client);//send data to the gateway
 	}
 	
 	public void runGraph() {

@@ -99,7 +99,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 					                
 					                if (-1 != connectionId) {
 						                
-					                	ClientConnection clientConnection = (ClientConnection)ccm.get(connectionId, 0);
+					                	ClientConnection clientConnection = (ClientConnection)ccm.get(connectionId);
 					                	int outIdx = clientConnection.requestPipeLineIdx();
 					                	
 					                	clientConnection.incRequestsSent();//count of messages can only be done here.
@@ -158,7 +158,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 					                
 					                if (-1 != connectionId) {
 						                
-					                	ClientConnection clientConnection = (ClientConnection)ccm.get(connectionId, 0);
+					                	ClientConnection clientConnection = (ClientConnection)ccm.get(connectionId);
 					                	int outIdx = clientConnection.requestPipeLineIdx();
 					                					                  	
 					                	clientConnection.incRequestsSent();//count of messages can only be done here.

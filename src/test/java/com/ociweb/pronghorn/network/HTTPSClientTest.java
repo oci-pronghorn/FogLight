@@ -218,7 +218,7 @@ public class HTTPSClientTest {
 		
 		HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, hardware, ccm, input, goPipe, ackPipe, clientRequests);
 		//splitter is between these two 
-		SSLEngineWrapStage wrapStage = new  SSLEngineWrapStage(gm,ccm,false,clientRequestsLive, wrappedClientRequests, 0 );
+		SSLEngineWrapStage wrapStage = new  SSLEngineWrapStage(gm,ccm,false,clientRequestsLive, wrappedClientRequests );
 		//splitter is between these two
 		Pipe<NetPayloadSchema> handshake = new Pipe<NetPayloadSchema>(clientNetRequestConfig.grow2x());
 		ClientSocketWriterStage socketWriteStage = new ClientSocketWriterStage(gm, ccm, PronghornStage.join(wrappedClientRequestsLive,handshake));

@@ -280,7 +280,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
              case NetResponseSchema.MSG_RESPONSE_101:
             	 
             	 long ccId1 = PipeReader.readLong(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_CONNECTIONID_1);
-            	 ClientConnection cc = (ClientConnection)ccm.get(ccId1, 0);
+            	 ClientConnection cc = (ClientConnection)ccm.get(ccId1);
             	 
             	 if (null!=cc) {
 	            	 PayloadReader reader = (PayloadReader)PipeReader.inputStream(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_PAYLOAD_3);	            	 

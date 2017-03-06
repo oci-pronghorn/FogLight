@@ -172,12 +172,15 @@ public class MQTTPublishPAHOStage extends PronghornStage {
         return pos;
     }    
     
+	int errorCount = 0;
 	
 	public boolean message(StringBuilder topic, byte[] data) {
 
 	    try {
 		    	if (null==client) {
 		    		client = new MqttClient(serverURI, clientId, new MemoryPersistence());
+		    		client.connect(connOptions);
+		    		client.setTimeToWait(-1);
 		    	}
 
 		        MqttMessage message = new MqttMessage();
@@ -186,19 +189,30 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 		        message.setRetained(retained);
 		        message.setQos(QOS);
 	
-		        client.connect(connOptions);
-		        client.setTimeToWait(-1);
 		
 		        nextMessageTime = System.currentTimeMillis()+TIME_LIMIT;
 		        
 		        client.publish(topic.toString(), message);
+		        errorCount=0;
 	
-		        client.disconnect();
 		        logger.info("publish MQTT QOS: {} topic: {}",QOS, topic);
 		        return true;
 	      } catch (MqttException e) {
+	    	
+	    	if (e.getMessage().contains("is not connected")) {
+	    		client = null;
+	    		return false;
+	    	}
+	    	  
+	    	try {
+				client.disconnect();
+			} catch (MqttException e1) {
+				//ignore
+			}
 	    	  client = null;
-	    	  logger.warn("Unable to send payload, is the MQTT broaker {} up and running?",serverURI,e);
+	    	  if (++errorCount>10) {
+	    		  logger.warn("Unable to send payload, is the MQTT broaker {} up and running?",serverURI,e);
+	    	  }
 	    	  return false;
 	      }
 	}

@@ -100,6 +100,9 @@ public class ManifoldApp {
 	public void runGraph() {
 		//logger.info("run graph");
 		
+		
+		MonitorConsoleStage.attach(gm);
+		
 		StageScheduler scheduler = new ThreadPerStageScheduler(gm);
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {

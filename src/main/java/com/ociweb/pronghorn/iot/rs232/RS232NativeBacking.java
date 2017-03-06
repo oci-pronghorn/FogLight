@@ -119,7 +119,6 @@ public interface RS232NativeBacking {
      * @param rawBuffer
      * @param start
      * @param maxLength
-     * @return
      */
     int writeFrom(int fd, byte[] rawBuffer, int start, int maxLength);
 
@@ -133,7 +132,6 @@ public interface RS232NativeBacking {
      * @param rawBuffer2
      * @param start2
      * @param maxLength2
-     * @return
      */
     int writeFromTwo(int fd, byte[] rawBuffer1, int start1, int maxLength1,
                              byte[] rawBuffer2, int start2, int maxLength2);

@@ -60,11 +60,15 @@ public class RS232ClientTest {
     @AfterClass
     public static void teardown() {
         // Close clients.
-        client1.close();
-        client2.close();
+        try {
+            client1.close();
+            client2.close();
+        } catch (Throwable t) { /* Quietly fail. */ }
 
         // Stop socat.
-        socat.destroy();
+        try {
+            socat.destroy();
+        } catch (Throwable t) { /* Quietly fail. */ }
 
         // Clean make artifacts.
         try {

@@ -2,8 +2,6 @@ package com.ociweb.pronghorn.iot.rs232;
 
 import org.junit.*;
 
-import java.io.*;
-
 /**
  * These tests will be skipped if Socat is missing or if Make can not successfully execute.
  */
@@ -37,21 +35,21 @@ public class RS232ClientTest {
 
             // Validate Make artifacts.
             Assume.assumeTrue("Make did not execute correctly. Skipping test.", p.exitValue() == 0);
-        } catch (Exception e) {
-            Assume.assumeNoException("Failed to invoke Make. Skipping test. Do you have it installed on this system? Error: " + e.getMessage(), e);
+        } catch (Throwable t) {
+            Assume.assumeNoException("Failed to invoke Make. Skipping test. Do you have it installed on this system? Error: " + t.getMessage(), t);
         }
 
         // Start Socat.
         try {
             Runtime.getRuntime().exec(MKDIR_COMMAND).waitFor();
             socat = Runtime.getRuntime().exec(SOCAT_COMMAND);
-        } catch (Exception e) {
+        } catch (Throwable t) {
             // Clean any make artifacts we generated.
             try {
                 Runtime.getRuntime().exec("make clean").waitFor();
-            } catch (Exception e2) { /* Quietly fail. */ }
+            } catch (Throwable t2) { /* Quietly fail. */ }
 
-            Assume.assumeNoException("Failed to start Socat. Skipping test. Do you have it installed on this system? Error: " + e.getMessage(), e);
+            Assume.assumeNoException("Failed to start Socat. Skipping test. Do you have it installed on this system? Error: " + t.getMessage(), t);
         }
 
         // TODO: Test at different bauds?
@@ -61,18 +59,17 @@ public class RS232ClientTest {
 
     @AfterClass
     public static void teardown() {
+        // Close clients.
         client1.close();
         client2.close();
+
+        // Stop socat.
+        socat.destroy();
 
         // Clean make artifacts.
         try {
             Runtime.getRuntime().exec("make clean").waitFor();
-        } catch (IOException | InterruptedException e) {
-            Assert.fail("Failed to clean development binaries.");
-        }
-
-        // Stop socat.
-        socat.destroy();
+        } catch (Throwable t) { /* Quietly fail. */ }
     }
 
     @Test

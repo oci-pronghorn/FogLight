@@ -64,8 +64,8 @@ public class RS232Client {
     }
 
     /**
-     *
-     * @return
+     * @return True if this client is currently connected to
+     *         an RS232 interface, and false otherwise.
      */
     public boolean isConnected() {
         return connected;
@@ -162,12 +162,13 @@ public class RS232Client {
     }
 
     /**
-     * TODO:
+     * Writes the bytes from an array directly to this client's serial port.
      *
-     * @param buffer
-     * @param start
-     * @param maxLength
+     * @param buffer Buffer to write bytes from.
+     * @param start Position in the buffer to start writing from.
+     * @param maxLength Maximum number of values to write from the buffer.
      *
+     * @return TODO: Some status code.
      */
     public int writeFrom(byte[] buffer, int start, int maxLength) {
         if (connected) {
@@ -178,15 +179,16 @@ public class RS232Client {
     }
 
     /**
-     * TODO:
+     * Writes the bytes from two arrays directly to this client's serial port.
      *
-     * @param buffer1
-     * @param start1
-     * @param maxLength1
-     * @param buffer2
-     * @param start2
-     * @param maxLength2
+     * @param buffer1 First buffer to write bytes from.
+     * @param start1 Position in the first buffer to start writing from.
+     * @param maxLength1 Maximum number of values to write from the first buffer.
+     * @param buffer2 Second buffer to write bytes from.
+     * @param start2 Position in the second buffer to start writing from.
+     * @param maxLength2 Maximum number of values to write from the second buffer.
      *
+     * @return TODO: Some status code.
      */
     public int writeFrom(byte[] buffer1, int start1, int maxLength1,
                          byte[] buffer2, int start2, int maxLength2) {
@@ -199,12 +201,16 @@ public class RS232Client {
     }
 
     /**
-     * TODO:
+     * Reads data from this client's serial port directly into an array.
      *
-     * @param buffer
-     * @param start
-     * @param maxLength
+     * This method performs a <b>non-blocking</b> read, meaning the array
+     * may not be entirely filled with data.
      *
+     * @param buffer Array to read bytes into.
+     * @param start Starting position in the array to read bytes into.
+     * @param maxLength Maximum number of bytes to read.
+     *
+     * @return The total number of bytes read.
      */
     public int readInto(byte[] buffer, int start, int maxLength) {
         if (connected) {
@@ -215,15 +221,25 @@ public class RS232Client {
     }
 
     /**
-     * TODO:
+     * Reads data from this client's serial port directly into two arrays.
      *
-     * @param buffer1
-     * @param start1
-     * @param maxLength1
-     * @param buffer2
-     * @param start2
-     * @param maxLength2
+     * This method performs a <b>non-blocking</b> read, meaning the array
+     * may not be entirely filled with data. Additionally, it's possible
+     * for only one of the arrays to actually be written to depending on
+     * how much data is available when this method is invoked.
      *
+     * @param buffer1 First array to read bytes into.
+     * @param start1 Starting position in the first array to read bytes
+     *               into.
+     * @param maxLength1 Maximum number of bytes to read into the first
+     *                   array.
+     * @param buffer2 Second array to read bytes into.
+     * @param start2 Starting position in the second array to read bytes
+     *               into.
+     * @param maxLength2 Maximum number of bytes to read into the second
+     *                   array.
+     *
+     * @return The total number of bytes read.
      */
     public int readInto(byte[] buffer1, int start1, int maxLength1,
                         byte[] buffer2, int start2, int maxLength2) {

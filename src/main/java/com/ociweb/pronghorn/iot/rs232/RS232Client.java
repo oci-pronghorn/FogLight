@@ -64,6 +64,14 @@ public class RS232Client {
     }
 
     /**
+     *
+     * @return
+     */
+    public boolean isConnected() {
+        return connected;
+    }
+
+    /**
      * Closes this serial port.
      *
      * @return Status code of the close operation.

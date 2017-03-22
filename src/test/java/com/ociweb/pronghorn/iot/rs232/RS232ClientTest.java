@@ -2,6 +2,9 @@ package com.ociweb.pronghorn.iot.rs232;
 
 import org.junit.*;
 
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
 /**
  * These tests will be skipped if Socat is missing or if Make can not successfully execute.
  */
@@ -43,6 +46,10 @@ public class RS232ClientTest {
         try {
             Runtime.getRuntime().exec(MKDIR_COMMAND).waitFor();
             socat = Runtime.getRuntime().exec(SOCAT_COMMAND);
+
+            // Give Socat time to initialize FS bindings.
+            // TODO: Is there a way to do this /without/ a fixed time delay?
+            socat.waitFor(1000, TimeUnit.MILLISECONDS);
         } catch (Throwable t) {
             // Clean any make artifacts we generated.
             try {

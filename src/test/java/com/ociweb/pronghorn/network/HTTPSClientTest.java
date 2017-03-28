@@ -265,6 +265,7 @@ public class HTTPSClientTest {
 			PipeWriter.writeInt(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, 42);
 			PipeWriter.writeUTF8(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, "/");
 			PipeWriter.writeInt(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, 443);
+			PipeWriter.writeUTF8(input[0], ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HEADERS_7, "");
 			PipeWriter.publishWrites(input[0]);
 			
 			PipeWriter.tryWriteFragment(goPipe[0], TrafficReleaseSchema.MSG_RELEASE_20);
@@ -454,6 +455,7 @@ public class HTTPSClientTest {
 				PipeWriter.writeInt(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, 42);
 				PipeWriter.writeUTF8(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, "/");
 				PipeWriter.writeInt(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PORT_1, 443);
+				PipeWriter.writeUTF8(pipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HEADERS_7, "");
 				PipeWriter.publishWrites(pipe);
 				
 				Pipe<TrafficReleaseSchema> pipe2 = goPipe[0];

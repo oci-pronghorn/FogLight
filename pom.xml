@@ -13,8 +13,8 @@
 
         <dependency>
             <groupId>com.ociweb</groupId>
-            <artifactId>Pronghorn</artifactId>
-           <version>[0.0.9,0.1.0-SNAPSHOT)</version>
+            <artifactId>GreenLightning</artifactId>
+           <version>[0.0.1,0.1.0-SNAPSHOT)</version>
         </dependency>
     
         <dependency>

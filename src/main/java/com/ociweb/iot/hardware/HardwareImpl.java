@@ -427,11 +427,11 @@ public abstract class HardwareImpl implements Hardware {
 			while (--r>=0) {
 				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
 			}
+			
 			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[TYPE_NET], masterAckIn[TYPE_NET], clientRequests);
+						
+			NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15, clientRequests, netResponsePipes, 2, 2, 2); 
 			
-			
-			NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15,
-												 clientRequests, netResponsePipes, 2, 2, 2); 
 						
 		}// else {
 			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );

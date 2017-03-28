@@ -359,6 +359,7 @@ public abstract class CommandChannel {
     		PipeWriter.writeUTF8(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2, host);
     		PipeWriter.writeUTF8(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3, route);
     		PipeWriter.writeInt(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_LISTENER_10, System.identityHashCode(listener));
+    		PipeWriter.writeUTF8(httpRequest, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HEADERS_7, "");
     		PipeWriter.publishWrites(httpRequest);
             
     		publishGo(1,subPipeIdx);
@@ -405,7 +406,9 @@ public abstract class CommandChannel {
 
             publishGo(1,subPipeIdx);
             
-            PayloadWriter pw = (PayloadWriter) Pipe.outputStream(messagePubSub);    
+            PipeWriter.writeUTF8(httpRequest, ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_HEADERS_7, "");//no additional headers 
+            
+            PayloadWriter pw = (PayloadWriter) Pipe.outputStream(messagePubSub);
             pw.openField(ClientHTTPRequestSchema.MSG_HTTPPOST_101_FIELD_PAYLOAD_5,this);  
             return pw;
         } else {

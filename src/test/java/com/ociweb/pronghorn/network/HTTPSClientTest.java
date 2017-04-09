@@ -393,7 +393,7 @@ public class HTTPSClientTest {
 		
 		
 		NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, listenerPipeLookup, 10, 1<<15,
-				clientRequests, toReactor, 2, 2, 2);
+				clientRequests, toReactor, 2, 2, 2, 2048, 64, 1<<19);
 		
 		int i = toReactor.length;
 		PipeCleanerStage[] cleaners = new PipeCleanerStage[i];

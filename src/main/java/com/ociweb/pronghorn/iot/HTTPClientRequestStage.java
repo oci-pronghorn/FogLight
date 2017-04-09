@@ -117,7 +117,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											
 						                	DataOutputBlobWriter.encodeAsUTF8(activeWriter,"GET");
 						                	
-						                	int len = PipeReader.readDataLength(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
+						                	int len = PipeReader.readBytesLength(requestPipe,ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
 						                	int  first = PipeReader.readBytesPosition(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3);					                	
 						                	boolean prePendSlash = (0==len) || ('/' != PipeReader.readBytesBackingArray(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_PATH_3)[first&Pipe.blobMask(requestPipe)]);  
 						                	

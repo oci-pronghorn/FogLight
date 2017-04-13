@@ -3,11 +3,11 @@ package com.ociweb.iot.hz;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.PayloadReader;
-import com.ociweb.iot.maker.PubSubListener;
 
 public class Display implements PubSubListener{
 
@@ -20,7 +20,7 @@ public class Display implements PubSubListener{
 	}
 
 	@Override
-	public void message(CharSequence topic, PayloadReader payload) {
+	public boolean message(CharSequence topic, PayloadReader payload) {
 		
 		
 		String newText = payload.readUTF();
@@ -36,7 +36,7 @@ public class Display implements PubSubListener{
 			
 		}
 		
-		
+		return true;
 		
 	}
 

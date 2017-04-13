@@ -14,3 +14,6 @@ pom.xml~
 .idea
 /.settings/
 /.project
+GreenLighning/.settings
+GreenLighning/.classpath
+GreenLighning/.project

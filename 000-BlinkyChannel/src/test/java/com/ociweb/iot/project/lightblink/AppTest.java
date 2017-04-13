@@ -3,6 +3,7 @@ package com.ociweb.iot.project.lightblink;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -14,7 +15,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
  */
 public class AppTest { 
 
-    @Test
+    @Ignore
     public void testApp()
     {
     	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
@@ -32,10 +33,11 @@ public class AppTest {
     	
     	long lastTime = 0;
     	while (iterations>0) {
-    		
+    
     		scheduler.run();
     		
     		long time = hardware.getLastTime(IoTApp.LED_PORT);
+
     		if (0!=time) {
     			iterations--;
     			assertEquals(expected, hardware.read(IoTApp.LED_PORT));

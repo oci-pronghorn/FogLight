@@ -17,11 +17,11 @@
 
 package com.ociweb.iot.project.lightblink;
 
+import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.PayloadReader;
 import com.ociweb.iot.maker.PayloadWriter;
-import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.StartupListener;
 
 public class BlinkerBehavior implements StartupListener, PubSubListener {
@@ -36,12 +36,13 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	}	
 	
 	@Override
-	public void message(CharSequence topic, PayloadReader payload) {
+	public boolean message(CharSequence topic, PayloadReader payload) {
 		 int value = payload.readInt();
          blinkerChannel.setValueAndBlock(IoTApp.LED_PORT, value, PAUSE);               
          PayloadWriter writer = blinkerChannel.openTopic(TOPIC);
          writer.writeInt( 1==value ? 0 : 1 );
          writer.publish();
+         return true;
     }
 
 	@Override

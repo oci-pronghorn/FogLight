@@ -14,6 +14,7 @@
 package com.ociweb.iot.project.lightblink;
 
 import static com.ociweb.iot.grove.GroveTwig.LED;
+import static com.ociweb.iot.maker.Port.D4;
 
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -21,8 +22,6 @@ import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
 import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.Port;
-
-import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements IoTSetup {
     
@@ -50,6 +49,7 @@ public class IoTApp implements IoTSetup {
 		    PayloadWriter writer = blinkerChannel.openTopic(TOPIC);
 		    writer.writeBoolean(!value);
 		    writer.publish();
+		    return true;
 		    
 		}).addSubscription(TOPIC); 
                 

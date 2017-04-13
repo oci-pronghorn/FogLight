@@ -62,7 +62,7 @@ public class IoTApp implements IoTSetup
 			
 			
 			channel0.openTopic("GREEN").publish();
-			
+			return true;
     	}).addSubscription("RED");
 
     	final CommandChannel channel1 = runtime.newCommandChannel();
@@ -85,7 +85,7 @@ public class IoTApp implements IoTSetup
 			//channel1.block(State.GREENLIGHT.getTime());
 			
 			channel1.openTopic("YELLOW").publish();
-    		
+			return true;
     	}).addSubscription("GREEN");
 
     	final CommandChannel channel2 = runtime.newCommandChannel();
@@ -107,7 +107,7 @@ public class IoTApp implements IoTSetup
 			//channel2.block(State.YELLOWLIGHT.getTime());
 			
 			channel2.openTopic("RED").publish();
-    		
+			return true;
     	}).addSubscription("YELLOW");
     	
        final CommandChannel channel4 = runtime.newCommandChannel();

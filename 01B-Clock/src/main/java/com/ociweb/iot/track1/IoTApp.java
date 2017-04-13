@@ -3,21 +3,21 @@ package com.ociweb.iot.track1;
 
 import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 import static com.ociweb.iot.grove.GroveTwig.LightSensor;
+import static com.ociweb.iot.maker.Port.A1;
+import static com.ociweb.iot.maker.Port.A2;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import com.ociweb.gl.api.TimeTrigger;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.TimeTrigger;
-
-import static com.ociweb.iot.maker.Port.*;
 
 /**
  * As it gets dark the back light of the LCD comes on.

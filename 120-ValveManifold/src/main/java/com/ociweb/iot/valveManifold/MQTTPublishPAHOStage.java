@@ -1,13 +1,5 @@
 package com.ociweb.iot.valveManifold;
 
-import com.ociweb.iot.maker.PayloadReader;
-import com.ociweb.iot.valveManifold.schema.ValveSchema;
-import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
-import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.stage.PronghornStage;
-import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.util.Appendables;
-
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -15,6 +7,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.ociweb.iot.valveManifold.schema.ValveSchema;
+import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.stage.PronghornStage;
+import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.Appendables;
 
 
 public class MQTTPublishPAHOStage extends PronghornStage {

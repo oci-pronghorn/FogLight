@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
-import com.ociweb.iot.maker.ListenerFilter;
+import com.ociweb.iot.maker.ListenerFilterIoT;
 
 public class IoTApp implements IoTSetup
 {
@@ -77,7 +77,7 @@ public class IoTApp implements IoTSetup
     	                              .addSubscription(TOPIC_PUMP)
     	                              .addSubscription(TOPIC_TOTAL);
 
-    	ListenerFilter mqttFilter = runtime.addPubSubListener(new PublishDataMQTT(serverURI,clientId))
+    	ListenerFilterIoT mqttFilter = (ListenerFilterIoT) runtime.addPubSubListener(new PublishDataMQTT(serverURI,clientId))
    										              .addSubscription(TOPIC_TOTAL);
 
     	if (publishTankData) {

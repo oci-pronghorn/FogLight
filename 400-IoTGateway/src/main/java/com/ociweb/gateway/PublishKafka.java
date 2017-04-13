@@ -1,21 +1,19 @@
 package com.ociweb.gateway;
 
-import java.util.Properties;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.PayloadReader;
-import com.ociweb.iot.maker.PubSubListener;
-import com.ociweb.pronghorn.util.Appendables;
 
 public class PublishKafka implements PubSubListener {
 
@@ -113,7 +111,7 @@ public class PublishKafka implements PubSubListener {
 	}
 
 	@Override
-	public void message(CharSequence topic, PayloadReader payload) {
+	public boolean message(CharSequence topic, PayloadReader payload) {
 
 		
 		String sensorTopic = payload.readUTF();
@@ -162,6 +160,7 @@ public class PublishKafka implements PubSubListener {
 		    	producer.close();
 		    }
 	    }
+		return true;
 	}
 
 }

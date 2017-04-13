@@ -3,11 +3,11 @@ package com.ociweb.iot.gasPumpSimulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.PayloadReader;
-import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.StateChangeListener;
 import com.ociweb.pronghorn.util.Appendables;
 
@@ -44,7 +44,7 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 	}
 
 	@Override
-	public void message(CharSequence topic, PayloadReader payload) {
+	public boolean message(CharSequence topic, PayloadReader payload) {
 		
 		if (topic.equals(topicTank)) { //.toString().equals(topicTank.toString())) {
 			
@@ -79,6 +79,7 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 		}
 		
 		repaint();
+		return true;
 	}
 
 	@Override

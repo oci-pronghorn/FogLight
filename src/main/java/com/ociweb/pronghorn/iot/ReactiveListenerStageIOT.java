@@ -66,14 +66,9 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     private Port[] excludedPorts;//if null then no values are excluded
     private int[] includedI2Cs;//if null then all values are accepted
     private int[] excludedI2Cs;//if null then no values are excluded
-    private long[] includedToStates;
-    private long[] includedFromStates;
-    private long[] excludedToStates;
-    private long[] excludedFromStates;
 		
     /////////////////////
     private Number stageRate;
-    private int timeProcessWindow;
 
     private PipeReaderUTF8MutableCharSquence workspace = new PipeReaderUTF8MutableCharSquence();
     private PayloadReader payloadReader;

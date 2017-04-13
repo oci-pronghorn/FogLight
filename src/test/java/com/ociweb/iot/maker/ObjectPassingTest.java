@@ -1,13 +1,15 @@
 package com.ociweb.iot.maker;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
+import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
@@ -38,7 +40,7 @@ public class ObjectPassingTest {
 					runtime.addPubSubListener(new PubSubListener() {
 
 						@Override
-						public void message(CharSequence topic, PayloadReader payload) {
+						public boolean message(CharSequence topic, PayloadReader payload) {
 							
 							try {
 								
@@ -65,6 +67,7 @@ public class ObjectPassingTest {
 							pw.writeObject(serialized2);
 							pw.publish();
 							
+							return true;
 							
 						}}).addSubscription("test\\topic");
 					

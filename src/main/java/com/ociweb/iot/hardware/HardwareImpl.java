@@ -6,6 +6,14 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.TimeTrigger;
+import com.ociweb.gl.impl.BuilderImpl;
+import com.ociweb.gl.impl.schema.MessagePubSub;
+import com.ociweb.gl.impl.schema.MessageSubscription;
+import com.ociweb.gl.impl.schema.TrafficAckSchema;
+import com.ociweb.gl.impl.schema.TrafficOrderSchema;
+import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
+import com.ociweb.gl.impl.stage.TrafficCopStage;
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 //github.com/oci-pronghorn/PronghornIoT.git
@@ -13,19 +21,13 @@ import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.HTTPResponseListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RotaryListener;
-import com.ociweb.iot.maker.StateChangeListener;
-import com.ociweb.iot.maker.TimeTrigger;
 import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
 import com.ociweb.pronghorn.iot.MessagePubSubStage;
-import com.ociweb.pronghorn.iot.ReactiveListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
-import com.ociweb.pronghorn.iot.TrafficCopStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
@@ -33,31 +35,22 @@ import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.ClientCoordinator;
 import com.ociweb.pronghorn.network.NetGraphBuilder;
-import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
-import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
-import com.ociweb.pronghorn.network.schema.ReleaseSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
-import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
-import com.ociweb.pronghorn.schema.MessagePubSub;
-import com.ociweb.pronghorn.schema.MessageSubscription;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
-import com.ociweb.pronghorn.util.Blocker;
 import com.ociweb.pronghorn.util.math.PMath;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
-public abstract class HardwareImpl implements Hardware {
+public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 
 	private static final int MAX_MOVING_AVERAGE_SUPPORTED = 101; //TOOD: is this still needed, remove???
@@ -65,7 +58,6 @@ public abstract class HardwareImpl implements Hardware {
 	private static final HardwareConnection[] EMPTY = new HardwareConnection[0];
 
 	protected boolean configI2C;       //Humidity, LCD need I2C address so..
-	protected boolean useNetClient;
 	
 	protected long debugI2CRateLastTime;
 
@@ -77,14 +69,7 @@ public abstract class HardwareImpl implements Hardware {
 
 	protected I2CConnection[] i2cInputs;
 	protected I2CConnection[] i2cOutputs;
-
-	private long timeTriggerRate;
-	private long timeTriggerStart;
 	
-	
-	private Blocker channelBlocker;
-
-	public final GraphManager gm;
 
 	private static final int DEFAULT_LENGTH = 16;
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
@@ -101,8 +86,6 @@ public abstract class HardwareImpl implements Hardware {
 
 
 	private static final Logger logger = LoggerFactory.getLogger(HardwareImpl.class);
-
-	public Enum<?> beginningState;
 
 
 	/////////////////
@@ -125,6 +108,8 @@ public abstract class HardwareImpl implements Hardware {
 	protected HardwareImpl(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
 			HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
 
+		super(gm);
+		
 		this.i2cBacking = i2cBacking;
 
 		this.configI2C = configI2C; //may be removed.
@@ -133,19 +118,9 @@ public abstract class HardwareImpl implements Hardware {
 		this.digitalOutputs = digitalOutputs;
 		this.pwmOutputs = pwmOutputs;
 		this.analogInputs = analogInputs;
-		this.gm = gm;
 
 		this.getTempPipeOfStartupSubscriptions().initBuffers();
 	}
-
-	public <E extends Enum<E>> boolean isValidState(E state) {
-
-		if (null!=beginningState) {
-			return beginningState.getClass()==state.getClass();    		
-		}
-		return false;
-	}
-
 
 	public static I2CBacking getI2CBacking(byte deviceNum) {
 		try {
@@ -222,26 +197,7 @@ public abstract class HardwareImpl implements Hardware {
 		return this;
 	}
 
-	public <E extends Enum<E>> Hardware startStateMachineWith(E state) {   	
-		beginningState = state;	
-		return this;
-	}
 
-	public Hardware setTriggerRate(long rateInMS) {
-		timeTriggerRate = rateInMS;
-		timeTriggerStart = System.currentTimeMillis()+rateInMS;
-		return this;
-	}
-	
-	public Hardware setTriggerRate(TimeTrigger trigger) {	
-		long period = trigger.getRate();
-		timeTriggerRate = period;
-		long now = System.currentTimeMillis();		
-		long soFar = (now % period);		
-		timeTriggerStart = (now - soFar) + period;				
-		return this;
-	}
-	
 
 	public Hardware useI2C() {
 		this.configI2C = true; //TODO: enusre pi grove turns this on at all times, 
@@ -249,24 +205,11 @@ public abstract class HardwareImpl implements Hardware {
 		return this;
 	}
 	
-	public Hardware useNetClient() {
-		this.useNetClient = true;
-		return this;
-	}
-
-
-	public long getTriggerRate() {
-		return timeTriggerRate;
-	}
-	public long getTriggerStart() {
-		return timeTriggerStart;
-	}
 	
 
 	public abstract HardwarePlatformType getPlatformType();
 	public abstract int read(Port port); //Platform specific
 	public abstract void write(Port port, int value); //Platform specific
-	public abstract ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes);
 
 	public int maxAnalogMovingAverage() {
 		return MAX_MOVING_AVERAGE_SUPPORTED;
@@ -332,6 +275,7 @@ public abstract class HardwareImpl implements Hardware {
 	static final boolean debug = false;
 
 	public void shutdown() {
+		super.shutdown();
 		//can be overridden by specific hardware impl if shutdown is supported.
 	}
 
@@ -472,9 +416,7 @@ public abstract class HardwareImpl implements Hardware {
 		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
 		///////////////
 		createADOutputStage(requestPipes, masterGoOut[TYPE_PIN], masterAckIn[TYPE_PIN]);
-
-		channelBlocker = new Blocker(maxGoPipeId+1);
-		   
+  
 	       
 	}
 
@@ -541,69 +483,7 @@ public abstract class HardwareImpl implements Hardware {
 		return listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener;
 	}
 
-	public boolean isListeningToSubscription(Object listener) {
-		return listener instanceof PubSubListener || listener instanceof StateChangeListener<?>;
-	}
 
-	public boolean isListeningToHTTPResponse(Object listener) {
-		boolean result = listener instanceof HTTPResponseListener;
-		if (result) {
-			if (isUseNetClient()) {
-				throw new UnsupportedOperationException("In declareConnections call useNetClient() on the hardware object to enable use of this listener.");
-			}
-		}
-		return result;
-	}
-
-	
-	/**
-	 * access to system time.  This method is required so it can be monitored and simulated by unit tests.
-	 */
-	public long currentTimeMillis() {
-		return System.currentTimeMillis();
-	}
-
-	public void blockChannelUntil(int channelId, long timeInMillis) {        
-		channelBlocker.until(channelId, timeInMillis);
-	}
-
-	public boolean isChannelBlocked(int channelId) {
-		if (null != channelBlocker)  {
-			return channelBlocker.isBlocked(channelId);
-		} else {
-			return false;
-		}
-	}
-
-	public long releaseChannelBlocks(long now) {
-		if (null != channelBlocker) {
-			channelBlocker.releaseBlocks(now);
-			return channelBlocker.durationToNextRelease(now, -1);
-		} else {
-			return -1; //was not init so there are no possible blocked channels.
-		}
-	}
-
-	public long nanoTime() {
-		return System.nanoTime();
-	}
-
-	public Enum[] getStates() {
-		return null==beginningState? new Enum[0] : beginningState.getClass().getEnumConstants();
-	}
-
-	public void addStartupSubscription(CharSequence topic, int systemHash) {
-
-		Pipe<MessagePubSub> pipe = getTempPipeOfStartupSubscriptions();
-
-		if (PipeWriter.tryWriteFragment(pipe, MessagePubSub.MSG_SUBSCRIBE_100)) {
-			PipeWriter.writeUTF8(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_TOPIC_1, topic);
-			PipeWriter.writeInt(pipe, MessagePubSub.MSG_SUBSCRIBE_100_FIELD_SUBSCRIBERIDENTITYHASH_4, systemHash);
-			PipeWriter.publishWrites(pipe);
-		} else {
-			throw new UnsupportedOperationException("Limited number of startup subscriptions "+maxStartupSubs+" encountered.");
-		}
-	}
 
 	private Pipe<MessagePubSub> getTempPipeOfStartupSubscriptions() {
 		if (null==tempPipeOfStartupSubscriptions) {
@@ -616,11 +496,6 @@ public abstract class HardwareImpl implements Hardware {
 		return tempPipeOfStartupSubscriptions;
 	}
 
-	public Pipe<MessagePubSub> consumeStartupSubscriptions() {
-		Pipe<MessagePubSub> result = tempPipeOfStartupSubscriptions;
-		tempPipeOfStartupSubscriptions = null;//no longer needed
-		return result;
-	}
 
 	public boolean hasI2CInputs() {
 		return this.i2cInputs!=null && this.i2cInputs.length>0;

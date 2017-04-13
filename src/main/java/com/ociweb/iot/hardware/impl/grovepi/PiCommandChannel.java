@@ -3,18 +3,17 @@ package com.ociweb.iot.hardware.impl.grovepi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.impl.schema.MessagePubSub;
+import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
-import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
-import com.ociweb.pronghorn.schema.MessagePubSub;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class PiCommandChannel extends CommandChannel{

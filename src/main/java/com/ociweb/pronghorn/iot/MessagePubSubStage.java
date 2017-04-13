@@ -5,20 +5,22 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.impl.schema.MessagePubSub;
+import com.ociweb.gl.impl.schema.MessageSubscription;
+import com.ociweb.gl.impl.schema.TrafficAckSchema;
+import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
+import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
+import com.ociweb.pronghorn.iot.MessagePubSubStage.PubType;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
-import com.ociweb.pronghorn.schema.MessagePubSub;
-import com.ociweb.pronghorn.schema.MessageSubscription;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
-public class MessagePubSubStage extends AbstractTrafficOrderedStage {
+public class MessagePubSubStage extends AbstractTrafficOrderedStage<HardwareImpl> {
 
 	private final static Logger logger = LoggerFactory.getLogger(MessagePubSubStage.class);
 	

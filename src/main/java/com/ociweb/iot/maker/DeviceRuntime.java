@@ -8,25 +8,27 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.impl.schema.MessagePubSub;
+import com.ociweb.gl.impl.schema.MessageSubscription;
+import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.pronghorn.iot.ReactiveListenerStage;
+import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
-import com.ociweb.pronghorn.schema.MessagePubSub;
-import com.ociweb.pronghorn.schema.MessageSubscription;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
@@ -197,27 +199,27 @@ public class DeviceRuntime {
     }
     
     
-    public ListenerFilter addRotaryListener(RotaryListener listener) {
+    public ListenerFilterIoT addRotaryListener(RotaryListener listener) {
         return registerListener(listener);
     }
     
-    public ListenerFilter addStartupListener(StartupListener listener) {
+    public ListenerFilterIoT addStartupListener(StartupListener listener) {
         return registerListener(listener);
     }
         
-    public ListenerFilter addAnalogListener(AnalogListener listener) {
+    public ListenerFilterIoT addAnalogListener(AnalogListener listener) {
         return registerListener(listener);
     }
     
-    public ListenerFilter addDigitalListener(DigitalListener listener) {
+    public ListenerFilterIoT addDigitalListener(DigitalListener listener) {
         return registerListener(listener);
     }
     
-    public ListenerFilter addTimeListener(TimeListener listener) {
+    public ListenerFilterIoT addTimeListener(TimeListener listener) {
         return registerListener(listener);
     }
 
-    public ListenerFilter addImageListener(ImageListener listener) {
+    public ListenerFilterIoT addImageListener(ImageListener listener) {
         if (hardware.getTriggerRate() < 1250) {
             throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
         }
@@ -232,23 +234,23 @@ public class DeviceRuntime {
         }
     }
         
-    public ListenerFilter addI2CListener(I2CListener listener) {
+    public ListenerFilterIoT addI2CListener(I2CListener listener) {
         return registerListener(listener);
     }
     
-    public ListenerFilter addPubSubListener(PubSubListener listener) {
+    public ListenerFilterIoT addPubSubListener(PubSubListener listener) {
         return registerListener(listener);
     }
 
-    public <E extends Enum<E>> ListenerFilter addStateChangeListener(StateChangeListener<E> listener) {
+    public <E extends Enum<E>> ListenerFilterIoT addStateChangeListener(StateChangeListener<E> listener) {
         return registerListener(listener);
     }
     
-    public ListenerFilter addListener(Object listener) {
+    public ListenerFilterIoT addListener(Object listener) {
         return registerListener(listener);
     }
     
-    public ListenerFilter registerListener(Object listener) {
+    public ListenerFilterIoT registerListener(Object listener) {
         
     	//TODO: convert to stack based implementation for a single pass.
     	
@@ -331,7 +333,7 @@ public class DeviceRuntime {
         
         Pipe<?>[] outputPipes = extractPipesUsedByListener(listener);
 
-        ReactiveListenerStage reactiveListener = hardware.createReactiveListener(gm, listener, inputPipes, outputPipes);
+        ReactiveListenerStageIOT reactiveListener = hardware.createReactiveListener(gm, listener, inputPipes, outputPipes);
 		configureStageRate(listener,reactiveListener);
         
         Pipe<MessageSubscription>[] subsPipes = GraphManager.allPipesOfType(gm, MessageSubscription.instance);
@@ -405,7 +407,7 @@ public class DeviceRuntime {
 
 
 
-    protected void configureStageRate(Object listener, ReactiveListenerStage stage) {
+    protected void configureStageRate(Object listener, ReactiveListenerStageIOT stage) {
         //if we have a time event turn it on.
         long rate = hardware.getTriggerRate();
         if (rate>0 && listener instanceof TimeListener) {

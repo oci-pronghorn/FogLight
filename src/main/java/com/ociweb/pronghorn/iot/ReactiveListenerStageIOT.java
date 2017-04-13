@@ -3,20 +3,20 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.impl.schema.MessageSubscription;
+import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.HTTPResponseListener;
 import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.ListenerFilter;
-import com.ociweb.iot.maker.PayloadReader;
+import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.PubSubListener;
 import com.ociweb.iot.maker.RestListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
-import com.ociweb.iot.maker.StateChangeListener;
 import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
@@ -28,24 +28,13 @@ import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeReaderUTF8MutableCharSquence;
-import com.ociweb.pronghorn.schema.MessageSubscription;
-import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
-public class ReactiveListenerStage extends PronghornStage implements ListenerFilter {
+public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl> implements ListenerFilterIoT {
 
-    protected final Object              listener;
-    
-    protected final Pipe<?>[]           inputPipes;
-    protected final Pipe<?>[]           outputPipes;
-        
-    protected long                      timeTrigger;
-    protected long                      timeRate;   
-    
-    protected HardwareImpl					hardware;
   
-    private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStage.class); 
+    private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStageIOT.class); 
     
     protected MAvgRollerLong[] rollingMovingAveragesAnalog;
     protected MAvgRollerLong[] rollingMovingAveragesDigital;    
@@ -68,10 +57,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     
     protected int[] lastAnalogValues;
     protected long[] lastAnalogTimes;
-    
-    private final Enum[] states;
-    
-    private boolean timeEvents = false;
+
     
     /////////////////////
     //Listener Filters
@@ -87,7 +73,6 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 		
     /////////////////////
     private Number stageRate;
-    private final GraphManager graphManager;
     private int timeProcessWindow;
 
     private PipeReaderUTF8MutableCharSquence workspace = new PipeReaderUTF8MutableCharSquence();
@@ -98,18 +83,12 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     private HTTPSpecification httpSpec;
     private final ClientCoordinator ccm = null ;//TODO: pass in? get from hardware!!!!
     
-    public ReactiveListenerStage(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
+    public ReactiveListenerStageIOT(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 
         
-        super(graphManager, inputPipes, outputPipes);
-        this.listener = listener;
-
-        this.inputPipes = inputPipes;
-        this.outputPipes = outputPipes;       
+        super(graphManager, listener, inputPipes, outputPipes, hardware);
+      
         this.hardware = hardware;
-        
-        this.states = hardware.getStates();
-        this.graphManager = graphManager;
                    
         //allow for shutdown upon shutdownRequest we have new content
         GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
@@ -122,16 +101,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
               target[hardware.convertToPort(con[i].register)] = new MAvgRollerLong(con[i].movingAverageWindowMS/con[i].responseMS);
         }        
     }
-    
-    
-    
-    public void setTimeEventSchedule(long rate, long start) {
-        
-        timeRate = rate;
-        timeTrigger = start;
 
-        timeEvents = (0 != timeRate) && (listener instanceof TimeListener);
-    }
     
     protected int findStableReading(int tempValue, int connector) { 
         return findMedian(updateRunLenghtOfActiveValue(tempValue, connector));
@@ -181,6 +151,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     
     @Override
     public void startup() {
+    	super.startup();
         //Init all the moving averages to the right size
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_PORTS];
         rollingMovingAveragesDigital = new MAvgRollerLong[MAX_PORTS];
@@ -321,54 +292,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
     	
 	}
 
-	private void consumePubSubMessage(Object listener, Pipe<MessageSubscription> p) {
-        while (PipeReader.tryReadFragment(p)) {                
-            
-            int msgIdx = PipeReader.getMsgIdx(p);
-            switch (msgIdx) {
-                case MessageSubscription.MSG_PUBLISH_103:
-                    if (listener instanceof PubSubListener) {
-                    	                    	
-                    	CharSequence topic = workspace.setToField(p, MessageSubscription.MSG_PUBLISH_103_FIELD_TOPIC_1);
-	  
-	                    assert(null!=topic) : "Callers must be free to write topic.equals(x) with no fear that topic is null.";	                    
-	                    ((PubSubListener)listener).message(topic,  (PayloadReader)PipeReader.inputStream(p, MessageSubscription.MSG_PUBLISH_103_FIELD_PAYLOAD_3));
-                    }
-                    break;
-                case MessageSubscription.MSG_STATECHANGED_71:
-                	if (listener instanceof StateChangeListener) {
-                		
-                		int oldOrdinal = PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_OLDORDINAL_8);
-                		int newOrdinal = PipeReader.readInt(p, MessageSubscription.MSG_STATECHANGED_71_FIELD_NEWORDINAL_9);
-                		
-                		assert(oldOrdinal != newOrdinal) : "Stage change must actualt change the state!";
-                		
-                		if (isIncluded(newOrdinal, includedToStates) && isIncluded(oldOrdinal, includedFromStates) &&
-                			isNotExcluded(newOrdinal, excludedToStates) && isNotExcluded(oldOrdinal, excludedFromStates) ) {			                			
-                			((StateChangeListener)listener).stateChange(states[oldOrdinal], states[newOrdinal]);
-                		}
-						
-                	} else {
-                		//Reactive listener can store the state here
-                		
-                		//TODO: important feature, in the future we can keep the state and add new filters like
-                		//      only accept digital reads when we are in state X
-                		
-                	}
-                    break;
-                case -1:
-                    
-                    requestShutdown();
-                    PipeReader.releaseReadLock(p);
-                    return;
-                   
-                default:
-                    throw new UnsupportedOperationException("Unknown id: "+msgIdx);
-                
-            }
-            PipeReader.releaseReadLock(p);
-        }
-    }
+
         
 
 	private static final long MS_to_NS = 1_000_000;
@@ -639,7 +563,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 	
 	@Override
-	public ListenerFilter includePorts(Port ... ports) {
+	public ListenerFilterIoT includePorts(Port ... ports) {
 		if (!startupCompleted && (listener instanceof AnalogListener || listener instanceof DigitalListener)) {
 			includedPorts = ports;
 			return this;
@@ -653,7 +577,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter excludePorts(Port ... ports) {
+	public ListenerFilterIoT excludePorts(Port ... ports) {
 		if (!startupCompleted && (listener instanceof AnalogListener || listener instanceof DigitalListener)) {
 			excludedPorts = ports;
 			return this;
@@ -667,21 +591,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter addSubscription(CharSequence topic) {		
-		if (!startupCompleted && listener instanceof PubSubListener) {
-			hardware.addStartupSubscription(topic, System.identityHashCode(listener));		
-			return this;
-		} else {
-			if (startupCompleted) {
-	    		throw new UnsupportedOperationException("Call addSubscription on CommandChanel to modify subscriptions at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of PubSubListener in order to call this method.");
-	    	}
-		}
-	}
-
-	@Override
-	public ListenerFilter includeI2CConnections(int ... addresses) {
+	public ListenerFilterIoT includeI2CConnections(int ... addresses) {
 		if (!startupCompleted && listener instanceof I2CListener) {
 			includedI2Cs = addresses;
 			return this;
@@ -695,7 +605,7 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	}
 
 	@Override
-	public ListenerFilter excludeI2CConnections(int... addresses) {
+	public ListenerFilterIoT excludeI2CConnections(int... addresses) {
 		if (!startupCompleted && listener instanceof I2CListener) {
 			excludedI2Cs = addresses;
 			return this;
@@ -707,68 +617,6 @@ public class ReactiveListenerStage extends PronghornStage implements ListenerFil
 	    	}
 	    }
 	}
-
-	@Override
-	public <E extends Enum<E>> ListenerFilter includeStateChangeTo(E ... state) {	
-		if (!startupCompleted && listener instanceof StateChangeListener) {
-			includedToStates = buildMaskArray(state);
-			return this;
-		} else {
-			if (startupCompleted) {
-	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of StateChangeListener in order to call this method.");
-	    	}
-		}
-	}
-
-	@Override
-	public <E extends Enum<E>> ListenerFilter excludeStateChangeTo(E ... state) {
-		if (!startupCompleted && listener instanceof StateChangeListener) {
-			excludedToStates = buildMaskArray(state);
-			return this;
-		} else {
-			if (startupCompleted) {
-	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of StateChangeListener in order to call this method.");
-	    	}
-		}
-	}
-
-	
-	@Override
-	public <E extends Enum<E>> ListenerFilter includeStateChangeToAndFrom(E ... state) {
-		return includeStateChangeTo(state).includeStateChangeFrom(state);
-	}
-	
-	@Override
-	public <E extends Enum<E>> ListenerFilter includeStateChangeFrom(E ... state) {
-		if (!startupCompleted && listener instanceof StateChangeListener) {
-			includedFromStates = buildMaskArray(state);
-			return this;
-		} else {
-			if (startupCompleted) {
-	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of StateChangeListener in order to call this method.");
-	    	}
-		}
-	}
-
-	@Override
-	public <E extends Enum<E>> ListenerFilter excludeStateChangeFrom(E ... state) {
-		if (!startupCompleted && listener instanceof StateChangeListener) {
-			excludedFromStates = buildMaskArray(state);
-			return this;
-		} else {
-			if (startupCompleted) {
-	    		throw new UnsupportedOperationException("ListenerFilters may only be set before startup is called.  Eg. the filters can not be changed at runtime.");
-	    	} else {
-	    		throw new UnsupportedOperationException("The Listener must be an instance of StateChangeListener in order to call this method.");
-	    	}
-		}
-	} 
 	
 	private <E extends Enum<E>> long[] buildMaskArray(E[] state) {
 		int maxOrdinal = findMaxOrdinal(state);

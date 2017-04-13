@@ -3,17 +3,17 @@ package com.ociweb.iot.hardware.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.impl.schema.TrafficAckSchema;
+import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
+import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrderedStage {
+public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrderedStage<HardwareImpl> {
 
 	private final Pipe<GroveRequestSchema>[] fromCommandChannels;
 

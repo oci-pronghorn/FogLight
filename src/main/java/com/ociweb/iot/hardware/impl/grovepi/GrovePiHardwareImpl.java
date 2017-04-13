@@ -1,27 +1,30 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
-import com.ociweb.iot.hardware.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.impl.schema.MessagePubSub;
+import com.ociweb.gl.impl.schema.TrafficOrderSchema;
+import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.grove.GroveTwig;
+import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.hardware.HardwarePlatformType;
+import com.ociweb.iot.hardware.I2CConnection;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
-import com.ociweb.pronghorn.iot.ReactiveListenerStage;
+import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
-import com.ociweb.pronghorn.schema.MessagePubSub;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 
@@ -83,8 +86,8 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	}
 
 	@Override
-    public ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
-        return new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, this); 
+    public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
+        return (R)new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, this); 
     }
 
 	@Override

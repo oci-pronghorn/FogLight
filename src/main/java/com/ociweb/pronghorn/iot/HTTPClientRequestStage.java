@@ -5,21 +5,21 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.impl.schema.TrafficAckSchema;
+import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
+import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.network.ClientConnection;
 import com.ociweb.pronghorn.network.ClientCoordinator;
 import com.ociweb.pronghorn.network.HeaderUtil;
-import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.util.Appendables;
 
 public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 

@@ -2,20 +2,18 @@ package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.impl.schema.MessagePubSub;
+import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
-import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
-import com.ociweb.pronghorn.schema.MessagePubSub;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.util.Pool;
-import static com.ociweb.iot.maker.Port.*;
 
 /**
  * Represents a dedicated channel for communicating with a single device

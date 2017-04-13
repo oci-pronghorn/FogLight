@@ -1,5 +1,6 @@
 package com.ociweb.iot.maker;
 
+import com.ociweb.gl.api.Builder;
 import com.ociweb.iot.hardware.IODevice;
 
 /**
@@ -12,7 +13,7 @@ import com.ociweb.iot.hardware.IODevice;
  *
  * @author Nathan Tippy
  */
-public interface Hardware {
+public interface Hardware extends Builder {
 
     /**
      * Connects a new {@link IODevice} to this hardware on a given {@link Port}.
@@ -40,33 +41,7 @@ public interface Hardware {
      */
     Hardware connectI2C(IODevice device);
 
-    /**
-     * Initializes the hardware state machine with the given {@link Enum} state.
-     *
-     * @param state Initial state to use.
-     *
-     * @return A reference to this hardware instance.
-     */
-    <E extends Enum<E>> Hardware startStateMachineWith(E state);
-
-    /**
-     * Sets the trigger rate of events on this hardware.
-     *
-     * @param rateInMS Rate in milliseconds to trigger events.
-     *
-     * @return A reference to this hardware instance.
-     */
-    Hardware setTriggerRate(long rateInMS);
-
-    /**
-     * Sets the trigger rate of events on this hardware.
-     *
-     * @param trigger {@link TimeTrigger} to use for controlling trigger rate.
-     *
-     * @return A reference to this hardware instance.
-     */
-    Hardware setTriggerRate(TimeTrigger trigger);
-
+   
     /**
      * Asks this hardware instance to enable I2C communications.
      *

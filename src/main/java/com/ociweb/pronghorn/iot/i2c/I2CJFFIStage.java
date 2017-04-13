@@ -7,13 +7,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.impl.schema.TrafficAckSchema;
+import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
+import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
-import com.ociweb.pronghorn.iot.AbstractTrafficOrderedStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficAckSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficReleaseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -22,7 +22,7 @@ import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
-public class I2CJFFIStage extends AbstractTrafficOrderedStage {
+public class I2CJFFIStage extends AbstractTrafficOrderedStage<HardwareImpl> {
 
 	private final I2CBacking i2c;
 	private final Pipe<I2CCommandSchema>[] fromCommandChannels;

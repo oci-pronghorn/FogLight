@@ -18,7 +18,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 //import com.ociweb.pronghorn.util.ma.MAAvgRollerLongTest;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
-public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStage{
+public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStageIOT{
 
 
 	private static final Logger logger = LoggerFactory.getLogger(DexterGrovePiReactiveListenerStage.class);

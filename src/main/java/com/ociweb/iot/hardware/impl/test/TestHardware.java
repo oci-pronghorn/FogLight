@@ -2,30 +2,27 @@ package com.ociweb.iot.hardware.impl.test;
 
 import java.util.Arrays;
 
-import com.ociweb.iot.hardware.HardwarePlatformType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.impl.schema.MessagePubSub;
+import com.ociweb.gl.impl.schema.TrafficOrderSchema;
+import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.IODevice;
+import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.iot.ReactiveListenerStage;
+import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.TrafficOrderSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
-import com.ociweb.pronghorn.schema.MessagePubSub;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
-
-import static com.ociweb.iot.maker.Port.*;
 
 public class TestHardware extends HardwareImpl {
 
@@ -118,6 +115,7 @@ public class TestHardware extends HardwareImpl {
 
     @Override
     public void write(Port port, int value) {
+    	
         pinHighValues[port.port] = Math.max(pinHighValues[port.port], value);
         pinData[port.port]=value;
         lastTime[port.port] = lastProvidedTime;
@@ -160,8 +158,8 @@ public class TestHardware extends HardwareImpl {
         return lastProvidedTime;
     }
     
-    public ReactiveListenerStage createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
-        return new ReactiveListenerStage(gm, listener, inputPipes, outputPipes, this);
+    public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes) {
+        return (R)new ReactiveListenerStageIOT(gm, listener, inputPipes, outputPipes, this);
     }
 
     

@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
+import com.ociweb.gl.api.TimeListener;
+
 /**
  * Time-based image listener backing for Raspberry Pi hardware.
  *

@@ -13,53 +13,52 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 /**
  * Unit test for simple App.
  */
-public class AppTest { 
+public class AppTest {
 
-    @Ignore
-    public void testApp()
-    {
-    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
-    	
-    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
+    @Test
+    public void testApp() {
+        DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
 
-    	scheduler.startup();
- 	    	
-    	TestHardware hardware = (TestHardware)runtime.getHardware();
-    
-    	int iterations = 4;
-    	boolean isFirst = true;
-    	
-    	int expected = 0;
-    	
-    	long lastTime = 0;
-    	while (iterations>0) {
-    
-    		scheduler.run();
-    		
-    		long time = hardware.getLastTime(IoTApp.LED_PORT);
+        NonThreadScheduler scheduler = (NonThreadScheduler) runtime.getScheduler();
 
-    		if (0!=time) {
-    			iterations--;
-    			assertEquals(expected, hardware.read(IoTApp.LED_PORT));
-    			expected = 1&(expected+1);
-    			
-    			if (0!=lastTime) {
-    				long durationMs = (time-lastTime);
-    				
-    				if (!isFirst) {
-    					assertTrue(Long.toString(durationMs),durationMs>=400);//first difference may be short because first transition is later due to startup.
-    				} else {
-    					isFirst = false;
-    				}
-    				assertTrue(durationMs<=750);
-    			}
-    			
-    			lastTime = time;
-    			hardware.clearCaputuredLastTimes();
-    			hardware.clearCaputuredHighs();
-    		}
-	    	
-    		
-    	}
+        scheduler.startup();
+
+        TestHardware hardware = (TestHardware) runtime.getHardware();
+
+        int iterations = 4;
+        boolean isFirst = true;
+
+        int expected = 0;
+
+        long lastTime = 0;
+        while (iterations > 0) {
+
+            scheduler.run();
+
+            long time = hardware.getLastTime(IoTApp.LED_PORT);
+
+            if (0 != time) {
+                iterations--;
+                assertEquals(expected, hardware.read(IoTApp.LED_PORT));
+                expected = 1 & (expected + 1);
+
+                if (0 != lastTime) {
+                    long durationMs = (time - lastTime);
+
+                    if (!isFirst) {
+                        assertTrue(Long.toString(durationMs),
+                                   durationMs >= 400);//first difference may be short because first transition is later due to startup.
+                    } else {
+                        isFirst = false;
+                    }
+                    assertTrue(durationMs <= 750);
+                }
+
+                lastTime = time;
+                hardware.clearCaputuredLastTimes();
+                hardware.clearCaputuredHighs();
+            }
+
+        }
     }
 }

@@ -1,8 +1,8 @@
 package com.ociweb.iot.project.lightblink;
 
+import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.TimeListener;
 
 public class BlinkerBehavior implements TimeListener {
 

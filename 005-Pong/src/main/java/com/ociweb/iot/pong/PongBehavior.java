@@ -1,16 +1,14 @@
 package com.ociweb.iot.pong;
 
+import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.iot.maker.StateChangeListener;
-import com.ociweb.iot.maker.TimeListener;
 import com.ociweb.pronghorn.util.Appendables;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB;

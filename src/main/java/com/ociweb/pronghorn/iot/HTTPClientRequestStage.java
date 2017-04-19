@@ -11,7 +11,7 @@ import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.network.ClientConnection;
 import com.ociweb.pronghorn.network.ClientCoordinator;
-import com.ociweb.pronghorn.network.HeaderUtil;
+import com.ociweb.pronghorn.network.http.HeaderUtil;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -257,7 +257,7 @@ public class HTTPClientRequestStage extends AbstractTrafficOrderedStage {
 											Pipe<NetPayloadSchema>[] output, ClientCoordinator ccm) {
 		
 		if (PipeReader.peekMsg(requestPipe, -1)) {
-			return com.ociweb.pronghorn.network.HTTPClientRequestStage.hasRoomForEOF(output);
+			return com.ociweb.pronghorn.network.http.HTTPClientRequestStage.hasRoomForEOF(output);
 		}
 		
 		int hostPos =  PipeReader.peekDataPosition(requestPipe, ClientHTTPRequestSchema.MSG_HTTPGET_100_FIELD_HOST_2);

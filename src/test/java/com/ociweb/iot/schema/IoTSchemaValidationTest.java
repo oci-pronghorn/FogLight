@@ -16,32 +16,27 @@ public class IoTSchemaValidationTest {
         
     @Test
     public void groveResponseFROMTest() {
-        assertTrue(FROMValidation.testForMatchingFROMs("/GroveResponse.xml", GroveResponseSchema.instance));
-        assertTrue(FROMValidation.testForMatchingLocators(GroveResponseSchema.instance));
+        assertTrue(FROMValidation.checkSchema("/GroveResponse.xml", GroveResponseSchema.class));
     }
     
     @Test
     public void groveRequestFROMTest() {
-        assertTrue(FROMValidation.testForMatchingFROMs("/GroveRequest.xml", GroveRequestSchema.instance));
-        assertTrue(FROMValidation.testForMatchingLocators(GroveRequestSchema.instance));
+        assertTrue(FROMValidation.checkSchema("/GroveRequest.xml", GroveRequestSchema.class));
     }  
     
     @Test
     public void groveI2CBusSchemaFROMTest() {
-        assertTrue(FROMValidation.testForMatchingFROMs("/I2CBusSchema.xml", I2CBusSchema.instance));
-        assertTrue(FROMValidation.testForMatchingLocators(I2CBusSchema.instance));
+        assertTrue(FROMValidation.checkSchema("/I2CBusSchema.xml", I2CBusSchema.class));
     }    
     
     @Test
     public void groveI2CCommandSchemaFROMTest() {
-        assertTrue(FROMValidation.testForMatchingFROMs("/I2CCommandSchema.xml", I2CCommandSchema.instance));
-        assertTrue(FROMValidation.testForMatchingLocators(I2CCommandSchema.instance));
+        assertTrue(FROMValidation.checkSchema("/I2CCommandSchema.xml", I2CCommandSchema.class));
     } 
     
     @Test
     public void groveI2CResponseSchemaFROMTest() {
-        assertTrue(FROMValidation.testForMatchingFROMs("/I2CResponseSchema.xml", I2CResponseSchema.instance));
-        assertTrue(FROMValidation.testForMatchingLocators(I2CResponseSchema.instance));
+        assertTrue(FROMValidation.checkSchema("/I2CResponseSchema.xml", I2CResponseSchema.class));
     } 
 
 

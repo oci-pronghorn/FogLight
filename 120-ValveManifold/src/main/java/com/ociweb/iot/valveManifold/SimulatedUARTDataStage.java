@@ -136,7 +136,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			//requestShutdown();
 			
 			if (++valve>=valveCount) {
-				nextRun = System.currentTimeMillis()+2000;//1 second from now.
+				nextRun = System.currentTimeMillis()+10_000;//10 seconds from now.
 				valve = 0;
 			}
 			

@@ -10,7 +10,7 @@ import com.ociweb.pronghorn.util.Appendables;
 public class SimulatedUARTDataStage extends PronghornStage{
 
 	private final Pipe<RawDataSchema> output;
-	private int x = 0;
+
 	private final int valveCount;
 	private int valve = 0;
 	private long nextRun;
@@ -20,13 +20,13 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	String[] pnArray;
 	int[]    ccArray;
 	
-	String[] pfArray = new String[] {"H","L","N","N" ,"N","N","N","N" ,"N","N","N","N" ,"N","N","N","N"};
+	String[] pfArray = new String[] {"N","L","N","N" ,"N","N","N","N" ,"N","N","H","N" ,"N","N","N","N"};
 	
-	String[] spArray = new String[] {"100","60","80","80" ,"80","80","80","80" ,"80","80","80","80" ,"80","80","80","80"};
-	String[] ppArray = new String[] {"90","12","70","70" ,"70","70","70","70" ,"70","70","70","70" ,"70","70","70","70"};
+	String[] spArray = new String[] {"100","90","80","70","60","65","70","75" ,"80","80","80","80" ,"80","80","85","95"};
+	String[] ppArray = new String[] {"90","80","70","60" ,"50","30","25","25" ,"35","40","50","70" ,"70","70","70","85"};
 	
 	
-	String[] lfArray = new String[] {"1", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
+	String[] lfArray = new String[] {"0", "0", "0", "1" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
 	String[] vfArray = new String[] {"0", "1", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
 		
 	
@@ -95,13 +95,13 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			Appendables.appendValue(writer, cc);			
 			
 			writer.append("lf");
-			writer.append(lfArray[cc&0xF]);			
+			writer.append((valve == 0 ? lfArray[cc&0xF] : lfArray[0]));			
 			
 			writer.append("pf");
-			writer.append("\""+ pfArray[cc&0xF]+"\"");		//L H N 	
+			writer.append("\""+ (valve == 1 ? pfArray[cc&0xF] :pfArray[0]) +"\"");		//L H N 	
 			
 			writer.append("vf");
-			writer.append(vfArray[cc&0xF]);
+			writer.append(valve == 2 ? vfArray[cc&0xF] : vfArray[0] );
 			
 			writer.append("sp");
 			writer.append(spArray[cc&0xF]);

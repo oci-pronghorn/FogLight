@@ -72,11 +72,11 @@ public class ManifoldApp {
 		} else {
 			//build up simulators
 	
-			singleSimulatedManifold("1", 5, 10);
-			singleSimulatedManifold("2", 5, 1000);
-			singleSimulatedManifold("3", 5, 10000);
-			singleSimulatedManifold("4", 5, 100000);
-			singleSimulatedManifold("5", 5, 1000000);
+			singleSimulatedManifold("1", 5, 100);
+			singleSimulatedManifold("2", 5, 10000);
+			singleSimulatedManifold("3", 5, 100000);
+			singleSimulatedManifold("4", 5, 1000000);
+			singleSimulatedManifold("5", 5, 10000000);
 						
 //			The manifold ids are 1, 2, 3, 4, and 5.
 //			The one they focus on is in the lower left corner and is id 4.

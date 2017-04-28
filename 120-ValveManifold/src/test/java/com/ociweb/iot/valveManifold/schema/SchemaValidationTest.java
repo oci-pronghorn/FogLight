@@ -10,8 +10,7 @@ public class SchemaValidationTest {
 		
     @Test
     public void messageClientNetResponseSchemaFROMTest() {
-        assertTrue(FROMValidation.testForMatchingFROMs("/ValveSchema.xml", ValveSchema.instance));
-        assertTrue(FROMValidation.testForMatchingLocators(ValveSchema.instance));
+        assertTrue(FROMValidation.checkSchema("/ValveSchema.xml", ValveSchema.class));
     }
 
     

@@ -72,11 +72,11 @@ public class ManifoldApp {
 		} else {
 			//build up simulators
 	
-			singleSimulatedManifold("1", 5, 100);
-			singleSimulatedManifold("2", 5, 10000);
-			singleSimulatedManifold("3", 5, 100000);
-			singleSimulatedManifold("4", 5, 1000000);
-			singleSimulatedManifold("5", 5, 10000000);
+			singleSimulatedManifold("1", 5, 1,   false);
+			singleSimulatedManifold("2", 5, 10,  false);
+			singleSimulatedManifold("3", 5, 10,  false);
+			singleSimulatedManifold("4", 5, 100, false);
+			singleSimulatedManifold("5", 5, 100, true);
 						
 //			The manifold ids are 1, 2, 3, 4, and 5.
 //			The one they focus on is in the lower left corner and is id 4.
@@ -87,11 +87,11 @@ public class ManifoldApp {
 		
 	}
 
-	private void singleSimulatedManifold(String client, int valves, int base) {
+	private void singleSimulatedManifold(String client, int valves, int base, boolean canFail) {
 		Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);			
 		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
 		
-		SimulatedUARTDataStage.newInstance(gm, uartBytesPipe, valves, base); //for making fake data			
+		SimulatedUARTDataStage.newInstance(gm, uartBytesPipe, client, valves, base, canFail); //for making fake data			
 		ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages	
 		
 		MQTTPublishPAHOStage.newInstance(gm, valveDataPipe, "tcp://"+gatewayHost+":1883", client);//send data to the gateway

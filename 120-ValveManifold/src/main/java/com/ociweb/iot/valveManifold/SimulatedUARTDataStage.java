@@ -1,5 +1,7 @@
 package com.ociweb.iot.valveManifold;
 
+import java.util.Random;
+
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
@@ -15,6 +17,8 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	private int valve = 0;
 	private long nextRun;
 	private final int countBase;
+	private final boolean canFail;
+	private String manifold;
 	
 	String[] snArray;
 	String[] pnArray;
@@ -30,15 +34,20 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	String[] vfArray = new String[] {"0", "1", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
 		
 	
-	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output, int valveCount, int countBase) {
-		new SimulatedUARTDataStage(gm, output, valveCount, countBase);
+	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output, String client, int valveCount, int countBase, boolean canFail) {
+		new SimulatedUARTDataStage(gm, output, client, valveCount, countBase, canFail);
 		
 	}
-	public SimulatedUARTDataStage(GraphManager graphManager, Pipe<RawDataSchema> output, int valveCount, int countBase) {
+	public SimulatedUARTDataStage(GraphManager graphManager, Pipe<RawDataSchema> output, String manifold, int valveCount, int countBase, boolean canFail) {
 		super(graphManager, NONE, output);
 		this.output = output;
 		this.valveCount = valveCount;
 		this.countBase = countBase;
+		this.canFail = canFail;
+		this.manifold = manifold;
+		
+		Integer.parseInt(manifold);
+		
 	}
 
 	@Override 
@@ -47,9 +56,12 @@ public class SimulatedUARTDataStage extends PronghornStage{
 		snArray = new String[i];
 		pnArray = new String[i];
 		ccArray = new int[i];
+		
+		Random r = new Random();
+		
 		while (--i>=0) {
-			snArray[i] = (i+"010010");
-			pnArray[i] = "\""+ i +"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"";
+			snArray[i] = (i+"010010"+r.nextInt());
+			pnArray[i] = "\""+ i + manifold +"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"";
 			ccArray[i] = countBase+i;
 		}
 		
@@ -81,6 +93,9 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			writer.append("st");
 			Appendables.appendValue(writer, valve);
 					
+			writer.append("mn");
+			writer.append(manifold);
+			
 			writer.append("sn");
 			writer.append(snArray[valve]);
 			
@@ -95,13 +110,13 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			Appendables.appendValue(writer, cc);			
 			
 			writer.append("lf");
-			writer.append((valve == 0 ? lfArray[cc&0xF] : lfArray[0]));			
+			writer.append(((valve == 0 && canFail) ? lfArray[cc&0xF] : lfArray[0]));			
 			
 			writer.append("pf");
-			writer.append("\""+ (valve == 1 ? pfArray[cc&0xF] :pfArray[0]) +"\"");		//L H N 	
+			writer.append("\""+ ((valve == 1 && canFail) ? pfArray[cc&0xF] :pfArray[0]) +"\"");		//L H N 	
 			
 			writer.append("vf");
-			writer.append(valve == 2 ? vfArray[cc&0xF] : vfArray[0] );
+			writer.append((valve == 4 && canFail) ? vfArray[cc&0xF] : vfArray[0] );
 			
 			writer.append("sp");
 			writer.append(spArray[cc&0xF]);
@@ -121,7 +136,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			//requestShutdown();
 			
 			if (++valve>=valveCount) {
-				nextRun = System.currentTimeMillis()+1000;//1 second from now.
+				nextRun = System.currentTimeMillis()+2000;//1 second from now.
 				valve = 0;
 			}
 			

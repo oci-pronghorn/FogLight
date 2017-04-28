@@ -24,14 +24,14 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	String[] pnArray;
 	int[]    ccArray;
 	
-	String[] pfArray = new String[] {"N","L","N","N" ,"N","N","N","N" ,"N","N","H","N" ,"N","N","N","N"};
+	String[] pfArray = new String[] {"N","L","L","L" ,"L","L","L","N" ,"N","N","H","H" ,"H","H","H","N"};
 	
 	String[] spArray = new String[] {"100","90","80","70","60","65","70","75" ,"80","80","80","80" ,"80","80","85","95"};
 	String[] ppArray = new String[] {"90","80","70","60" ,"50","30","25","25" ,"35","40","50","70" ,"70","70","70","85"};
 	
 	
-	String[] lfArray = new String[] {"0", "0", "0", "1" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
-	String[] vfArray = new String[] {"0", "1", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0" , "0", "0", "0", "0"};
+	String[] lfArray = new String[] {"0", "0", "0", "1" , "1", "1", "1", "1" , "1", "1", "1", "0" , "0", "0", "0", "0"};
+	String[] vfArray = new String[] {"0", "1", "1", "1" , "1", "1", "1", "1" , "1", "1", "0", "0" , "0", "0", "0", "0"};
 		
 	
 	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output, String client, int valveCount, int countBase, boolean canFail) {
@@ -136,7 +136,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			//requestShutdown();
 			
 			if (++valve>=valveCount) {
-				nextRun = System.currentTimeMillis()+10_000;//10 seconds from now.
+				nextRun = System.currentTimeMillis()+1_000;//1 seconds from now.
 				valve = 0;
 			}
 			

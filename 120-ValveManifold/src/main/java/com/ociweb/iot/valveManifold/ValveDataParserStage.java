@@ -93,15 +93,16 @@ public class ValveDataParserStage extends PronghornStage {
 				
 		int originalLen = reader.sourceLen;
 		while (Pipe.hasRoomForWrite(output)) {
-				
+		
 			int oldPos = reader.sourcePos;
 			int parsedId = (int)TrieParserReader.parseNext(reader, trie);
+			
 		    if (parsedId>0) {
 		    	//valid values
 
 		    	if (DATA_IGNORE!=parsedId) {
 					if (DATA_START==parsedId) {
-						stationNumber = (int)TrieParserReader.capturedLongField(reader, 0);
+						stationNumber = (int)TrieParserReader.capturedLongField(reader, 0);						
 					} else if (DATA_END==parsedId){				
 						//clear the st so it is not used for unexpected content
 						stationNumber = -1;

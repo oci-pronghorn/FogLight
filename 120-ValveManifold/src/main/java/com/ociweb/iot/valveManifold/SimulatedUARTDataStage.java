@@ -33,6 +33,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	String[] lfArray = new String[] {"0", "0", "0", "1" , "1", "1", "1", "1" , "1", "1", "1", "0" , "0", "0", "0", "0"};
 	String[] vfArray = new String[] {"0", "1", "1", "1" , "1", "1", "1", "1" , "1", "1", "0", "0" , "0", "0", "0", "0"};
 		
+	// mosquitto_sub -v -t '#' -h apple.local
 	
 	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output, String client, int valveCount, int countBase, boolean canFail) {
 		new SimulatedUARTDataStage(gm, output, client, valveCount, countBase, canFail);
@@ -56,15 +57,12 @@ public class SimulatedUARTDataStage extends PronghornStage{
 		snArray = new String[i];
 		pnArray = new String[i];
 		ccArray = new int[i];
-		
-		Random r = new Random();
-		
+
 		while (--i>=0) {
-			snArray[i] = (i+"010010"+r.nextInt());
-			pnArray[i] = "\""+ i + manifold +"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"";
+			snArray[i] = (i+"010010"+manifold);
+			pnArray[i] = "\""+ i + manifold + "NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"";
 			ccArray[i] = countBase+i;
 		}
-		
 		
 	}
 	
@@ -83,7 +81,7 @@ public class SimulatedUARTDataStage extends PronghornStage{
 		}		
 		
 	    if (Pipe.hasRoomForWrite(output)) {
-		
+	    			
 			final int size = Pipe.addMsgIdx(output, RawDataSchema.MSG_CHUNKEDSTREAM_1);
 			
 			DataOutputBlobWriter<RawDataSchema> writer = Pipe.outputStream(output);

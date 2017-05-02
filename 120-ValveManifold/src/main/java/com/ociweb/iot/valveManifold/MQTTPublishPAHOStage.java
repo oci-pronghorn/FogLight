@@ -106,8 +106,6 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 			
 			String dataTopic = Pipe.from(input).fieldNameScript[msgIdx]; //skip over id to the field;
 			
-
-			
 			int stationId = Pipe.takeInt(input);
 			
 			switch (size) {
@@ -148,7 +146,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 			Appendables.appendValue(mqttTopic, "/",stationId,"/");			
 			mqttTopic.append(dataTopic);
 						
-	//		System.err.println(mqttTopic);
+			//System.err.println(mqttTopic);
 			
 			if (message(mqttTopic,data)) {
 				mqttTopic.setLength(0);
@@ -192,7 +190,7 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 		        
 		        client.publish(topic.toString(), message);
 		        errorCount=0;
-	
+
 		        logger.info("publish MQTT QOS: {} topic: {}",QOS, topic);
 		        return true;
 	      } catch (MqttException e) {

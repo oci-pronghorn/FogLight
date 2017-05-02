@@ -71,6 +71,8 @@ public class ManifoldApp {
 			
 		} else {
 			//build up simulators
+			
+			logger.info("running simulation");
 	
 			singleSimulatedManifold("1", 5, 1,   false);
 			singleSimulatedManifold("2", 5, 10,  false);

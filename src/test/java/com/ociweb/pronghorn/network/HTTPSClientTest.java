@@ -112,7 +112,7 @@ public class HTTPSClientTest {
 		
 		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 20_000);
 		
-		ClientCoordinator ccm = new ClientCoordinator(base2SimultaniousConnections,inputsCount);
+		ClientCoordinator ccm = new ClientCoordinator(base2SimultaniousConnections,inputsCount,true);
 		IntHashTable listenerPipeLookup = new IntHashTable(base2SimultaniousConnections+2);
 		IntHashTable.setItem(listenerPipeLookup, 42, 0);//put on pipe 0
 		
@@ -222,10 +222,10 @@ public class HTTPSClientTest {
 		SSLEngineWrapStage wrapStage = new  SSLEngineWrapStage(gm,ccm,false,clientRequestsLive, wrappedClientRequests );
 		//splitter is between these two
 		Pipe<NetPayloadSchema> handshake = new Pipe<NetPayloadSchema>(clientNetRequestConfig.grow2x());
-		ClientSocketWriterStage socketWriteStage = new ClientSocketWriterStage(gm, ccm, PronghornStage.join(wrappedClientRequestsLive,handshake));
+		ClientSocketWriterStage socketWriteStage = new ClientSocketWriterStage(gm, ccm, 16, PronghornStage.join(wrappedClientRequestsLive,handshake));
 		//the data was sent by this stage but the next stage is responsible for responding to the results.
 		
-		ClientSocketReaderStage socketReaderStage = new ClientSocketReaderStage(gm, ccm, new Pipe[]{parseAck,parseAck2}, socketResponse, true);
+		ClientSocketReaderStage socketReaderStage = new ClientSocketReaderStage(gm, ccm, new Pipe[]{parseAck,parseAck2}, socketResponse);
         // 	GraphManager.addNota(gm, GraphManager.SCHEDULE_RATE, 0, socketReaderStage); //may be required for 10Gb+ connections
 				
 		//the responding reading data is encrypted so there is not much to be tested
@@ -348,7 +348,7 @@ public class HTTPSClientTest {
 
 		GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 20_000);
 		
-		ClientCoordinator ccm = new ClientCoordinator(base2SimultaniousConnections,inputsCount);
+		ClientCoordinator ccm = new ClientCoordinator(base2SimultaniousConnections,inputsCount,true);
 		IntHashTable listenerPipeLookup = new IntHashTable(base2SimultaniousConnections+2);
 		IntHashTable.setItem(listenerPipeLookup, 42, 0);//put on pipe 0
 		
@@ -393,8 +393,8 @@ public class HTTPSClientTest {
 		HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, hardware, ccm, input, goPipe, ackPipe, clientRequests);
 		
 		
-		NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, listenerPipeLookup, 10, 1<<15,
-				clientRequests, toReactor);
+		NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, listenerPipeLookup, 10, 1<<15, clientRequests,
+				toReactor);
 		
 		int i = toReactor.length;
 		PipeCleanerStage[] cleaners = new PipeCleanerStage[i];

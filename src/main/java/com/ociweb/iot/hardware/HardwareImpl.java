@@ -360,7 +360,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			
 			int connectionsInBits=10;			
 			int maxPartialResponses=4;
-			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses);
+			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, true);
 
 			//TODO: tie this in tonight.
 			int inputsCount = 1;
@@ -373,7 +373,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			
 			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[TYPE_NET], masterAckIn[TYPE_NET], clientRequests);
 						
-			NetGraphBuilder.buildHTTPClientGraph(true, gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15, clientRequests, netResponsePipes); 
+			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15, clientRequests, netResponsePipes); 
 			
 						
 		}// else {

@@ -57,7 +57,7 @@ public class IoTApp implements IoTSetup
     }
     
     
-    public void matrixTest() {
+    public <M extends MatrixSchema<M> > void matrixTest() {
     	
 		//speed
 		//slow     Doubles  Longs    6.15 5.8      7.024  7.18
@@ -85,16 +85,16 @@ public class IoTApp implements IoTSetup
 		
 		
 		MatrixSchema leftSchema = BuildMatrixCompute.buildSchema(leftRows, leftColumns, type);		
-		RowSchema<MatrixSchema> leftRowSchema = new RowSchema<MatrixSchema>(leftSchema);
+		RowSchema<M> leftRowSchema = new RowSchema<M>(leftSchema);
 		
 		MatrixSchema rightSchema = BuildMatrixCompute.buildSchema(rightRows, rightColumns, type);
-		RowSchema<MatrixSchema> rightRowSchema = new RowSchema<MatrixSchema>(rightSchema);
+		RowSchema<M> rightRowSchema = new RowSchema<M>(rightSchema);
 				
 		MatrixSchema resultSchema = BuildMatrixCompute.buildResultSchema(leftSchema, rightSchema);
-		RowSchema<MatrixSchema> rowResultSchema = new RowSchema<MatrixSchema>(resultSchema);		
+		RowSchema<M> rowResultSchema = new RowSchema<M>(resultSchema);		
 		
 		
-		DecimalSchema result2Schema = new DecimalSchema<MatrixSchema>(resultSchema);
+		DecimalSchema result2Schema = new DecimalSchema<M>(resultSchema);
 
 		
 		GraphManager gm = new GraphManager();
@@ -102,16 +102,16 @@ public class IoTApp implements IoTSetup
 		//GraphManager.addDefaultNota(gm, GraphManager.SCHEDULE_RATE, 500);
 		
 		//TODO: not sure why but the splitter that consumes left needs a minimum ring size or it gets stuck,
-		Pipe<RowSchema<MatrixSchema>> left = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(leftRowSchema, leftRows /*Math.min(16, leftRows)*/));
+		Pipe<RowSchema<M>> left = new Pipe<RowSchema<M>>(new PipeConfig<RowSchema<M>>(leftRowSchema, leftRows /*Math.min(16, leftRows)*/));
 		
-		Pipe<RowSchema<MatrixSchema>> right = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(rightRowSchema, rightRows /*Math.min(16, rightRows)*/));
+		Pipe<RowSchema<M>> right = new Pipe<RowSchema<M>>(new PipeConfig<RowSchema<M>>(rightRowSchema, rightRows /*Math.min(16, rightRows)*/));
 		
-		Pipe<RowSchema<MatrixSchema>> result = new Pipe<RowSchema<MatrixSchema>>(new PipeConfig<RowSchema<MatrixSchema>>(rowResultSchema, /*Math.min(16,*/ resultSchema.getRows() )); //NOTE: reqires 2 or JSON will not write out !!
+		Pipe<RowSchema<M>> result = new Pipe<RowSchema<M>>(new PipeConfig<RowSchema<M>>(rowResultSchema, /*Math.min(16,*/ resultSchema.getRows() )); //NOTE: reqires 2 or JSON will not write out !!
 	//	Pipe<DecimalSchema<MatrixSchema>> result2 = new Pipe<DecimalSchema<MatrixSchema>>(new PipeConfig<DecimalSchema<MatrixSchema>>(result2Schema, resultSchema.getRows())); //NOTE: reqires 2 or JSON will not write out !!
 		
 		
 		int targetThreadCount = 10;//60; //105967ms
-		Pipe<ColumnSchema<MatrixSchema>>[] colResults = BuildMatrixCompute.buildGraph(gm, resultSchema, leftSchema, rightSchema, left, right, targetThreadCount-2);
+		Pipe<ColumnSchema<M>>[] colResults = BuildMatrixCompute.buildGraph(gm, resultSchema, leftSchema, rightSchema, left, right, targetThreadCount-2);
 		
 //		int x = colResults.length;
 //		PipeCleanerStage[] watches = new PipeCleanerStage[colResults.length];
@@ -120,7 +120,7 @@ public class IoTApp implements IoTSetup
 //		}
 		
 		
-		ColumnsToRowsStage<MatrixSchema> ctr = new ColumnsToRowsStage<MatrixSchema>(gm, resultSchema, colResults, result);
+		ColumnsToRowsStage<M> ctr = new ColumnsToRowsStage(gm, resultSchema, colResults, result);
 		
 		
 		//ByteArrayOutputStream baos = new ByteArrayOutputStream();

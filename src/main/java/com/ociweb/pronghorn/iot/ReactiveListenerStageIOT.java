@@ -3,8 +3,9 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.TimeListener;
 import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.api.RestListener;
+import com.ociweb.gl.api.TimeListener;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.hardware.HardwareConnection;
@@ -15,7 +16,6 @@ import com.ociweb.iot.maker.HTTPResponseListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.RestListener;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
@@ -83,7 +83,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         
         super(graphManager, listener, inputPipes, outputPipes, hardware);
       
-        this.hardware = hardware;
+        this.builder = hardware;
                    
         //allow for shutdown upon shutdownRequest we have new content
         GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
@@ -151,12 +151,12 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_PORTS];
         rollingMovingAveragesDigital = new MAvgRollerLong[MAX_PORTS];
         
-        HardwareConnection[] analogInputs = hardware.getAnalogInputs();
-        HardwareConnection[] digitalInputs = hardware.getDigitalInputs();
+        HardwareConnection[] analogInputs = builder.getAnalogInputs();
+        HardwareConnection[] digitalInputs = builder.getDigitalInputs();
         
-		setupMovingAverages(hardware, rollingMovingAveragesAnalog, analogInputs);
+		setupMovingAverages(builder, rollingMovingAveragesAnalog, analogInputs);
               
-        setupMovingAverages(hardware, rollingMovingAveragesDigital, hardware.getDigitalInputs());
+        setupMovingAverages(builder, rollingMovingAveragesDigital, builder.getDigitalInputs());
           
         lastDigitalValues = new int[MAX_PORTS];
         lastAnalogValues = new int[MAX_PORTS];
@@ -168,14 +168,14 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         while (--a>=0) {        	
         	HardwareConnection con = analogInputs[a];
         	//System.out.println("seems wrong to covert this: "+con.register);
-        	sendEveryAnalogValue[hardware.convertToPort(con.register)] = con.sendEveryValue;
+        	sendEveryAnalogValue[builder.convertToPort(con.register)] = con.sendEveryValue;
         }
         
         int d = digitalInputs.length;
         while (--d>=0) {        	
         	HardwareConnection con = digitalInputs[d];
         	//System.out.println("seems wrong to covert this: "+con.register);
-        	sendEveryDigitalValue[hardware.convertToPort(con.register)] = con.sendEveryValue;        	
+        	sendEveryDigitalValue[builder.convertToPort(con.register)] = con.sendEveryValue;        	
         }
         
         
@@ -294,7 +294,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 
 	private void processTimeEvents(TimeListener listener, long trigger) {
 		
-		long msRemaining = (trigger-hardware.currentTimeMillis()); 
+		long msRemaining = (trigger-builder.currentTimeMillis()); 
 		if (msRemaining > timeProcessWindow) {
 			//if its not near, leave
 			return;
@@ -305,7 +305,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 			} catch (InterruptedException e) {
 			}
 		}		
-		while (hardware.currentTimeMillis() < trigger) {
+		while (builder.currentTimeMillis() < trigger) {
 			Thread.yield();                	
 		}
 		
@@ -313,23 +313,6 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 		timeTrigger += timeRate;
 	}
 
-
-    private void consumeRestMessage(Object listener2, Pipe<?> p) {
-        if (null!= p) {
-            
-            while (PipeReader.tryReadFragment(p)) {                
-                
-                int msgIdx = PipeReader.getMsgIdx(p);
-                
-                //no need to check instance of since this was registered and we have a pipe
-                ((RestListener)listener).restRequest(1, null);
-                
-                //done reading message off pipe
-                PipeReader.releaseReadLock(p);
-            }
-            
-        }
-    }
     
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
 

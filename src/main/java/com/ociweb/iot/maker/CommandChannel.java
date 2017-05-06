@@ -2,7 +2,9 @@ package com.ociweb.iot.maker;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.Commandable;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -18,8 +20,11 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 /**
  * Represents a dedicated channel for communicating with a single device
  * or resource on an IoT system.
+ * 
+ * TODO: must extend from GL CommandChannel.
  */
-public abstract class CommandChannel {
+@Deprecated
+public abstract class CommandChannel implements Commandable {
 
     private final Pipe<?>[] outputPipes;
     protected final Pipe<TrafficOrderSchema> goPipe;
@@ -122,9 +127,8 @@ public abstract class CommandChannel {
         
         
     }
-
     
-    protected void publishGo(int count, int pipeIdx) {
+    public void publishGo(int count, int pipeIdx) {
         if(PipeWriter.tryWriteFragment(goPipe, TrafficOrderSchema.MSG_GO_10)) {                 
             PipeWriter.writeInt(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_PIPEIDX_11, pipeIdx);
             PipeWriter.writeInt(goPipe, TrafficOrderSchema.MSG_GO_10_FIELD_COUNT_12, count);
@@ -542,7 +546,10 @@ public abstract class CommandChannel {
         }
     }
 
-
+	@Override
+	public int subPipeIdx() {
+		return subPipeIdx;
+	}
 
 
 }

@@ -1,12 +1,10 @@
 package com.ociweb.iot.metronome;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HostnameVerifier;
-
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;

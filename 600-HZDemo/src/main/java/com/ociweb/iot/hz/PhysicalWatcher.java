@@ -8,11 +8,11 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.IdGenerator;
+import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.StartupListener;
 

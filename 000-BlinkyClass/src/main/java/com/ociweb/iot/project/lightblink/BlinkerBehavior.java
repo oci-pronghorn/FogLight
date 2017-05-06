@@ -18,10 +18,10 @@
 package com.ociweb.iot.project.lightblink;
 
 import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.StartupListener;
 
 public class BlinkerBehavior implements StartupListener, PubSubListener {

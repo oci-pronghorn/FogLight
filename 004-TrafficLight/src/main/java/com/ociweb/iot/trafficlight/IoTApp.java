@@ -2,15 +2,16 @@ package com.ociweb.iot.trafficlight;
 
 
 import static com.ociweb.iot.grove.GroveTwig.LED;
+import static com.ociweb.iot.maker.Port.D3;
+import static com.ociweb.iot.maker.Port.D5;
+import static com.ociweb.iot.maker.Port.D6;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
-import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.Port;
-import static com.ociweb.iot.maker.Port.*;
 public class IoTApp implements IoTSetup
 {
 	private static final Port LED3_PORT = D5;

@@ -3,10 +3,10 @@ package com.ociweb.iot.gasPumpSimulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.PayloadWriter;
 import com.ociweb.iot.maker.Port;
 
 public class TankMonitor implements AnalogListener {

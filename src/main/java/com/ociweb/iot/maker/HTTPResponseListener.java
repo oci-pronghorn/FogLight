@@ -1,6 +1,6 @@
 package com.ociweb.iot.maker;
 
-import com.ociweb.gl.api.PayloadReader;
+import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.pronghorn.network.config.HTTPContentType;
 
 /**

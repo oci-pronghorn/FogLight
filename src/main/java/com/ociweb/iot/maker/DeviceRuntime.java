@@ -9,8 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.TimeListener;
-import com.ociweb.gl.api.PayloadReader;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.impl.HTTPPayloadReader;
+import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
@@ -311,7 +312,7 @@ public class DeviceRuntime {
 				@SuppressWarnings("unchecked")
 				@Override
 				protected DataInputBlobReader<MessageSubscription> createNewBlobReader() {
-					return new PayloadReader(this);
+					return new HTTPPayloadReader(this);
 				}
             };
             subPipeIdx = subscriptionPipeIdx++;

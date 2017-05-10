@@ -3,9 +3,9 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.PayloadReader;
 import com.ociweb.gl.api.RestListener;
 import com.ociweb.gl.api.TimeListener;
+import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.hardware.HardwareConnection;

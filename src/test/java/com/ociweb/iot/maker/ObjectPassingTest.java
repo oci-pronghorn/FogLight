@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import com.ociweb.gl.api.PayloadReader;
 import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 

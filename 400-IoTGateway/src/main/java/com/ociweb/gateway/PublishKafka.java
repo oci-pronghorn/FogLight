@@ -11,8 +11,8 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.PayloadReader;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.maker.DeviceRuntime;
 
 public class PublishKafka implements PubSubListener {

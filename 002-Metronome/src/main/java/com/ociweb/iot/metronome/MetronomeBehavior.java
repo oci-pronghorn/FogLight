@@ -1,8 +1,8 @@
 package com.ociweb.iot.metronome;
 
-import com.ociweb.gl.api.PayloadReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.TimeListener;
+import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;

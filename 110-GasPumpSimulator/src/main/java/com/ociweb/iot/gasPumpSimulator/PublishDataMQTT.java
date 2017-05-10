@@ -8,8 +8,8 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.PayloadReader;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.impl.PayloadReader;
 
 public class PublishDataMQTT implements PubSubListener{
 

@@ -17,9 +17,9 @@
 
 package com.ociweb.iot.project.lightblink;
 
-import com.ociweb.gl.api.PayloadReader;
 import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.StartupListener;

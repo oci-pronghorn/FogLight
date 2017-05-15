@@ -19,6 +19,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class GroveV3EdisonImpl extends HardwareImpl {
@@ -36,11 +37,8 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	}
 
 	@Override
-	public CommandChannel newCommandChannel(PipeConfig<GroveRequestSchema> pipe, PipeConfig<I2CCommandSchema> i2cPayloadPipe, 
-			 PipeConfig<MessagePubSub> pubSubConfig,
-             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
-             PipeConfig<TrafficOrderSchema> orderPipe) {
-		return new DefaultCommandChannel(gm, this, pipe, i2cPayloadPipe, pubSubConfig, netRequestConfig, orderPipe);
+	public CommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
+		return new DefaultCommandChannel(gm, this, features, instance, pcm);
 	}
 
 	@Override

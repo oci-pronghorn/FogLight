@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.TimeListener;
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.HTTPPayloadReader;
 import com.ociweb.gl.impl.PayloadReader;
@@ -30,6 +31,7 @@ import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -180,23 +182,33 @@ public class DeviceRuntime {
     
 
     
-    public CommandChannel newCommandChannel() { 
+    public CommandChannel newCommandChannel(int features) { 
       
-    	return this.hardware.newCommandChannel((requestPipeConfig ),
-    	                                       (i2cPayloadPipeConfig), 
-    	                                       messagePubSubConfig,
-    	                                       requestNetConfig,
-    	                                       (goPipeConfig));
+    	int instance = -1;
+    	
+    	PipeConfigManager pcm = new PipeConfigManager();
+    	pcm.addConfig(requestPipeConfig);
+    	pcm.addConfig(i2cPayloadPipeConfig);
+    	pcm.addConfig(messagePubSubConfig);
+    	pcm.addConfig(requestNetConfig);
+    	pcm.addConfig(goPipeConfig);
+    	   	    	
+    	return this.hardware.newCommandChannel(features, instance, pcm);
     	
     }
 
-    public CommandChannel newCommandChannel(int customChannelLength) { 
+    public CommandChannel newCommandChannel(int features, int customChannelLength) { 
        
-        return this.hardware.newCommandChannel((new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, customChannelLength) ),
-                                               (new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, customChannelLength,defaultCommandChannelMaxPayload)), 
-                                               (new PipeConfig<MessagePubSub>(MessagePubSub.instance, customChannelLength,defaultCommandChannelMaxPayload)),
-                                               requestNetConfig,
-                                               (new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, customChannelLength)));
+    	int instance = -1;
+    	
+    	PipeConfigManager pcm = new PipeConfigManager();
+    	pcm.addConfig(customChannelLength,0,GroveRequestSchema.class);
+    	pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload,I2CCommandSchema.class);
+    	pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload, MessagePubSub.class );
+    	pcm.addConfig(requestNetConfig);
+    	pcm.addConfig(customChannelLength,0,TrafficOrderSchema.class);
+    	    	
+        return this.hardware.newCommandChannel(features, instance, pcm);
         
     }
     
@@ -390,7 +402,7 @@ public class DeviceRuntime {
                     CommandChannel cmdChnl = (CommandChannel)fields[f].get(listener);                 
                     
                     assert(channelNotPreviouslyUsed(cmdChnl)) : "A CommandChannel instance can only be used exclusivly by one object or lambda. Double check where CommandChannels are passed in.";
-                    cmdChnl.setListener(listener);  
+                    GreenCommandChannel.setListener(cmdChnl, listener);
                     Pipe<?>[] chnlPipes = cmdChnl.getOutputPipes();
                     int i = chnlPipes.length;
                     while (--i>=0) {

@@ -13,6 +13,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -25,11 +26,8 @@ public class PiCommandChannel extends CommandChannel{
 
 	
 
-	public PiCommandChannel(GraphManager gm, HardwareImpl hardware, PipeConfig<GroveRequestSchema> output, PipeConfig<I2CCommandSchema> i2cOutput,  
-			 PipeConfig<MessagePubSub> pubSubConfig,
-             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
-             PipeConfig<TrafficOrderSchema> goPipe, byte commandIndex) { 
-		super(gm, hardware, output, i2cOutput, pubSubConfig, netRequestConfig, goPipe); 
+	public PiCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int instance, PipeConfigManager pcm, byte commandIndex) { 
+		super(gm, hardware, features, instance, pcm); 
 		this.i2cPipeIdx = 1;//TODO: should be different for i2c vs adout. 1 is i2c, 0 is digital
 
 	}
@@ -44,7 +42,7 @@ public class PiCommandChannel extends CommandChannel{
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {            
 
-			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)) {
+			if (goHasRoom() && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)) {
 
 			    PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_CONNECTOR_11, connector);
 				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_ADDRESS_12, groveAddr);
@@ -69,7 +67,7 @@ public class PiCommandChannel extends CommandChannel{
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {            
 
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21)) {
+            if (goHasRoom() && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21)) {
 
                 PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_CONNECTOR_11, port.port);
                 PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12, groveAddr);
@@ -108,7 +106,7 @@ public class PiCommandChannel extends CommandChannel{
             assert( Pipe.getPublishBatchSize(i2cOutput)==0);
     
             if (PipeWriter.hasRoomForFragmentOfSize(i2cOutput, msgCount * Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) &&
-                PipeWriter.hasRoomForWrite(goPipe) ) {
+            		goHasRoom() ) {
             
                 digitalMessageTemplate[2] = (byte)port.port;
                 
@@ -175,7 +173,7 @@ public class PiCommandChannel extends CommandChannel{
 		
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
+			if (goHasRoom() && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
 
 				template[2] = (byte)port.port;
 				template[3] = (byte)value;		
@@ -207,7 +205,7 @@ public class PiCommandChannel extends CommandChannel{
         	int mask = port.isAnalog() ? ANALOG_BIT : 0;
         	byte[] template = port.isAnalog()? analogMessageTemplate : digitalMessageTemplate;
         	        	
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 
+            if (goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 
                                         Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)
                                         )) { 
 
@@ -251,7 +249,7 @@ public class PiCommandChannel extends CommandChannel{
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {            
 
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22)) {
+            if (goHasRoom() && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22)) {
 
                 PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 PipeWriter.publishWrites(i2cOutput);

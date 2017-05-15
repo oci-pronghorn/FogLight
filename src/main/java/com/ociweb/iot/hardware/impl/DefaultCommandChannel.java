@@ -1,27 +1,19 @@
 package com.ociweb.iot.hardware.impl;
 
-import com.ociweb.gl.impl.schema.MessagePubSub;
-import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
-import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class DefaultCommandChannel extends CommandChannel{
 
 
-	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, PipeConfig<GroveRequestSchema> output, PipeConfig<I2CCommandSchema> i2cOutput,
-			 PipeConfig<MessagePubSub> pubSubConfig,
-             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
-             PipeConfig<TrafficOrderSchema> goPipe) {
-			super(gm, hardware, output, i2cOutput, pubSubConfig, netRequestConfig, goPipe);
-
+	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int instance, PipeConfigManager pcm) {
+			super(gm, hardware, features, instance, pcm);
 	}
 	
 
@@ -29,14 +21,14 @@ public class DefaultCommandChannel extends CommandChannel{
 
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220)) {
+			if (goHasRoom() &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220)) {
 
 				PipeWriter.writeInt(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_CONNECTOR_111, connector);
 				PipeWriter.writeLong(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220_FIELD_DURATIONNANOS_13, duration*MS_TO_NS);
 				
 				PipeWriter.publishWrites(pinOutput);
 				
-                publishGo(1,pinPipeIdx);
+				builder.releasePinOutTraffic(1,this);
                 
                 return true;
 			} else {
@@ -68,14 +60,15 @@ public class DefaultCommandChannel extends CommandChannel{
 		
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {        
-			if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(pinOutput, msgId)) {
+			if (goHasRoom() &&  PipeWriter.tryWriteFragment(pinOutput, msgId)) {
 
 				PipeWriter.writeInt(pinOutput, msgField1, mask|port.port);
 				PipeWriter.writeInt(pinOutput, msgField2, value);
 				PipeWriter.publishWrites(pinOutput);
 			                
+				builder.releasePinOutTraffic(1,this);
+			
 				
-                publishGo(1,pinPipeIdx);                
                 return true;
 			} else {
 				return false;
@@ -101,7 +94,7 @@ public class DefaultCommandChannel extends CommandChannel{
 	            int msgCount = durationNanos > 0 ? 3 : 2;
 	            
 	            if (PipeWriter.hasRoomForFragmentOfSize(pinOutput, 2 * Pipe.sizeOf(i2cOutput, GroveRequestSchema.MSG_DIGITALSET_110)) && 
-	                PipeWriter.hasRoomForWrite(goPipe) ) {           
+	            		goHasRoom() ) {           
 	            
 	                //Pulse on
 	                if (!PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_DIGITALSET_110)) {
@@ -135,7 +128,7 @@ public class DefaultCommandChannel extends CommandChannel{
 
                     PipeWriter.publishWrites(pinOutput);               
 	                
-	                publishGo(msgCount,pinPipeIdx);
+                    builder.releasePinOutTraffic(msgCount,this);
 
 	                return true;
 	            }else{
@@ -172,7 +165,7 @@ public class DefaultCommandChannel extends CommandChannel{
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {        
             
-            if (PipeWriter.hasRoomForWrite(goPipe) && PipeWriter.hasRoomForFragmentOfSize(pinOutput, Pipe.sizeOf(pinOutput, msgId)+
+            if (goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(pinOutput, Pipe.sizeOf(pinOutput, msgId)+
                                                                                                   Pipe.sizeOf(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220)  ) ) {
             
             	
@@ -187,7 +180,7 @@ public class DefaultCommandChannel extends CommandChannel{
                 
                 PipeWriter.publishWrites(pinOutput);
                 
-                publishGo(2,pinPipeIdx);
+                builder.releasePinOutTraffic(2,this);
                 
                 return true;
             } else {
@@ -211,12 +204,12 @@ public class DefaultCommandChannel extends CommandChannel{
 
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
-            if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCHANNEL_22)) {
+            if (goHasRoom() &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCHANNEL_22)) {
 
                 PipeWriter.writeLong(pinOutput, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 PipeWriter.publishWrites(pinOutput);
                 
-                publishGo(1,pinPipeIdx);
+                builder.releasePinOutTraffic(1,this);
                 
                 return true;
             } else {
@@ -235,15 +228,15 @@ public class DefaultCommandChannel extends CommandChannel{
     public boolean blockUntil(Port port, long time) {
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
-            if (PipeWriter.hasRoomForWrite(goPipe) &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221)) {
+            if (goHasRoom() &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221)) {
 
                 PipeWriter.writeInt(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_CONNECTOR_111, port.port);
                 PipeWriter.writeLong(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221_FIELD_TIMEMS_114, time);
                 PipeWriter.publishWrites(pinOutput);
                 
                 int count = 1;
-                publishGo(count,pinPipeIdx);
-                
+                builder.releasePinOutTraffic(count,this);
+             
                 return true;
             } else {
                 return false;

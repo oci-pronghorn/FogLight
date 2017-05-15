@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.impl.BuilderImpl;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
@@ -41,6 +42,7 @@ import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
+import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -266,20 +268,19 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}     
 	}
 
-	public abstract CommandChannel newCommandChannel(PipeConfig<GroveRequestSchema> pinPipeConfig, PipeConfig<I2CCommandSchema> i2cPipeConfig, 
-			 PipeConfig<MessagePubSub> pubSubConfig,
-             PipeConfig<ClientHTTPRequestSchema> netRequestConfig,
-             PipeConfig<TrafficOrderSchema> orderPipeConfig);
-
-	static final boolean debug = false;
 
 	public void shutdown() {
 		super.shutdown();
 		//can be overridden by specific hardware impl if shutdown is supported.
 	}
 
+	private static final boolean debug = false;
 
-
+    private int IDX_PIN = -1;
+    private int IDX_I2C = -1;
+    private int IDX_MSG = -1;
+    private int IDX_NET = -1;
+	
 	public final void buildStages(
 			IntHashTable subscriptionPipeLookup,
 			IntHashTable netPipeLookup,			
@@ -304,11 +305,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		int eventSchemas = 0;
 		
-		//TODO: based on the pipes use each of these
-		int TYPE_PIN = eventSchemas++;
-		int TYPE_I2C = eventSchemas++;
-		int TYPE_MSG = eventSchemas++;
-		int TYPE_NET = useNetClient(netPipeLookup, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
+		IDX_PIN = eventSchemas++;
+		IDX_I2C = eventSchemas++;
+		IDX_MSG = eventSchemas++;
+		IDX_NET = useNetClient(netPipeLookup, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
 						
 
 		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][commandChannelCount];
@@ -342,15 +342,15 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		if (useNetClient(netPipeLookup, netResponsePipes, netRequestPipes)) {
 			
 			System.err.println("loaded client http");
-			if (masterGoOut[TYPE_NET].length != masterAckIn[TYPE_NET].length) {
-				throw new UnsupportedOperationException(masterGoOut[TYPE_NET].length+"!="+masterAckIn[TYPE_NET].length);
+			if (masterGoOut[IDX_NET].length != masterAckIn[IDX_NET].length) {
+				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+masterAckIn[IDX_NET].length);
 			}
-			if (masterGoOut[TYPE_NET].length != netRequestPipes.length) {
-				throw new UnsupportedOperationException(masterGoOut[TYPE_NET].length+"!="+netRequestPipes.length);
+			if (masterGoOut[IDX_NET].length != netRequestPipes.length) {
+				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+netRequestPipes.length);
 			}
 			
-			assert(masterGoOut[TYPE_NET].length == masterAckIn[TYPE_NET].length);
-			assert(masterGoOut[TYPE_NET].length == netRequestPipes.length);
+			assert(masterGoOut[IDX_NET].length == masterAckIn[IDX_NET].length);
+			assert(masterGoOut[IDX_NET].length == netRequestPipes.length);
 			
 			
 			PipeConfig<ClientHTTPRequestSchema> netRequestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
@@ -371,7 +371,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
 			}
 			
-			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[TYPE_NET], masterAckIn[TYPE_NET], clientRequests);
+			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[IDX_NET], masterAckIn[IDX_NET], clientRequests);
 						
 			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15, clientRequests, netResponsePipes); 
 			
@@ -387,7 +387,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		if (IntHashTable.isEmpty(subscriptionPipeLookup) && subscriptionPipes.length==0) {
 			logger.trace("can save some resources by not starting up the unused pub sub service.");
 		}
-		createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterGoOut[TYPE_MSG], masterAckIn[TYPE_MSG], 
+		createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], 
 				                 subscriptionPipes);
 
 		//////////////////
@@ -399,7 +399,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			ReplicatorStage i2cResponseSplitter = new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
 		}
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
-			createI2COutputInputStage(i2cPipes, masterGoOut[TYPE_I2C], masterAckIn[TYPE_I2C], masterI2CResponsePipe);
+			createI2COutputInputStage(i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
 		}
 
 		//////////////
@@ -414,7 +414,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		///////////////
 		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
 		///////////////
-		createADOutputStage(requestPipes, masterGoOut[TYPE_PIN], masterAckIn[TYPE_PIN]);
+		createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
   
 	       
 	}
@@ -632,4 +632,16 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return useNetClient;
 	}
 
+	public void releasePinOutTraffic(int count, GreenCommandChannel<?> gcc) {		
+		gcc.publishGo(count, IDX_PIN);		
+	}
+
+	public void releaseI2CTraffic(int count, GreenCommandChannel<?> gcc) {
+		gcc.publishGo(count, IDX_I2C);
+	}
+	
+	public void releasePubSubTraffic(int count, GreenCommandChannel<?> gcc) {
+		gcc.publishGo(count, IDX_MSG);
+	}
+	
 }

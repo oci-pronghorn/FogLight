@@ -10,6 +10,8 @@ import com.ociweb.iot.maker.Port;
 
 import static com.ociweb.iot.maker.Port.*;
 
+import com.ociweb.gl.api.GreenCommandChannel;
+
 public class IoTApp implements IoTSetup {
     
     private static final int PAUSE = 500;
@@ -29,7 +31,7 @@ public class IoTApp implements IoTSetup {
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
         
-        final CommandChannel blinkerChannel = runtime.newCommandChannel(); 
+        final CommandChannel blinkerChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
         
         runtime.addTimeListener((time)->{
         	

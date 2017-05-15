@@ -11,6 +11,8 @@ import com.ociweb.iot.maker.Port;
 
 import static com.ociweb.iot.maker.Port.*;
 
+import com.ociweb.gl.api.GreenCommandChannel;
+
 
 public class IoTApp implements IoTSetup {
            
@@ -29,7 +31,7 @@ public class IoTApp implements IoTSetup {
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
         
-        final CommandChannel ledChannel = runtime.newCommandChannel(); 
+        final CommandChannel ledChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
         
         runtime.addDigitalListener((connection,time,durationMillis, value)->{
         	

@@ -1,5 +1,7 @@
 package com.ociweb.iot.hz;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +10,9 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.IdGenerator;
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
+import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -30,7 +34,7 @@ public class PhysicalWatcher implements AnalogListener, DigitalListener, Startup
 	
 	public PhysicalWatcher(DeviceRuntime runtime, String displayTopic) {
 		this.displayTopic = displayTopic;
-		this.commandChannel = runtime.newCommandChannel();
+		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 	}
 
 	@Override
@@ -65,12 +69,12 @@ public class PhysicalWatcher implements AnalogListener, DigitalListener, Startup
 		
 		String text = "local: "+recordedDistance+"   "+value;
 		
-		PayloadWriter writer = commandChannel.openTopic(displayTopic); //TODO: this needs a proper optional instead of this pattern.
-		if (null != writer) {
-			writer.writeUTF(text);
-			writer.publish();
-		}
-				
+		Optional<PayloadWriter<MessagePubSub>> writer = commandChannel.openTopic(displayTopic); //TODO: this needs a proper optional instead of this pattern.
+		writer.ifPresent(w-> {
+			w.writeUTF(text);
+			w.publish();			
+		});
+						
 		lastDistance = value;
 				
 	}

@@ -12,6 +12,8 @@ import com.ociweb.iot.maker.IoTSetup;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.iot.maker.Port.*;
 
+import com.ociweb.gl.api.GreenCommandChannel;
+
 /**
  * As it gets dark the back light of the LCD comes on.
  * Angle sensor is used for brightness adjustment
@@ -43,7 +45,7 @@ public class IoTApp implements IoTSetup
         
     	
     	
-    	final CommandChannel lcdScreenChannel = runtime.newCommandChannel();
+    	final CommandChannel lcdScreenChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addAnalogListener((port, time, durationMillis, average, value)->{
  
     		switch(port) {

@@ -1,9 +1,13 @@
 package com.ociweb.iot.gasPumpSimulator;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
+import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
@@ -27,7 +31,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 
 	public PumpSimulator(DeviceRuntime runtime, String pumpTopic, String totalTopic, String fuelName, int centsPerGallon) {
 
-   	  this.channel = runtime.newCommandChannel();
+   	  this.channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
       this.pumpTopic = pumpTopic;
       this.totalTopic = totalTopic;
    	  this.fuelName = fuelName;
@@ -44,14 +48,15 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 			this.units += value;
 			this.time = time;
 
-			PayloadWriter payload = channel.openTopic(pumpTopic);
-
-			payload.writeLong(time);
-			payload.writeUTF(fuelName);
-			payload.writeInt(centsPerUnit);
-			payload.writeInt(units);
-
-			payload.publish();
+			Optional<PayloadWriter<MessagePubSub>> payload = channel.openTopic(pumpTopic);
+			payload.ifPresent(w->{
+				w.writeLong(time);
+				w.writeUTF(fuelName);
+				w.writeInt(centsPerUnit);
+				w.writeInt(units);
+				
+				w.publish();				
+			});
 
 		}
 
@@ -67,15 +72,16 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 
 			if (units>0) {
 
-				PayloadWriter payload = channel.openTopic(totalTopic);
-
-				payload.writeLong(this.time);
-				payload.writeUTF(fuelName);
-				payload.writeInt(centsPerUnit);
-				payload.writeInt(units);
-				units = 0;
-
-				payload.publish();
+				Optional<PayloadWriter<MessagePubSub>> payload = channel.openTopic(totalTopic);
+				payload.ifPresent(w->{
+					w.writeLong(this.time);
+					w.writeUTF(fuelName);
+					w.writeInt(centsPerUnit);
+					w.writeInt(units);
+					units = 0;
+					
+					w.publish();					
+				});
 			}
 		}
 

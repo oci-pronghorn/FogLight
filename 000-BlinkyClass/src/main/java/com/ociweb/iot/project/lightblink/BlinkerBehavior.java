@@ -17,9 +17,13 @@
 
 package com.ociweb.iot.project.lightblink;
 
+import java.util.Optional;
+
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
+import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.StartupListener;
@@ -32,25 +36,29 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	private CommandChannel blinkerChannel;
 	
 	public BlinkerBehavior(DeviceRuntime runtime) {
-		blinkerChannel = runtime.newCommandChannel(); 
+		blinkerChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
 	}	
 	
 	@Override
 	public boolean message(CharSequence topic, PayloadReader payload) {
 		 int value = payload.readInt();
          blinkerChannel.setValueAndBlock(IoTApp.LED_PORT, value, PAUSE);               
-         PayloadWriter writer = blinkerChannel.openTopic(TOPIC);
-         writer.writeInt( 1==value ? 0 : 1 );
-         writer.publish();
-         return true;
+         Optional<PayloadWriter<MessagePubSub>> writer = blinkerChannel.openTopic(TOPIC);
+         writer.ifPresent(w->{
+        	 w.writeInt( 1==value ? 0 : 1 );
+        	 w.publish();        	 
+         });
+         return writer.isPresent();
     }
 
 	@Override
 	public void startup() {
 		blinkerChannel.subscribe(TOPIC, this);
-		PayloadWriter writer = blinkerChannel.openTopic(TOPIC);
-		writer.writeInt( 1 );
-		writer.publish();   
+		Optional<PayloadWriter<MessagePubSub>> writer = blinkerChannel.openTopic(TOPIC);
+		writer.ifPresent(w->{
+			w.writeInt( 1 );
+			w.publish();
+		});
 	}
 
 }

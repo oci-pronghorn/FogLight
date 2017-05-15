@@ -9,6 +9,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -47,7 +48,7 @@ public class IoTApp implements IoTSetup
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
     	
-    	CommandChannel channel = runtime.newCommandChannel();
+    	CommandChannel channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	
     	runtime.addDigitalListener((connection, time, durationMillis, value)->{
     		    		
@@ -81,7 +82,7 @@ public class IoTApp implements IoTSetup
     		
     	});
     	
-    	final CommandChannel lcdTextChannel = runtime.newCommandChannel();
+    	final CommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addTimeListener((time)->{ 
     		
     		    

@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.TimeTrigger;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
@@ -74,7 +75,7 @@ public class IoTApp implements IoTSetup
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
             	    	
-    	final CommandChannel rgbLightChannel = runtime.newCommandChannel();
+    	final CommandChannel rgbLightChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addAnalogListener((port, time, durationMillis, average, value)->{    	    
     		switch(port) {
 	    		case A2://LIGHT_SENSOR_PORT
@@ -97,7 +98,7 @@ public class IoTApp implements IoTSetup
     	});
     	
 
-    	final CommandChannel lcdTextChannel = runtime.newCommandChannel();
+    	final CommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addTimeListener((time)->{ 
     		
     		  LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), zone);

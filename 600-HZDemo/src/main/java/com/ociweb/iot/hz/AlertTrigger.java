@@ -2,6 +2,7 @@ package com.ociweb.iot.hz;
 
 import java.util.Map;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.TimeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ public class AlertTrigger implements TimeListener, StartupListener{
 	
 	public AlertTrigger(DeviceRuntime runtime, Port alertPort, String displayTopic) {
 	
-		this.commandChannel = runtime.newCommandChannel();
+		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		this.port = alertPort;
 		this.displayTopic = displayTopic;
 		

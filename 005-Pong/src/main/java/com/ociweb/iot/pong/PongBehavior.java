@@ -1,5 +1,6 @@
 package com.ociweb.iot.pong;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -44,7 +45,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	private GameState gameState = GameState.startUp; //TODO: using state listener this is not needed.
 
 	public PongBehavior(DeviceRuntime runtime) {
-		this.pongChannel = runtime.newCommandChannel(); 
+		this.pongChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
 	}	
 
 	@Override

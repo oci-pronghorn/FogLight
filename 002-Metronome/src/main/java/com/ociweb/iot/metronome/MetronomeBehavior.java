@@ -1,5 +1,6 @@
 package com.ociweb.iot.metronome;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.gl.impl.PayloadReader;
@@ -58,14 +59,14 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private int showingBPM;
     
     public MetronomeBehavior(DeviceRuntime runtime) {
-        this.tickCommandChannel = runtime.newCommandChannel();
-        this.screenCommandChannel = runtime.newCommandChannel();
+        this.tickCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+        this.screenCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     }
 
     @Override
     public void startup() {
         tickCommandChannel.subscribe(topic,this); 
-        tickCommandChannel.openTopic(topic).publish();
+        tickCommandChannel.openTopic(topic).ifPresent(w->{w.publish();});
         
         Grove_LCD_RGB.commandForColor(tickCommandChannel, 255, 255, 255);
         
@@ -79,8 +80,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
 
     @Override
     public boolean message(CharSequence topic, PayloadReader payload) {
-        
-    	
+            	
         if (requestedPBM>0) {
 
             if (activeBPM != requestedPBM && ((System.currentTimeMillis()-requestTime) > REQ_UNCHANGED_MS || activeBPM==0) ) {
@@ -101,7 +101,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             }
             
         }
-        tickCommandChannel.openTopic(topic).publish();//request next tick
+        tickCommandChannel.openTopic(topic).ifPresent(w->{w.publish();});//request next tick
         
         return true;
     }

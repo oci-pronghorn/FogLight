@@ -6,6 +6,7 @@ import static com.ociweb.iot.maker.Port.D3;
 import static com.ociweb.iot.maker.Port.D5;
 import static com.ociweb.iot.maker.Port.D6;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -42,7 +43,7 @@ public class IoTApp implements IoTSetup
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
     	
-    	final CommandChannel channel0 = runtime.newCommandChannel();
+    	final CommandChannel channel0 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
     		
     		channel0.setValue(LED1_PORT, 1);
@@ -62,11 +63,11 @@ public class IoTApp implements IoTSetup
 			//channel0.block(State.REDLIGHT.getTime());
 			
 			
-			channel0.openTopic("GREEN").publish();
+			channel0.openTopic("GREEN").ifPresent(w->{w.publish();});
 			return true;
     	}).addSubscription("RED");
 
-    	final CommandChannel channel1 = runtime.newCommandChannel();
+    	final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
     		channel1.setValue(LED1_PORT, 0);
 			channel1.setValue(LED2_PORT, 0);
@@ -85,11 +86,11 @@ public class IoTApp implements IoTSetup
 			//TODO: switch to using this
 			//channel1.block(State.GREENLIGHT.getTime());
 			
-			channel1.openTopic("YELLOW").publish();
+			channel1.openTopic("YELLOW").ifPresent(w->{w.publish();});
 			return true;
     	}).addSubscription("GREEN");
 
-    	final CommandChannel channel2 = runtime.newCommandChannel();
+    	final CommandChannel channel2 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
     		channel2.setValue(LED1_PORT, 0);
 			channel2.setValue(LED2_PORT, 1);
@@ -107,12 +108,12 @@ public class IoTApp implements IoTSetup
 			//TODO: switch to using this
 			//channel2.block(State.YELLOWLIGHT.getTime());
 			
-			channel2.openTopic("RED").publish();
+			channel2.openTopic("RED").ifPresent(w->{w.publish();});
 			return true;
     	}).addSubscription("YELLOW");
     	
-       final CommandChannel channel4 = runtime.newCommandChannel();
-       runtime.addStartupListener(()->{channel4.openTopic("RED").publish();});
+       final CommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+       runtime.addStartupListener(()->{channel4.openTopic("RED").ifPresent(w->{w.publish();});});
         
     }
         

@@ -16,7 +16,11 @@ package com.ociweb.iot.project.lightblink;
 import static com.ociweb.iot.grove.GroveTwig.LED;
 import static com.ociweb.iot.maker.Port.D4;
 
+import java.util.Optional;
+
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
+import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -41,24 +45,29 @@ public class IoTApp implements IoTSetup {
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
         
-        final CommandChannel blinkerChannel = runtime.newCommandChannel();        
+        final CommandChannel blinkerChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);        
         runtime.addPubSubListener((topic,payload)->{
         	
 		    boolean value = payload.readBoolean();
 		    blinkerChannel.setValueAndBlock(LED_PORT, value?1:0, PAUSE);               
-		    PayloadWriter writer = blinkerChannel.openTopic(TOPIC);
-		    writer.writeBoolean(!value);
-		    writer.publish();
+		    Optional<PayloadWriter<MessagePubSub>> writer = blinkerChannel.openTopic(TOPIC);
+		    writer.ifPresent(w->{
+		    	w.writeBoolean(!value);
+		    	w.publish();	    	
+		    	
+		    });
 		    return true;
 		    
 		}).addSubscription(TOPIC); 
                 
-        final CommandChannel startupChannel = runtime.newCommandChannel(); 
+        final CommandChannel startupChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
         runtime.addStartupListener(
                 ()->{
-                	PayloadWriter writer = startupChannel.openTopic(TOPIC);
-                	writer.writeBoolean(true);
-                	writer.publish();
+                	Optional<PayloadWriter<MessagePubSub>> writer = startupChannel.openTopic(TOPIC);
+                	writer.ifPresent(w->{
+                		w.writeBoolean(true);
+                		w.publish();                		
+                	});
                 });        
     }  
 }

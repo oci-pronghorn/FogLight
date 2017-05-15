@@ -3,6 +3,7 @@ package com.ociweb.iot.gasPumpSimulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
@@ -36,7 +37,7 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 	private String showingNow = "";
 		
 	public DisplayController(DeviceRuntime runtime, String topicTank, String topicPump, String topicTotal) {
-		this.commandChannel = runtime.newCommandChannel();
+		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		this.topicTank = topicTank;
 		this.topicPump = topicPump;
 		this.topicTotal = topicTotal;

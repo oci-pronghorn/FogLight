@@ -1,9 +1,13 @@
 package com.ociweb.iot.gasPumpSimulator;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
+import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -23,7 +27,7 @@ public class TankMonitor implements AnalogListener {
 
 	public TankMonitor(DeviceRuntime runtime, String topic, int fullTank, String fuelName) {
 
-		this.commandChannel = runtime.newCommandChannel();
+		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		this.topic = topic;
 		this.fuelName = fuelName;
 		this.fullTank = fullTank;
@@ -43,13 +47,15 @@ public class TankMonitor implements AnalogListener {
 
 			int volumeCM = computeVolumeCM2(value);
 
-      PayloadWriter payload = commandChannel.openTopic(topic);
-
-			payload.writeLong(time); //local time, may be off, do check the os
-			payload.writeInt(volumeCM);
-			payload.writeUTF(fuelName);
-
-			payload.publish();
+			Optional<PayloadWriter<MessagePubSub>> payload = commandChannel.openTopic(topic);
+			payload.ifPresent(w->{
+				w.writeLong(time); //local time, may be off, do check the os
+				w.writeInt(volumeCM);
+				w.writeUTF(fuelName);
+				
+				w.publish();
+				
+			});
 			lastValue = value;
 		}
 

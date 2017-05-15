@@ -1,5 +1,7 @@
 package com.ociweb.gateway;
 
+import java.util.Optional;
+
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -10,7 +12,9 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
+import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.StartupListener;
@@ -30,7 +34,7 @@ public class SubscribeDataMQTT implements StartupListener {
 	//"tcp://localhost:1883", "TestClient"
 	public SubscribeDataMQTT(DeviceRuntime runtime, String subscriptionTopic, String publishTopic, String serverURI, String clientId) {
 		
-		this.commandChannel = runtime.newCommandChannel();
+		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 				
 		this.connOptions = new MqttConnectOptions();
 		
@@ -64,10 +68,12 @@ public class SubscribeDataMQTT implements StartupListener {
 								
 					logger.info("received MQTT message on topic {}",topic);
 					
-					PayloadWriter payload = commandChannel.openTopic(publishTopic);					
-					payload.writeUTF(topic);
-					payload.write(message.getPayload());
-					payload.publish();
+					Optional<PayloadWriter<MessagePubSub>> payload = commandChannel.openTopic(publishTopic);					
+					payload.ifPresent(w-> {
+						w.writeUTF(topic);
+						w.write(message.getPayload());
+						w.publish();						
+					});
 					
 				}
 	

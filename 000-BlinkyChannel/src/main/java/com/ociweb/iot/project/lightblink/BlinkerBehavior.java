@@ -1,5 +1,6 @@
 package com.ociweb.iot.project.lightblink;
 
+import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -9,9 +10,9 @@ public class BlinkerBehavior implements TimeListener {
 	private int state = 0;
 	private CommandChannel commandChannel;
     private static final int PAUSE = 500;
-	
+    
 	public BlinkerBehavior(DeviceRuntime runtime) {
-		commandChannel = runtime.newCommandChannel();
+		commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 	}
 	
 	@Override

@@ -3,6 +3,7 @@ package com.ociweb.iot.project.lightblink;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -14,7 +15,8 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
  */
 public class AppTest { 
 
-    @Test
+    @Test //TODO need to dtermine.
+    //@Ignore
     public void testApp()
     {
     	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());

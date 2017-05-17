@@ -1,13 +1,12 @@
 package com.ociweb.device.testApp;
 
-import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.IoTSetup;
 
 /**
  * Simple Pi image capture test.
@@ -42,4 +41,6 @@ public class PiCamTest implements IoTSetup {
             }
         });
     }
+
+
 }

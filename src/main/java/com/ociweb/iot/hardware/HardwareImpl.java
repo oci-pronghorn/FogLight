@@ -281,143 +281,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     private int IDX_MSG = -1;
     private int IDX_NET = -1;
 	
-	public final void buildStages(
-			IntHashTable subscriptionPipeLookup,
-			IntHashTable netPipeLookup,			
-			Pipe<GroveResponseSchema>[] responsePipes,     //one for each listener of this type (broadcast to all)
-			Pipe<I2CResponseSchema>[] i2cResponsePipes,    //one for each listener of this type (broadcast to all)
-			Pipe<MessageSubscription>[] subscriptionPipes, //one for each listener of this type (subscription per pipe)
-			Pipe<NetResponseSchema>[] netResponsePipes,
-
-			Pipe<TrafficOrderSchema>[] orderPipes,    //one for each command channel 
-
-			Pipe<GroveRequestSchema>[] requestPipes,  //one for each command channel 
-			Pipe<I2CCommandSchema>[] i2cPipes,        //one for each command channel 
-			Pipe<MessagePubSub>[] messagePubSub,      //one for each command channel 
-			Pipe<ClientHTTPRequestSchema>[] netRequestPipes  //one for each command channel
-			) {
-
-		assert(orderPipes.length == i2cPipes.length);
-		assert(orderPipes.length == requestPipes.length);
-
-		int commandChannelCount = orderPipes.length;
-		
-		
-		int eventSchemas = 0;
-		
-		IDX_PIN = eventSchemas++;
-		IDX_I2C = eventSchemas++;
-		IDX_MSG = eventSchemas++;
-		IDX_NET = useNetClient(netPipeLookup, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
-						
-
-		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][commandChannelCount];
-		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][commandChannelCount];
-
-		long timeout = 20_000; //20 seconds
-
-		int maxGoPipeId = 0;
-		int t = commandChannelCount;
-		while (--t>=0) {
-
-			int p = eventSchemas;//major command requests that can come from commandChannels
-			Pipe<TrafficReleaseSchema>[] goOut = new Pipe[p];
-			Pipe<TrafficAckSchema>[] ackIn = new Pipe[p];
-			while (--p>=0) {
-				masterGoOut[p][t] = goOut[p] = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
-				maxGoPipeId = Math.max(maxGoPipeId, goOut[p].id);
-				
-				masterAckIn[p][t] = ackIn[p]=new Pipe<TrafficAckSchema>(ackPipesConfig);								
-			}
-			
-			TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut);
-
-		}
-		
-		
-		
-		////////
-		//create the network client stages
-		////////
-		if (useNetClient(netPipeLookup, netResponsePipes, netRequestPipes)) {
-			
-			System.err.println("loaded client http");
-			if (masterGoOut[IDX_NET].length != masterAckIn[IDX_NET].length) {
-				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+masterAckIn[IDX_NET].length);
-			}
-			if (masterGoOut[IDX_NET].length != netRequestPipes.length) {
-				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+netRequestPipes.length);
-			}
-			
-			assert(masterGoOut[IDX_NET].length == masterAckIn[IDX_NET].length);
-			assert(masterGoOut[IDX_NET].length == netRequestPipes.length);
-			
-			
-			PipeConfig<ClientHTTPRequestSchema> netRequestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
-			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
-
-			//BUILD GRAPH
-			
-			int connectionsInBits=10;			
-			int maxPartialResponses=4;
-			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, true);
-
-			//TODO: tie this in tonight.
-			int inputsCount = 1;
-			int outputsCount = 1;
-			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
-			int r = outputsCount;
-			while (--r>=0) {
-				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
-			}
-			
-			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[IDX_NET], masterAckIn[IDX_NET], clientRequests);
-						
-			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup, 10, 1<<15, clientRequests, netResponsePipes); 
-			
-						
-		}// else {
-			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );
-		//}
-		
-		/////////
-		//always create the pub sub and state management stage?
-		/////////
-		//TODO: only create when subscriptionPipeLookup is not empty and subscriptionPipes has zero length.
-		if (IntHashTable.isEmpty(subscriptionPipeLookup) && subscriptionPipes.length==0) {
-			logger.trace("can save some resources by not starting up the unused pub sub service.");
-		}
-		createMessagePubSubStage(subscriptionPipeLookup, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], 
-				                 subscriptionPipes);
-
-		//////////////////
-		//only build and connect I2C if it is used for either in or out  
-		//////////////////
-		Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
-		if (i2cResponsePipes.length>0) {
-			masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
-			ReplicatorStage i2cResponseSplitter = new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
-		}
-		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
-			createI2COutputInputStage(i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
-		}
-
-		//////////////
-		//only build and connect gpio input responses if it is used
-		//////////////
-		if (responsePipes.length>0) {
-			Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
-			ReplicatorStage responseSplitter = new ReplicatorStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
-			createADInputStage(masterResponsePipe);
-		}
-		
-		///////////////
-		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
-		///////////////
-		createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
-  
-	       
-	}
 
 	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<NetResponseSchema>[] netResponsePipes, Pipe<ClientHTTPRequestSchema>[] netRequestPipes) {
 		
@@ -642,6 +505,134 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	
 	public void releasePubSubTraffic(int count, GreenCommandChannel<?> gcc) {
 		gcc.publishGo(count, IDX_MSG);
+	}
+
+	public void buildStages(IntHashTable subscriptionPipeLookup2, IntHashTable netPipeLookup2, GraphManager gm2) {
+		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfType(gm2, GroveResponseSchema.instance);
+		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfType(gm2, I2CResponseSchema.instance);
+		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfType(gm2, MessageSubscription.instance);
+		Pipe<NetResponseSchema>[] netResponsePipes = GraphManager.allPipesOfType(gm2, NetResponseSchema.instance);
+		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfType(gm2, TrafficOrderSchema.instance);
+		Pipe<GroveRequestSchema>[] requestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
+		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
+		Pipe<ClientHTTPRequestSchema>[] netRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);
+		assert(orderPipes.length == i2cPipes.length);
+		assert(orderPipes.length == requestPipes.length);
+		
+		int commandChannelCount = orderPipes.length;
+		
+		
+		int eventSchemas = 0;
+		
+		IDX_PIN = eventSchemas++;
+		IDX_I2C = eventSchemas++;
+		IDX_MSG = eventSchemas++;
+		IDX_NET = useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
+						
+		
+		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][commandChannelCount];
+		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][commandChannelCount];
+		
+		long timeout = 20_000; //20 seconds
+		
+		//TODO: can we share this while with the parent BuilderImpl, I think so..
+		int maxGoPipeId = 0;
+		int t = commandChannelCount;
+		while (--t>=0) {
+		
+			int p = eventSchemas;//major command requests that can come from commandChannels
+			Pipe<TrafficReleaseSchema>[] goOut = new Pipe[p];
+			Pipe<TrafficAckSchema>[] ackIn = new Pipe[p];
+			while (--p>=0) {
+				masterGoOut[p][t] = goOut[p] = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
+				maxGoPipeId = Math.max(maxGoPipeId, goOut[p].id);
+				
+				masterAckIn[p][t] = ackIn[p]=new Pipe<TrafficAckSchema>(ackPipesConfig);								
+			}
+			
+			TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut);
+		
+		}
+		initChannelBlocker(maxGoPipeId);
+		
+		
+		////////
+		//create the network client stages
+		////////
+		if (useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes)) {
+			
+			System.err.println("loaded client http");
+			if (masterGoOut[IDX_NET].length != masterAckIn[IDX_NET].length) {
+				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+masterAckIn[IDX_NET].length);
+			}
+			if (masterGoOut[IDX_NET].length != netRequestPipes.length) {
+				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+netRequestPipes.length);
+			}
+			
+			assert(masterGoOut[IDX_NET].length == masterAckIn[IDX_NET].length);
+			assert(masterGoOut[IDX_NET].length == netRequestPipes.length);
+			
+			
+			PipeConfig<ClientHTTPRequestSchema> netRequestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
+			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
+		
+			//BUILD GRAPH
+			
+			int connectionsInBits=10;			
+			int maxPartialResponses=4;
+			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, true);
+		
+			int outputsCount = 1;
+			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
+			int r = outputsCount;
+			while (--r>=0) {
+				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
+			}
+			
+			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[IDX_NET], masterAckIn[IDX_NET], clientRequests);
+						
+			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, 10, 1<<15, clientRequests, netResponsePipes); 
+			
+						
+		}// else {
+			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );
+		//}
+		
+		/////////
+		//always create the pub sub and state management stage?
+		/////////
+		//TODO: only create when subscriptionPipeLookup is not empty and subscriptionPipes has zero length.
+		if (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0) {
+			logger.trace("can save some resources by not starting up the unused pub sub service.");
+		}
+		createMessagePubSubStage(subscriptionPipeLookup2, GraphManager.allPipesOfType(gm2, MessagePubSub.instance), masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], 
+				                 subscriptionPipes);
+		
+		//////////////////
+		//only build and connect I2C if it is used for either in or out  
+		//////////////////
+		Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
+		if (i2cResponsePipes.length>0) {
+			masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
+			ReplicatorStage i2cResponseSplitter = new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
+		}
+		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
+			createI2COutputInputStage(i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
+		}
+		
+		//////////////
+		//only build and connect gpio input responses if it is used
+		//////////////
+		if (responsePipes.length>0) {
+			Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
+			ReplicatorStage responseSplitter = new ReplicatorStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
+			createADInputStage(masterResponsePipe);
+		}
+		
+		///////////////
+		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
+		///////////////
+		createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
 	}
 	
 }

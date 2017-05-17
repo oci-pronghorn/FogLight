@@ -3,7 +3,7 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.RestListener;
+import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.gl.impl.schema.MessageSubscription;
@@ -17,7 +17,6 @@ import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
-import com.ociweb.iot.maker.StartupListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.network.ClientConnection;
@@ -146,7 +145,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     
     @Override
     public void startup() {
-    	super.startup();
+    	
         //Init all the moving averages to the right size
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_PORTS];
         rollingMovingAveragesDigital = new MAvgRollerLong[MAX_PORTS];
@@ -192,10 +191,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         
         
         //Do last so we complete all the initializations first
-        if (listener instanceof StartupListener) {
-        	((StartupListener)listener).startup();
-        }        
-        startupCompleted=true;
+        super.startup();
     }
 
     @Override

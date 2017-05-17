@@ -8,7 +8,7 @@ import com.ociweb.iot.maker.Hardware;
  * Holds information for all standard Analog and Digital I/O twigs in the Grove starter kit.
  *
  * Methods are necessary for interpreting new connections declared in
- * {@link com.ociweb.iot.maker.IoTSetup#declareConnections(Hardware)} in the maker app.
+ * IoTSetup declareConnections in the maker app.
  *
  * @see com.ociweb.iot.hardware.IODevice
  */

@@ -7,7 +7,7 @@ import com.ociweb.iot.hardware.IODevice;
  * Base interface for an IoT device's hardware.
  * <p>
  * This interface is most commonly used in conjunction with a call
- * to {@link IoTSetup#declareConnections(Hardware)} in order for
+ * to IoTSetup declareConnections in order for
  * a maker's code to declare any hardware connections and resources
  * that it makes use of.
  *

@@ -9,9 +9,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -34,11 +37,11 @@ public class ObjectPassingTest {
 		    
 	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTSetup() {
 
+	
 				@Override
-				public void declareConnections(Hardware c) {
-					
+				public void declareConnections(Hardware builder) {					
 				}
-
+				
 				@Override
 				public void declareBehavior(DeviceRuntime runtime) {
 					
@@ -96,7 +99,10 @@ public class ObjectPassingTest {
 							});							
 						}						
 					});									
-				}	    		
+				}
+
+
+	    		
 	    	});
 	    	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();

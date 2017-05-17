@@ -1,5 +1,7 @@
 package com.ociweb.iot.maker;
 
+import com.ociweb.gl.api.GreenApp;
+
 /**
  * Base interface for a maker's IoT application.
  *
@@ -10,31 +12,11 @@ package com.ociweb.iot.maker;
  *
  * @author Nathan Tippy
  */
-public interface IoTSetup {
+public interface IoTSetup extends GreenApp<Hardware, DeviceRuntime> {
 
-    /**
-     * Invoked when this IoTSetup is asked to declare any connections it needs.
-     *
-     * This method should perform all of its connection declarations directly on the
-     * passed {@link Hardware} instance; any other changes will have no
-     * effect on the final IoT runtime.
-     *
-     * @param hardware {@link Hardware} instance to declare connections on.
-     *
-     * @see Hardware
-     */
-    void declareConnections(Hardware hardware);
-
-    /**
-     * Invoked when this IoTSetup is asked to declare any behavior that it has.
-     *
-     * This method should should perform all of its behavior declarations directly
-     * on the passed {@link DeviceRuntime} instance; any other changes will have
-     * no effect on the final IoT runtime.
-     *
-     * @param runtime {@link DeviceRuntime} instance to declare behavior on.
-     *
-     * @see DeviceRuntime
-     */
-    void declareBehavior(DeviceRuntime runtime);
+	void declareConnections(Hardware builder);
+	
+	default void declareConfiguration(Hardware hardware) {
+		declareConnections(hardware);
+	}
 }

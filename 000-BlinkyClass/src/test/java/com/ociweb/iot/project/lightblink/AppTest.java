@@ -15,8 +15,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
  */
 public class AppTest { 
 
-    @Test //TODO need to dtermine.
-    //@Ignore
+  @Test
     public void testApp()
     {
     	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());

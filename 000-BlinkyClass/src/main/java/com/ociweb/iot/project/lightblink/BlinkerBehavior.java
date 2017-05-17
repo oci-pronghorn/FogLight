@@ -22,11 +22,11 @@ import java.util.Optional;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.StartupListener;
 
 public class BlinkerBehavior implements StartupListener, PubSubListener {
  
@@ -41,6 +41,7 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	
 	@Override
 	public boolean message(CharSequence topic, PayloadReader payload) {
+
 		 int value = payload.readInt();
          blinkerChannel.setValueAndBlock(IoTApp.LED_PORT, value, PAUSE);               
          Optional<PayloadWriter<MessagePubSub>> writer = blinkerChannel.openTopic(TOPIC);
@@ -53,6 +54,7 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 
 	@Override
 	public void startup() {
+
 		blinkerChannel.subscribe(TOPIC, this);
 		Optional<PayloadWriter<MessagePubSub>> writer = blinkerChannel.openTopic(TOPIC);
 		writer.ifPresent(w->{

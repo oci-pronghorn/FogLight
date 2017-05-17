@@ -1,7 +1,7 @@
 package com.ociweb.matrix;
 
+import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.StartupListener;
 
 public class Behavior implements StartupListener
 {
@@ -17,7 +17,7 @@ public class Behavior implements StartupListener
 		
 		System.out.println("hello world");
 		
-		runtime.shutdownDevice();
+		runtime.shutdownRuntime();
 	}
 
 }

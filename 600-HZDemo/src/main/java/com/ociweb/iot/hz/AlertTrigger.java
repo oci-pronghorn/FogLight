@@ -2,8 +2,6 @@ package com.ociweb.iot.hz;
 
 import java.util.Map;
 
-import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.TimeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,10 +9,12 @@ import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.StartupListener;
+import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.StartupListener;
 
 public class AlertTrigger implements TimeListener, StartupListener{
 

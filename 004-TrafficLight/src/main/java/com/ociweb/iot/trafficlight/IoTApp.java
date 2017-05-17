@@ -19,12 +19,21 @@ public class IoTApp implements IoTSetup
 	private static final Port LED1_PORT = D3;
 	private static final Port LED2_PORT = D6;	
 	
+	public static int RED_MS = 10000;
+	public static int GREEN_MS = 8000;
+	public static int YELLOW_MS = 2000;
+			
+	private boolean isWebControlled = false;
+	private int webRoute = -1;
+	
 	private enum State {
-		REDLIGHT(10000), GREENLIGHT(8000),YELLOWLIGHT(2000);
+		REDLIGHT(RED_MS), 
+		GREENLIGHT(GREEN_MS),
+		YELLOWLIGHT(YELLOW_MS);
 		private int deltaTime;
 		State(int deltaTime){this.deltaTime=deltaTime;}
 		public int getTime(){return deltaTime;}
-	};
+	}
 	
     public static void main( String[] args ) {
         DeviceRuntime.run(new IoTApp());
@@ -37,31 +46,46 @@ public class IoTApp implements IoTSetup
 		c.connect(LED, LED2_PORT);
 		c.connect(LED, LED3_PORT);
 		c.useI2C();
+		
+		if (isWebControlled) {
+			
+			webRoute = c.registerRoute("/trafficLight?color=${color}");
+			
+		}
+		
+		
     }
 
 
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
     	
-    	final CommandChannel channel0 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	if (isWebControlled) {
+    		
+    		//the rest API is missing
+    		
+    		
+    		//runtime.add
+    		
+    		
+    		
+    	} else {
+    		configureTimeBasedColorChange(runtime);
+    	}
+       
+       
+    }
+
+
+	protected void configureTimeBasedColorChange(DeviceRuntime runtime) {
+		final CommandChannel channel0 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
     		
     		channel0.setValue(LED1_PORT, 1);
 			channel0.setValue(LED2_PORT, 0);
 			channel0.setValue(LED3_PORT, 0);
-			Grove_LCD_RGB.commandForTextAndColor(channel0, "RED", 255, 0, 0);		
-			
-			//Not the way this should be written...
-			//NOTE: this is a hack until the block becomes common between native I2C and grovePi translated pins
-			try {
-				Thread.sleep(State.REDLIGHT.getTime());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			//TODO: switch to using this
-			//channel0.block(State.REDLIGHT.getTime());
-			
+			Grove_LCD_RGB.commandForTextAndColor(channel0, "RED", 255, 0, 0);
+			channel0.block(State.REDLIGHT.getTime());
 			
 			channel0.openTopic("GREEN").ifPresent(w->{w.publish();});
 			return true;
@@ -73,18 +97,7 @@ public class IoTApp implements IoTSetup
 			channel1.setValue(LED2_PORT, 0);
 			channel1.setValue(LED3_PORT, 1);
 			Grove_LCD_RGB.commandForTextAndColor(channel1, "GREEN",0, 255, 0);
-			
-			
-			//Not the way this should be written...
-			//NOTE: this is a hack until the block becomes common between native I2C and grovePi translated pins
-			try {
-				Thread.sleep(State.GREENLIGHT.getTime());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			//TODO: switch to using this
-			//channel1.block(State.GREENLIGHT.getTime());
+			channel1.block(State.GREENLIGHT.getTime());
 			
 			channel1.openTopic("YELLOW").ifPresent(w->{w.publish();});
 			return true;
@@ -96,17 +109,7 @@ public class IoTApp implements IoTSetup
 			channel2.setValue(LED2_PORT, 1);
 			channel2.setValue(LED3_PORT, 0);
 			Grove_LCD_RGB.commandForTextAndColor(channel2,"YELLOW", 255, 255, 0);
-			
-			//Not the way this should be written...
-			//NOTE: this is a hack until the block becomes common between native I2C and grovePi translated pins
-			try {
-				Thread.sleep(State.YELLOWLIGHT.getTime());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			//TODO: switch to using this
-			//channel2.block(State.YELLOWLIGHT.getTime());
+			channel2.block(State.YELLOWLIGHT.getTime());
 			
 			channel2.openTopic("RED").ifPresent(w->{w.publish();});
 			return true;
@@ -114,8 +117,8 @@ public class IoTApp implements IoTSetup
     	
        final CommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
        runtime.addStartupListener(()->{channel4.openTopic("RED").ifPresent(w->{w.publish();});});
-        
-    }
-        
+	}
+
+     
   
 }

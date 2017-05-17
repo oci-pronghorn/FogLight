@@ -2,6 +2,7 @@ package com.ociweb.iot.metronome;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
@@ -9,7 +10,6 @@ import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.StartupListener;
 
 /*
  * Beats per minute   (build an ENUM of these so we can diplay the names on the screen.

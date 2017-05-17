@@ -12,13 +12,13 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.core.IdGenerator;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
+import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.StartupListener;
 
 public class PhysicalWatcher implements AnalogListener, DigitalListener, StartupListener  {
 

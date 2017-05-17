@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PayloadWriter;
+import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.StartupListener;
 
 public class SubscribeDataMQTT implements StartupListener {
 

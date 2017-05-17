@@ -15,6 +15,12 @@ public class AppTest {
 	 @Test
 	    public void testApp()
 	    {
+		 
+		    IoTApp.RED_MS = 1000; //  1 SEC
+		    IoTApp.GREEN_MS = 800; // .8 SEC
+		    IoTApp.YELLOW_MS = 200; // .2 SEC 
+				 
+		 
 	        DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
 	    	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
@@ -24,9 +30,12 @@ public class AppTest {
 	    
 	    	scheduler.startup();
 	    	
-	    	int i = 14;
-	    	while (--i>=0) {
+	    	
+	    	long next = System.currentTimeMillis()+5_000;
+	    	
+	    	while (System.currentTimeMillis() < next) {
 	    		scheduler.run();
+	    		Thread.yield();
 	    	}
 	    	
 	    	scheduler.shutdown();

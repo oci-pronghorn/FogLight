@@ -23,8 +23,15 @@ public class IoTApp implements IoTSetup
 	public static int GREEN_MS = 8000;
 	public static int YELLOW_MS = 2000;
 			
-	private boolean isWebControlled = false;
+	private boolean isWebControlled = true;
+	
 	private int webRoute = -1;
+	private byte[] COLOR = "color".getBytes();
+			
+	private byte[] RED = "red".getBytes();
+	private byte[] GREEN = "green".getBytes();
+	private byte[] YELLOW = "yellow".getBytes();
+		
 	
 	private enum State {
 		REDLIGHT(RED_MS), 
@@ -47,8 +54,13 @@ public class IoTApp implements IoTSetup
 		c.connect(LED, LED3_PORT);
 		c.useI2C();
 		
+		//still testing with different sizes...
+		c.enableServer(false, true, "127.0.0.1", 8088);
+		
+		
 		if (isWebControlled) {
 			
+			c.enableTelemetry(true);			
 			webRoute = c.registerRoute("/trafficLight?color=${color}");
 			
 		}
@@ -61,14 +73,7 @@ public class IoTApp implements IoTSetup
     public void declareBehavior(DeviceRuntime runtime) {
     	
     	if (isWebControlled) {
-    		
-    		//the rest API is missing
-    		
-    		
-    		//runtime.add
-    		
-    		
-    		
+    		configureWebBasedColorChange(runtime); 
     	} else {
     		configureTimeBasedColorChange(runtime);
     	}
@@ -77,14 +82,35 @@ public class IoTApp implements IoTSetup
     }
 
 
+	private void configureWebBasedColorChange(DeviceRuntime runtime) {
+		final CommandChannel channel = runtime.newCommandChannel(
+				GreenCommandChannel.DYNAMIC_MESSAGING | 
+				GreenCommandChannel.NET_RESPONDER);
+
+
+		runtime.addRestListener((reader)->{
+									 if (reader.isEqual(COLOR, RED)) {
+										 return channel.publishHTTPResponse(reader, turnOnRed(channel) ? 200 : 500);
+										 
+									 } else if (reader.isEqual(COLOR, GREEN)) {
+										 return channel.publishHTTPResponse(reader, turnOnGreen(channel) ? 200 : 500);
+										 
+									 } else if (reader.isEqual(COLOR, YELLOW)) {
+										 return channel.publishHTTPResponse(reader, turnOnYellow(channel) ? 200 : 500);
+										 
+									 } else {
+										 
+										 return channel.publishHTTPResponse(reader, 404);
+										 
+									 }}	, webRoute);
+	}
+
+
 	protected void configureTimeBasedColorChange(DeviceRuntime runtime) {
 		final CommandChannel channel0 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
     		
-    		channel0.setValue(LED1_PORT, 1);
-			channel0.setValue(LED2_PORT, 0);
-			channel0.setValue(LED3_PORT, 0);
-			Grove_LCD_RGB.commandForTextAndColor(channel0, "RED", 255, 0, 0);
+    		turnOnRed(channel0);
 			channel0.block(State.REDLIGHT.getTime());
 			
 			channel0.openTopic("GREEN").ifPresent(w->{w.publish();});
@@ -93,10 +119,8 @@ public class IoTApp implements IoTSetup
 
     	final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
-    		channel1.setValue(LED1_PORT, 0);
-			channel1.setValue(LED2_PORT, 0);
-			channel1.setValue(LED3_PORT, 1);
-			Grove_LCD_RGB.commandForTextAndColor(channel1, "GREEN",0, 255, 0);
+    		
+    		turnOnGreen(channel1);
 			channel1.block(State.GREENLIGHT.getTime());
 			
 			channel1.openTopic("YELLOW").ifPresent(w->{w.publish();});
@@ -105,10 +129,8 @@ public class IoTApp implements IoTSetup
 
     	final CommandChannel channel2 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
-    		channel2.setValue(LED1_PORT, 0);
-			channel2.setValue(LED2_PORT, 1);
-			channel2.setValue(LED3_PORT, 0);
-			Grove_LCD_RGB.commandForTextAndColor(channel2,"YELLOW", 255, 255, 0);
+    		
+    		turnOnYellow(channel2);
 			channel2.block(State.YELLOWLIGHT.getTime());
 			
 			channel2.openTopic("RED").ifPresent(w->{w.publish();});
@@ -117,6 +139,33 @@ public class IoTApp implements IoTSetup
     	
        final CommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
        runtime.addStartupListener(()->{channel4.openTopic("RED").ifPresent(w->{w.publish();});});
+	}
+
+
+	private boolean turnOnGreen(final CommandChannel c) {
+		return 
+		c.setValue(LED1_PORT, 0) |
+		c.setValue(LED2_PORT, 0) |
+		c.setValue(LED3_PORT, 1) |
+		Grove_LCD_RGB.commandForTextAndColor(c, "GREEN",0, 255, 0);
+	}
+
+
+	private boolean turnOnYellow(final CommandChannel c) {
+		return
+		c.setValue(LED1_PORT, 0) |
+		c.setValue(LED2_PORT, 1) |
+		c.setValue(LED3_PORT, 0) |
+		Grove_LCD_RGB.commandForTextAndColor(c,"YELLOW", 255, 255, 0);
+	}
+
+
+	private boolean turnOnRed(final CommandChannel c) {
+		return
+		c.setValue(LED1_PORT, 1) |
+		c.setValue(LED2_PORT, 0) |
+		c.setValue(LED3_PORT, 0) |
+		Grove_LCD_RGB.commandForTextAndColor(c, "RED", 255, 0, 0);
 	}
 
      

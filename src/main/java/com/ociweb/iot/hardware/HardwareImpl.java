@@ -323,20 +323,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
 	}
 
-	public StageScheduler createScheduler(DeviceRuntime iotDeviceRuntime) {
-		//NOTE: need to consider different schedulers in the future.
-		final StageScheduler scheduler = //disabled until recursion is fixed...  new FixedThreadsScheduler(gm, Runtime.getRuntime().availableProcessors()); 
-				                         new ThreadPerStageScheduler(gm);
-
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				scheduler.shutdown();
-				scheduler.awaitTermination(30, TimeUnit.MINUTES);
-			}
-		});
-		return scheduler;
-	}
-
 	public boolean isListeningToI2C(Object listener) {
 		return listener instanceof I2CListener;
 	}

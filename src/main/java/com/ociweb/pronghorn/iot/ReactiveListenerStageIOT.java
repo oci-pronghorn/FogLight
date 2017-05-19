@@ -3,6 +3,7 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.RestListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.gl.impl.PayloadReader;
@@ -23,6 +24,7 @@ import com.ociweb.pronghorn.network.ClientConnection;
 import com.ociweb.pronghorn.network.ClientCoordinator;
 import com.ociweb.pronghorn.network.config.HTTPContentType;
 import com.ociweb.pronghorn.network.config.HTTPSpecification;
+import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -212,20 +214,24 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 
             if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
-            } else
-            if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {
+            } else if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {
             	//listener may be analog or digital if we are using the grovePi board            	
             	consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);            	
             	
-            } else
-            if (Pipe.isForSchema(localPipe, MessageSubscription.instance)) {                
+            } else if (Pipe.isForSchema(localPipe, MessageSubscription.instance)) {                
                 consumePubSubMessage(listener, (Pipe<MessageSubscription>) localPipe);
-            } else 
-            if (Pipe.isForSchema(localPipe, NetResponseSchema.instance)) {
+            } else if (Pipe.isForSchema(localPipe, NetResponseSchema.instance)) {
                //should only have this pipe if listener is also instance of HTTPResponseListener
                consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) localPipe);
+               
+            } else if (Pipe.isForSchema(localPipe, HTTPRequestSchema.instance)) {
+            	
+            	consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) localPipe, 
+            			          routeIds[p], parallelIds[p]);
+            
+               
             } else 
-            {
+            {   // HTTPRequestSchema
                 logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(localPipe));
             }
         }

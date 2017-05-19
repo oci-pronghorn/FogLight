@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.GreenRuntime;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
@@ -133,17 +134,16 @@ public class TestHardware extends HardwareImpl {
     }
     
     @Override
-    public StageScheduler createScheduler(DeviceRuntime iotDeviceRuntime) {
+    public StageScheduler createScheduler(GreenRuntime runtime) {
 
         if (isInUnitTest) {
                       
             //NOTE: need to consider different schedulers in the future.
            return new NonThreadScheduler(gm);
         } else {
-           return super.createScheduler(iotDeviceRuntime);
+           return super.createScheduler(runtime);
         }
-       
-       
+              
     }
     
     

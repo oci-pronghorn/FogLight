@@ -54,12 +54,8 @@ public class IoTApp implements IoTSetup
 		c.connect(LED, LED3_PORT);
 		c.useI2C();
 		
-		//still testing with different sizes...
-		c.enableServer(false, true, "127.0.0.1", 8088);
-		
-		
 		if (isWebControlled) {
-			
+			c.enableServer(false, false, "127.0.0.1", 8088);			
 			c.enableTelemetry(true);			
 			webRoute = c.registerRoute("/trafficLight?color=${color}");
 			

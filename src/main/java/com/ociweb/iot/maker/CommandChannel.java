@@ -1,10 +1,6 @@
 package com.ociweb.iot.maker;
 
-import java.util.Optional;
-
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.HTTPFieldReader;
-import com.ociweb.gl.api.NetResponseWriter;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;

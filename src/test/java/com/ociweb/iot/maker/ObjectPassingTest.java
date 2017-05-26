@@ -4,19 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.Serializable;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import com.ociweb.gl.api.Builder;
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.GreenRuntime;
-import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.PayloadReader;
-import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
@@ -71,14 +66,12 @@ public class ObjectPassingTest {
 								fail("failed after "+count.get());
 							}
 							
-							Optional<PayloadWriter<MessagePubSub>> pw = cc1.openTopic("test\\topic");
-							pw.ifPresent(w -> {
+							return cc1.openTopic("test\\topic", w -> {
 								w.writeObject(serialized1);
 								w.writeObject(serialized2);
 								w.publish();								
 							});
 							
-							return pw.isPresent();
 							
 						}}).addSubscription("test\\topic");
 					
@@ -89,8 +82,7 @@ public class ObjectPassingTest {
 						@Override
 						public void startup() {
 						
-							Optional<PayloadWriter<MessagePubSub>> pw = cc2.openTopic("test\\topic");
-							pw.ifPresent(w -> {
+							cc2.openTopic("test\\topic",w -> {
 
 								w.writeObject(serialized1);
 								w.writeObject(serialized2);

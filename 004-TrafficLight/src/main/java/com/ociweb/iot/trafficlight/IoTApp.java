@@ -109,7 +109,7 @@ public class IoTApp implements IoTSetup
     		turnOnRed(channel0);
 			channel0.block(State.REDLIGHT.getTime());
 			
-			channel0.openTopic("GREEN").ifPresent(w->{w.publish();});
+			channel0.openTopic("GREEN",w->{w.publish();});
 			return true;
     	}).addSubscription("RED");
 
@@ -119,7 +119,7 @@ public class IoTApp implements IoTSetup
     		turnOnGreen(channel1);
 			channel1.block(State.GREENLIGHT.getTime());
 			
-			channel1.openTopic("YELLOW").ifPresent(w->{w.publish();});
+			channel1.openTopic("YELLOW",w->{w.publish();});
 			return true;
     	}).addSubscription("GREEN");
 
@@ -129,12 +129,12 @@ public class IoTApp implements IoTSetup
     		turnOnYellow(channel2);
 			channel2.block(State.YELLOWLIGHT.getTime());
 			
-			channel2.openTopic("RED").ifPresent(w->{w.publish();});
+			channel2.openTopic("RED",w->{w.publish();});
 			return true;
     	}).addSubscription("YELLOW");
     	
        final CommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-       runtime.addStartupListener(()->{channel4.openTopic("RED").ifPresent(w->{w.publish();});});
+       runtime.addStartupListener(()->{channel4.openTopic("RED",w->{w.publish();});});
 	}
 
 

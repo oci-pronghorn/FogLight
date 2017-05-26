@@ -66,7 +66,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     @Override
     public void startup() {
         tickCommandChannel.subscribe(topic,this); 
-        tickCommandChannel.openTopic(topic).ifPresent(w->{w.publish();});
+        tickCommandChannel.openTopic(topic,w->{w.publish();});
         
         Grove_LCD_RGB.commandForColor(tickCommandChannel, 255, 255, 255);
         
@@ -101,7 +101,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             }
             
         }
-        tickCommandChannel.openTopic(topic).ifPresent(w->{w.publish();});//request next tick
+        tickCommandChannel.openTopic(topic,w->{w.publish();});//request next tick
         
         return true;
     }

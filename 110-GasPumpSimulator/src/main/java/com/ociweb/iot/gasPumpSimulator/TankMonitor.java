@@ -1,13 +1,9 @@
 package com.ociweb.iot.gasPumpSimulator;
 
-import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.PayloadWriter;
-import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -47,8 +43,7 @@ public class TankMonitor implements AnalogListener {
 
 			int volumeCM = computeVolumeCM2(value);
 
-			Optional<PayloadWriter<MessagePubSub>> payload = commandChannel.openTopic(topic);
-			payload.ifPresent(w->{
+			commandChannel.openTopic(topic, w->{
 				w.writeLong(time); //local time, may be off, do check the os
 				w.writeInt(volumeCM);
 				w.writeUTF(fuelName);

@@ -1,13 +1,9 @@
 package com.ociweb.iot.gasPumpSimulator;
 
-import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.PayloadWriter;
-import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
@@ -48,8 +44,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 			this.units += value;
 			this.time = time;
 
-			Optional<PayloadWriter<MessagePubSub>> payload = channel.openTopic(pumpTopic);
-			payload.ifPresent(w->{
+			channel.openTopic(pumpTopic,w->{
 				w.writeLong(time);
 				w.writeUTF(fuelName);
 				w.writeInt(centsPerUnit);
@@ -72,8 +67,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 
 			if (units>0) {
 
-				Optional<PayloadWriter<MessagePubSub>> payload = channel.openTopic(totalTopic);
-				payload.ifPresent(w->{
+				channel.openTopic(totalTopic, w->{
 					w.writeLong(this.time);
 					w.writeUTF(fuelName);
 					w.writeInt(centsPerUnit);

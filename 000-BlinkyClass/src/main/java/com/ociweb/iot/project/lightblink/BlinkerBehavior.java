@@ -17,14 +17,10 @@
 
 package com.ociweb.iot.project.lightblink;
 
-import java.util.Optional;
-
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.PayloadReader;
-import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 
@@ -44,20 +40,17 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 
 		 int value = payload.readInt();
          blinkerChannel.setValueAndBlock(IoTApp.LED_PORT, value, PAUSE);               
-         Optional<PayloadWriter<MessagePubSub>> writer = blinkerChannel.openTopic(TOPIC);
-         writer.ifPresent(w->{
+         return blinkerChannel.openTopic(TOPIC, w->{
         	 w.writeInt( 1==value ? 0 : 1 );
         	 w.publish();        	 
          });
-         return writer.isPresent();
     }
 
 	@Override
 	public void startup() {
 
 		blinkerChannel.subscribe(TOPIC, this);
-		Optional<PayloadWriter<MessagePubSub>> writer = blinkerChannel.openTopic(TOPIC);
-		writer.ifPresent(w->{
+		blinkerChannel.openTopic(TOPIC,w->{
 			w.writeInt( 1 );
 			w.publish();
 		});

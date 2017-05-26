@@ -16,11 +16,7 @@ package com.ociweb.iot.project.lightblink;
 import static com.ociweb.iot.grove.GroveTwig.LED;
 import static com.ociweb.iot.maker.Port.D4;
 
-import java.util.Optional;
-
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.PayloadWriter;
-import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -50,8 +46,7 @@ public class IoTApp implements IoTSetup {
         	
 		    boolean value = payload.readBoolean();
 		    blinkerChannel.setValueAndBlock(LED_PORT, value?1:0, PAUSE);               
-		    Optional<PayloadWriter<MessagePubSub>> writer = blinkerChannel.openTopic(TOPIC);
-		    writer.ifPresent(w->{
+		    boolean ignored = blinkerChannel.openTopic(TOPIC, w->{
 		    	w.writeBoolean(!value);
 		    	w.publish();	    	
 		    	
@@ -63,8 +58,7 @@ public class IoTApp implements IoTSetup {
         final CommandChannel startupChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
         runtime.addStartupListener(
                 ()->{
-                	Optional<PayloadWriter<MessagePubSub>> writer = startupChannel.openTopic(TOPIC);
-                	writer.ifPresent(w->{
+                	boolean ignored =  startupChannel.openTopic(TOPIC, w->{
                 		w.writeBoolean(true);
                 		w.publish();                		
                 	});

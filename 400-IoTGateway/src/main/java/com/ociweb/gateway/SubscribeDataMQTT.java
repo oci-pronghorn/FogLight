@@ -1,7 +1,5 @@
 package com.ociweb.gateway;
 
-import java.util.Optional;
-
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -13,9 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.PayloadWriter;
 import com.ociweb.gl.api.StartupListener;
-import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 
@@ -68,8 +64,7 @@ public class SubscribeDataMQTT implements StartupListener {
 								
 					logger.info("received MQTT message on topic {}",topic);
 					
-					Optional<PayloadWriter<MessagePubSub>> payload = commandChannel.openTopic(publishTopic);					
-					payload.ifPresent(w-> {
+					commandChannel.openTopic(publishTopic, w-> {
 						w.writeUTF(topic);
 						w.write(message.getPayload());
 						w.publish();						

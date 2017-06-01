@@ -40,15 +40,7 @@ public class FilterStage extends PronghornStage {
 		        break;
 		        case ValveSchema.MSG_SUPPLYPRESSURE_313:
 				
-		        	int fieldStation = PipeReader.readInt(input,ValveSchema.MSG_SUPPLYPRESSURE_313_FIELD_STATION_1);
-		        	int fieldSupplyPressure = PipeReader.readInt(input,ValveSchema.MSG_SUPPLYPRESSURE_313_FIELD_SUPPLYPRESSURE_13);
-
-		        	//TODO: find that this is a new value??
-			
-				    PipeWriter.presumeWriteFragment(output, ValveSchema.MSG_SUPPLYPRESSURE_313);
-				    PipeWriter.writeInt(output,ValveSchema.MSG_SUPPLYPRESSURE_313_FIELD_STATION_1, fieldStation);
-				    PipeWriter.writeInt(output,ValveSchema.MSG_SUPPLYPRESSURE_313_FIELD_SUPPLYPRESSURE_13, fieldSupplyPressure);
-				    PipeWriter.publishWrites(output);
+		        	processPressureMessage();
 			
 		        	break;
 		        case ValveSchema.MSG_DURATIONOFLAST1_4SIGNAL_314:
@@ -101,6 +93,22 @@ public class FilterStage extends PronghornStage {
 		}
 		
 		
+	}
+
+	private void processPressureMessage() {
+		int fieldStation = PipeReader.readInt(input,ValveSchema.MSG_SUPPLYPRESSURE_313_FIELD_STATION_1);
+		int fieldSupplyPressure = PipeReader.readInt(input,ValveSchema.MSG_SUPPLYPRESSURE_313_FIELD_SUPPLYPRESSURE_13);
+
+		//TODO: find that this is a new value??
+
+		publishThisSpecificMsg(fieldStation, fieldSupplyPressure);
+	}
+
+	private void publishThisSpecificMsg(int fieldStation, int fieldSupplyPressure) {
+		PipeWriter.presumeWriteFragment(output, ValveSchema.MSG_SUPPLYPRESSURE_313);
+		PipeWriter.writeInt(output,ValveSchema.MSG_SUPPLYPRESSURE_313_FIELD_STATION_1, fieldStation);
+		PipeWriter.writeInt(output,ValveSchema.MSG_SUPPLYPRESSURE_313_FIELD_SUPPLYPRESSURE_13, fieldSupplyPressure);
+		PipeWriter.publishWrites(output);
 	}
 
 }

@@ -66,6 +66,8 @@ public class ManifoldApp {
 			
 			ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages	
 			
+			//TODO: add a filter stage, which will require an addition pipe.
+			
 			MQTTPublishPAHOStage.newInstance(gm, valveDataPipe,"tcp://"+gatewayHost+":1883",clientId);//send data to the gateway
 			
 			MonitorConsoleStage.attach(gm);

@@ -68,6 +68,7 @@ public class ManifoldApp {
 			
 			MQTTPublishPAHOStage.newInstance(gm, valveDataPipe,"tcp://"+gatewayHost+":1883",clientId);//send data to the gateway
 			
+			MonitorConsoleStage.attach(gm);
 			
 		} else {
 			//build up simulators

@@ -33,10 +33,10 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
 
     private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
     private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);
-    private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
-    private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);
-
-    private final PipeConfig<SerialDataSchema> serialInputConfig = new PipeConfig<SerialDataSchema>(SerialDataSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload); 
+    
+    private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
+    private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x();
+    private final PipeConfig<SerialDataSchema> serialInputConfig = new PipeConfig<SerialDataSchema>(SerialDataSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x(); 
 
     private static final byte piI2C = 1;
     private static final byte edI2C = 6;

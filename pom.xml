@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ociweb</groupId>
-    <version>0.0.11-SNAPSHOT</version>
-    <name>Pronghorn IoT</name>
-    <artifactId>PronghornIoT</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <name>FogLight</name>
+    <artifactId>FogLight</artifactId>
 
     <properties>
   		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -41,9 +41,9 @@
     </dependencies>
 
   <scm>
-    <connection>scm:git:git://github.com/oci-pronghorn/PronghornIoT.git</connection>
-    <url>https://github.com/oci-pronghorn/PronghornIoT</url>
-    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/PronghornIoT.git</developerConnection>
+    <connection>scm:git:git://github.com/oci-pronghorn/EmbeddedToolkit.git</connection>
+    <url>https://github.com/oci-pronghorn/EmbeddedToolkit</url>
+    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/EmbeddedToolkit.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
     
@@ -160,7 +160,7 @@
                          <goal>shade</goal>
                      </goals>
                      <configuration>
-                         <finalName>PronghornIoT-GrovePi-PiCamTest</finalName>
+                         <finalName>FogLight-GrovePi-PiCamTest</finalName>
                          <filters>
                              <filter>
                                  <artifact>*jnr-ffi:jnr-ffi*</artifact>
@@ -187,7 +187,7 @@
                         <goal>shade</goal>
                     </goals>
                     <configuration>
-                        <finalName>PronghornIoT-GrovePi</finalName>
+                        <finalName>FogLight-GrovePi</finalName>
                         <filters>
                             <filter>
                                 <artifact>*jnr-ffi:jnr-ffi*</artifact>
@@ -214,7 +214,7 @@
                         <goal>shade</goal>
                     </goals>
                     <configuration>
-                        <finalName>PronghornIoT-Edison</finalName>
+                        <finalName>FogLight-Edison</finalName>
                         <filters>
                             <filter>
                                 <artifact>*jnr-ffi:jnr-ffi*</artifact>
@@ -256,6 +256,6 @@
     </build>
 
 
-    <description>Pronghorn Embedded Toolkit (PET)</description>
-    <url>https://github.com/oci-pronghorn/PronghornIoT</url>
+    <description>FogLight</description>
+    <url>https://github.com/oci-pronghorn/EmbeddedToolkit</url>
 </project>

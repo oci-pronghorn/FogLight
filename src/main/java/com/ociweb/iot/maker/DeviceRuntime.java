@@ -43,12 +43,21 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
 
     public static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
 
+    public final String[] args;
+    
     public DeviceRuntime() {
-       super();
+       this(null);
     }
+    
+    public DeviceRuntime(String[] args) {
+        super();
+        this.args = args;
+     }
 
-
-
+    public String[] args() {
+    	return args;
+    }
+    
     public Hardware getHardware(){
     	if(this.builder==null){
 
@@ -273,8 +282,11 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
         return runtime;
     }
 
-	public static DeviceRuntime run(IoTSetup app) {
-	    DeviceRuntime runtime = new DeviceRuntime();
+    public static DeviceRuntime run(IoTSetup app) {
+    	return run(app,null);
+    }
+	public static DeviceRuntime run(IoTSetup app, String[] args) {
+	    DeviceRuntime runtime = new DeviceRuntime(args);
         try {
         	app.declareConfiguration(runtime.getHardware());
 		    GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ociweb.iot.archetype</groupId>
   <artifactId>PronghornIoT-Archetype</artifactId>
-  <version>0.0.7</version>
+  <version>0.0.8-SNAPSHOT</version>
   <name>Archetype - PronghornIoT-Archetype</name>
   <url>http://maven.apache.org</url>
   
@@ -14,7 +14,7 @@
     <connection>scm:git:git://github.com/oci-pronghorn/PronghornIoT-Archetype.git</connection>
     <url>https://github.com/oci-pronghorn/PronghornIoT-Archetype</url>
     <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/PronghornIoT-Archetype.git</developerConnection>
-    <tag>PronghornIoT-Archetype-0.0.7</tag>
+    <tag>HEAD</tag>
   </scm>
   
   <distributionManagement>

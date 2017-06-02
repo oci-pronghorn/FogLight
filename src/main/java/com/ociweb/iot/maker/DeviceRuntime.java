@@ -24,15 +24,8 @@ import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-<<<<<<< HEAD
 public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>  {
  
-=======
-import java.lang.reflect.InvocationTargetException;
-
-public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT>  {
-
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
     private static final Logger logger = LoggerFactory.getLogger(DeviceRuntime.class);
 
     private final int i2cDefaultLength = 300;
@@ -42,10 +35,8 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
     private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);
     private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
     private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);
-<<<<<<< HEAD
+
     private final PipeConfig<SerialDataSchema> serialInputConfig = new PipeConfig<SerialDataSchema>(SerialDataSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload); 
-=======
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
 
     private static final byte piI2C = 1;
     private static final byte edI2C = 6;
@@ -83,7 +74,7 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
 					} catch (NoSuchMethodException e) {
 						logger.warn(
 								"{} does not provide a single argument constructor that accepts a GraphManager. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME);
-					} catch (ClassCastException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+					} catch (Throwable e) {
 						logger.warn(
 								"Unable to instantiate {}. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME, e);
 					}
@@ -144,35 +135,15 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
     	pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload,I2CCommandSchema.class);
     	pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload, MessagePubSub.class );
     	pcm.addConfig(customChannelLength,0,TrafficOrderSchema.class);
-<<<<<<< HEAD
-    	    	
+	
         return this.builder.newCommandChannel(features, instance, pcm);
         
     }
-=======
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
-
-<<<<<<< HEAD
-=======
-        return this.builder.newCommandChannel(features, instance, pcm);
-
-    }
-
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
-
 
     public ListenerFilterIoT addRotaryListener(RotaryListener listener) {
         return registerListener(listener);
     }
-<<<<<<< HEAD
-        
-    
-//TODO: where is the AnalogListener code?? was it removed??
-//TODO: need to add serial listener...
-    
-=======
 
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
     public ListenerFilterIoT addAnalogListener(AnalogListener listener) {
         return registerListener(listener);
     }
@@ -209,17 +180,9 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
     public ListenerFilterIoT addI2CListener(I2CListener listener) {
         return registerListenerImpl(listener);
     }
-<<<<<<< HEAD
-    
-    
+
     private ListenerFilterIoT registerListenerImpl(Object listener, int ... optionalInts) {
-        
-=======
 
-
-    protected ListenerFilterIoT registerListenerImpl(Object listener, int ... optionalInts) {
-
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
     	extractPipeData(listener, optionalInts);
 
     	/////////
@@ -232,39 +195,18 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
         if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
         	pipesCount++;
         }
-<<<<<<< HEAD
+
     	if (this.builder.isListeningToSerial(listener) && this.builder.hasSerialInputs()) {
     		pipesCount++;      
         }
-        
-=======
 
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
         pipesCount = addGreenPipesCount(listener, pipesCount);
 
         Pipe<?>[] inputPipes = new Pipe<?>[pipesCount];
-<<<<<<< HEAD
-    	    	
-=======
-
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
-
-    	///////
-        //Populate the inputPipes array with the required pipes
-<<<<<<< HEAD
-    	///////      
-                
-=======
-    	///////
 
 
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
         if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
-<<<<<<< HEAD
-        	inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(reponseI2CConfig);       
-=======
-        	inputPipes[--pipesCount] = (new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x()));   //must double since used by splitter
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/EmbeddedToolkit.git
+        	inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(reponseI2CConfig);     
         }
         if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
         	inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(responsePinsConfig);

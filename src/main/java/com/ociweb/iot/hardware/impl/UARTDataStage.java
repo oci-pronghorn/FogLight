@@ -14,16 +14,15 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class UARTDataStage extends PronghornStage{
 
 	private RS232Client client;
-	private final Pipe<RawDataSchema> output;
-	private int x = 0;
+	private final Pipe<SerialDataSchema> output;
 	private Logger logger = LoggerFactory.getLogger(UARTDataStage.class);
 	
-	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> output) {
+	public static void newInstance(GraphManager gm, Pipe<SerialDataSchema> output) {
 		new UARTDataStage(gm, output);
 		
 	}
-	public UARTDataStage(GraphManager graphManager, Pipe<RawDataSchema> output) {
-		super(graphManager, NONE, output);
+	public UARTDataStage(GraphManager gm, Pipe<SerialDataSchema> output) {
+		super(gm, NONE, output);
 		this.output = output;
 		
 	}
@@ -39,7 +38,7 @@ public class UARTDataStage extends PronghornStage{
 		Pipe.spinBlockForRoom(output, Pipe.EOF_SIZE);
 		Pipe.publishEOF(output);
 	}
-	int iteration = 0;
+	
 	@Override
 	public void run() {
 		

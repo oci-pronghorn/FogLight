@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CBusSchema;
@@ -13,7 +14,11 @@ import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class IoTSchemaValidationTest {
 
-        
+    @Test
+    public void uartDataFROMTest() {
+        assertTrue(FROMValidation.checkSchema("/UARTDataSchema.xml", SerialDataSchema.class));
+    }
+    
     @Test
     public void groveResponseFROMTest() {
         assertTrue(FROMValidation.checkSchema("/GroveResponse.xml", GroveResponseSchema.class));

@@ -1,6 +1,5 @@
 package com.ociweb.iot.hardware;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
@@ -16,16 +15,17 @@ import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.MessagePubSubStage;
 import com.ociweb.gl.impl.stage.TrafficCopStage;
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
+import com.ociweb.iot.hardware.impl.SerialDataSchema;
+import com.ociweb.iot.hardware.impl.UARTDataStage;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
-//github.com/oci-pronghorn/PronghornIoT.git
+
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
+import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -42,12 +42,9 @@ import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
-import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
-import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.math.PMath;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
@@ -75,11 +72,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	private static final int DEFAULT_LENGTH = 16;
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
 
-	protected final PipeConfig<TrafficReleaseSchema> releasePipesConfig   = new PipeConfig<TrafficReleaseSchema>(TrafficReleaseSchema.instance, DEFAULT_LENGTH);
-	protected final PipeConfig<TrafficOrderSchema> orderPipesConfig       = new PipeConfig<TrafficOrderSchema>(TrafficOrderSchema.instance, DEFAULT_LENGTH);
-	protected final PipeConfig<TrafficAckSchema> ackPipesConfig           = new PipeConfig<TrafficAckSchema>(TrafficAckSchema.instance, DEFAULT_LENGTH);
-	protected final PipeConfig<GroveResponseSchema> groveResponseConfig   = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
-	protected final PipeConfig<I2CResponseSchema> i2CResponseSchemaConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 
 	public final I2CBacking i2cBacking;
 
@@ -219,7 +211,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	public void coldSetup(){
 		//TODO: I2C Setup methods
-	};
+	}
 
 	protected HardwareConnection[] buildUsedLines() {
 
@@ -303,6 +295,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	}
 
+	private void createUARTInputStage(Pipe<SerialDataSchema> masterUARTPipe) {
+		new UARTDataStage(this.gm, masterUARTPipe);
+	}
+	
 	protected void createADInputStage(Pipe<GroveResponseSchema> masterResponsePipe) {
 		//NOTE: rate is NOT set since stage sets and configs its own rate based on polling need.
 		ReadDeviceInputStage adInputStage = new ReadDeviceInputStage(this.gm, masterResponsePipe, this);
@@ -323,6 +319,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
 	}
 
+	
+	public boolean isListeningToSerial(Object listener) {
+		return listener instanceof SerialListener;
+	}
+	
 	public boolean isListeningToI2C(Object listener) {
 		return listener instanceof I2CListener;
 	}
@@ -345,6 +346,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 
+	public boolean hasSerialInputs() {
+		if (true ) {
+			throw new UnsupportedOperationException("not yet implemented");
+		}
+		return true; 
+	}
+	
 	public boolean hasI2CInputs() {
 		return this.i2cInputs!=null && this.i2cInputs.length>0;
 	}
@@ -494,6 +502,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	public void buildStages(IntHashTable subscriptionPipeLookup2, IntHashTable netPipeLookup2, GraphManager gm2) {
+		
 		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfType(gm2, GroveResponseSchema.instance);
 		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfType(gm2, I2CResponseSchema.instance);
 		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfType(gm2, MessageSubscription.instance);
@@ -502,6 +511,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<GroveRequestSchema>[] requestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
 		Pipe<ClientHTTPRequestSchema>[] netRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);
+		Pipe<SerialDataSchema>[] UARTResponsePipes = GraphManager.allPipesOfType(gm2, SerialDataSchema.instance);
+
+		
 		assert(orderPipes.length == i2cPipes.length);
 		assert(orderPipes.length == requestPipes.length);
 		
@@ -599,8 +611,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//////////////////
 		Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
 		if (i2cResponsePipes.length>0) {
-			masterI2CResponsePipe = new Pipe<I2CResponseSchema>(i2CResponseSchemaConfig);
-			ReplicatorStage i2cResponseSplitter = new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
+			masterI2CResponsePipe =  I2CResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
 		}
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
 			createI2COutputInputStage(i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
@@ -610,15 +622,26 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//only build and connect gpio input responses if it is used
 		//////////////
 		if (responsePipes.length>0) {
-			Pipe<GroveResponseSchema> masterResponsePipe = new Pipe<GroveResponseSchema>(groveResponseConfig);
-			ReplicatorStage responseSplitter = new ReplicatorStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
+			Pipe<GroveResponseSchema> masterResponsePipe = GroveResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			new ReplicatorStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
 			createADInputStage(masterResponsePipe);
 		}
+		
+		//////////////
+		//only build UART response if the responses are consumed
+		//////////////
+		if (UARTResponsePipes.length>0) {
+			Pipe<SerialDataSchema> masterUARTPipe = SerialDataSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			new ReplicatorStage<SerialDataSchema>(gm, masterUARTPipe, UARTResponsePipes);   
+			createUARTInputStage(masterUARTPipe);
+		}		
 		
 		///////////////
 		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
 		///////////////
 		createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
 	}
+
+	
 	
 }

@@ -3,32 +3,28 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.HTTPResponseListener;
 import com.ociweb.gl.api.RestListener;
-import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
-import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.HTTPResponseListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
+import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.network.ClientConnection;
-import com.ociweb.pronghorn.network.ClientCoordinator;
-import com.ociweb.pronghorn.network.config.HTTPContentType;
-import com.ociweb.pronghorn.network.config.HTTPSpecification;
 import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
+import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
-import com.ociweb.pronghorn.pipe.PipeReaderUTF8MutableCharSquence;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
@@ -70,14 +66,6 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 		
     /////////////////////
     private Number stageRate;
-
-    private PipeReaderUTF8MutableCharSquence workspace = new PipeReaderUTF8MutableCharSquence();
-    private PayloadReader payloadReader;
-    
-    private final StringBuilder workspaceHost = new StringBuilder();
-    
-    private HTTPSpecification httpSpec;
-    private final ClientCoordinator ccm = null ;//TODO: pass in? get from hardware!!!!
     
     public ReactiveListenerStageIOT(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
 
@@ -212,24 +200,22 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 
             Pipe<?> localPipe = inputPipes[p];
 
-            if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
+            if (Pipe.isForSchema(localPipe, SerialDataSchema.instance)) {
+            	consumeSerialMessage(listener, (Pipe<SerialDataSchema>) localPipe);
+            } else if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
             } else if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {
             	//listener may be analog or digital if we are using the grovePi board            	
-            	consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);            	
-            	
+            	consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);
             } else if (Pipe.isForSchema(localPipe, MessageSubscription.instance)) {                
                 consumePubSubMessage(listener, (Pipe<MessageSubscription>) localPipe);
             } else if (Pipe.isForSchema(localPipe, NetResponseSchema.instance)) {
                //should only have this pipe if listener is also instance of HTTPResponseListener
                consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) localPipe);
-               
-            } else if (Pipe.isForSchema(localPipe, HTTPRequestSchema.instance)) {
-            	
-            	consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) localPipe, 
+            } else if (Pipe.isForSchema(localPipe, HTTPRequestSchema.instance)) {            	
+               consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) localPipe, 
             			          routeIds[p], parallelIds[p]);
-            
-               
+                           
             } else 
             {   // HTTPRequestSchema
                 logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(localPipe));
@@ -238,58 +224,6 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         
         
     }
-
-    
-    private void consumeNetResponse(HTTPResponseListener listener, Pipe<NetResponseSchema> p) {
-    	 while (PipeReader.tryReadFragment(p)) {                
-             
-             int msgIdx = PipeReader.getMsgIdx(p);
-             switch (msgIdx) {
-             case NetResponseSchema.MSG_RESPONSE_101:
-            	 
-            	 long ccId1 = PipeReader.readLong(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_CONNECTIONID_1);
-            	 ClientConnection cc = (ClientConnection)ccm.get(ccId1);
-            	 
-            	 if (null!=cc) {
-	            	 PayloadReader reader = (PayloadReader)PipeReader.inputStream(p, NetResponseSchema.MSG_RESPONSE_101_FIELD_PAYLOAD_3);	            	 
-	            	 short statusId = reader.readShort();	
-	            	 short typeHeader = reader.readShort();
-	            	 short typeId = 0;
-	            	 if (6==typeHeader) {//may not have type
-	            		 assert(6==typeHeader) : "should be 6 was "+typeHeader;
-	            		 typeId = reader.readShort();	            	 
-	            		 short headerEnd = reader.readShort();
-	            		 assert(-1==headerEnd) : "header end should be -1 was "+headerEnd;
-	            	 } else {
-	            		 assert(-1==typeHeader) : "header end should be -1 was "+typeHeader;
-	            	 }
-	            	 
-	            	 if (null==httpSpec) {
-	            		 httpSpec = HTTPSpecification.defaultSpec();
-	            	 }
-	            	 
-	            	 listener.responseHTTP(cc.getHost(), cc.getPort(), statusId, (HTTPContentType)httpSpec.contentTypes[typeId], reader);            	 
-	            	 //cc.incResponsesReceived(); NOTE: can we move this here instead of in the socket listener??
-            	             	 
-            	 } //else do not send, wait for closed message
-            	 break;
-             case NetResponseSchema.MSG_CLOSED_10:
-            	 
-            	 workspaceHost.setLength(0);
-            	 PipeReader.readUTF8(p, NetResponseSchema.MSG_CLOSED_10_FIELD_HOST_4, workspaceHost);
-            	 listener.responseHTTP(workspaceHost,PipeReader.readInt(p, NetResponseSchema.MSG_CLOSED_10_FIELD_PORT_5),(short)-1,null,null);    
-            	 
-            	 break;
-             default:
-                 throw new UnsupportedOperationException("Unknown id: "+msgIdx);
-             }
-             
-    	 }
-    			
-    	
-	}
-
-
         
 
 	private static final long MS_to_NS = 1_000_000;
@@ -301,7 +235,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 			//if its not near, leave
 			return;
 		}
-		if (msRemaining>1) {
+		if (msRemaining > 1) {
 			try {
 				Thread.sleep(msRemaining-1);
 			} catch (InterruptedException e) {
@@ -355,7 +289,32 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 
 	}
 
-    
+
+	private void consumeSerialMessage(Object listener, Pipe<SerialDataSchema> p) {
+		
+		SerialListener serial = (SerialListener)p;
+	
+		do {
+						
+			if (PipeReader.peekMsg(p, SerialDataSchema.MSG_CHUNKEDSTREAM_1)) {
+				
+				DataInputBlobReader<SerialDataSchema> stream = PipeReader.peekInputStream(p,SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+				boolean msg = serial.message(stream);
+				if (msg) {
+					PipeReader.tryReadFragment(p);
+					PipeReader.releaseReadLock(p);
+				} else {
+					break; //could not consume do later
+				}
+			} else {
+				break; //nothing to peek.
+			}
+		
+		} while (true);
+		
+	}
+
+
     
 
     protected void consumeResponseMessage(Object listener, Pipe<GroveResponseSchema> p) {

@@ -8,6 +8,7 @@ import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -23,7 +24,7 @@ import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT>  {
+public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>  {
  
     private static final Logger logger = LoggerFactory.getLogger(DeviceRuntime.class);
     
@@ -32,10 +33,11 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
     private final int i2cDefaultMaxPayload = 16;
 
     private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
-    private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);    
+    private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);
     private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload);
-    private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);      
-        
+    private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength);
+    private final PipeConfig<SerialDataSchema> serialInputConfig = new PipeConfig<SerialDataSchema>(SerialDataSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload); 
+
     private static final byte piI2C = 1;
     private static final byte edI2C = 6;
     
@@ -113,13 +115,17 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
         return this.builder.newCommandChannel(features, instance, pcm);
         
     }
-    
 
-    
+
+
     public ListenerFilterIoT addRotaryListener(RotaryListener listener) {
         return registerListener(listener);
     }
         
+    
+//TODO: where is the AnalogListener code?? was it removed??
+//TODO: need to add serial listener...
+    
     public ListenerFilterIoT addAnalogListener(AnalogListener listener) {
         return registerListener(listener);
     }
@@ -128,7 +134,17 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
         return registerListener(listener);
     }
 
+    public ListenerFilterIoT addSerialListener(SerialListener listener) {
+        return registerListener(listener);
+    }
+    
+    public ListenerFilterIoT registerListener(Object listener) {
+    	return registerListenerImpl(listener);
+    }
+    
     public ListenerFilterIoT addImageListener(ImageListener listener) {
+    	//NOTE: this is an odd approach, this level of configuration is normally hidden on this layer.
+    	//      TODO: images should have their own internal time and not hijack the application level timer.
         if (builder.getTriggerRate() < 1250) {
             throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
         }
@@ -148,7 +164,7 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
     }
     
     
-    protected ListenerFilterIoT registerListenerImpl(Object listener, int ... optionalInts) {
+    private ListenerFilterIoT registerListenerImpl(Object listener, int ... optionalInts) {
         
     	extractPipeData(listener, optionalInts);
     	
@@ -162,22 +178,27 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl,ListenerFilterIoT> 
         if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
         	pipesCount++;
         }
+    	if (this.builder.isListeningToSerial(listener) && this.builder.hasSerialInputs()) {
+    		pipesCount++;      
+        }
         
         pipesCount = addGreenPipesCount(listener, pipesCount);
         
         Pipe<?>[] inputPipes = new Pipe<?>[pipesCount];
-    	 	
-    	
+    	    	
+
     	///////
         //Populate the inputPipes array with the required pipes
     	///////      
-        
-        
+                
         if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
-        	inputPipes[--pipesCount] = (new Pipe<I2CResponseSchema>(reponseI2CConfig.grow2x()));   //must double since used by splitter         
+        	inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(reponseI2CConfig);       
         }
         if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
-        	inputPipes[--pipesCount] = (new Pipe<GroveResponseSchema>(responsePinsConfig.grow2x()));  //must double since used by splitter
+        	inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(responsePinsConfig);
+        }
+        if (this.builder.isListeningToSerial(listener) && this.builder.hasSerialInputs()) {
+        	inputPipes[--pipesCount] = new Pipe<SerialDataSchema>(serialInputConfig);        
         }
         
         populateGreenPipes(listener, pipesCount, inputPipes); 

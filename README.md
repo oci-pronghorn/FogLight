@@ -1,18 +1,18 @@
-# Pronghorn Embedded Toolkit #
-The Pronghorn Embedded Toolkit (PET) is a lightweight runtime that enables makers of all ages and skill levels to create highly performant apps for embedded devices like Raspberry Pis.
+# FogLight Embedded Toolkit #
+FogLight is a lightweight runtime that enables makers of all ages and skill levels to create highly performant apps for embedded devices like Raspberry Pis.
 
 ## What It Is ##
-PET is a Java 8 functional API for embedded systems that's built on top of [Pronghorn](https://github.com/oci-pronghorn/Pronghorn), an actor-oriented framework for creating high-performance messaging systems composed of `Stages` and `Pipes` between stages.
+FogLight is a Java 8 functional API for embedded systems that's built on top of [GreenLightning](https://github.com/oci-pronghorn/GreenLightning), a small footprint, garbage free compact 1 Java web server and message routing platform, 
 
-PET is...
-- Fast - Built on top of Pronghorn, PET is a garbage-free, lock-free and low latency way to talk directly to hardware.
+FogLight is...
+- Fast - Built on top of GreenLightning, PET is a garbage-free, lock-free and low latency way to talk directly to hardware.
 - Simple - Taking advantage of the latest Java 8 APIs, PET has a clean and fluent set of APIs that make it easy to learn and apply with minimal training.
-- Secure - By taking advantage of the compile-time Pronghorn graph validation system, all PET applications can be compiled and compressed to a point where injecting malicious code into the final production JAR would prove difficult, if not impossible.
+- Secure - By taking advantage of the compile-time graph validation system, all FogLight applications can be compiled and compressed to a point where injecting malicious code into the final production JAR would prove difficult, if not impossible.
 
 ## How It Works ##
-Every PET application starts with an `IoTSetup` implementation which initializes the Pronghorn `DeviceRuntime` by defining various hardware connections and behaviors for handling state changes in those connections.  
+Every FogLight application starts with an `IoTSetup` implementation which initializes the `DeviceRuntime` by defining various hardware connections and behaviors for handling state changes in those connections.  
 
-A very simple example of a PET application is below (omitting boilerplate import statements and so on); this app makes an LED connected to a GrovePi board blink every 500 milliseconds:
+A very simple example of a FogLight application is below (omitting boilerplate import statements and so on); this app makes an LED connected to a GrovePi board blink every 500 milliseconds:
 
     public class IoTApp implements IoTSetup {
         
@@ -53,7 +53,7 @@ A very simple example of a PET application is below (omitting boilerplate import
         } 
     }
     
-Of course, this is just a simple example; for more interesting examples that demonstrate the various features currently available in PET, you should take a look at [our examples repository](https://github.com/oci-pronghorn/PronghornIoT-Examples).
+Of course, this is just a simple example; for more interesting examples that demonstrate the various features currently available in FogLight, you should take a look at [our examples repository](https://github.com/oci-pronghorn/EmbeddedToolkit-Examples).
 
 ## Notes for Contributors ##
 This project contains specially compiled version of the libjffi-1.2.so file for use with the Edison (i386-linux) and Pi (arm-Linux). Additionally, Libjffi is broken on Raspberry Pi's, requiring a manual recompile which is talked about [here](https://github.com/jruby/jruby/issues/1561#issuecomment-67953147).
@@ -61,13 +61,13 @@ This project contains specially compiled version of the libjffi-1.2.so file for 
 ### Building Native Dependencies ###
 Whenever the native C code is modified, it must be rebuilt on all of the target Pronghorn platforms and have its artifacts pushed back up to this repository. To re-build individual artifacts for each platform, perform the following steps:
 
-1. Clone the Pronghorn repository down to your device (e.g., a Raspberry Pi or Intel Edison).
+1. Clone the FogLight repository down to your device (e.g., a Raspberry Pi or Intel Edison).
 2. Within the root of the cloned repository, execute the appropriate make target (pi for Pi's, edison for Edisons). The make commands will give you instructions if you do it wrong.
 3. A variety of '.so' files should be generated under resources/jni.
 4. Commit the changes (which should only include `.so` files).
 5. Push the changes.
 
-Once the artifacts are properly built, you should be able to simply run `mvn clean packge` as normal and use the PronghornIoT jar.
+Once the artifacts are properly built, you should be able to simply run `mvn clean packge` as normal and use the FogLight jar.
 
 ## Sponsors ##
-Interested in sponsoring the development of the Pronghorn Embedded Toolkit? Contact [tippyn@ociweb.com](mailto:tippyn@ociweb.com).
+Interested in sponsoring the development of the FogLight Embedded Toolkit? Contact [tippyn@objectcomputing.com](mailto:tippyn@objectcomputing.com).

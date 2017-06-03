@@ -1,8 +1,11 @@
 <archetype>
-  <id>PronghornIoT-Archetype</id>
+  <id>FogLight-Archetype</id>
   <sources>
     <source>src/main/java/IoTApp.java</source>
   </sources>
+  <resources>
+    <resource>src/main/resources/FogLight.props</resource>
+  </resources>
   <testSources>
     <source>src/test/java/AppTest.java</source>
   </testSources>

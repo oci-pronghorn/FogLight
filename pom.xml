@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.ociweb.iot.archetype</groupId>
-  <artifactId>PronghornIoT-Archetype</artifactId>
-  <version>0.0.8-SNAPSHOT</version>
-  <name>Archetype - PronghornIoT-Archetype</name>
+  <groupId>com.ociweb</groupId>
+  <artifactId>FogLight-Archetype</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>FogLight-Archetype</name>
   <url>http://maven.apache.org</url>
   
   <properties>
@@ -11,9 +11,9 @@
   </properties>
   
   <scm>
-    <connection>scm:git:git://github.com/oci-pronghorn/PronghornIoT-Archetype.git</connection>
-    <url>https://github.com/oci-pronghorn/PronghornIoT-Archetype</url>
-    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/PronghornIoT-Archetype.git</developerConnection>
+    <connection>scm:git:git://github.com/oci-pronghorn/EmbeddedToolkit-Archetype.git</connection>
+    <url>https://github.com/oci-pronghorn/EmbeddedToolkit-Archetype</url>
+    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/EmbeddedToolkit-Archetype.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
   

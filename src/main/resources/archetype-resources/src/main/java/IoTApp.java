@@ -20,12 +20,7 @@ public class IoTApp implements IoTSetup
 	//private static final Port LED_PORT    = D4;
     //private static final Port RELAY_PORT  = D7;
     //private static final Port LIGHT_SENSOR_PORT= A2;
-           
-    public static void main( String[] args ) {
-        DeviceRuntime.run(new IoTApp());
-    }
-    
-    
+
     @Override
     public void declareConnections(Hardware c) {
         ////////////////////////////

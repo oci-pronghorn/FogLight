@@ -1,13 +1,13 @@
-# PronghornIoT-Archetype
-Maven Archetype for starting new IoT projects
+# FogLight-Archetype
+Maven Archetype for starting new FogLight IoT projects
 
 To load the archetype on your local machine
 
-+ Checkout this project and run 
++ git clone https://github.com/oci-pronghorn/EmbeddedToolkit-Archetype.git
 + mvn install
 
-To create a new IoT project
+To create a new FogLight IoT project run the following. You will be prompted for the group (name space) and project name.
 
-+ mvn archetype:generate -DarchetypeGroupId=com.ociweb.iot.archetype -DarchetypeArtifactId=PronghornIoT-Archetype -DarchetypeVersion=0.0.6
++ mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=FogLight-Archetype -DarchetypeVersion=0.1.0-SNAPSHOT
 
-When the project is built with [mvn install] an artifact with the selected name will be built in the target folder.  This jar is executable and contains all its needed dependencies. It just needs to be copied over to the IntelEdison or RaspberryPi.
+When the project is built with [mvn install] an artifact with the selected name will be built in the target folder.  This jar is executable and contains all its needed dependencies. It just needs to be copied over to the IntelEdison, RaspberryPi or other hardware.

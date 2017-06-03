@@ -20,11 +20,9 @@ public class AppTest {
 	    {
 	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
+	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
 	    	scheduler.startup();
-	    	    	
-	    	TestHardware hardware = (TestHardware)runtime.getHardware();
-	    	
 	    	
 	    	int iterations = 10;
 			while (--iterations >= 0) {
@@ -34,5 +32,8 @@ public class AppTest {
 					//test application here
 					
 			}
+			
+			scheduler.shutdown();
+			
 	    }
 }

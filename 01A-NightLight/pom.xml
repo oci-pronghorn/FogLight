@@ -18,9 +18,9 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>com.ociweb</groupId>
-      <artifactId>PronghornIoT</artifactId>
-      <version>[0.0.8,0.1.0)</version>
+            <groupId>com.ociweb</groupId>
+            <artifactId>FogLight</artifactId>
+            <version>[0.1.0-SNAPSHOT,0.2.0)</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -177,9 +177,12 @@
         </dependencies>
         <configuration>
           <options>
-            <option>-keep public class com.ociweb.iot.track1.IoTApp {
-			    public static void main(java.lang.String[]);
-			}</option>
+	            <option>-keep public class com.ociweb.FogLight {
+			    	public static void main(java.lang.String[]);
+				}</option>
+				<option>-keep public class * implements com.ociweb.iot.maker.IoTSetup {
+				    public static void main(java.lang.String[]);
+				}</option>
             <option>-keep class jnr.ffi.** { *; }</option>
             <option>-keep class com.kenai.jffi.** { *; }</option>
             <option>-dontobfuscate</option>

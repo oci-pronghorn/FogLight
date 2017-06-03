@@ -41,12 +41,7 @@ public class IoTApp implements IoTSetup
 		State(int deltaTime){this.deltaTime=deltaTime;}
 		public int getTime(){return deltaTime;}
 	}
-	
-    public static void main( String[] args ) {
-        DeviceRuntime.run(new IoTApp());
-    }
-    
-    
+
     @Override
     public void declareConnections(Hardware c) {
 		c.connect(LED, LED1_PORT);

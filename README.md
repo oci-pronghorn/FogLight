@@ -1,9 +1,9 @@
-# FogLight-Archetype
+# FogLighter (A Maven Archetype for FogLight projects)
 Maven Archetype for starting new FogLight IoT projects
 
 To load the archetype on your local machine
 
-+ git clone https://github.com/oci-pronghorn/EmbeddedToolkit-Archetype.git
++ git clone https://github.com/oci-pronghorn/FogLighter.git
 + mvn install
 
 To create a new FogLight IoT project run the following. You will be prompted for the group (name space) and project name.

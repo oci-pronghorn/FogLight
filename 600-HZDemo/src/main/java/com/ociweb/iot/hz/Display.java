@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
@@ -21,7 +22,7 @@ public class Display implements PubSubListener{
 	}
 
 	@Override
-	public boolean message(CharSequence topic, PayloadReader payload) {
+	public boolean message(CharSequence topic, MessageReader payload) {
 		
 		
 		String newText = payload.readUTF();

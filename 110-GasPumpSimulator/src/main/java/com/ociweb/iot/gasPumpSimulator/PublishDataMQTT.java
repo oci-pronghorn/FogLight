@@ -8,6 +8,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
 
@@ -31,7 +32,7 @@ public class PublishDataMQTT implements PubSubListener{
 	}
 
 	@Override
-	public boolean message(CharSequence topic, PayloadReader payload) {
+	public boolean message(CharSequence topic, MessageReader payload) {
 
 	    try {
 		    	if (null==client) {

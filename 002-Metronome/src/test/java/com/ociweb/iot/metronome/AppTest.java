@@ -58,6 +58,8 @@ public class AppTest
     	    				int overheadForTesting = 10;
     	    				
     	    				int window = 300;
+    	    				
+    	    				//this is a little too quick now... and under the threshold.
     	    				//assertTrue(durationMs+" at "+time, durationMs>=(window-overheadForTesting));    	    				
     	    				assertTrue(durationMs+" at "+time, durationMs<=(window+overheadForTesting));
     	    				

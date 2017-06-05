@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
@@ -45,7 +46,7 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 	}
 
 	@Override
-	public boolean message(CharSequence topic, PayloadReader payload) {
+	public boolean message(CharSequence topic, MessageReader payload) {
 		
 		if (topic.equals(topicTank)) { //.toString().equals(topicTank.toString())) {
 			

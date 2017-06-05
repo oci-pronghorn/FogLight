@@ -1,10 +1,10 @@
 package com.ociweb.iot.metronome;
 
 import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
-import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.CommandChannel;
@@ -79,7 +79,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     }    
 
     @Override
-    public boolean message(CharSequence topic, PayloadReader payload) {
+    public boolean message(CharSequence topic, MessageReader payload) {
             	
         if (requestedPBM>0) {
 

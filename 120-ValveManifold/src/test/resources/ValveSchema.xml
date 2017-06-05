@@ -56,49 +56,28 @@
      <string name="PartNumber" id="30" charset="unicode"/>
    </template>
    
-   <template name="ValveFault/False" id="340">
+   <template name="ValveFault" id="340">
      <uInt32 name="Station" id="1"/>
      <uInt64 name="Timestamp" id="2"/>
-   </template>
-
-   <template name="ValveFault/True" id="341">
-     <uInt32 name="Station" id="1"/>
-     <uInt64 name="Timestamp" id="2"/>
+     <uInt32 name="Fault" id="3"/>
    </template>
    
-   <template name="PressureFault/Low" id="350">
+   <template name="PressureFault" id="350">
      <uInt32 name="Station" id="1"/>
      <uInt64 name="Timestamp" id="2"/>
+     <string name="PartNumber" id="30" charset="unicode"/>
    </template>
 
-   <template name="PressureFault/None" id="351">
+   <template name="LeakFault" id="360">
      <uInt32 name="Station" id="1"/>
      <uInt64 name="Timestamp" id="2"/>
+     <uInt32 name="Fault" id="3"/>
    </template>
 
-   <template name="PressureFault/High" id="352">
-     <uInt32 name="Station" id="1"/>
-     <uInt64 name="Timestamp" id="2"/>
-   </template>
-
-   <template name="LeakFault/False" id="360">
-     <uInt32 name="Station" id="1"/>
-     <uInt64 name="Timestamp" id="2"/>
-   </template>
-
-   <template name="LeakFault/True" id="361">
-     <uInt32 name="Station" id="1"/>
-     <uInt64 name="Timestamp" id="2"/>
-   </template>
-
-    <template name="DataFault/False" id="362">
+    <template name="DataFault" id="362">
         <uInt32 name="Station" id="1"/>
         <uInt64 name="Timestamp" id="2"/>
-    </template>
-
-    <template name="DataFault/True" id="363">
-        <uInt32 name="Station" id="1"/>
-        <uInt64 name="Timestamp" id="2"/>
+        <uInt32 name="Fault" id="3"/>
     </template>
 
     <template name="PressurePoint" id="319">

@@ -141,25 +141,14 @@ public class ValveDataParserStage extends PronghornStage {
 		switch (parsedId) {
 
 			case ValveSchema.MSG_PARTNUMBER_330:
+			case ValveSchema.MSG_PRESSUREFAULT_350:
 				
 				DataOutputBlobWriter<ValveSchema> writer = Pipe.outputStream(output);
 				writer.openField();
 				TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, writer);
 				writer.closeLowLevelField();
 
-				break;						
-
-			case ValveSchema.MSG_VALVEFAULT_FALSE_340:
-			case ValveSchema.MSG_VALVEFAULT_TRUE_341:
-			case ValveSchema.MSG_LEAKFAULT_FALSE_360:
-			case ValveSchema.MSG_LEAKFAULT_TRUE_361:
-			case ValveSchema.MSG_DATAFAULT_FALSE_362:
-			case ValveSchema.MSG_DATAFAULT_TRUE_363:
-			case ValveSchema.MSG_PRESSUREFAULT_LOW_350:
-			case ValveSchema.MSG_PRESSUREFAULT_NONE_351:
-			case ValveSchema.MSG_PRESSUREFAULT_HIGH_352:
-				//NOTE: nothing to do here we have no payload
-				break;						
+				break;
 			default:
 
 				//simple value
@@ -250,18 +239,14 @@ public class ValveDataParserStage extends PronghornStage {
 		tp.setUTF8Value("ep%i",     	ValveSchema.MSG_EQUALIZATIONPRESSURERATE_317);		
 		tp.setUTF8Value("lr%i",     	ValveSchema.MSG_RESIDUALOFDYNAMICANALYSIS_318);		
 					
-		tp.setUTF8Value("vf0",     		ValveSchema.MSG_VALVEFAULT_FALSE_340);
-		tp.setUTF8Value("vf1",     		ValveSchema.MSG_VALVEFAULT_TRUE_341);
-			
+		tp.setUTF8Value("vf%i",     	ValveSchema.MSG_VALVEFAULT_340);
+
 		
-		tp.setUTF8Value("pf\"L\"", 		ValveSchema.MSG_PRESSUREFAULT_LOW_350);
-		tp.setUTF8Value("pf\"N\"", 		ValveSchema.MSG_PRESSUREFAULT_NONE_351);
-		tp.setUTF8Value("pf\"H\"", 		ValveSchema.MSG_PRESSUREFAULT_HIGH_352);
+		tp.setUTF8Value("pf\"%b\"", 	ValveSchema.MSG_PRESSUREFAULT_350);
 				
 		
-		tp.setUTF8Value("lf0",     		ValveSchema.MSG_LEAKFAULT_FALSE_360);
-		tp.setUTF8Value("lf1",     	   	ValveSchema.MSG_LEAKFAULT_TRUE_361);
-				
+		tp.setUTF8Value("lf%i",     	ValveSchema.MSG_LEAKFAULT_360);
+
 		
 		tp.setUTF8Value("]",         	DATA_END);
 		

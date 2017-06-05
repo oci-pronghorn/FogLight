@@ -62,9 +62,9 @@ public class UARTDataParserTest {
 		assertEquals(ValveSchema.MSG_LIFECYCLECOUNT_312, (int)TrieParserReader.parseNext(reader, trie));
 		assertEquals(184587, TrieParserReader.capturedLongField(reader, 0));
 				
-		assertEquals(ValveSchema.MSG_LEAKFAULT_FALSE_360, (int)TrieParserReader.parseNext(reader, trie));		
-		assertEquals(ValveSchema.MSG_PRESSUREFAULT_LOW_350, (int)TrieParserReader.parseNext(reader, trie));
-		assertEquals(ValveSchema.MSG_VALVEFAULT_FALSE_340, (int)TrieParserReader.parseNext(reader, trie));
+		assertEquals(ValveSchema.MSG_LEAKFAULT_360, (int)TrieParserReader.parseNext(reader, trie));
+		assertEquals(ValveSchema.MSG_PRESSUREFAULT_350, (int)TrieParserReader.parseNext(reader, trie));
+		assertEquals(ValveSchema.MSG_VALVEFAULT_340, (int)TrieParserReader.parseNext(reader, trie));
 		
 		assertEquals(ValveSchema.MSG_SUPPLYPRESSURE_313, (int)TrieParserReader.parseNext(reader, trie));
 		assertEquals(80, TrieParserReader.capturedLongField(reader, 0));

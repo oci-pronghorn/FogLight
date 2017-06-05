@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.PayloadReader;
@@ -44,7 +45,7 @@ public class ObjectPassingTest {
 					runtime.addPubSubListener(new PubSubListener() {
 
 						@Override
-						public boolean message(CharSequence topic, PayloadReader payload) {
+						public boolean message(CharSequence topic, MessageReader payload) {
 							
 							try {
 								

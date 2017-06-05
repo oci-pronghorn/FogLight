@@ -134,6 +134,7 @@ public class ValveDataParserStage extends PronghornStage {
 	private void publishSingleMessage(int parsedId) {
 		final int size = Pipe.addMsgIdx(output, parsedId);
 		Pipe.addIntValue(stationNumber,output);
+		Pipe.addLongValue(System.currentTimeMillis(),output);
 					
 		//logger.info("publish message stationNo:{} type:{} ",stationNumber, parsedId);
 		
@@ -152,6 +153,8 @@ public class ValveDataParserStage extends PronghornStage {
 			case ValveSchema.MSG_VALVEFAULT_TRUE_341:
 			case ValveSchema.MSG_LEAKFAULT_FALSE_360:
 			case ValveSchema.MSG_LEAKFAULT_TRUE_361:
+			case ValveSchema.MSG_DATAFAULT_FALSE_362:
+			case ValveSchema.MSG_DATAFAULT_TRUE_363:
 			case ValveSchema.MSG_PRESSUREFAULT_LOW_350:
 			case ValveSchema.MSG_PRESSUREFAULT_NONE_351:
 			case ValveSchema.MSG_PRESSUREFAULT_HIGH_352:

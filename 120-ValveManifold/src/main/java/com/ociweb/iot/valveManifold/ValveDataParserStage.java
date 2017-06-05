@@ -97,7 +97,7 @@ public class ValveDataParserStage extends PronghornStage {
 			int oldPos = reader.sourcePos;
 			int parsedId = (int)TrieParserReader.parseNext(reader, trie);
 			
-		    if (parsedId>0) {
+		    if (parsedId>=0) {
 		    	//valid values
 
 		    	if (DATA_IGNORE!=parsedId) {
@@ -115,7 +115,6 @@ public class ValveDataParserStage extends PronghornStage {
 			    	
 		    	
 		    } else {
-		    	
 		    	assert (reader.sourcePos==oldPos);
 		    	
 		    	int length = originalLen-reader.sourceLen;
@@ -148,7 +147,7 @@ public class ValveDataParserStage extends PronghornStage {
 				writer.closeLowLevelField();
 
 				break;						
-			case ValveSchema.MSG_VALUEFAULT_FALSE_340:	
+			case ValveSchema.MSG_VALUEFAULT_FALSE_340:
 			case ValveSchema.MSG_VALUEFAULT_TRUE_341:
 			case ValveSchema.MSG_LEAKFAULT_FALSE_360:
 			case ValveSchema.MSG_LEAKFAULT_TRUE_361:
@@ -224,7 +223,7 @@ public class ValveDataParserStage extends PronghornStage {
     //package protected for testing
 	static TrieParser buildParser() {
 		
-		TrieParser tp = new TrieParser(256,1,true,true);
+		TrieParser tp = new TrieParser(256,1,false,true);
 		
 		/////////////////////////
 		//these are needed to "capture" error cases early, the tighter we make them the sooner we find the issues.
@@ -233,8 +232,6 @@ public class ValveDataParserStage extends PronghornStage {
         /////////////////////////
 		
 		tp.setUTF8Value("[st%u",        DATA_START);
-		
-		tp.setUTF8Value("mn%i",         ValveSchema.MSG_MANIFOLDSERIALNUMBER_310);
 		tp.setUTF8Value("sn%i",        	ValveSchema.MSG_VALVESERIALNUMBER_311);
 		tp.setUTF8Value("pn\"%b\"",    	ValveSchema.MSG_PARTNUMBER_330);
 		tp.setUTF8Value("cc%i",     	ValveSchema.MSG_LIFECYCLECOUNT_312);

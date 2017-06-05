@@ -2,11 +2,6 @@
 <templates>
 
 
-   <template name="ManifoldSerialNumber" id="310">
-     <uInt32 name="Station" id="1"/>     
-     <uInt32 name="ManifoldSerialNumber" id="10"/>
-   </template>   
-
    <template name="ValveSerialNumber" id="311">
      <uInt32 name="Station" id="1"/>     
      <uInt32 name="ValveSerialNumber" id="11"/>

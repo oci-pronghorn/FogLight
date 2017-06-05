@@ -90,9 +90,6 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			
 			writer.append("st");
 			Appendables.appendValue(writer, valve);
-					
-			writer.append("mn");
-			writer.append(manifold);
 			
 			writer.append("sn");
 			writer.append(snArray[valve]);

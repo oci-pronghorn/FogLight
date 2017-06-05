@@ -65,7 +65,7 @@
    <template name="PressureFault" id="350">
      <uInt32 name="Station" id="1"/>
      <uInt64 name="Timestamp" id="2"/>
-     <string name="PartNumber" id="30" charset="unicode"/>
+     <string name="PressureFault" id="30" charset="unicode"/>
    </template>
 
    <template name="LeakFault" id="360">

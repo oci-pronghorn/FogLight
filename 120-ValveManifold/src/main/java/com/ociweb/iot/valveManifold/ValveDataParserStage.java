@@ -147,8 +147,9 @@ public class ValveDataParserStage extends PronghornStage {
 				writer.closeLowLevelField();
 
 				break;						
-			case ValveSchema.MSG_VALUEFAULT_FALSE_340:
-			case ValveSchema.MSG_VALUEFAULT_TRUE_341:
+
+			case ValveSchema.MSG_VALVEFAULT_FALSE_340:
+			case ValveSchema.MSG_VALVEFAULT_TRUE_341:
 			case ValveSchema.MSG_LEAKFAULT_FALSE_360:
 			case ValveSchema.MSG_LEAKFAULT_TRUE_361:
 			case ValveSchema.MSG_PRESSUREFAULT_LOW_350:
@@ -246,8 +247,8 @@ public class ValveDataParserStage extends PronghornStage {
 		tp.setUTF8Value("ep%i",     	ValveSchema.MSG_EQUALIZATIONPRESSURERATE_317);		
 		tp.setUTF8Value("lr%i",     	ValveSchema.MSG_RESIDUALOFDYNAMICANALYSIS_318);		
 					
-		tp.setUTF8Value("vf0",     		ValveSchema.MSG_VALUEFAULT_FALSE_340);
-		tp.setUTF8Value("vf1",     		ValveSchema.MSG_VALUEFAULT_TRUE_341);
+		tp.setUTF8Value("vf0",     		ValveSchema.MSG_VALVEFAULT_FALSE_340);
+		tp.setUTF8Value("vf1",     		ValveSchema.MSG_VALVEFAULT_TRUE_341);
 			
 		
 		tp.setUTF8Value("pf\"L\"", 		ValveSchema.MSG_PRESSUREFAULT_LOW_350);

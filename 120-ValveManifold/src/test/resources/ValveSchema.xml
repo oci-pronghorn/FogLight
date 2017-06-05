@@ -9,7 +9,7 @@
 
    <template name="LifeCycleCount" id="312">
      <uInt32 name="Station" id="1"/>     
-     <uInt32 name="ValveSerialNumber" id="12"/>
+     <uInt32 name="LifeCycleCount" id="12"/>
    </template>   
 
    <template name="SupplyPressure" id="313">
@@ -47,11 +47,11 @@
      <string name="PartNumber" id="30" charset="unicode"/>
    </template>
    
-   <template name="ValueFault/False" id="340">
+   <template name="ValveFault/False" id="340">
      <uInt32 name="Station" id="1"/>
    </template>
 
-   <template name="ValueFault/True" id="341">
+   <template name="ValveFault/True" id="341">
      <uInt32 name="Station" id="1"/>
    </template>
    

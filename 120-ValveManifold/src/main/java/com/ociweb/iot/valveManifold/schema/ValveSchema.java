@@ -12,11 +12,11 @@ public class ValveSchema extends MessageSchema<ValveSchema> {
             new int[]{0xc0400003, 0x80000000, 0x80000001, 0xc0200003, 0xc0400003, 0x80000000, 0x80000002, 0xc0200003, 0xc0400003, 0x80000000, 0x80000003, 0xc0200003, 0xc0400003, 0x80000000, 0x80000004, 0xc0200003, 0xc0400003, 0x80000000, 0x80000005, 0xc0200003, 0xc0400003, 0x80000000, 0x80000006, 0xc0200003, 0xc0400003, 0x80000000, 0x88000007, 0xc0200003, 0xc0400003, 0x80000000, 0x80000008, 0xc0200003, 0xc0400003, 0x80000000, 0xa8000000, 0xc0200003, 0xc0400002, 0x80000000, 0xc0200002, 0xc0400002, 0x80000000, 0xc0200002, 0xc0400002, 0x80000000, 0xc0200002, 0xc0400002, 0x80000000, 0xc0200002, 0xc0400002, 0x80000000, 0xc0200002, 0xc0400002, 0x80000000, 0xc0200002, 0xc0400002, 0x80000000, 0xc0200002, 0xc0400003, 0x80000000, 0x80000009, 0xc0200003},
             (short) 0,
             new String[]{"ValveSerialNumber", "Station", "ValveSerialNumber", null, "LifeCycleCount", "Station",
-                    "ValveSerialNumber", null, "SupplyPressure", "Station", "SupplyPressure", null, "DurationOfLast1_4Signal",
+                    "LifeCycleCount", null, "SupplyPressure", "Station", "SupplyPressure", null, "DurationOfLast1_4Signal",
                     "Station", "DurationOfLast1_4Signal", null, "DurationOfLast1_2Signal", "Station", "DurationOfLast1_2Signal",
                     null, "EqualizationAveragePressure", "Station", "EqualizationAveragePressure", null, "EqualizationPressureRate",
                     "Station", "EqualizationPressureRate", null, "ResidualOfDynamicAnalysis", "Station", "ResidualOfDynamicAnalysis",
-                    null, "PartNumber", "Station", "PartNumber", null, "ValueFault/False", "Station", null, "ValueFault/True",
+                    null, "PartNumber", "Station", "PartNumber", null, "ValveFault/False", "Station", null, "ValveFault/True",
                     "Station", null, "PressureFault/Low", "Station", null, "PressureFault/None", "Station",
                     null, "PressureFault/High", "Station", null, "LeakFault/False", "Station", null, "LeakFault/True",
                     "Station", null, "PressurePoint", "Station", "PressurePoint", null},
@@ -41,7 +41,7 @@ public class ValveSchema extends MessageSchema<ValveSchema> {
     public static final int MSG_VALVESERIALNUMBER_311_FIELD_VALVESERIALNUMBER_11 = 0x00000002;
     public static final int MSG_LIFECYCLECOUNT_312 = 0x00000004;
     public static final int MSG_LIFECYCLECOUNT_312_FIELD_STATION_1 = 0x00000001;
-    public static final int MSG_LIFECYCLECOUNT_312_FIELD_VALVESERIALNUMBER_12 = 0x00000002;
+    public static final int MSG_LIFECYCLECOUNT_312_FIELD_LIFECYCLECOUNT_12 = 0x00000002;
     public static final int MSG_SUPPLYPRESSURE_313 = 0x00000008;
     public static final int MSG_SUPPLYPRESSURE_313_FIELD_STATION_1 = 0x00000001;
     public static final int MSG_SUPPLYPRESSURE_313_FIELD_SUPPLYPRESSURE_13 = 0x00000002;
@@ -63,10 +63,10 @@ public class ValveSchema extends MessageSchema<ValveSchema> {
     public static final int MSG_PARTNUMBER_330 = 0x00000020;
     public static final int MSG_PARTNUMBER_330_FIELD_STATION_1 = 0x00000001;
     public static final int MSG_PARTNUMBER_330_FIELD_PARTNUMBER_30 = 0x01400002;
-    public static final int MSG_VALUEFAULT_FALSE_340 = 0x00000024;
-    public static final int MSG_VALUEFAULT_FALSE_340_FIELD_STATION_1 = 0x00000001;
-    public static final int MSG_VALUEFAULT_TRUE_341 = 0x00000027;
-    public static final int MSG_VALUEFAULT_TRUE_341_FIELD_STATION_1 = 0x00000001;
+    public static final int MSG_VALVEFAULT_FALSE_340 = 0x00000024;
+    public static final int MSG_VALVEFAULT_FALSE_340_FIELD_STATION_1 = 0x00000001;
+    public static final int MSG_VALVEFAULT_TRUE_341 = 0x00000027;
+    public static final int MSG_VALVEFAULT_TRUE_341_FIELD_STATION_1 = 0x00000001;
     public static final int MSG_PRESSUREFAULT_LOW_350 = 0x0000002a;
     public static final int MSG_PRESSUREFAULT_LOW_350_FIELD_STATION_1 = 0x00000001;
     public static final int MSG_PRESSUREFAULT_NONE_351 = 0x0000002d;
@@ -113,11 +113,11 @@ public class ValveSchema extends MessageSchema<ValveSchema> {
                 case MSG_PARTNUMBER_330:
                     consumePartNumber(input);
                     break;
-                case MSG_VALUEFAULT_FALSE_340:
-                    consumeValueFault_False(input);
+                case MSG_VALVEFAULT_FALSE_340:
+                    consumeValveFault_False(input);
                     break;
-                case MSG_VALUEFAULT_TRUE_341:
-                    consumeValueFault_True(input);
+                case MSG_VALVEFAULT_TRUE_341:
+                    consumeValveFault_True(input);
                     break;
                 case MSG_PRESSUREFAULT_LOW_350:
                     consumePressureFault_Low(input);
@@ -152,7 +152,7 @@ public class ValveSchema extends MessageSchema<ValveSchema> {
 
     public static void consumeLifeCycleCount(Pipe<ValveSchema> input) {
         int fieldStation = PipeReader.readInt(input, MSG_LIFECYCLECOUNT_312_FIELD_STATION_1);
-        int fieldValveSerialNumber = PipeReader.readInt(input, MSG_LIFECYCLECOUNT_312_FIELD_VALVESERIALNUMBER_12);
+        int fieldLifeCycleCount = PipeReader.readInt(input, MSG_LIFECYCLECOUNT_312_FIELD_LIFECYCLECOUNT_12);
     }
 
     public static void consumeSupplyPressure(Pipe<ValveSchema> input) {
@@ -190,12 +190,12 @@ public class ValveSchema extends MessageSchema<ValveSchema> {
         StringBuilder fieldPartNumber = PipeReader.readUTF8(input, MSG_PARTNUMBER_330_FIELD_PARTNUMBER_30, new StringBuilder(PipeReader.readBytesLength(input, MSG_PARTNUMBER_330_FIELD_PARTNUMBER_30)));
     }
 
-    public static void consumeValueFault_False(Pipe<ValveSchema> input) {
-        int fieldStation = PipeReader.readInt(input, MSG_VALUEFAULT_FALSE_340_FIELD_STATION_1);
+    public static void consumeValveFault_False(Pipe<ValveSchema> input) {
+        int fieldStation = PipeReader.readInt(input, MSG_VALVEFAULT_FALSE_340_FIELD_STATION_1);
     }
 
-    public static void consumeValueFault_True(Pipe<ValveSchema> input) {
-        int fieldStation = PipeReader.readInt(input, MSG_VALUEFAULT_TRUE_341_FIELD_STATION_1);
+    public static void consumeValveFault_True(Pipe<ValveSchema> input) {
+        int fieldStation = PipeReader.readInt(input, MSG_VALVEFAULT_TRUE_341_FIELD_STATION_1);
     }
 
     public static void consumePressureFault_Low(Pipe<ValveSchema> input) {
@@ -230,10 +230,10 @@ public class ValveSchema extends MessageSchema<ValveSchema> {
         PipeWriter.publishWrites(output);
     }
 
-    public static void publishLifeCycleCount(Pipe<ValveSchema> output, int fieldStation, int fieldValveSerialNumber) {
+    public static void publishLifeCycleCount(Pipe<ValveSchema> output, int fieldStation, int fieldLifeCycleCount) {
         PipeWriter.presumeWriteFragment(output, MSG_LIFECYCLECOUNT_312);
         PipeWriter.writeInt(output, MSG_LIFECYCLECOUNT_312_FIELD_STATION_1, fieldStation);
-        PipeWriter.writeInt(output, MSG_LIFECYCLECOUNT_312_FIELD_VALVESERIALNUMBER_12, fieldValveSerialNumber);
+        PipeWriter.writeInt(output, MSG_LIFECYCLECOUNT_312_FIELD_LIFECYCLECOUNT_12, fieldLifeCycleCount);
         PipeWriter.publishWrites(output);
     }
 
@@ -286,15 +286,15 @@ public class ValveSchema extends MessageSchema<ValveSchema> {
         PipeWriter.publishWrites(output);
     }
 
-    public static void publishValueFault_False(Pipe<ValveSchema> output, int fieldStation) {
-        PipeWriter.presumeWriteFragment(output, MSG_VALUEFAULT_FALSE_340);
-        PipeWriter.writeInt(output, MSG_VALUEFAULT_FALSE_340_FIELD_STATION_1, fieldStation);
+    public static void publishValveFault_False(Pipe<ValveSchema> output, int fieldStation) {
+        PipeWriter.presumeWriteFragment(output, MSG_VALVEFAULT_FALSE_340);
+        PipeWriter.writeInt(output, MSG_VALVEFAULT_FALSE_340_FIELD_STATION_1, fieldStation);
         PipeWriter.publishWrites(output);
     }
 
-    public static void publishValueFault_True(Pipe<ValveSchema> output, int fieldStation) {
-        PipeWriter.presumeWriteFragment(output, MSG_VALUEFAULT_TRUE_341);
-        PipeWriter.writeInt(output, MSG_VALUEFAULT_TRUE_341_FIELD_STATION_1, fieldStation);
+    public static void publishValveFault_True(Pipe<ValveSchema> output, int fieldStation) {
+        PipeWriter.presumeWriteFragment(output, MSG_VALVEFAULT_TRUE_341);
+        PipeWriter.writeInt(output, MSG_VALVEFAULT_TRUE_341_FIELD_STATION_1, fieldStation);
         PipeWriter.publishWrites(output);
     }
 

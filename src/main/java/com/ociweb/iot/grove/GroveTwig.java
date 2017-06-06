@@ -57,7 +57,11 @@ public enum GroveTwig implements IODevice {
 
         @Override
         public int response() {
-            return 40; 
+            return 40;
+        }
+        @Override
+        public int range() {
+        	return 1024;
         }
     },
     MoistureSensor() {
@@ -173,9 +177,15 @@ public enum GroveTwig implements IODevice {
     	public boolean isInput(){
     		return true;
     	}
+    	
+    	@Override
+    	public boolean isOutput(){
+    		return true;
+    	}
+    	
     	@Override
     	public int range(){
-    		return 512;
+    		return 1024;
     	}
     };
     /**

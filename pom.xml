@@ -41,9 +41,9 @@
     </dependencies>
 
   <scm>
-    <connection>scm:git:git://github.com/oci-pronghorn/EmbeddedToolkit.git</connection>
-    <url>https://github.com/oci-pronghorn/EmbeddedToolkit</url>
-    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/EmbeddedToolkit.git</developerConnection>
+    <connection>scm:git:git://github.com/oci-pronghorn/FogLight.git</connection>
+    <url>https://github.com/oci-pronghorn/FogLight</url>
+    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/FogLight.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
     

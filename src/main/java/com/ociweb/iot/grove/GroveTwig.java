@@ -172,6 +172,17 @@ public enum GroveTwig implements IODevice {
         }
         
     },
+    ThumbJoystick(){
+    	@Override
+    	public boolean isInput(){
+    		return true;
+    	}
+    	@Override
+    	public int range(){
+    		return 1024;
+    	}
+    },
+    
     WaterSensor(){
     	@Override
     	public boolean isInput(){

@@ -18,7 +18,7 @@ public class AppTest {
 	 @Test
 	    public void testApp()
 	    {
-	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());	    	
+	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp(true));	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    

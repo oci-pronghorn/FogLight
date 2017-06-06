@@ -12,6 +12,8 @@ import com.ociweb.iot.maker.Hardware;
  *
  * @see com.ociweb.iot.hardware.IODevice
  */
+
+
 public enum GroveTwig implements IODevice {
 
     UVSensor() {
@@ -56,11 +58,6 @@ public enum GroveTwig implements IODevice {
         @Override
         public int response() {
             return 40;
-        }
-
-        @Override
-        public int range() {
-            return 1024;
         }
     },
     MoistureSensor() {
@@ -169,8 +166,18 @@ public enum GroveTwig implements IODevice {
         public int scanDelay() {
             return 1_420_000;
         }
+        
+    },
+    WaterSensor(){
+    	@Override
+    	public boolean isInput(){
+    		return true;
+    	}
+    	@Override
+    	public int range(){
+    		return 512;
+    	}
     };
-
     /**
      * @return True if this twig is an input device, and false otherwise.
      */

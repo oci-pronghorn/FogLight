@@ -60,14 +60,16 @@ public class ManifoldApp {
 		if (!simulate) {
 			
 			Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
+			//Pipe<ValveSchema> filterDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
 			Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
 			
 			UARTDataStage.newInstance(gm, uartBytesPipe); //take the raw data off the UART and put it on the pipe		
-			
-			ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages	
-			
-			//TODO: add a filter stage, which will require an addition pipe.
-			
+
+			ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages
+
+			//ValveDataParserStage.newInstance(gm, uartBytesPipe, filterDataPipe); //parse the raw data and send messages
+			//FilterStage.newInstance(gm, filterDataPipe, valveDataPipe);
+
 			MQTTPublishPAHOStage.newInstance(gm, valveDataPipe,"tcp://"+gatewayHost+":1883",clientId);//send data to the gateway
 			
 			MonitorConsoleStage.attach(gm);

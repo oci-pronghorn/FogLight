@@ -97,7 +97,7 @@ public class ValveDataParserStage extends PronghornStage {
 			int oldPos = reader.sourcePos;
 			int parsedId = (int)TrieParserReader.parseNext(reader, trie);
 			
-		    if (parsedId>0) {
+		    if (parsedId>=0) {
 		    	//valid values
 
 		    	if (DATA_IGNORE!=parsedId) {
@@ -115,7 +115,6 @@ public class ValveDataParserStage extends PronghornStage {
 			    	
 		    	
 		    } else {
-		    	
 		    	assert (reader.sourcePos==oldPos);
 		    	
 		    	int length = originalLen-reader.sourceLen;
@@ -135,28 +134,21 @@ public class ValveDataParserStage extends PronghornStage {
 	private void publishSingleMessage(int parsedId) {
 		final int size = Pipe.addMsgIdx(output, parsedId);
 		Pipe.addIntValue(stationNumber,output);
+		Pipe.addLongValue(System.currentTimeMillis(),output);
 					
 		//logger.info("publish message stationNo:{} type:{} ",stationNumber, parsedId);
 		
 		switch (parsedId) {
 
 			case ValveSchema.MSG_PARTNUMBER_330:
+			case ValveSchema.MSG_PRESSUREFAULT_350:
 				
 				DataOutputBlobWriter<ValveSchema> writer = Pipe.outputStream(output);
 				writer.openField();
 				TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, writer);
 				writer.closeLowLevelField();
 
-				break;						
-			case ValveSchema.MSG_VALUEFAULT_FALSE_340:	
-			case ValveSchema.MSG_VALUEFAULT_TRUE_341:
-			case ValveSchema.MSG_LEAKFAULT_FALSE_360:
-			case ValveSchema.MSG_LEAKFAULT_TRUE_361:
-			case ValveSchema.MSG_PRESSUREFAULT_LOW_350:
-			case ValveSchema.MSG_PRESSUREFAULT_NONE_351:
-			case ValveSchema.MSG_PRESSUREFAULT_HIGH_352:
-				//NOTE: nothing to do here we have no payload
-				break;						
+				break;
 			default:
 
 				//simple value
@@ -224,7 +216,7 @@ public class ValveDataParserStage extends PronghornStage {
     //package protected for testing
 	static TrieParser buildParser() {
 		
-		TrieParser tp = new TrieParser(256,1,true,true);
+		TrieParser tp = new TrieParser(256,1,false,true);
 		
 		/////////////////////////
 		//these are needed to "capture" error cases early, the tighter we make them the sooner we find the issues.
@@ -233,8 +225,6 @@ public class ValveDataParserStage extends PronghornStage {
         /////////////////////////
 		
 		tp.setUTF8Value("[st%u",        DATA_START);
-		
-		tp.setUTF8Value("mn%i",         ValveSchema.MSG_MANIFOLDSERIALNUMBER_310);
 		tp.setUTF8Value("sn%i",        	ValveSchema.MSG_VALVESERIALNUMBER_311);
 		tp.setUTF8Value("pn\"%b\"",    	ValveSchema.MSG_PARTNUMBER_330);
 		tp.setUTF8Value("cc%i",     	ValveSchema.MSG_LIFECYCLECOUNT_312);
@@ -249,18 +239,14 @@ public class ValveDataParserStage extends PronghornStage {
 		tp.setUTF8Value("ep%i",     	ValveSchema.MSG_EQUALIZATIONPRESSURERATE_317);		
 		tp.setUTF8Value("lr%i",     	ValveSchema.MSG_RESIDUALOFDYNAMICANALYSIS_318);		
 					
-		tp.setUTF8Value("vf0",     		ValveSchema.MSG_VALUEFAULT_FALSE_340);
-		tp.setUTF8Value("vf1",     		ValveSchema.MSG_VALUEFAULT_TRUE_341);
-			
+		tp.setUTF8Value("vf%i",     	ValveSchema.MSG_VALVEFAULT_340);
+
 		
-		tp.setUTF8Value("pf\"L\"", 		ValveSchema.MSG_PRESSUREFAULT_LOW_350);
-		tp.setUTF8Value("pf\"N\"", 		ValveSchema.MSG_PRESSUREFAULT_NONE_351);
-		tp.setUTF8Value("pf\"H\"", 		ValveSchema.MSG_PRESSUREFAULT_HIGH_352);
+		tp.setUTF8Value("pf\"%b\"", 	ValveSchema.MSG_PRESSUREFAULT_350);
 				
 		
-		tp.setUTF8Value("lf0",     		ValveSchema.MSG_LEAKFAULT_FALSE_360);
-		tp.setUTF8Value("lf1",     	   	ValveSchema.MSG_LEAKFAULT_TRUE_361);
-				
+		tp.setUTF8Value("lf%i",     	ValveSchema.MSG_LEAKFAULT_360);
+
 		
 		tp.setUTF8Value("]",         	DATA_END);
 		

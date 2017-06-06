@@ -2,86 +2,87 @@
 <templates>
 
 
-   <template name="ManifoldSerialNumber" id="310">
-     <uInt32 name="Station" id="1"/>     
-     <uInt32 name="ManifoldSerialNumber" id="10"/>
-   </template>   
-
    <template name="ValveSerialNumber" id="311">
-     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
      <uInt32 name="ValveSerialNumber" id="11"/>
    </template>   
 
    <template name="LifeCycleCount" id="312">
-     <uInt32 name="Station" id="1"/>     
-     <uInt32 name="ValveSerialNumber" id="12"/>
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
+     <uInt32 name="LifeCycleCount" id="12"/>
    </template>   
 
    <template name="SupplyPressure" id="313">
-     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
      <uInt32 name="SupplyPressure" id="13"/>
    </template>   
 
    <template name="DurationOfLast1_4Signal" id="314">
-     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
      <uInt32 name="DurationOfLast1_4Signal" id="14"/>
    </template>   
 
    <template name="DurationOfLast1_2Signal" id="315">
-     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
      <uInt32 name="DurationOfLast1_2Signal" id="15"/>
    </template>   
 
    <template name="EqualizationAveragePressure" id="316">
-     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
      <uInt32 name="EqualizationAveragePressure" id="16"/>
    </template>   
 
    <template name="EqualizationPressureRate" id="317">
-     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
      <int32 name="EqualizationPressureRate" id="17"/>
    </template>   
    
    <template name="ResidualOfDynamicAnalysis" id="318">
-     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
      <uInt32 name="ResidualOfDynamicAnalysis" id="18"/>
    </template>   
    
    <template name="PartNumber" id="330">
-     <uInt32 name="Station" id="1"/>     
+     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
      <string name="PartNumber" id="30" charset="unicode"/>
    </template>
    
-   <template name="ValueFault/False" id="340">
+   <template name="ValveFault" id="340">
      <uInt32 name="Station" id="1"/>
-   </template>
-
-   <template name="ValueFault/True" id="341">
-     <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
+     <uInt32 name="Fault" id="3"/>
    </template>
    
-   <template name="PressureFault/Low" id="350">
+   <template name="PressureFault" id="350">
      <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
+     <string name="PressureFault" id="30" charset="unicode"/>
    </template>
 
-   <template name="PressureFault/None" id="351">
+   <template name="LeakFault" id="360">
      <uInt32 name="Station" id="1"/>
+     <uInt64 name="Timestamp" id="2"/>
+     <uInt32 name="Fault" id="3"/>
    </template>
 
-   <template name="PressureFault/High" id="352">
-     <uInt32 name="Station" id="1"/>
-   </template>
+    <template name="DataFault" id="362">
+        <uInt32 name="Station" id="1"/>
+        <uInt64 name="Timestamp" id="2"/>
+        <uInt32 name="Fault" id="3"/>
+    </template>
 
-   <template name="LeakFault/False" id="360">
+    <template name="PressurePoint" id="319">
      <uInt32 name="Station" id="1"/>
-   </template>
-
-   <template name="LeakFault/True" id="361">
-     <uInt32 name="Station" id="1"/>
-   </template>    
-   
-   <template name="PressurePoint" id="319">
-     <uInt32 name="Station" id="1"/>     
+     <uInt64 name="Timestamp" id="2"/>
      <uInt32 name="PressurePoint" id="19"/>
    </template>  
    

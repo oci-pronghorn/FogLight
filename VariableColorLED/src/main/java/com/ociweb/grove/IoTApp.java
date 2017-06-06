@@ -1,66 +1,115 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
 
-import com.ociweb.iot.maker.Hardware;
+import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
+import static com.ociweb.iot.grove.GroveTwig.LightSensor;
+import static com.ociweb.iot.maker.Port.A1;
+import static com.ociweb.iot.maker.Port.A2;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
+import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.TimeTrigger;
+import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.IoTSetup;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.Port;
+
+/**
+ * As it gets dark the back light of the LCD comes on.
+ * Angle sensor is used for brightness adjustment
+ */
 
 public class IoTApp implements IoTSetup
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
-    // // by using constants such as these you can easily use the right value to reference where the sensor was plugged in
-      
-    //private static final Port BUTTON_PORT = D3;
-	//private static final Port LED_PORT    = D4;
-    //private static final Port RELAY_PORT  = D7;
-    //private static final Port LIGHT_SENSOR_PORT= A2;
 
+	public static final Port LIGHT_SENSOR_PORT = A2;
+	public static final Port ANGLE_SENSOR_PORT = A1;
+	    
+	private int brightness = 255;
+	
+	    
+    private final DateTimeFormatter formatter1;
+    private final DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("EE MMM dd,yyyy");
+    private final ZoneId zone = ZoneId.systemDefault();
+    
+    //TODO: NOTE: the pi may have the wrong time and should be set.
+    //           MMDDhhmmYY
+    // sudo date 0728224916
+    // may need to set timezone:   sudo dpkg-reconfigure tzdata
+    // may need to install NTP:   sudo apt-get install ntpdate
+    
+	public IoTApp(boolean is24HourTime) {
+	
+	    if (is24HourTime) {
+	        formatter1 = DateTimeFormatter.ofPattern("  HH:mm:ss");	        
+	    } else {
+	        formatter1 = DateTimeFormatter.ofPattern("  hh:mm:ss a");
+	    }
+	    
+	}
+	
+    public static void main( String[] args ) {
+        
+        boolean is24HourTime = args.length>0 && "24".equals(args[0]);
+                
+        DeviceRuntime.run(new IoTApp(is24HourTime));
+    }
+    
+    
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-        
-        // // specify each of the connections on the harware, eg which component is plugged into which connection.        
-              
-        //c.connect(Button, BUTTON_PORT); 
-        //c.connect(Relay, RELAY_PORT);         
-        //c.connect(LightSensor, LIGHT_SENSOR_PORT); 
-        //c.connect(LED, LED_PORT);        
-        //c.useI2C();
-        
+    	
+    	c.connect(LightSensor, LIGHT_SENSOR_PORT);
+    	c.connect(AngleSensor, ANGLE_SENSOR_PORT);
+    	c.useI2C();
+    	c.setTriggerRate(TimeTrigger.OnTheSecond);
     }
 
 
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
-        
-        //  //Use lambdas or classes and add listeners to the runtime object
-        //  //CommandChannels are created to send outgoing events to the hardware
-        //  //CommandChannels must never be shared between two lambdas or classes.
-        //  //A single lambda or class can use mulitiple CommandChannels for cuoncurrent behavior
-        
-        
-        //        final CommandChannel channel1 = runtime.newCommandChannel();
-        //        //this digital listener will get all the button press and un-press events 
-        //        runtime.addDigitalListener((connection, time, value)->{ 
-        //            
-        //            //connection could be checked but unnecessary since we only have 1 digital source
-        //            
-        //            if (channel1.digitalSetValue(RELAY_PORT, value)) {
-        //                //keep the relay on or off for 1 second before doing next command
-        //                channel1.digitalBlock(RELAY_PORT, 1000); 
-        //            }
-        //        });
+            	    	
+    	final CommandChannel rgbLightChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	runtime.addAnalogListener((port, time, durationMillis, average, value)->{    	    
+    		switch(port) {
+	    		case A2://LIGHT_SENSOR_PORT
+	    			
+	    			int leadingZeros =  Integer.numberOfLeadingZeros(value)- (32-10); //value is only 10 bits max
+
+	    			int level = Math.min(255, (brightness * Math.min(leadingZeros,8))/8);
+	    			Grove_LCD_RGB.commandForColor(rgbLightChannel, level, level, level);	    			
+	    				    			
+	    			break;
+	    		
+	    		case A1://ANGLE_SENSOR_PORT
+	    			
+	    			brightness = ((AngleSensor.range()/2) * value)/AngleSensor.range();	    			
+	    				    			
+	    			break;
+    		}
+    		
+    		
+    	});
+    	
+
+    	final CommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	runtime.addTimeListener((time)->{ 
+    		
+    		  LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), zone);
+    		
+    		  String text = date.format(formatter1)+"\n"+date.format(formatter2);
+
+			  Grove_LCD_RGB.commandForText(lcdTextChannel, text);
+    		
+    	});
+    	
     }
         
   

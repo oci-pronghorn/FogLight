@@ -11,9 +11,9 @@
   </properties>
   
   <scm>
-    <connection>scm:git:git://github.com/oci-pronghorn/EmbeddedToolkit-Archetype.git</connection>
-    <url>https://github.com/oci-pronghorn/EmbeddedToolkit-Archetype</url>
-    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/EmbeddedToolkit-Archetype.git</developerConnection>
+    <connection>scm:git:git://github.com/oci-pronghorn/FogLight-Archetype.git</connection>
+    <url>https://github.com/oci-pronghorn/FogLight-Archetype</url>
+    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/FogLight-Archetype.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
   

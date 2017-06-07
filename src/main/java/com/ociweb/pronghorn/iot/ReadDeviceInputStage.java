@@ -172,7 +172,9 @@ public class ReadDeviceInputStage extends PronghornStage {
 				HardwareConnection hc = adConnections[inProgressIdx];
 				int connector = hc.register;
 				
-				if (hc.twig.pinsUsed()>1) {
+				
+				if (GroveTwig.RotaryEncoder == hc.twig) {
+					assert (hc.twig.pinsUsed()==2);
 					//rotary encoder
 					//low level write
 					readRotaryEncoder(connector, Port.DIGITALS[connector], hardware.currentTimeMillis()); //TODO: hack for now, needs more testing.
@@ -184,9 +186,14 @@ public class ReadDeviceInputStage extends PronghornStage {
 										
 				} else {
 					//analog read
-   				    int intValue = hardware.read(Port.DIGITALS[connector]);
-					//low level write
-					writeInt(responsePipe, connector, hardware.currentTimeMillis(), intValue);	
+					int i = hc.twig.pinsUsed();
+					while (--i>=0) {
+						//int intValue = hardware.read(Port.DIGITALS[connector]); //was this way before
+						int intValue = hardware.read(Port.ANALOGS[connector+i]);
+   				    
+						//low level write
+						writeInt(responsePipe, connector+i, hardware.currentTimeMillis(), intValue);
+					}
 				}
 								
 			}

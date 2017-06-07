@@ -90,13 +90,13 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	@Override
 	protected Hardware internalConnectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
-		int register;
+		
 		if (t.isInput()) {
 		        
 				int i = t.pinsUsed();
 				while (--i>=0) {
-			
-		    		register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection]; 
+					int register;
+		    		register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection+i]; 
 	
 		    		//NOTE: may need to add additional "special cases" here
 					byte groveOperation = GroveTwig.UltrasonicRanger == t ?
@@ -114,7 +114,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 				//logger.debug("added device {} to inputs we now have {}",t, i2cInputs.length);
 				
 		} else {
-			
+			    int register;
   			    register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection];
 
 				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)register,GrovePiConstants.OUTPUT,0x00};				

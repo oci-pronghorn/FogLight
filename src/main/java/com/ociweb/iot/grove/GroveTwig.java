@@ -215,11 +215,6 @@ public enum GroveTwig implements IODevice {
     	}
     	
     	@Override
-    	public boolean isOutput(){
-    		return true;
-    	}
-    	
-    	@Override
     	public int range(){
     		return 1024;
     	}

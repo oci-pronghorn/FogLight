@@ -21,7 +21,7 @@ public class IoTApp implements IoTSetup
 	// // by using constants such as these you can easily use the right value to reference where the sensor was plugged in
 
 	private static final Port VIBRATION_SENSOR_PORT = A0;
-	private static final Port LED_PORT = D2;
+	private static final Port BUZZER_PORT = D2;
 	private static final int threshold = 800;
 	
 	@Override
@@ -30,7 +30,7 @@ public class IoTApp implements IoTSetup
 		//Connection specifications
 		///////////////////////////
 
-		c.connect(LED, LED_PORT);
+		c.connect(Buzzer, BUZZER_PORT);
 		c.connect(VibrationSensor, VIBRATION_SENSOR_PORT);
 		
 
@@ -65,10 +65,10 @@ public class IoTApp implements IoTSetup
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
 			if (port == VIBRATION_SENSOR_PORT){
 				if (value < threshold){
-					ch.setValue(LED_PORT,0);
+					ch.setValue(BUZZER_PORT,0);
 				}
 				else {
-					ch.setValue(LED_PORT, 1);
+					ch.setValue(BUZZER_PORT, 1);
 				}
 			
 			}

@@ -181,6 +181,10 @@ public enum GroveTwig implements IODevice {
     	public int range(){
     		return 1024;
     	}
+    	@Override
+    	public int pinsUsed(){
+    		return 2;
+    	}
     },
     
     WaterSensor(){

@@ -14,7 +14,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
  */
 public class AppTest { 
 
-	
+	/*
 	 @Test
 	    public void testApp()
 	    {
@@ -36,4 +36,5 @@ public class AppTest {
 			scheduler.shutdown();
 			
 	    }
+	    */
 }

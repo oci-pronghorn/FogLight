@@ -97,6 +97,17 @@ public enum GroveTwig implements IODevice {
             return 1;
         }
     },
+    LineFinder() {
+        @Override
+        public boolean isInput() {
+            return true;
+        }
+
+        @Override
+        public int range() {
+            return 1;
+        }
+    },
     RotaryEncoder() {
         @Override
         public boolean isInput() {

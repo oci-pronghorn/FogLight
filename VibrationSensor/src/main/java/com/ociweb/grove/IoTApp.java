@@ -22,6 +22,7 @@ public class IoTApp implements IoTSetup
 
 	private static final Port VIBRATION_SENSOR_PORT = A0;
 	private static final Port LED_PORT = D2;
+	private static final int threshold = 800;
 	
 	@Override
 	public void declareConnections(Hardware c) {
@@ -63,13 +64,13 @@ public class IoTApp implements IoTSetup
 		final CommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
 			if (port == VIBRATION_SENSOR_PORT){
-				if (value < 1000){
+				if (value < threshold){
 					ch.setValue(LED_PORT,0);
 				}
 				else {
 					ch.setValue(LED_PORT, 1);
 				}
-				System.out.println(value);
+			
 			}
 
 		});

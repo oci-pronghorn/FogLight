@@ -7,11 +7,7 @@ import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.IoTSetup;
-import com.ociweb.iot.maker.Port;
-
 import static com.ociweb.iot.maker.Port.*;
-
-import com.ociweb.gl.api.GreenCommandChannel;
 
 public class IoTApp implements IoTSetup
 {
@@ -19,15 +15,25 @@ public class IoTApp implements IoTSetup
     //Connection constants 
     ///////////////////////
     // // by using constants such as these you can easily use the right value to reference where the sensor was plugged in
-	
-	private static final Port WATER_SENSOR_PORT = A1;
+      
+    //private static final Port BUTTON_PORT = D3;
+	//private static final Port LED_PORT    = D4;
+    //private static final Port RELAY_PORT  = D7;
+    //private static final Port LIGHT_SENSOR_PORT= A2;
+
     @Override
     public void declareConnections(Hardware c) {
         ////////////////////////////
         //Connection specifications
         ///////////////////////////
-    	
-        c.connect(WaterSensor,WATER_SENSOR_PORT);
+        
+        // // specify each of the connections on the harware, eg which component is plugged into which connection.        
+              
+        //c.connect(Button, BUTTON_PORT); 
+        //c.connect(Relay, RELAY_PORT);         
+        //c.connect(LightSensor, LIGHT_SENSOR_PORT); 
+        //c.connect(LED, LED_PORT);        
+        //c.useI2C();
         
     }
 
@@ -55,9 +61,7 @@ public class IoTApp implements IoTSetup
         //                channel1.digitalBlock(RELAY_PORT, 1000); 
         //            }
         //        });
-    	final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-    	runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-    		System.out.println(value);	
-    	});
     }
+        
+  
 }

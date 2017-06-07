@@ -56,51 +56,45 @@ public class ManifoldApp {
 	
 	public void buildGraph(boolean simulate) {
 		//logger.info("build graph");
-		
+
+		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
 		if (!simulate) {
-			
-			Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
-			Pipe<ValveSchema> filterDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
-			Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
-			
-			UARTDataStage.newInstance(gm, uartBytesPipe); //take the raw data off the UART and put it on the pipe		
-
-			ValveDataParserStage.newInstance(gm, uartBytesPipe, filterDataPipe); //parse the raw data and send messages
-
-			FilterStage.newInstance(gm, filterDataPipe, valveDataPipe);
-
-			MQTTPublishPAHOStage.newInstance(gm, valveDataPipe,"tcp://"+gatewayHost+":1883",clientId);//send data to the gateway
-			
+			buildRealPipes(uartBytesPipe);
 			MonitorConsoleStage.attach(gm);
-			
 		} else {
-			//build up simulators
-			
 			logger.info("running simulation");
-	
-			singleSimulatedManifold("1", 5, 1,   false);
-			singleSimulatedManifold("2", 5, 10,  false);
-			singleSimulatedManifold("3", 5, 10,  false);
-			singleSimulatedManifold("4", 5, 100, false);
-			singleSimulatedManifold("5", 5, 100, true);
-						
-//			The manifold ids are 1, 2, 3, 4, and 5.
-//			The one they focus on is in the lower left corner and is id 4.
-//			The valve ids go from 0 to 5 on each manifold.
+			buildAllFakePipes(uartBytesPipe);
 		}
-		
-
-		
 	}
 
-	private void singleSimulatedManifold(String client, int valves, int base, boolean canFail) {
-		Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);			
-		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
-		
-		SimulatedUARTDataStage.newInstance(gm, uartBytesPipe, client, valves, base, canFail); //for making fake data			
-		ValveDataParserStage.newInstance(gm, uartBytesPipe, valveDataPipe); //parse the raw data and send messages	
-		
-		MQTTPublishPAHOStage.newInstance(gm, valveDataPipe, "tcp://"+gatewayHost+":1883", client);//send data to the gateway
+	private void buildRealPipes(Pipe<RawDataSchema> uartBytesPipe) {
+		UARTDataStage.newInstance(gm, uartBytesPipe); //take the raw data off the UART and put it on the pipe
+		buildPipes(clientId, uartBytesPipe);
+	}
+
+	private void buildAllFakePipes(Pipe<RawDataSchema> uartBytesPipe) {
+		//build up simulators
+		// The manifold ids are 1, 2, 3, 4, and 5.
+		// The one they focus on is in the lower left corner and is id 4.
+		// The valve ids go from 0 to 5 on each manifold.
+		buildFakePipes("1", uartBytesPipe,5, 1,   false);
+		buildFakePipes("2", uartBytesPipe,5, 10,  false);
+		buildFakePipes("3", uartBytesPipe,5, 10,  false);
+		buildFakePipes("4", uartBytesPipe,5, 100, false);
+		buildFakePipes("5", uartBytesPipe,5, 100, true);
+	}
+
+	private void buildFakePipes(String clientId, Pipe<RawDataSchema> uartBytesPipe, int valves, int base, boolean canFail) {
+		SimulatedUARTDataStage.newInstance(gm, uartBytesPipe, clientId, valves, base, canFail); //for making fake data
+		buildPipes(clientId, uartBytesPipe);
+	}
+
+	private void buildPipes(String client, Pipe<RawDataSchema> uartBytesPipe) {
+		Pipe<ValveSchema> filterDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
+		Pipe<ValveSchema> valveDataPipe = new Pipe<ValveSchema>(valveDataPipeConfig);
+		ValveDataParserStage.newInstance(gm, uartBytesPipe, filterDataPipe); //parse the raw data and send messages
+		FilterStage.newInstance(gm, filterDataPipe, valveDataPipe); // remove redundant (no value change) messages
+		MQTTPublishPAHOStage.newInstance(gm, valveDataPipe,"tcp://"+gatewayHost+":1883",client);//send data to the gateway
 	}
 	
 	public void runGraph() {

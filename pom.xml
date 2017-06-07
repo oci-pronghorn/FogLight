@@ -21,5 +21,6 @@
     <module>LightSensor</module>
     <module>UltrasonicRangefinder</module>
     <module>UVSensor</module>
+    <module>Temprature</module>
   </modules>
 </project>

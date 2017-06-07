@@ -24,7 +24,7 @@ import com.ociweb.pronghorn.util.TrieParserReader;
 
 public class UARTDataParserTest {
 
-	
+
 	@Test
 	public void coreParserTest() {
 		
@@ -76,24 +76,22 @@ public class UARTDataParserTest {
 		
 	}
 
-		
 	@Test
 	public void ParserStageTest() {
 		
 		GraphManager gm = new GraphManager();
 		
-		PipeConfig<RawDataSchema> inConfig = new PipeConfig<RawDataSchema>(RawDataSchema.instance);
-		PipeConfig<ValveSchema> outConfig = new PipeConfig<ValveSchema>(ValveSchema.instance);
-		
-		Pipe<RawDataSchema> input = new Pipe<RawDataSchema>(inConfig) ;
-		Pipe<ValveSchema> output = new Pipe<ValveSchema>(outConfig); 
-		
+		Pipe<RawDataSchema> input = RawDataSchema.instance.newPipe(4, 512);
+		Pipe<ValveSchema> filter = ValveSchema.instance.newPipe(64, 128);
+		Pipe<ValveSchema> output = ValveSchema.instance.newPipe(64, 128);
+
 		ByteArrayOutputStream results = new ByteArrayOutputStream();
 		
-		ValveDataParserStage.newInstance(gm, input, output);
+		ValveDataParserStage.newInstance(gm, input, filter);
+		FilterStage.newInstance(gm, filter, output);
 		ConsoleJSONDumpStage.newInstance(gm, output, new PrintStream(results));
 		
-		MonitorConsoleStage.attach(gm);
+		//MonitorConsoleStage.attach(gm);
 		
 		NonThreadScheduler scheduler = new NonThreadScheduler(gm);
 		
@@ -103,9 +101,27 @@ public class UARTDataParserTest {
 		////setup the test data
 		//////////////////
 		Pipe.addMsgIdx(input, RawDataSchema.MSG_CHUNKEDSTREAM_1);
-		Pipe.addUTF8("587lf5pf\"L\"vf0sp55] [st1sn100100pn\"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"lr-100cc184587lf0pf\"L\"vf0sp80]", input);
+
+		String message =
+				"587lf5pf\"L\"vf0sp55] [" +
+				"st1" +
+				"sn100100" +
+				"pn\"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"" +
+				"lr-100" +
+				"cc184587" +
+				"lf0" +
+				"pf\"L\"" +
+				"vf0" +
+				"sp80" +
+				"vf0" +
+				"sp42" +
+				"]";
+
+		Pipe.addUTF8(message, input);
+
 		Pipe.confirmLowLevelWrite(input, Pipe.sizeOf(input, RawDataSchema.MSG_CHUNKEDSTREAM_1));
 		Pipe.publishWrites(input);
+
 		//////////////////		
 		
 		int i = 1000;
@@ -123,12 +139,21 @@ public class UARTDataParserTest {
 		String stringResults = new String(results.toByteArray()); 
 		
 		//for debug to inspect the values
-		//System.err.println(stringResults);
+		System.err.println(stringResults);
 		
 		assertFalse(stringResults.contains("55"));
 		assertTrue(stringResults.contains("{\"PartNumber\":\"NX-DCV-SM-BLU-1-1-VO-L1-SO-OO\"}"));
 		assertTrue(stringResults.contains("{\"ResidualOfDynamicAnalysis\":4294967196}"));
-		assertTrue(stringResults.contains("{\"SupplyPressure\":80}"));
+
+		int firstSP =  stringResults.indexOf("{\"SupplyPressure\":80}");
+		assertTrue(firstSP != -1);
+		int secondSP =  stringResults.indexOf("{\"SupplyPressure\":42}", firstSP + 1);
+		assertTrue(secondSP != -1);
+
+		int firstVP =  stringResults.indexOf("{\"ValveFault\":0}");
+		assertTrue(firstVP != -1);
+		int secondVP =  stringResults.indexOf("{\"ValveFault\":0}", firstVP + 1);
+		assertTrue(secondVP == -1);
 		
 	}
 	

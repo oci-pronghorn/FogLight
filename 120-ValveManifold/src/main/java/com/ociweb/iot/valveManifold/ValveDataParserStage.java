@@ -136,7 +136,7 @@ public class ValveDataParserStage extends PronghornStage {
 		Pipe.addIntValue(stationNumber,output);
 		Pipe.addLongValue(System.currentTimeMillis(),output);
 					
-		//logger.info("publish message stationNo:{} type:{} ",stationNumber, parsedId);
+		//System.out.format("\n publish message stationNo: %d type: %d  \n",stationNumber, parsedId);
 		
 		switch (parsedId) {
 
@@ -153,6 +153,7 @@ public class ValveDataParserStage extends PronghornStage {
 
 				//simple value
 				Pipe.addIntValue((int)TrieParserReader.capturedLongField(reader, 0), output);
+				break;
 				
 		}	
 		

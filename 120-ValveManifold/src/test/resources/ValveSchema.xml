@@ -59,25 +59,25 @@
    <template name="ValveFault" id="340">
      <uInt32 name="Station" id="1"/>
      <uInt64 name="Timestamp" id="2"/>
-     <uInt32 name="Fault" id="3"/>
+     <uInt32 name="ValveFault" id="40"/>
    </template>
    
    <template name="PressureFault" id="350">
      <uInt32 name="Station" id="1"/>
      <uInt64 name="Timestamp" id="2"/>
-     <string name="PressureFault" id="30" charset="unicode"/>
+     <string name="PressureFault" id="50" charset="unicode"/>
    </template>
 
    <template name="LeakFault" id="360">
      <uInt32 name="Station" id="1"/>
      <uInt64 name="Timestamp" id="2"/>
-     <uInt32 name="Fault" id="3"/>
+     <uInt32 name="LeakFault" id="60"/>
    </template>
 
     <template name="DataFault" id="362">
         <uInt32 name="Station" id="1"/>
         <uInt64 name="Timestamp" id="2"/>
-        <uInt32 name="Fault" id="3"/>
+        <uInt32 name="DataFault" id="62"/>
     </template>
 
     <template name="PressurePoint" id="319">

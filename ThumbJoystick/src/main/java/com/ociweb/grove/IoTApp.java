@@ -31,7 +31,8 @@ public class IoTApp implements IoTSetup
 
 		// // specify each of the connections on the harware, eg which component is plugged into which connection.        
 
-
+		
+		//TODO: pinUsed() is not automatically allowing user to automatically connect both ports once one port is connected
 		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT_Y);
 		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT_X);
 	}
@@ -43,7 +44,7 @@ public class IoTApp implements IoTSetup
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
 			switch (port){
 			case A0:
-				//the C value should be roughly between 200 to 800 unless pressed
+				//the X value should be roughly between 200 to 800 unless pressed
 				if (value < 1023){
 					System.out.println("X: "+value);
 				}

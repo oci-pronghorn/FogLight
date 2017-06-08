@@ -4,10 +4,15 @@ package com.ociweb.grove;
 import static com.ociweb.iot.grove.GroveTwig.*;
 
 import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
 import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.Port;
 import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
+
+import com.ociweb.gl.api.GreenCommandChannel;
 
 public class IoTApp implements IoTSetup
 {
@@ -17,10 +22,15 @@ public class IoTApp implements IoTSetup
     // // by using constants such as these you can easily use the right value to reference where the sensor was plugged in
       
     //private static final Port BUTTON_PORT = D3;
-	//private static final Port LED_PORT    = D4;
+    //private static final Port LED_PORT    = D2;
     //private static final Port RELAY_PORT  = D7;
-    //private static final Port LIGHT_SENSOR_PORT= A2;
-
+    private static final Port LIGHT_SENSOR_PORT= A2;
+    
+    public int brightness = 255;
+    
+    public static void main( String[] args ) {
+        DeviceRuntime.run(new IoTApp());
+    }
     @Override
     public void declareConnections(Hardware c) {
         ////////////////////////////
@@ -31,10 +41,9 @@ public class IoTApp implements IoTSetup
               
         //c.connect(Button, BUTTON_PORT); 
         //c.connect(Relay, RELAY_PORT);         
-        //c.connect(LightSensor, LIGHT_SENSOR_PORT); 
+        c.connect(LightSensor, LIGHT_SENSOR_PORT); 
         //c.connect(LED, LED_PORT);        
-        //c.useI2C();
-        
+        c.useI2C();
     }
 
 
@@ -50,17 +59,16 @@ public class IoTApp implements IoTSetup
         //  //A single lambda or class can use mulitiple CommandChannels for cuoncurrent behavior
         
         
-        //        final CommandChannel channel1 = runtime.newCommandChannel();
-        //        //this digital listener will get all the button press and un-press events 
-        //        runtime.addDigitalListener((connection, time, value)->{ 
-        //            
-        //            //connection could be checked but unnecessary since we only have 1 digital source
-        //            
-        //            if (channel1.digitalSetValue(RELAY_PORT, value)) {
-        //                //keep the relay on or off for 1 second before doing next command
-        //                channel1.digitalBlock(RELAY_PORT, 1000); 
-        //            }
-        //        });
+    	final CommandChannel lcdScreenChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	runtime.addAnalogListener((port, time, durationMillis, average, value)->{
+     		
+	    			
+    		lcdScreenChannel.setValue(LIGHT_SENSOR_PORT, value);
+
+    		System.out.println(value);
+	    		   		
+    		
+    	});
     }
         
   

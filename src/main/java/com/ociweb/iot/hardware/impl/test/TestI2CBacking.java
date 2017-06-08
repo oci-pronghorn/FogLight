@@ -19,7 +19,9 @@ public class TestI2CBacking implements I2CBacking{
     public static final int MAX_BACK_MASK =  MAX_BACK_SIZE-1;
     
     private static final Logger logger = LoggerFactory.getLogger(TestI2CBacking.class);
-    
+
+    private boolean configured = false;
+
     private long[]   lastWriteTime;
     private byte[]   lastWriteAddress;
     private byte[][] lastWriteData;
@@ -52,10 +54,25 @@ public class TestI2CBacking implements I2CBacking{
         responses[address] = data;
         responseLengths[address] = length;
     }
-        
-    
+
+
     @Override
-    public byte[] read(byte address, byte[] target, int length) {
+    public TestI2CBacking configure(byte bus) throws IllegalStateException {
+        if (configured) {
+            throw new IllegalStateException();
+        } else {
+            configured = true;
+        }
+
+        return this;
+    }
+
+    @Override
+    public byte[] read(byte address, byte[] target, int length) throws IllegalStateException {
+        if (!configured) {
+            throw new IllegalStateException();
+        }
+
     	if (null != responses[address]) {    		
     		System.arraycopy(responses[address], 0, target, 0, Math.min(length, responseLengths[address]));
     	} else {
@@ -69,7 +86,10 @@ public class TestI2CBacking implements I2CBacking{
     boolean newLineNeeded = false;
     
     @Override
-    public boolean write(byte address, byte[] message, int length) {
+    public boolean write(byte address, byte[] message, int length) throws IllegalStateException {
+        if (!configured) {
+            throw new IllegalStateException();
+        }
         
         lastWriteCount++;
         lastWriteTime[lastWriteIdx] = System.currentTimeMillis();

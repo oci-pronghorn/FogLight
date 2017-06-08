@@ -56,7 +56,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	private static final HardwareConnection[] EMPTY = new HardwareConnection[0];
 
 	protected boolean configI2C;       //Humidity, LCD need I2C address so..
-	
+	protected int i2cBus;
 	protected long debugI2CRateLastTime;
 
 	protected HardwareConnection[] digitalInputs; //Button, Motion
@@ -106,6 +106,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.i2cBacking = i2cBacking;
 
 		this.configI2C = configI2C; //may be removed.
+		this.i2cBus = -1; // TODO: Should this be initialized in some more complexicated way?
 
 		this.digitalInputs = digitalInputs;
 		this.digitalOutputs = digitalOutputs;
@@ -117,7 +118,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	public static I2CBacking getI2CBacking(byte deviceNum) {
 		try {
-			return new I2CNativeLinuxBacking(deviceNum);
+			return new I2CNativeLinuxBacking().configure(deviceNum);
 		} catch (Throwable t) {
 			//avoid non error case that is used to detect which hardware is running.
 			return null;
@@ -193,12 +194,17 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 
 	public Hardware useI2C() {
-		this.configI2C = true; //TODO: enusre pi grove turns this on at all times, 
+		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,
 		                       //TODO: when this is NOT on do not build the i2c pipes.
 		return this;
 	}
 	
-	
+	public Hardware useI2C(int bus) {
+		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,
+		                       //TODO: when this is NOT on do not build the i2c pipes.
+		this.i2cBus = bus;
+		return this;
+	}
 
 	public abstract HardwarePlatformType getPlatformType();
 	public abstract int read(Port port); //Platform specific

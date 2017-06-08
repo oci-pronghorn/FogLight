@@ -24,7 +24,7 @@ public class AppTest {
 
         TestHardware hardware = (TestHardware) runtime.getHardware();
 
-        int testSize = 4;
+        int testSize = 8;
         int iterations = testSize;
         int expected = 1;
 

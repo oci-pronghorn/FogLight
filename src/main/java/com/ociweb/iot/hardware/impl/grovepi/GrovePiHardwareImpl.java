@@ -95,8 +95,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		        
 				int i = t.pinsUsed();
 				while (--i>=0) {
-					int register;
-		    		register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection+i]; 
+					int register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection+i]; 
 	
 		    		//NOTE: may need to add additional "special cases" here
 					byte groveOperation = GroveTwig.UltrasonicRanger == t ?

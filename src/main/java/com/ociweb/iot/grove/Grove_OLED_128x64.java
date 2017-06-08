@@ -9,6 +9,43 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 public class Grove_OLED_128x64 implements IODevice{
 
 	
+	public static void init(){
+		
+	}
+
+	
+	
+	
+	private static boolean sendCommand(CommandChannel ch, int address, byte b){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(address);
+		i2cPayloadWriter.write(Grove_OLED_128x64_Constants.COMMAND_MODE);
+		i2cPayloadWriter.write(b);
+		return true;
+	}
+	
+	private static boolean sendData(CommandChannel ch, int address, byte b){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(address);
+		i2cPayloadWriter.write(Grove_OLED_128x64_Constants.DATA_MODE);
+		i2cPayloadWriter.write(b);
+		return true;
+	}
+	
+	
+	private static boolean writeByteSequence(CommandChannel ch, int address, byte[] seq){
+		if(!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(address);
+		i2cPayloadWriter.write(seq);
+		ch.i2cCommandClose();
+		return true;
+	}
 	
 	//Overloading the function to automatically mask ints and use their least significant 8-bits as our bytes to send
 	//Ideally, for best performance, we should send byte array and not int array to avoid this extra function call
@@ -22,19 +59,6 @@ public class Grove_OLED_128x64 implements IODevice{
 		return writeByteSequence(ch, address, byteSeq);
 	}
 	
-	private static boolean writeByteSequence(CommandChannel ch, int address, byte[] seq){
-		if(!ch.i2cIsReady()){
-			return false;
-		}
-		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(address);
-		for (byte b: seq){
-			
-			//TODO: Do we need to send to a register or address or is that logic taken care of at a lower level?
-			i2cPayloadWriter.writeByte(b);
-		}
-		ch.i2cCommandClose();
-		return true;
-	}
 	@Override
 	public int response() {
 		return 20;

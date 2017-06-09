@@ -5,6 +5,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.maker.DeviceRuntime;
@@ -15,9 +17,12 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
  */
 public class AppTest { 
 
+	private static final Logger logger = LoggerFactory.getLogger(AppTest.class);
+	
   @Test
     public void testApp()
     {
+	  
     	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
     	    	
     	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
@@ -26,7 +31,7 @@ public class AppTest {
     	 
     	TestHardware hardware = (TestHardware)runtime.getHardware();
     
-    	int iterations = 4;
+    	int iterations = 8;
     	
     	int expected = 1;
     	
@@ -44,7 +49,8 @@ public class AppTest {
     			if (0!=lastTime) {
     				long durationMs = time-lastTime;
     				assertTrue(durationMs>=500);
-    				assertTrue(durationMs<=750);    				
+    				assertTrue("time "+time+" lastTime "+lastTime+" duration "+durationMs, durationMs<=750);    				
+    				logger.trace("expected {} duration {}",expected,durationMs);
     			}
     			
     			lastTime = time;

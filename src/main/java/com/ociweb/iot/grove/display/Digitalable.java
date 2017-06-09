@@ -1,13 +1,23 @@
 package com.ociweb.iot.grove.display;
 
-public interface Digitalable {	
+public interface Digitalable {
+	
+	public int i2c_address = -1;
+	
+	/**
+	 * print a digit (0 through 9) at position (0 through 3).
+	 * @param digit
+	 * @param position
+	 */
 	public void printDigitAt(int digit, int position);
 	
+
+	//public void printCharAt(char c, int position);
 	
-	public void printCharAt(char c, int position);
-	
-	
-	
+	/**
+	 * used to switch on or off the top dot
+	 * @param on
+	 */
 	public void switchTopDot(boolean on);
 	
 	/**

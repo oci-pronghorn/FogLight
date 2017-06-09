@@ -169,7 +169,9 @@ public class PiCommandChannel extends CommandChannel{
 	public boolean setValue(Port port, int value) {
 
 		int mask = port.isAnalog()? ANALOG_BIT:0;
-		boolean  isPWM = false;//hack test..
+		
+		boolean isPWM = builder.getConnectedDevice(port).isPWM();
+		
 		byte[] template = port.isAnalog() | isPWM ? analogMessageTemplate : digitalMessageTemplate;
 		
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
@@ -204,7 +206,7 @@ public class PiCommandChannel extends CommandChannel{
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
         	int mask = port.isAnalog() ? ANALOG_BIT : 0;
-        	boolean  isPWM = false;//hack test..
+        	boolean isPWM = builder.getConnectedDevice(port).isPWM();
         	byte[] template = port.isAnalog()|isPWM? analogMessageTemplate : digitalMessageTemplate;
         	        	
         	

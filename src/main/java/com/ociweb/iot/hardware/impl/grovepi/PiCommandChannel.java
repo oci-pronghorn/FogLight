@@ -169,15 +169,16 @@ public class PiCommandChannel extends CommandChannel{
 	public boolean setValue(Port port, int value) {
 
 		int mask = port.isAnalog()? ANALOG_BIT:0;
-		byte[] template = port.isAnalog()? analogMessageTemplate : digitalMessageTemplate;
+		boolean  isPWM = false;//hack test..
+		byte[] template = port.isAnalog() | isPWM ? analogMessageTemplate : digitalMessageTemplate;
 		
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			if (goHasRoom() && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) { 
 
 				template[2] = (byte)port.port;
-				template[3] = (byte)value;		
-				
+				template[3] = (byte)value;	
+								
 				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_CONNECTOR_11, mask|port.port);
 				PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, groveAddr);                
 				PipeWriter.writeBytes(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2, template);
@@ -203,8 +204,10 @@ public class PiCommandChannel extends CommandChannel{
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
         	int mask = port.isAnalog() ? ANALOG_BIT : 0;
-        	byte[] template = port.isAnalog()? analogMessageTemplate : digitalMessageTemplate;
+        	boolean  isPWM = false;//hack test..
+        	byte[] template = port.isAnalog()|isPWM? analogMessageTemplate : digitalMessageTemplate;
         	        	
+        	
             if (goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, 
                                         Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7) + Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20)
                                         )) { 

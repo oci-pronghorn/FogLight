@@ -20,16 +20,14 @@ public enum Port {
     D7(Port.IS_DIGITAL, 7),
     D8(Port.IS_DIGITAL, 8);
 
-    // TODO: Should these be final?
-    public byte port;
-    public byte mask;
+    public final byte port;
+    public final byte mask;
 
     private Port(byte mask, int number) {
         this.port = (byte) number;
         this.mask = mask;
     }
 
-    // TODO: Is there a particular reason why these can't just be indicated by a boolean?
     public static final byte IS_ANALOG = 1;
     public static final byte IS_DIGITAL = 2;
 

@@ -197,6 +197,18 @@ public enum GroveTwig implements IODevice {
     		return 2;
     	}
     },
+    FourDigitDisplay(){
+    	@Override
+    	public boolean isOutput(){
+    		return true;
+    	}
+    	
+    	@Override
+    	public int pinsUsed(){
+    		return 2;
+    	}
+    },
+    
     VibrationSensor(){
     	@Override 
     	public boolean isInput(){

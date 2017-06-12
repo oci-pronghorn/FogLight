@@ -37,6 +37,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	}
 	
 	
+	
 	private static boolean writeByteSequence(CommandChannel ch, int address, byte[] seq){
 		if(!ch.i2cIsReady()){
 			return false;

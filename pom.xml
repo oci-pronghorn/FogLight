@@ -22,5 +22,6 @@
     <module>UltrasonicRangefinder</module>
     <module>UVSensor</module>
     <module>Temprature</module>
+    <module>FourDigitDisplay</module>
   </modules>
 </project>

@@ -1,13 +1,41 @@
 # FogLighter (A Maven Archetype for FogLight projects)
-Maven Archetype for starting new FogLight IoT projects
 
-To load the archetype on your local machine
+# Starting Your Own Project
 
-+ git clone https://github.com/oci-pronghorn/FogLighter.git
-+ mvn install
+ In the command line or terminal of your local machine, enter:
+```
+ git clone https://github.com/oci-pronghorn/FogLighter.git
+ cd FogLighter
+ mvn install
+ ```
+ 
+Now, ```cd``` into a directory that you would like your own IoT project to be created in, and enter:
+```
+mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=FogLight-Archetype -DarchetypeVersion=0.1.0-SNAPSHOT
+```
+The terminal now asks for: 
+```groupID```: type in  *com.ociweb* then press Enter
 
-To create a new FogLight IoT project run the following. You will be prompted for the group (name space) and project name.
+```ArtifactID```: type in name of your project then press Enter
 
-+ mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=FogLight-Archetype -DarchetypeVersion=0.1.0-SNAPSHOT
+```version: 1.0-SNAPSHOT ```: Ignore, Press Enter
 
-When the project is built with [mvn install] an artifact with the selected name will be built in the target folder.  This jar is executable and contains all its needed dependencies. It just needs to be copied over to the IntelEdison, RaspberryPi or other hardware.
+```package: com.ociweb ```: Ignore, Press Enter
+
+```Y:```  :  Type *Y*, press Enter
+
+
+This will create a folder named after your project, which includes all the project files. Let’s call our project *ProjectXYZ*.  
+If you’re working from Terminal, open up the file  “ProjectXYZ”/src/main/java/com/ociweb/IoTApp.java . You can start implementing the project code from here. 
+If you’re using an IDE, open up the created Maven project - *ProjectXYZ* and start working from IoTApp.java
+
+Once you’re done with the implementation, open your project folder in terminal and type 
+```
+mvn install
+```
+.. to build the project. This will create a .jar file named ProjectXYZ.jar in the **/target** folder (note that there are other .jar files  in **/target**, but we don’t have to worry about those). This jar is executable and contains all its needed dependencies. Transfer this .jar file to your device and use the command 
+```
+java -jar ProjectXYZ.jar 
+```
+.. to execute it.
+ 

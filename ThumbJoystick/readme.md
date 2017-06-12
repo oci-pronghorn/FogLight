@@ -1,12 +1,22 @@
-package com.ociweb.grove;
+# What you will need before you start:
+-[Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) 
 
+-[Maven](https://maven.apache.org/install.html), which downloads and manages the libraries and APIs needed to get the Grove device working.
 
+-[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
+
+# Starting your Maven project: 
+[Starting a mvn project](https://github.com/oci-pronghorn/FogLight-Examples/blob/master/README.md)
+
+# Example project:
+ 
+The following sketch reads and prints the X and Y values of the Joystick. In addition, it detects presses.
+ 
+Demo code: 
+```java
 import static com.ociweb.iot.grove.GroveTwig.*;
-
 import com.ociweb.iot.maker.*;
-
 import static com.ociweb.iot.maker.Port.*;
-
 import com.ociweb.gl.api.GreenCommandChannel;
 
 public class IoTApp implements IoTSetup
@@ -16,9 +26,6 @@ public class IoTApp implements IoTSetup
 
 	@Override
 	public void declareConnections(Hardware c) {
-
-		
-		//TODO: pinUsed() is not automatically allowing user to automatically connect both ports once one port is connected
 		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT_X);
 		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT_Y);
 	}
@@ -49,6 +56,14 @@ public class IoTApp implements IoTSetup
 			}
 		});
 	}
-
-
 }
+
+```         
+
+
+ 
+ 
+ 
+ 
+ 
+ 

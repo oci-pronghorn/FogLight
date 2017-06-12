@@ -13,15 +13,11 @@ Now, ```cd``` into a directory that you would like your own IoT project to be cr
 ```
 mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=FogLight-Archetype -DarchetypeVersion=0.1.0-SNAPSHOT
 ```
-The terminal now asks for: 
+The terminal now asks for:
 ```groupID```: type in  *com.ociweb* then press Enter
-
 ```ArtifactID```: type in name of your project then press Enter
-
 ```version: 1.0-SNAPSHOT ```: Ignore, Press Enter
-
 ```package: com.ociweb ```: Ignore, Press Enter
-
 ```Y:```  :  Type *Y*, press Enter
 
 

@@ -37,7 +37,6 @@ public class IoTApp implements IoTSetup
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
 			switch (port){
 			case A0:
-				//the X value should be roughly between 200 to 800 unless pressed
 				if (value < 1023){
 					System.out.println("X: "+value);
 				}
@@ -60,6 +59,9 @@ public class IoTApp implements IoTSetup
 
 ```         
 
+The Joystick is made out of two potentiameters rotating in two orthogonal (X and Y) planes. They are physically constrasined so that their values would read between around 200 to 800. When the joystick is pressed, the X value will read 1023 and can be used to detect presses.
+
+The lambda passed into ```runtime.addAnalogListener()``` first identifies which Port (the X or Y port) triggered the analog event, and prints out the value accordingly. There is an addition conditional logic for X to determine whether the joystick was pressed.
 
  
  

@@ -19,7 +19,7 @@ public interface I2CBacking {
      *
      * @return This I2CBacking.
      */
-    I2CBacking configure(byte bus) throws IllegalStateException;
+    I2CBacking configure(byte bus);
 
     /**
      * Reads a message from the I2C device at the specified address.
@@ -33,7 +33,7 @@ public interface I2CBacking {
      *
      * @throws IllegalStateException if this method is invoked before {@link #configure(byte)}.
      */
-    byte[] read(byte address, byte[] target, int bufferSize) throws IllegalStateException;
+    byte[] read(byte address, byte[] target, int bufferSize);
 
     /**
      * Writes a message to an I2C device at the specified address.
@@ -46,5 +46,5 @@ public interface I2CBacking {
      *
      * @throws IllegalStateException if this method is invoked before {@link #configure(byte)}.
      */
-    boolean write(byte address, byte[] message, int length) throws IllegalStateException;
+    boolean write(byte address, byte[] message, int length);
 }

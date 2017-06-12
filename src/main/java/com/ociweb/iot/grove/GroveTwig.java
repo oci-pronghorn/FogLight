@@ -137,6 +137,10 @@ public enum GroveTwig implements IODevice {
         public boolean isPWM() {
             return true;
         }
+        @Override
+        public int range() {
+            return 128;
+        }
     },
     Relay() {
         @Override

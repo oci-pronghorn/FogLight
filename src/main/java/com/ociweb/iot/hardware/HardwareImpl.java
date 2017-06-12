@@ -80,7 +80,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	private static final Logger logger = LoggerFactory.getLogger(HardwareImpl.class);
 
-
+	protected final IODevice[] deviceOnPort= new IODevice[Port.values().length];
+	
 	/////////////////
 	///Pipes for initial startup declared subscriptions. (Not part of graph)
 	private final int maxStartupSubs = 64;
@@ -92,7 +93,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	protected ReentrantLock devicePinConfigurationLock = new ReentrantLock();
 
 
-
+    public IODevice getConnectedDevice(Port p) {
+    	return deviceOnPort[p.ordinal()];
+    }
 
 	public HardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
 		this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
@@ -173,6 +176,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			digitalInputs = growHardwareConnections(digitalInputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
 		} else {
 			assert(t.isOutput());
+			
+			//TODO: if t.isPWM() this should be in the 	pwmOutputs  list??
+			
 			digitalOutputs = growHardwareConnections(digitalOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
 		}
 		return this;
@@ -428,6 +434,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
 		
+		deviceOnPort[port.ordinal()] = t;
+		
 		if (0 != (port.mask&Port.IS_ANALOG)) {
 			return internalConnectAnalog(t, port.port, customRateMS, customAvgWindowMS, everyValue);			
 		}
@@ -440,6 +448,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS) {
+		
+		deviceOnPort[port.ordinal()] = t;
 		
 		if (0 != (port.mask&Port.IS_ANALOG)) {
 			return internalConnectAnalog(t, port.port, customRateMS, customAvgWindowMS, false);			
@@ -454,6 +464,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	public Hardware connect(IODevice t, Port port, int customRateMS) {
 		
+		deviceOnPort[port.ordinal()] = t;
+				
 		if (port.isAnalog()) {
 			return internalConnectAnalog(t, port.port, customRateMS, -1, false);			
 		} else {
@@ -464,6 +476,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	
 	public Hardware connect(IODevice t, Port port, int customRateMS, boolean everyValue) {
 		
+		deviceOnPort[port.ordinal()] = t;
+		
 		if (port.isAnalog()) {
 			return internalConnectAnalog(t, port.port, customRateMS, -1, everyValue);			
 		} else {
@@ -473,6 +487,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 	
 	public Hardware connect(IODevice t, Port port) {
+		
+		deviceOnPort[port.ordinal()] = t;
 		
 		if (0 != (port.mask&Port.IS_ANALOG)) {
 			return internalConnectAnalog(t, port.port, -1, -1, false);			

@@ -16,17 +16,17 @@ import com.ociweb.gl.api.GreenCommandChannel;
 
 public class IoTApp implements IoTSetup {
            
-	public static Port GREENLED_PORT = D4;
+	public static Port LED_PORT = D4;
         public static Port LineFinderPort = D3;
-               
+        private final int LED_HIGH = LED.range()-1;       
         
     public static void main( String[] args) {
         DeviceRuntime.run(new IoTApp());
     }    
     
     @Override
-    public void declareConnections(Hardware hardware) {
-        hardware.connect(LED, GREENLED_PORT);
+    public void declareConnections(Hardware hardware) {        
+        hardware.connect(LED, LED_PORT);
         hardware.connect(LineFinder, LineFinderPort);
     }
 
@@ -35,7 +35,7 @@ public class IoTApp implements IoTSetup {
         
         final CommandChannel ledChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
         runtime.addDigitalListener((port,time,durationMillis, value)->{
-                ledChannel.setValue(GREENLED_PORT,value);
+                ledChannel.setValue(LED_PORT,value*LED_HIGH);
                 System.out.println("In/Out of Line");
                     	        	
         });

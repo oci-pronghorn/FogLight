@@ -19,10 +19,15 @@ mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=FogLi
 ```
 The terminal now asks you for: 
 ```groupID```: type in  *com.ociweb* then press Enter
+
 ```ArtifactID```: type in name of your project then press Enter
+
 ```version: 1.0-SNAPSHOT ```: Ignore, Press Enter
+
 ```package: com.ociweb ```: Ignore, Press Enter
+
 ```Y:```  :  Type *Y*, press Enter
+
 
 This will create a folder named after your project, which includes all the project files. Let’s call our project *ProjectXYZ*.  
 If you’re working from Terminal, open up the file  “ProjectXYZ”/src/main/java/com/ociweb/IoTApp.java . You can start implementing the project code from here. 

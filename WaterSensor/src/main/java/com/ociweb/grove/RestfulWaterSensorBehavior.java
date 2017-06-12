@@ -1,13 +1,7 @@
 package com.ociweb.grove;
 
-import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.HTTPFieldReader;
-import com.ociweb.gl.api.HTTPRequestReader;
-import com.ociweb.gl.api.RestListener;
-import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.Port;
+import com.ociweb.gl.api.*;
+import com.ociweb.iot.maker.*;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
 
 public class RestfulWaterSensorBehavior implements AnalogListener, RestListener  {

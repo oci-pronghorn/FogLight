@@ -269,7 +269,7 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
 				   runtime.logStageScheduleRates();
 
 				   if ( runtime.builder.isTelemetryEnabled()) {
-					   MonitorConsoleStage.attach(runtime.gm);//documents what was buit.
+					   runtime.gm.enableTelemetry(8098);
 				   }
 			   //exportGraphDotFile();
 
@@ -301,7 +301,7 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
 				   runtime.logStageScheduleRates();
 
 				   if ( runtime.builder.isTelemetryEnabled()) {
-					   MonitorConsoleStage.attach(runtime.gm);//documents what was buit.
+					   runtime.gm.enableTelemetry(8098);
 				   }
 			   //exportGraphDotFile();
 

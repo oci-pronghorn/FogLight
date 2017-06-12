@@ -41,6 +41,11 @@ public class DefaultCommandChannel extends CommandChannel{
 	}
 
 	@Override
+	public boolean setValue(Port port, boolean value) {
+		return setValue(port, (!value) ? 0 : builder.getConnectedDevice(port).range()-1);
+	}
+	
+	@Override
 	public boolean setValue(Port port, int value) {
 
 		int mask = 0;

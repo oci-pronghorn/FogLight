@@ -1,6 +1,7 @@
 package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.GreenApp;
+import com.ociweb.gl.api.GreenCommandChannel;
 
 /**
  * Base interface for a maker's IoT application.
@@ -13,7 +14,15 @@ import com.ociweb.gl.api.GreenApp;
  * @author Nathan Tippy
  */
 public interface IoTSetup extends GreenApp<Hardware, DeviceRuntime> {
-
+	
+	public static final int ALL = GreenCommandChannel.DYNAMIC_MESSAGING | 
+			                      GreenCommandChannel.NET_REQUESTER | 
+			                      GreenCommandChannel.NET_RESPONDER;
+	
+	public static final int DYNAMIC_MESSAGING = GreenCommandChannel.DYNAMIC_MESSAGING;
+	public static final int NET_REQUESTER = GreenCommandChannel.NET_REQUESTER;
+	public static final int NET_RESPONDER = GreenCommandChannel.NET_RESPONDER;
+	
 	void declareConnections(Hardware builder);
 	
 	default void declareConfiguration(Hardware hardware) {

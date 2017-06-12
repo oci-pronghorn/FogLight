@@ -160,11 +160,16 @@ public class PiCommandChannel extends CommandChannel{
         }
     }
 
-
+	@Override
+	public boolean setValue(Port port, boolean value) {
+		return setValue(port, (!value) ? 0 : builder.getConnectedDevice(port).range()-1);
+	}
 	
 	//Build templates like this once that can be populated and sent without redefining the part that is always the same.
 	private final byte[] digitalMessageTemplate = {0x01, 0x02, -1, -1, 0x00};
 	private final byte[] analogMessageTemplate = {0x01, 0x04, -1, -1, 0x00};
+	
+	
 	
 	public boolean setValue(Port port, int value) {
 

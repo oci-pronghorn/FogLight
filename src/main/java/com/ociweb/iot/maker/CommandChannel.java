@@ -92,6 +92,16 @@ public abstract class CommandChannel extends GreenCommandChannel<HardwareImpl> {
      * Sets the value of an analog/digital port on this command channel.
      *
      * @param port {@link Port} to set the value of.
+     * @param value true is set to on full and false is set to off full.
+     *
+     * @return True if the port could be set, and false otherwise.
+     */
+    public abstract boolean setValue(Port port, boolean value);
+    
+    /**
+     * Sets the value of an analog/digital port on this command channel.
+     *
+     * @param port {@link Port} to set the value of.
      * @param value Value to set the port to.
      *
      * @return True if the port could be set, and false otherwise.

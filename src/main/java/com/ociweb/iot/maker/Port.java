@@ -38,6 +38,10 @@ public enum Port {
         return 0 != (IS_ANALOG & mask);
     }
 
+    public static Port nextPort(Port p) {    	
+    	return Port.values()[p.ordinal()+1];
+    }
+    
     /**
      * Array of all standard analog ports.
      */

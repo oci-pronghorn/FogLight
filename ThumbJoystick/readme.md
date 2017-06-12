@@ -6,7 +6,7 @@
 -[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
 
 # Starting your Maven project: 
-[Starting a mvn project](https://github.com/oci-pronghorn/FogLight-Examples/blob/master/README.md)
+[Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
  

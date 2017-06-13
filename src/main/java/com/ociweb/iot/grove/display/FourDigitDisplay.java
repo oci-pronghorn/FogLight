@@ -22,7 +22,7 @@ public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 	}
 	
 	/**
-	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#printDigitAt(int, int, boolean)}
+	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#printDigitAt(CommandChannel,int, int, boolean)}
 	 * @param digit
 	 * @param position 
 	 */

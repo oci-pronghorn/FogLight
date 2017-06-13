@@ -65,7 +65,7 @@ public class Grove_FourDigitDisplay {
 
 	/**
 	 * Prints a digit at a given location with colon off
-	 * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}
+	 * @param target {@link CommandChannel}
 	 * @param digit 0-9 number to be printed
 	 * @param position ranges from 0 to 3 on the 4-digit display
 	 */
@@ -74,7 +74,7 @@ public class Grove_FourDigitDisplay {
 	}
 	/**
 	 * Prints a digit at a given location
-	 * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}
+	 * @param target {@link CommandChannel}
 	 * @param digit 0-9 number to be printed
 	 * @param position ranges from 0 to 3 on the 4-digit display
 	 * @param colon_on true value turns on the colon, false value turns it off
@@ -87,7 +87,7 @@ public class Grove_FourDigitDisplay {
 
 	/**
 	 * Prints a custom character according to the bitmap supplied at the given position
-	 * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}
+	 * @param target {@link CommandChannel} 
 	 * @param b byte with the bitmap to be printed
 	 * @param position ranges from 0 to 3 on the 4-digit display
 	 * @param colon_on true value turns on the colon, false value turns it off
@@ -115,7 +115,7 @@ public class Grove_FourDigitDisplay {
 	
 	/**
 	 * Clear out the 4-digit display
-	 * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}
+	 * @param target {@link CommandChannel}
 	 */
 	public static void clearDisplay(CommandChannel target){
 	}

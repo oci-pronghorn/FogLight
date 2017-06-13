@@ -9,9 +9,7 @@ The following sketch demonstrates a simple application using the Button: wheneve
 Demo code:
 ```
 package com.ociweb.grove;
-import static com.ociweb.iot.grove.GroveTwig.Button;
 import com.ociweb.iot.maker.*;
-import com.ociweb.gl.api.GreenCommandChannel;
 import static com.ociweb.iot.grove.GroveTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
@@ -22,19 +20,17 @@ public class IoTApp implements IoTSetup
     
     @Override
     public void declareConnections(Hardware c) {
-           
         c.connect(Button, BUTTON_PORT); 
         c.connect(Relay, RELAY_PORT);         
         c.useI2C();
-        
     }
 
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
     
-         final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+        final CommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         runtime.addDigitalListener((port, connection, time, value)->{ 
-            channel1.setValueAndBlock(RELAU_PORT, value == 1, 500);
+            channel1.setValueAndBlock(RELAY_PORT, value == 1, 500); //500 is the amount of time in milliseconds that                                                                                         //delays a future action
         });
     }
 }

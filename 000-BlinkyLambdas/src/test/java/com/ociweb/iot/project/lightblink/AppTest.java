@@ -39,7 +39,7 @@ public class AppTest {
 	    		long time = hardware.getLastTime(IoTApp.LED_PORT);
 	    		if (0!=time) {
 	    			iterations--;
-	    			assertEquals(expected, hardware.read(IoTApp.LED_PORT));
+	    			assertEquals(expected, 1&hardware.read(IoTApp.LED_PORT));
 	    			expected = 1&(expected+1);
 	    			
 	    			if (0!=lastTime) {

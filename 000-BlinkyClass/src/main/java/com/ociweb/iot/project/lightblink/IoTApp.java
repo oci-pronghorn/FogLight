@@ -11,7 +11,7 @@ import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements IoTSetup {
 	   
-	public static Port LED_PORT = D4;
+	public static Port LED_PORT = D5;
 	
     public static void main( String[] args) {
         DeviceRuntime.run(new IoTApp());
@@ -20,6 +20,7 @@ public class IoTApp implements IoTSetup {
     @Override
     public void declareConnections(Hardware c) {
         c.connect(LED, LED_PORT);
+        c.enableTelemetry(true);
     }
 
     @Override

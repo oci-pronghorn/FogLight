@@ -6,22 +6,17 @@ import java.lang.*;
 
 import com.ociweb.gl.api.TimeTrigger;
 
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
-import com.ociweb.iot.maker.Port;
+import com.ociweb.iot.maker.*;
 
 import static com.ociweb.iot.maker.Port.*;
 
-import com.ociweb.gl.api.GreenCommandChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
 public class IoTApp implements IoTSetup {
            
-	public static Port LED_PORT = D3;
+	private static final Port LED_PORT = D3;
         private int lightIntensity = 0;
         private boolean brighter = true;
         
@@ -38,7 +33,7 @@ public class IoTApp implements IoTSetup {
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
         
-        final CommandChannel ledChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+        final CommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
            
         runtime.addTimeListener((time)->{
             if (lightIntensity == 0 || brighter){                

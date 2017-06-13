@@ -1,21 +1,15 @@
-# What you will need before you start:
--[Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) 
 
--[Maven](https://maven.apache.org/install.html), which downloads and manages the libraries and APIs needed to get the Grove device working.
 
--[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
-
-# Starting your Maven project: 
-[Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
+# Starting a FogLighter project using Maven: 
+[Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example Project:
 The following sketch demonstrates a simple application using the Button: whenever the Button is pressed, a relay will flash a light.
-    Demon code:
+
+Demo code:
 ```
 package com.ociweb.grove;
-import static com.ociweb.iot.grove.GroveTwig.Button;
 import com.ociweb.iot.maker.*;
-import com.ociweb.gl.api.GreenCommandChannel;
 import static com.ociweb.iot.grove.GroveTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
@@ -26,19 +20,16 @@ public class IoTApp implements IoTSetup
     
     @Override
     public void declareConnections(Hardware c) {
-           
         c.connect(Button, BUTTON_PORT); 
         c.connect(Relay, RELAY_PORT);         
-        c.useI2C();
-        
     }
 
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
     
-         final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+        final CommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         runtime.addDigitalListener((port, connection, time, value)->{ 
-            channel1.setValueAndBlock(RELAU_PORT, value == 1, 500);
+            channel1.setValueAndBlock(RELAY_PORT, value == 1, 500); //500 is the amount of time in milliseconds that                                                                                         //delays a future action
         });
     }
 }

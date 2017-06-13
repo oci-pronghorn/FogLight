@@ -50,6 +50,12 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	}
 
 	@Override
+	public CommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
+		this.commandIndex++;
+		return new PiCommandChannel(gm, this, 0, instance, pcm, commandIndex);	
+	}
+	
+	@Override
 	public HardwarePlatformType getPlatformType() {
 		return HardwarePlatformType.GROVE_PI;
 	}

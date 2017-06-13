@@ -42,6 +42,11 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	}
 
 	@Override
+	public CommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
+		return new DefaultCommandChannel(gm, this, 0, instance, pcm);
+	}
+	
+	@Override
 	public void coldSetup() {
 		System.out.println("ColdSetup: Edison Pin Configuration setup!");
 		usedLines = buildUsedLines();

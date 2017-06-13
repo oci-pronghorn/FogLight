@@ -137,6 +137,11 @@ public class TestHardware extends HardwareImpl {
     }
     
     @Override
+    public CommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {    
+       return new DefaultCommandChannel(gm, this, 0, instance, pcm);   //TODO: urgent rename as DefaultCommadnChannel     
+    }
+    
+    @Override
     public StageScheduler createScheduler(GreenRuntime runtime) {
 
         if (isInUnitTest) {

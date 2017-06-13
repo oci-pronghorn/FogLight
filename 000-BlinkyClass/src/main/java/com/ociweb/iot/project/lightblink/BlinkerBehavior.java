@@ -17,13 +17,12 @@
 
 package com.ociweb.iot.project.lightblink;
 
-import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
-import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.maker.CommandChannel;
 import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.IoTSetup;
 
 public class BlinkerBehavior implements StartupListener, PubSubListener {
  
@@ -33,7 +32,7 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	private CommandChannel blinkerChannel;
 	
 	public BlinkerBehavior(DeviceRuntime runtime) {
-		blinkerChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
+		blinkerChannel = runtime.newCommandChannel(IoTSetup.DYNAMIC_MESSAGING); 
 	}	
 	
 	@Override

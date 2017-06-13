@@ -31,7 +31,7 @@ public class IoTApp implements IoTSetup {
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
         
-        final CommandChannel blinkerChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
+        final CommandChannel blinkerChannel = runtime.newCommandChannel(); 
         
         runtime.addTimeListener((time)->{
         	

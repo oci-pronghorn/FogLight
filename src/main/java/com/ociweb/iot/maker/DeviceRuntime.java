@@ -118,22 +118,33 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
     	return this.builder;
     }
 
+    public CommandChannel newCommandChannel() {
 
+    	int instance = -1;
 
+    	PipeConfigManager pcm = buildPipeManager();
 
+    	return this.builder.newCommandChannel(instance, pcm);
+
+    }
+    
     public CommandChannel newCommandChannel(int features) {
 
     	int instance = -1;
 
-    	PipeConfigManager pcm = new PipeConfigManager();
-    	pcm.addConfig(requestPipeConfig);
-    	pcm.addConfig(i2cPayloadPipeConfig);
-    	pcm.addConfig(defaultCommandChannelLength,0,TrafficOrderSchema.class );
-
+    	PipeConfigManager pcm = buildPipeManager();
 
     	return this.builder.newCommandChannel(features, instance, pcm);
 
     }
+
+	private PipeConfigManager buildPipeManager() {
+		PipeConfigManager pcm = new PipeConfigManager();
+    	pcm.addConfig(requestPipeConfig);
+    	pcm.addConfig(i2cPayloadPipeConfig);
+    	pcm.addConfig(defaultCommandChannelLength,0,TrafficOrderSchema.class );
+		return pcm;
+	}
 
     public CommandChannel newCommandChannel(int features, int customChannelLength) {
 

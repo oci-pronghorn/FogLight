@@ -1,6 +1,13 @@
 # FogLighter (A Maven Archetype for FogLight projects)
 
-# Starting Your Own Project
+## What you will need before you start:
+###[Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) 
+
+###[Maven](https://maven.apache.org/install.html), which downloads and manages the libraries and APIs needed to get the Grove device working.
+
+###[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
+
+## Starting Your Own Project
 
  In the command line or terminal of your local machine, enter:
 ```
@@ -41,7 +48,7 @@ java -jar ProjectXYZ.jar
 ```
 .. to execute it.
  
-## Importing the Maven project in Eclipse
+### Importing the Maven project in Eclipse
 Select File -> Import
 
 Click on "Exisiting Maven Projects" under Maven, then click "Next"
@@ -51,7 +58,7 @@ file.
 
 Click "finish"
 
-## Importing the Maven project in NetBeans 
+### Importing the Maven project in NetBeans 
 Select File -> Open Project
 
 Browse to the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 
@@ -61,7 +68,7 @@ Click "Open Project"
 
 Note: In Netbeans, instead of typing ```mvn install```, you can also build your project by clicking "Build".
 
-## Importing the Maven project in IntelliJ
+### Importing the Maven project in IntelliJ
 Select File -> Open.
 
 Browse to the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 

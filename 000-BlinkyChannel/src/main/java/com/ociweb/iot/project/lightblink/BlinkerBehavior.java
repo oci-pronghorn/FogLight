@@ -7,7 +7,7 @@ import com.ociweb.iot.maker.DeviceRuntime;
 
 public class BlinkerBehavior implements TimeListener {
 
-	private boolean state = false;
+	private int state = 0;
 	private CommandChannel commandChannel;
     private static final int PAUSE = 500;
     
@@ -20,7 +20,7 @@ public class BlinkerBehavior implements TimeListener {
 		
 		//keep adding commands if more can be accepted
 		while (commandChannel.setValueAndBlock(IoTApp.LED_PORT, state, PAUSE)) {
-   		 	state = !state;
+   		 	state = (1==state ? 0 : 1);
    	    }   	
 		
 	}

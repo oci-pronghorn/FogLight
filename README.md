@@ -28,4 +28,4 @@ Examples for  IoT projects
 
 If you would like to start your own projects...     
 These projects were first built with     
-mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=FogLight-Archetype -DarchetypeVersion=0.1.0-SNAPSHOT
+mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=FogLight-Archetype -DarchetypeVersion=0.1.2-SNAPSHOT

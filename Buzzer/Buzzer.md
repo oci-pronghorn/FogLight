@@ -10,6 +10,7 @@
 
 # Example Project:
 The following sketch demonstrates a simple application using the Buzzer: whenever the Button is pressed, the buzzer will emit a tone and the relay will flash a light.
+    
     Demo code:
 ```
 package com.ociweb.grove;

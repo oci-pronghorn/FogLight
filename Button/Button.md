@@ -10,7 +10,8 @@
 
 # Example Project:
 The following sketch demonstrates a simple application using the Button: whenever the Button is pressed, a relay will flash a light.
-    Demon code:
+
+Demo code:
 ```
 package com.ociweb.grove;
 import static com.ociweb.iot.grove.GroveTwig.Button;

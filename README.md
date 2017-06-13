@@ -56,15 +56,9 @@ Click "Open Project"
 Note: In Netbeans, instead of typing ```mvn install```, you can also build your project by clicking "Build".
 
 ## Importing the Maven project in IntelliJ
-#### With default settings
 Select File -> Open.
     Browse to the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 
 file.
     Click "OK"
     The import will be performed automatically.
-#### With New Project wizard and custom settings
-Select File -> New
-    Click on "Project from Existing Sources".
-    Browse and select the direcectory (file) under your project that contains the "src" folder as well as a "pom.xml", click "OK".
-    If prompted, on the first page of the Import Project wizard, select Maven, then click "Next".
-    Specify the project root directy
+

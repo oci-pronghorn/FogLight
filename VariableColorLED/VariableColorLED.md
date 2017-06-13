@@ -33,7 +33,7 @@ public class IoTApp implements IoTSetup {
     @Override
     public void declareBehavior(DeviceRuntime runtime) {
         
-        final CommandChannel ledChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+        final CommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
            
         runtime.addTimeListener((time)->{
             if (lightIntensity == 0 || brighter){                

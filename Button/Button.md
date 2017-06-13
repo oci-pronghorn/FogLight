@@ -36,4 +36,4 @@ public class IoTApp implements IoTSetup
 ```
 When executed, the above code will cause the relay on D7 (digital output 7) to turn on when the button on D3 (digital input 3) is pressed.
 
-The addDigitalListener() method returns a 1 as value when the button is pressed, and 0 when it is released. In order to send a signal to the relay on the digital port, we need to use setValue() method to send a value of 1 to the digital port connected to the relay.
+The addDigitalListener() method passes a 1 as value when the button is pressed, and 0 when it is released. In order to send a signal to the relay on the digital port, use the setValue() method to check if the value is equivalent to 1, and when it is, a signal will be sent.

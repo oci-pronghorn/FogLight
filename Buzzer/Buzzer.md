@@ -39,12 +39,8 @@ public class IoTApp implements IoTSetup
   
         final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
         runtime.addDigitalListener((port, connection, time, value)->{ 
-    	    if (port == D3){
-                if (channel1.setValue(RELAY_PORT, value)) {
-                    channel1.block(RELAY_PORT, 1000); 
-        	        channel1.setValue(BUZZER_PORT, value);
-               }                   
-        	}
+    	    channel1.setValueAndBlock(BUZZER_PORT, value == 1, 500);
+	    channel1.setValueAndBlock(RELAY_PORT, value ==1, 500);
         });
     }
 }

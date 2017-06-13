@@ -38,7 +38,7 @@ public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 	 */
 	@Override
 	public void drawDigitalBitmapAt(byte b, int position) {
-		Grove_FourDigitDisplay.drawBitmapAt(target, b, position, colon_on);
+		Grove_FourDigitDisplay.drawBitmapAt(this.target, b, position, colon_on);
 
 	}
 
@@ -58,7 +58,7 @@ public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 	@Override
 	public void clearDisplay() {
 		
-		Grove_FourDigitDisplay.clearDisplay(target);
+		Grove_FourDigitDisplay.clearDisplay(this.target);
 		
 	}
 

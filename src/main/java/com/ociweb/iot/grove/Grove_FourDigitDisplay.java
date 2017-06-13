@@ -127,20 +127,20 @@ public class Grove_FourDigitDisplay {
 	 * @param target
 	 */
 	private static void start(CommandChannel target){
-		target.setValue(DATA, 1);
-		target.setValueAndBlock(CLOCK, 1,1);
-		target.setValueAndBlock(DATA, 0,1);
-		target.setValueAndBlock(CLOCK, 0,1);
+		target.setValue(DATA, true);
+		target.setValueAndBlock(CLOCK, true,1);
+		target.setValueAndBlock(DATA, false,1);
+		target.setValueAndBlock(CLOCK, false,1);
 	}
 	/**
 	 * ends the TM1637 targetip's listening; data is from low to high while clock is high
 	 * @param target
 	 */
 	private static void stop(CommandChannel target){
-		target.setValue(DATA, 0);
-		target.setValueAndBlock(CLOCK, 1,1);
-		target.setValueAndBlock(DATA, 1,1);
-		target.setValueAndBlock(CLOCK, 0,1);
+		target.setValue(DATA, false);
+		target.setValueAndBlock(CLOCK, true,1);
+		target.setValueAndBlock(DATA, true,1);
+		target.setValueAndBlock(CLOCK, false,1);
 
 	}
 
@@ -150,15 +150,15 @@ public class Grove_FourDigitDisplay {
 	 * @param b
 	 */
 	private static void sendByte(CommandChannel target, byte b){
-		target.setValueAndBlock(CLOCK,0,1);
+		target.setValueAndBlock(CLOCK,false,1);
 		for (int i = 7; i >= 0; i--){
-			target.setValueAndBlock(DATA, bitAt(b,i), 1);
-			target.setValueAndBlock(CLOCK, 1,1);
-			target.setValueAndBlock(CLOCK,0,1);
+			target.setValueAndBlock(DATA, highBitAt(b,i), 1);
+			target.setValueAndBlock(CLOCK, true,1);
+			target.setValueAndBlock(CLOCK,false,1);
 		}
 		//ignoring ack, TODO: Ideally we would read the ack and return it
-		target.setValueAndBlock(CLOCK, 1,1);
-		target.setValue(CLOCK, 0);
+		target.setValueAndBlock(CLOCK, true,1);
+		target.setValue(CLOCK, false);
 	}
 
 	private static boolean highBitAt(byte b, int pos){

@@ -9,16 +9,9 @@ Demo code:
 ```java
 import static com.ociweb.iot.grove.GroveTwig.*;
 import java.lang.*;
-
 import com.ociweb.gl.api.TimeTrigger;
-
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
-import com.ociweb.iot.maker.Port;
+import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
-import com.ociweb.gl.api.GreenCommandChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

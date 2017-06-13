@@ -43,16 +43,22 @@ java -jar ProjectXYZ.jar
  
 ## Importing the Maven project in Eclipse
 Select File -> Import
+
 Click on "Exisiting Maven Projects" under Maven, then click "Next"
+
 Click "Browse" and select the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 
-file. 
+file.
+
 Click "finish"
 
 ## Importing the Maven project in NetBeans 
 Select File -> Open Project
+
 Browse to the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 
-file. 
+file.
+
 Click "Open Project"
+
 Note: In Netbeans, instead of typing ```mvn install```, you can also build your project by clicking "Build".
 
 ## Importing the Maven project in IntelliJ

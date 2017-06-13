@@ -5,7 +5,6 @@ import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
-import com.ociweb.iot.grove.StaticFourDigitDisplay;
 import com.ociweb.iot.grove.display.FourDigitDisplay;
 import com.ociweb.gl.api.GreenCommandChannel;
 
@@ -21,17 +20,18 @@ public class IoTApp implements IoTSetup
 
 	}
 	public static void main(String args[]){
+		System.out.println("using bool setVals");
 		DeviceRuntime.run(new IoTApp());
 	}
 	
 	@Override
 	public void declareBehavior(DeviceRuntime runtime) {
 
-		final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		final CommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		
 		
 		//TODO: abstract the object dynamic allocation ("new") away from the maker
-		FourDigitDisplay dis = new FourDigitDisplay(channel1);
+		FourDigitDisplay dis = new FourDigitDisplay(ch);
 		dis.printDigitAt(1, 0);
 		dis.printDigitAt(2, 1);
 		dis.printDigitAt(3, 2);

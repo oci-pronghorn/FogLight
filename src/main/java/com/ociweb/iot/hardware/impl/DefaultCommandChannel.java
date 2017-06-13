@@ -145,7 +145,12 @@ public class DefaultCommandChannel extends CommandChannel{
 	}
 	
 
-
+	@Override
+	public boolean setValueAndBlock(Port port, boolean value, long durationMilli) {
+		return setValueAndBlock(port, 
+				                (!value) ? 0 : builder.getConnectedDevice(port).range()-1,
+				                durationMilli);
+	}
 
 
     @Override

@@ -120,6 +120,20 @@ public abstract class CommandChannel extends GreenCommandChannel<HardwareImpl> {
      *
      * @return True if the port could be set, and false otherwise.
      */
+    public abstract boolean setValueAndBlock(Port port, boolean value, long durationMilli);
+    
+    /**
+     * Sets the value of an analog/digital port on this command channel and then
+     * delays processing of all future actions on this port until a specified
+     * amount of time passes.
+     *
+     * @param port {@link Port} to set the value of.
+     * @param value Value to set the port to.
+     * @param durationMilli Time in milliseconds to delay processing of future actions
+     *                      on this port.
+     *
+     * @return True if the port could be set, and false otherwise.
+     */
     public abstract boolean setValueAndBlock(Port port, int value, long durationMilli);
 
     /**

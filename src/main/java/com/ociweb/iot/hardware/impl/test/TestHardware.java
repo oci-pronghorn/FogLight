@@ -47,6 +47,9 @@ public class TestHardware extends HardwareImpl {
         //logger.trace("You are running on the test hardware.");
     }
     
+    public void enableTelemetry(boolean enable) {
+    	//do nothing this is a test.
+    }
     
     public void setI2CValueToRead(byte address, byte[] data, int length) {
     	TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;

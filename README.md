@@ -40,3 +40,9 @@ java -jar ProjectXYZ.jar
 ```
 .. to execute it.
  
+## Importing the Maven project in Eclipse
+Select File -> Import
+Click on "Exisiting Maven Projects" under Maven, then click "Next"
+Click "Browse" and select the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 
+file. 
+Click "finish"

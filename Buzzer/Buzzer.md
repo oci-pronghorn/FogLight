@@ -9,8 +9,8 @@
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example Project:
-The following sketch demonstrates a simple application using the Button: whenever the Button is pressed, a relay will flash a light.
-    Demon code:
+The following sketch demonstrates a simple application using the Buzzer: whenever the Button is pressed, the buzzer will emit a tone and the relay will flash a light.
+    Demo code:
 ```
 package com.ociweb.grove;
 import com.ociweb.iot.maker.*;

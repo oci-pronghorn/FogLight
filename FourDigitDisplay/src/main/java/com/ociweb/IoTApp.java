@@ -2,66 +2,43 @@ package com.ociweb;
 
 
 import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
+
+import com.ociweb.iot.grove.StaticFourDigitDisplay;
+import com.ociweb.iot.grove.display.FourDigitDisplay;
+import com.ociweb.gl.api.GreenCommandChannel;
 
 public class IoTApp implements IoTSetup
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
-    // // by using constants such as these you can easily use the right value to reference where the sensor was plugged in
-      
-    //private static final Port BUTTON_PORT = D3;
-	//private static final Port LED_PORT    = D4;
-    //private static final Port RELAY_PORT  = D7;
-    //private static final Port LIGHT_SENSOR_PORT= A2;
+	private static final Port CLOCK = D2;
+	private static final Port DATA = D3;
 
-    @Override
-    public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-        
-        // // specify each of the connections on the harware, eg which component is plugged into which connection.        
-              
-        //c.connect(Button, BUTTON_PORT); 
-        //c.connect(Relay, RELAY_PORT);         
-        //c.connect(LightSensor, LIGHT_SENSOR_PORT); 
-        //c.connect(LED, LED_PORT);        
-        //c.useI2C();
-        
-    }
+	@Override
+	public void declareConnections(Hardware c) {
+	//	c.connect(FourDigitDisplay, CLOCK);
+		//c.connect(FourDigitDisplay, DATA);
+
+	}
+	public static void main(String args[]){
+		DeviceRuntime.run(new IoTApp());
+	}
+	
+	@Override
+	public void declareBehavior(DeviceRuntime runtime) {
+
+		final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		
+		
+		//TODO: abstract the object dynamic allocation ("new") away from the maker
+		FourDigitDisplay dis = new FourDigitDisplay(channel1);
+		dis.printDigitAt(1, 0);
+		dis.printDigitAt(2, 1);
+		dis.printDigitAt(3, 2);
+		dis.printDigitAt(1, 3);
+		
+
+	}
 
 
-    @Override
-    public void declareBehavior(DeviceRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
-        
-        //  //Use lambdas or classes and add listeners to the runtime object
-        //  //CommandChannels are created to send outgoing events to the hardware
-        //  //CommandChannels must never be shared between two lambdas or classes.
-        //  //A single lambda or class can use mulitiple CommandChannels for cuoncurrent behavior
-        
-        
-        //        final CommandChannel channel1 = runtime.newCommandChannel();
-        //        //this digital listener will get all the button press and un-press events 
-        //        runtime.addDigitalListener((connection, time, value)->{ 
-        //            
-        //            //connection could be checked but unnecessary since we only have 1 digital source
-        //            
-        //            if (channel1.digitalSetValue(RELAY_PORT, value)) {
-        //                //keep the relay on or off for 1 second before doing next command
-        //                channel1.digitalBlock(RELAY_PORT, 1000); 
-        //            }
-        //        });
-    }
-        
-  
 }

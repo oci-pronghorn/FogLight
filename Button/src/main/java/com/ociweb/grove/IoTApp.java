@@ -12,7 +12,6 @@ public class IoTApp implements IoTSetup
     public void declareConnections(Hardware c) {
         c.connect(Button, BUTTON_PORT); 
         c.connect(Relay, RELAY_PORT);         
-        c.useI2C();
     }
 
     @Override

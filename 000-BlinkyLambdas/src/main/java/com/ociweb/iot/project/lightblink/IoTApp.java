@@ -14,7 +14,7 @@
 package com.ociweb.iot.project.lightblink;
 
 import static com.ociweb.iot.grove.GroveTwig.LED;
-import static com.ociweb.iot.maker.Port.D4;
+import static com.ociweb.iot.maker.Port.D5;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.maker.CommandChannel;
@@ -27,7 +27,7 @@ public class IoTApp implements IoTSetup {
     
     private static final String TOPIC = "light";
     private static final int PAUSE = 500;    
-    public static final Port LED_PORT = D4;
+    public static final Port LED_PORT = D5;
            
     public static void main( String[] args) {
         DeviceRuntime.run(new IoTApp());
@@ -35,7 +35,7 @@ public class IoTApp implements IoTSetup {
     
     @Override
     public void declareConnections(Hardware c) {
-        c.connect(LED, D4);
+        c.connect(LED, D5);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class IoTApp implements IoTSetup {
         runtime.addPubSubListener((topic,payload)->{
         	
 		    boolean value = payload.readBoolean();
-		    blinkerChannel.setValueAndBlock(LED_PORT, value?1:0, PAUSE);               
+		    blinkerChannel.setValueAndBlock(LED_PORT, value, PAUSE);               
 		    boolean ignored = blinkerChannel.openTopic(TOPIC, w->{
 		    	w.writeBoolean(!value);
 		    	w.publish();	    	

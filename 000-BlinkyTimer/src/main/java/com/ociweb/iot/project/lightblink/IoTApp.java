@@ -16,7 +16,7 @@ public class IoTApp implements IoTSetup {
     
     private static final int PAUSE = 500;
            
-    public static final Port LED_PORT = D4;
+    public static final Port LED_PORT = D5;
     
     public static void main( String[] args) {
         DeviceRuntime.run(new IoTApp());
@@ -35,8 +35,8 @@ public class IoTApp implements IoTSetup {
         
         runtime.addTimeListener((time)->{
         	
-        	blinkerChannel.setValueAndBlock(LED_PORT, 1, PAUSE);
-        	blinkerChannel.setValue(LED_PORT, 0);
+        	blinkerChannel.setValueAndBlock(LED_PORT, true, PAUSE);
+        	blinkerChannel.setValue(LED_PORT, false);
         	        	
         });
               

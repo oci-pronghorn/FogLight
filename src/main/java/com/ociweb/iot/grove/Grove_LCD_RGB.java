@@ -72,7 +72,7 @@ public class Grove_LCD_RGB implements IODevice {
     }
 
     /**
-     * Sends a command to a given Grove LCD RGB device that will set its currently displayd text and color.
+     * Sends a command to a given Grove LCD RGB device that will set its currently displayed text and color.
      *
      * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
      * @param text String to display on the Grove RGB LCD.
@@ -123,6 +123,7 @@ public class Grove_LCD_RGB implements IODevice {
     }
 
     /**
+     * TODO: The JavaDoc is not right. Need to figure out what this what this command does
      * Sends a command to a given Grove LCD RGB device that will set its currently displayed color.
      *
      * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.

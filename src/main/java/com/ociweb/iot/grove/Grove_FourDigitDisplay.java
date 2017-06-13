@@ -4,11 +4,19 @@ import com.ociweb.iot.maker.Port;
 
 import static com.ociweb.iot.maker.Port.*;
 
+import com.ociweb.iot.hardware.I2CConnection;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.CommandChannel;
 
 
-public class StaticFourDigitDisplay {
+/**
+ * Utility class to interface with the Grove Four Digit display.
+ * @author Ray Lo
+ *
+ */
+public class Grove_FourDigitDisplay {
 
+	//TODO: Hardcoded ports for now. The connection needs to be moved.
 	public static final Port  CLOCK = D2;
 	public static final Port  DATA = D3;
 
@@ -55,15 +63,35 @@ public class StaticFourDigitDisplay {
 		};
 
 
+	/**
+	 * Prints a digit at a given location with colon off
+	 * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}
+	 * @param digit 0-9 number to be printed
+	 * @param position ranges from 0 to 3 on the 4-digit display
+	 */
 	public static void printDigitAt(CommandChannel target, int digit, int position){
 		printDigitAt(target, digit, position, false);
 	}
+	/**
+	 * Prints a digit at a given location
+	 * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}
+	 * @param digit 0-9 number to be printed
+	 * @param position ranges from 0 to 3 on the 4-digit display
+	 * @param colon_on true value turns on the colon, false value turns it off
+	 */
 	public static void printDigitAt(CommandChannel target, int digit, int position, boolean colon_on){
 
 		drawBitmapAt(target, (byte)digit_font[digit], position, colon_on);
 
 	}
 
+	/**
+	 * Prints a custom character according to the bitmap supplied at the given position
+	 * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}
+	 * @param b byte with the bitmap to be printed
+	 * @param position ranges from 0 to 3 on the 4-digit display
+	 * @param colon_on true value turns on the colon, false value turns it off
+	 */
 	public static void drawBitmapAt(CommandChannel target, byte b, int position, boolean colon_on){
 		//go into fixed address mode
 		start(target);
@@ -84,9 +112,12 @@ public class StaticFourDigitDisplay {
 		sendByte(target,(byte)(DISPLAY_ON | BRIGHTNESS));
 		stop(target);
 	}
-
+	
+	/**
+	 * Clear out the 4-digit display
+	 * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}
+	 */
 	public static void clearDisplay(CommandChannel target){
-
 	}
 
 	//Address commands all start with 0xC0
@@ -143,6 +174,7 @@ public class StaticFourDigitDisplay {
 	private static int bitAt(byte b, int pos){
 		return (b & (0x01 << pos)) ;
 	}
+
 }
 
 

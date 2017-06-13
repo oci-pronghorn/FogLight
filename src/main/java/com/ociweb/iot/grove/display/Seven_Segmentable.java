@@ -1,5 +1,7 @@
 package com.ociweb.iot.grove.display;
 
+import com.ociweb.iot.maker.CommandChannel;
+
 public interface Seven_Segmentable {
 	
 	
@@ -12,9 +14,6 @@ public interface Seven_Segmentable {
 	public void printDigitAt(int digit, int position);
 	
 
-	//public void printCharAt(char c, int position);
-	
-	
 	/**
 	 * switch on or off the colon on the next digit print
 	 * @param on
@@ -35,4 +34,6 @@ public interface Seven_Segmentable {
 	public void drawDigitalBitmapAt(byte b, int position);
 	
 	public void clearDisplay();
+	
+	public void setCommandChannel(CommandChannel c);
 }

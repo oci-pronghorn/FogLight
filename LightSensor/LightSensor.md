@@ -22,7 +22,7 @@ public class IoTApp implements IoTSetup
     @Override
     public void declareConnections(Hardware c) {         
         c.connect(LightSensor, LIGHT_SENSOR_PORT);
-        c.connect(LED, LED_PORT, 200, 1000); 
+        c.connect(LED, LED_PORT, 200); //200 is the rate in milliseconds to update the device data
     }
 
     @Override

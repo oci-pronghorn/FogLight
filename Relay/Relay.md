@@ -1,10 +1,8 @@
-
-
 # Starting a FogLighter project using Maven: 
 [Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example Project:
-The following sketch demonstrates a simple application using the Button: whenever the Button is pressed, a relay will flash a light.
+The following sketch demonstrates a simple application using the Relay: whenever the Button is pressed, the relay will flash a light.
 
 Demo code:
 ```

@@ -16,10 +16,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class IoTApp implements IoTSetup {
-           
-	public static Port LED_PORT = D3;
-        private int lightIntensity = 0;
-        private boolean brighter = true;
+    public static Port LED_PORT = D3;
+    private int lightIntensity = 0;
+    private boolean brighter = true;
         
     public static void main( String[] args) {
         DeviceRuntime.run(new IoTApp());

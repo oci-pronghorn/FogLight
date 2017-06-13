@@ -4,7 +4,7 @@ import com.ociweb.iot.hardware.I2CConnection;
 
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.grove.Static_Four_Digit_Display;
+import com.ociweb.iot.grove.StaticFourDigitDisplay;
 
 
 //for the Four_Digit_Display, let's first try skipping the bottom most Static layer that the
@@ -16,12 +16,12 @@ public class Four_Digit_Display implements Seven_Segmentable  {
 	
 	@Override
 	public void printDigitAt(int digit, int position) {
-		Static_Four_Digit_Display.printDigitAt(this.target, digit, position, colon_on);
+		StaticFourDigitDisplay.printDigitAt(this.target, digit, position, colon_on);
 	}
 
 	@Override
 	public void drawDigitalBitmapAt(byte b, int position) {
-		Static_Four_Digit_Display.drawBitmapAt(target, b, position, colon_on);
+		StaticFourDigitDisplay.drawBitmapAt(target, b, position, colon_on);
 
 	}
 
@@ -32,7 +32,7 @@ public class Four_Digit_Display implements Seven_Segmentable  {
 
 	@Override
 	public void clearDisplay() {
-		Static_Four_Digit_Display.clearDisplay(target);
+		StaticFourDigitDisplay.clearDisplay(target);
 		
 	}
 

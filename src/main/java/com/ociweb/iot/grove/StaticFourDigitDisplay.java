@@ -7,7 +7,7 @@ import static com.ociweb.iot.maker.Port.*;
 import com.ociweb.iot.maker.CommandChannel;
 
 
-public class Static_Four_Digit_Display {
+public class StaticFourDigitDisplay {
 
 	public static final Port  CLOCK = D2;
 	public static final Port  DATA = D3;

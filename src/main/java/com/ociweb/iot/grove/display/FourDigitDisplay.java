@@ -64,6 +64,7 @@ public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 
 	/**
 	 * Setter for the single CommandChannel associated with the four-digit display
+	 * @param c
 	 */
 	@Override
 	public void setCommandChannel(CommandChannel c) {

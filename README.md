@@ -26,7 +26,7 @@ The terminal now asks for:
 ```Y:```  :  Type *Y*, press Enter
 
 
-This will create a folder named after your project, which includes all the project files. Let’s call the new project *ProjectXYZ*.  
+This will create a folder named after your project, which includes all the project files. Let’s call our project *ProjectXYZ*.  
 If you’re working from Terminal, open up the file  “ProjectXYZ”/src/main/java/com/ociweb/IoTApp.java . You can start implementing the project code from here. 
 
 If you’re using an IDE, open up the created Maven project - *ProjectXYZ* and start working from IoTApp.java
@@ -43,20 +43,28 @@ java -jar ProjectXYZ.jar
  
 ## Importing the Maven project in Eclipse
 Select File -> Import
-
 Click on "Exisiting Maven Projects" under Maven, then click "Next"
-
 Click "Browse" and select the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 
 file. 
-
 Click "finish"
 
 ## Importing the Maven project in NetBeans 
 Select File -> Open Project
-
 Browse to the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 
 file. 
-
 Click "Open Project"
-
 Note: In Netbeans, instead of typing ```mvn install```, you can also build your project by clicking "Build".
+
+## Importing the Maven project in IntelliJ
+#### With default settings
+Select File -> Open.
+    Browse to the directory (folder) under your project that contains the "src" folder as well as a "pom.xml" 
+file.
+    Click "OK"
+    The import will be performed automatically.
+#### With New Project wizard and custom settings
+Select File -> New
+    Click on "Project from Existing Sources".
+    Browse and select the direcectory (file) under your project that contains the "src" folder as well as a "pom.xml", click "OK".
+    If prompted, on the first page of the Import Project wizard, select Maven, then click "Next".
+    Specify the project root directy

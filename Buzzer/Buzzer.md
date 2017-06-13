@@ -9,8 +9,10 @@
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example Project:
-The following sketch demonstrates a simple application using the Button: whenever the Button is pressed, a relay will flash a light.
-    Demon code:
+The following sketch demonstrates a simple application using the Buzzer: whenever the Button is pressed, the buzzer will emit a tone and the relay will flash a light.
+    
+Demo code:
+
 ```
 package com.ociweb.grove;
 import com.ociweb.iot.maker.*;
@@ -37,12 +39,8 @@ public class IoTApp implements IoTSetup
   
         final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
         runtime.addDigitalListener((port, connection, time, value)->{ 
-    	    if (port == D3){
-                if (channel1.setValue(RELAY_PORT, value)) {
-                    channel1.block(RELAY_PORT, 1000); 
-        	        channel1.setValue(BUZZER_PORT, value);
-               }                   
-        	}
+    	    channel1.setValueAndBlock(BUZZER_PORT, value == 1, 500);
+	    channel1.setValueAndBlock(RELAY_PORT, value ==1, 500);
         });
     }
 }

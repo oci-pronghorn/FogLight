@@ -1,6 +1,6 @@
 package com.ociweb.iot.grove.display;
 
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 
 public class LCD_RGB implements LCDable {
 
@@ -29,7 +29,7 @@ public class LCD_RGB implements LCDable {
 	}
 
 	@Override
-	public void setCommandChannel(CommandChannel c) {
+	public void setCommandChannel(FogCommandChannel c) {
 		// TODO Auto-generated method stub
 		
 	}

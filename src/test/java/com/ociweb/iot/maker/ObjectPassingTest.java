@@ -31,7 +31,7 @@ public class ObjectPassingTest {
 		 
 		    final int features = GreenCommandChannel.DYNAMIC_MESSAGING;
 		    
-	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTSetup() {
+	    	FogRuntime runtime = FogRuntime.test(new FogApp() {
 
 	
 				@Override
@@ -39,9 +39,9 @@ public class ObjectPassingTest {
 				}
 				
 				@Override
-				public void declareBehavior(DeviceRuntime runtime) {
+				public void declareBehavior(FogRuntime runtime) {
 					
-					final CommandChannel cc1 = runtime.newCommandChannel(features);
+					final FogCommandChannel cc1 = runtime.newCommandChannel(features);
 					runtime.addPubSubListener(new PubSubListener() {
 
 						@Override
@@ -77,7 +77,7 @@ public class ObjectPassingTest {
 						}}).addSubscription("test\\topic");
 					
 					
-					final CommandChannel cc2 = runtime.newCommandChannel(features);
+					final FogCommandChannel cc2 = runtime.newCommandChannel(features);
 					runtime.addStartupListener(new StartupListener() {
 
 						@Override

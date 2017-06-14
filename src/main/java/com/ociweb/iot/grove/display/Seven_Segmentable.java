@@ -1,6 +1,6 @@
 package com.ociweb.iot.grove.display;
 
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 
 public interface Seven_Segmentable {
 	
@@ -35,5 +35,5 @@ public interface Seven_Segmentable {
 	
 	public void clearDisplay();
 	
-	public void setCommandChannel(CommandChannel c);
+	public void setCommandChannel(FogCommandChannel c);
 }

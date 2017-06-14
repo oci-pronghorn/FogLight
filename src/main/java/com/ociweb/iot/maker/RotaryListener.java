@@ -2,7 +2,7 @@ package com.ociweb.iot.maker;
 
 /**
  * Functional interface for a listener that receives rotary events from
- * encoders registered with a {@link DeviceRuntime}.
+ * encoders registered with a {@link FogRuntime}.
  *
  * @author Nathan Tippy
  */
@@ -10,7 +10,7 @@ package com.ociweb.iot.maker;
 public interface RotaryListener {
 
     /**
-     * Invoked when the {@link DeviceRuntime} detects a change in the state
+     * Invoked when the {@link FogRuntime} detects a change in the state
      * of a registered rotary encoder.
      *
      * @param port {@link Port} of the rotary encoder whose state changed.

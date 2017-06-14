@@ -2,14 +2,14 @@ package com.ociweb.iot.grove;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 /**
  * Utility class for interacting with a Grove LCD RGB connected to a
- * {@link CommandChannel}.
+ * {@link FogCommandChannel}.
  *
  * @author Nathan Tippy
  * @author Brandon Sanders [brandon@alicorn.io]
@@ -25,15 +25,15 @@ public class Grove_LCD_RGB implements IODevice {
     private static int LCD_BLINK = Grove_LCD_RGB_Constants.LCD_BLINKOFF;
 
     /**
-     * Sets up a Grove LCD RGB display on a given {@link CommandChannel}.
+     * Sets up a Grove LCD RGB display on a given {@link FogCommandChannel}.
      * 
      * TODO: Move this so that it is automatically initialized on startup() if connected
      *
-     * @param target {@link CommandChannel} of the I2C device for the Grove LCD RGB display.
+     * @param target {@link FogCommandChannel} of the I2C device for the Grove LCD RGB display.
      *
      * @return True if the device was successfully connected, and false otherwise.
      */
-    public static boolean begin(CommandChannel target) {
+    public static boolean begin(FogCommandChannel target) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -74,16 +74,16 @@ public class Grove_LCD_RGB implements IODevice {
     /**
      * Sends a command to a given Grove LCD RGB device that will set its currently displayed text and color.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param text String to display on the Grove RGB LCD.
      * @param r 0-255 value for the Red color.
      * @param g 0-255 value for the Green color.
      * @param b 0-255 value for the Blue color.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     * target is not {@link CommandChannel#i2cIsReady()}.
+     * target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean commandForTextAndColor(CommandChannel target, String text, int r, int g, int b) {
+    public static boolean commandForTextAndColor(FogCommandChannel target, String text, int r, int g, int b) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -97,15 +97,15 @@ public class Grove_LCD_RGB implements IODevice {
     /**
      * Sends a command to a given Grove LCD RGB device that will set its currently displayed color.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param r 0-255 value for the Red color.
      * @param g 0-255 value for the Green color.
      * @param b 0-255 value for the Blue color.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     * target is not {@link CommandChannel#i2cIsReady()}.
+     * target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean commandForColor(CommandChannel target, int r, int g, int b) {
+    public static boolean commandForColor(FogCommandChannel target, int r, int g, int b) {
 
         if (!target.i2cIsReady()) {
             return false;
@@ -126,13 +126,13 @@ public class Grove_LCD_RGB implements IODevice {
      * TODO: The JavaDoc is not right. Need to figure out what this what this command does
      * Sends a command to a given Grove LCD RGB device that will set its currently displayed color.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param text String to display on the Grove LCD RGB device.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     * target is not {@link CommandChannel#i2cIsReady()}.
+     * target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean commandForText(CommandChannel target, CharSequence text) {
+    public static boolean commandForText(FogCommandChannel target, CharSequence text) {
 
         if (!target.i2cIsReady()) {
             return false;
@@ -147,13 +147,13 @@ public class Grove_LCD_RGB implements IODevice {
     /**
      * Sends a command to a given Grove LCD RGB device that will turn it on or off. Defaults to on.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param on True if the display should be turned on, and false if it should be turned off.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     * target is not {@link CommandChannel#i2cIsReady()}.
+     * target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean commandForDisplay(CommandChannel target, boolean on) {
+    public static boolean commandForDisplay(FogCommandChannel target, boolean on) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -172,13 +172,13 @@ public class Grove_LCD_RGB implements IODevice {
     /**
      * Sends a command to a given Grove LCD RGB device that will turn it on or off. Defaults to off.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param on True if the cursor should be turned on, and false if it should be turned off.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean commandForCursor(CommandChannel target, boolean on) {
+    public static boolean commandForCursor(FogCommandChannel target, boolean on) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -199,13 +199,13 @@ public class Grove_LCD_RGB implements IODevice {
      * Sends a command to a given Grove LCD RGB device that will enable or disable
      * cursor blinking. Defaults to off.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param on True if blinking should be turned on, and false if it should be turned off.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean commandForBlink(CommandChannel target, boolean on) {
+    public static boolean commandForBlink(FogCommandChannel target, boolean on) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -225,12 +225,12 @@ public class Grove_LCD_RGB implements IODevice {
     /**
      * Sends a command to a given Grove LCD RGB device that will clear its display.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean clearDisplay(CommandChannel target) {
+    public static boolean clearDisplay(FogCommandChannel target) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -243,14 +243,14 @@ public class Grove_LCD_RGB implements IODevice {
     /**
      * Sends a command to a given Grove LCD RGB device that will set its cursor position.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param col Column index to place the cursor at.
      * @param row Row index to place the cursor at.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean setCursor(CommandChannel target, int col, int row) {
+    public static boolean setCursor(FogCommandChannel target, int col, int row) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -269,14 +269,14 @@ public class Grove_LCD_RGB implements IODevice {
      * Sends a command to a given Grove LCD RGB device that will save a new custom character to its
      * memory. Up to 8 custom characters can be saved on a single device.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param location location 0-7 to store the character map in the LCD.
      * @param charMap Array of 8 bytes. Each byte is a row. Least significant 5 bits determines values within row.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean setCustomChar(CommandChannel target, int location, byte charMap[]) {
+    public static boolean setCustomChar(FogCommandChannel target, int location, byte charMap[]) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -306,16 +306,16 @@ public class Grove_LCD_RGB implements IODevice {
     /**
      * Writes an ASCII char with the specified ID to a cell on a given Grove RGB LCD device.
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param characterIdx Index/ID of the character to display. 0 - 7 are custom characters defined
-     *                     via {@link #setCustomChar(CommandChannel, int, byte[])}.
+     *                     via {@link #setCustomChar(FogCommandChannel, int, byte[])}.
      * @param col Column index to place the character on.
      * @param row Row index to place the character on.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean writeChar(CommandChannel target, int characterIdx, int col, int row) {
+    public static boolean writeChar(FogCommandChannel target, int characterIdx, int col, int row) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -333,16 +333,16 @@ public class Grove_LCD_RGB implements IODevice {
      *
      * TODO: What happens if the given column/row would cause the given array of characters to flow off-screen?
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param characterIdx Ordered byte array of indexes/IDs of the characters to display. 0 - 7 are custom characters
-     *                     defined via {@link #setCustomChar(CommandChannel, int, byte[])}.
+     *                     defined via {@link #setCustomChar(FogCommandChannel, int, byte[])}.
      * @param col Column index to begin writing the characters from.
      * @param row Row index to begin writing the characters from.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean writeMultipleChars(CommandChannel target, byte[] characterIdx, int col, int row) { //TODO: creates lots of garbage
+    public static boolean writeMultipleChars(FogCommandChannel target, byte[] characterIdx, int col, int row) { //TODO: creates lots of garbage
         return writeMultipleChars(target, characterIdx, 0, characterIdx.length, col, row);
     }
 
@@ -351,18 +351,18 @@ public class Grove_LCD_RGB implements IODevice {
      *
      * TODO: What happens if the given column/row would cause the given array of characters to flow off-screen?
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param characterIdx Ordered byte array of indexes/IDs of the characters to display. 0 - 7 are custom characters
-     *                     defined via {@link #setCustomChar(CommandChannel, int, byte[])}.
+     *                     defined via {@link #setCustomChar(FogCommandChannel, int, byte[])}.
      * @param startIdx TODO:
      * @param length TODO:
      * @param col Column index to begin writing the characters from.
      * @param row Row index to begin writing the characters from.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean writeMultipleChars(CommandChannel target, byte[] characterIdx, int startIdx, int length, int col, int row) {
+    public static boolean writeMultipleChars(FogCommandChannel target, byte[] characterIdx, int startIdx, int length, int col, int row) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -396,15 +396,15 @@ public class Grove_LCD_RGB implements IODevice {
      *
      * TODO: What happens if the given column/row would cause the given array of characters to flow off-screen?
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param text Text to write to the display.
      * @param col Column index to begin writing the characters from.
      * @param row Row index to begin writing the characters from.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean writeCharSequence(CommandChannel target, CharSequence text, int col, int row) {
+    public static boolean writeCharSequence(FogCommandChannel target, CharSequence text, int col, int row) {
         return writeCharSequence(target, text, 0, text.length(), col, row);
     }
 
@@ -413,7 +413,7 @@ public class Grove_LCD_RGB implements IODevice {
      *
      * TODO: What happens if the given column/row would cause the given array of characters to flow off-screen?
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param text Text to write to the display.
      * @param startIdx TODO:
      * @param length TODO:
@@ -421,9 +421,9 @@ public class Grove_LCD_RGB implements IODevice {
      * @param row Row index to begin writing the characters from.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean writeCharSequence(CommandChannel target, CharSequence text, int startIdx, int length, int col, int row) {
+    public static boolean writeCharSequence(FogCommandChannel target, CharSequence text, int startIdx, int length, int col, int row) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -456,16 +456,16 @@ public class Grove_LCD_RGB implements IODevice {
     /**
      * TODO: What exactly does write padded int do that makes it necessary?
      *
-     * @param target {@link CommandChannel} initialized via {@link #begin(CommandChannel)}.
+     * @param target {@link FogCommandChannel} initialized via {@link #begin(FogCommandChannel)}.
      * @param value Integer value to write.
      * @param length TODO: Is is this the "padding" indicated by the method signature?
      * @param col Column index to begin writing the characters from.
      * @param row Row index to begin writing the characters from.
      *
      * @return True if the command was successfully sent, and false otherwise. False will be immediately returned if the
-     *         target is not {@link CommandChannel#i2cIsReady()}.
+     *         target is not {@link FogCommandChannel#i2cIsReady()}.
      */
-    public static boolean writePaddedInt(CommandChannel target, int value, int length, int col, int row) {
+    public static boolean writePaddedInt(FogCommandChannel target, int value, int length, int col, int row) {
         if (!target.i2cIsReady()) {
             return false;
         }
@@ -476,13 +476,13 @@ public class Grove_LCD_RGB implements IODevice {
     //////////////////////////////
     ///    Private Methods    ////
     //////////////////////////////
-    private static void setDisplayControl(CommandChannel target) {
+    private static void setDisplayControl(FogCommandChannel target) {
         writeSingleByteToRegister(target, Grove_LCD_RGB_Constants.LCD_ADDRESS, Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR,
                                   Grove_LCD_RGB_Constants.LCD_DISPLAYCONTROL | LCD_DISPLAY | LCD_CURSOR | LCD_BLINK);
         target.i2cDelay((Grove_LCD_RGB_Constants.LCD_ADDRESS), Grove_LCD_RGB_Constants.DISPLAY_SWITCH_DELAY);
     }
 
-    private static void showRGBColor(CommandChannel target, int r, int g, int b) {
+    private static void showRGBColor(FogCommandChannel target, int r, int g, int b) {
         writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 0, 0);
         writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 1, 0);
         writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 0x08, 0xaa);
@@ -491,14 +491,14 @@ public class Grove_LCD_RGB implements IODevice {
         writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.RGB_ADDRESS)), 2, b);
     }
 
-    private static void displayClear(CommandChannel target) {
+    private static void displayClear(FogCommandChannel target) {
         //clear display
         writeSingleByteToRegister(target, ((Grove_LCD_RGB_Constants.LCD_ADDRESS)),
                                   Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, Grove_LCD_RGB_Constants.LCD_CLEARDISPLAY);
         target.i2cDelay((Grove_LCD_RGB_Constants.LCD_ADDRESS), Grove_LCD_RGB_Constants.SCREEN_CLEAR_DELAY);
     }
 
-    private static void showTwoLineText(CommandChannel target, CharSequence text) {
+    private static void showTwoLineText(FogCommandChannel target, CharSequence text) {
         if (!isStarted) {
             begin(target);
         }
@@ -518,7 +518,7 @@ public class Grove_LCD_RGB implements IODevice {
         writeSingleLine(target, text, start, p);
     }
 
-    private static void writeSingleLine(CommandChannel target, CharSequence line, int p, int limit) {
+    private static void writeSingleLine(FogCommandChannel target, CharSequence line, int p, int limit) {
         int steps = 4;
 
         while (p < limit) {
@@ -533,7 +533,7 @@ public class Grove_LCD_RGB implements IODevice {
                                   Grove_LCD_RGB_Constants.LCD_SETDDRAMADDR, 0xc0);
     }
 
-    private static void writeSingleByteToRegister(CommandChannel target, int address, int register, int value) {
+    private static void writeSingleByteToRegister(FogCommandChannel target, int address, int register, int value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
         i2cPayloadWriter.writeByte(register);
@@ -542,7 +542,7 @@ public class Grove_LCD_RGB implements IODevice {
         target.i2cCommandClose();
     }
 
-    private static void writeMultipleBytesToRegister(CommandChannel target, int address, int register, byte[] values, int startIdx, int length) {
+    private static void writeMultipleBytesToRegister(FogCommandChannel target, int address, int register, byte[] values, int startIdx, int length) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
         i2cPayloadWriter.writeByte(register);
@@ -553,7 +553,7 @@ public class Grove_LCD_RGB implements IODevice {
         target.i2cCommandClose();
     }
 
-    private static void writeCharSequenceToRegister(CommandChannel target, int address, int register, CharSequence values, int startIdx, int length) {
+    private static void writeCharSequenceToRegister(FogCommandChannel target, int address, int register, CharSequence values, int startIdx, int length) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
         i2cPayloadWriter.writeByte(register);
@@ -562,7 +562,7 @@ public class Grove_LCD_RGB implements IODevice {
         target.i2cCommandClose();
     }
 
-    private static void writeUTF8ToRegister(CommandChannel target, int address, int register, CharSequence text, int pos, int len) {
+    private static void writeUTF8ToRegister(FogCommandChannel target, int address, int register, CharSequence text, int pos, int len) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
         i2cPayloadWriter.writeByte(register);

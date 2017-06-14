@@ -528,10 +528,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
 		Pipe<ClientHTTPRequestSchema>[] netRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);
 		Pipe<SerialDataSchema>[] UARTResponsePipes = GraphManager.allPipesOfType(gm2, SerialDataSchema.instance);
-
-		
-		assert(orderPipes.length == i2cPipes.length);
-		assert(orderPipes.length == requestPipes.length);
 		
 		int commandChannelCount = orderPipes.length;
 		

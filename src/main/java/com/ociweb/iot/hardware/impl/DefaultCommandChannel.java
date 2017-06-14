@@ -1,7 +1,7 @@
 package com.ociweb.iot.hardware.impl;
 
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -9,7 +9,7 @@ import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class DefaultCommandChannel extends CommandChannel{
+public class DefaultCommandChannel extends FogCommandChannel{
 
 
 	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int instance, PipeConfigManager pcm) {

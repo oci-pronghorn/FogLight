@@ -24,9 +24,9 @@ import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>  {
+public class FogRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>  {
  
-    private static final Logger logger = LoggerFactory.getLogger(DeviceRuntime.class);
+    private static final Logger logger = LoggerFactory.getLogger(FogRuntime.class);
 
     private final int i2cDefaultLength = 300;
     private final int i2cDefaultMaxPayload = 16;
@@ -45,11 +45,11 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
 
     public final String[] args;
     
-    public DeviceRuntime() {
+    public FogRuntime() {
        this(null);
     }
     
-    public DeviceRuntime(String[] args) {
+    public FogRuntime(String[] args) {
         super();
         this.args = args;
      }
@@ -118,24 +118,35 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
     	return this.builder;
     }
 
-
-
-
-    public CommandChannel newCommandChannel(int features) {
+    public FogCommandChannel newCommandChannel() {
 
     	int instance = -1;
 
-    	PipeConfigManager pcm = new PipeConfigManager();
-    	pcm.addConfig(requestPipeConfig);
-    	pcm.addConfig(i2cPayloadPipeConfig);
-    	pcm.addConfig(defaultCommandChannelLength,0,TrafficOrderSchema.class );
+    	PipeConfigManager pcm = buildPipeManager();
 
+    	return this.builder.newCommandChannel(instance, pcm);
+
+    }
+    
+    public FogCommandChannel newCommandChannel(int features) {
+
+    	int instance = -1;
+
+    	PipeConfigManager pcm = buildPipeManager();
 
     	return this.builder.newCommandChannel(features, instance, pcm);
 
     }
 
-    public CommandChannel newCommandChannel(int features, int customChannelLength) {
+	private PipeConfigManager buildPipeManager() {
+		PipeConfigManager pcm = new PipeConfigManager();
+    	pcm.addConfig(requestPipeConfig);
+    	pcm.addConfig(i2cPayloadPipeConfig);
+    	pcm.addConfig(defaultCommandChannelLength,0,TrafficOrderSchema.class );
+		return pcm;
+	}
+
+    public FogCommandChannel newCommandChannel(int features, int customChannelLength) {
 
     	int instance = -1;
 
@@ -249,8 +260,8 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
     }
 
 
-    public static DeviceRuntime test(IoTSetup app) {
-        DeviceRuntime runtime = new DeviceRuntime();
+    public static FogRuntime test(FogApp app) {
+        FogRuntime runtime = new FogRuntime();
         //force hardware to TestHardware regardless of where or what platform its run on.
         //this is done because this is the test() method and must behave the same everywhere.
         runtime.builder = new TestHardware(runtime.gm);
@@ -282,11 +293,11 @@ public class DeviceRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>
         return runtime;
     }
 
-    public static DeviceRuntime run(IoTSetup app) {
+    public static FogRuntime run(FogApp app) {
     	return run(app,null);
     }
-	public static DeviceRuntime run(IoTSetup app, String[] args) {
-	    DeviceRuntime runtime = new DeviceRuntime(args);
+	public static FogRuntime run(FogApp app, String[] args) {
+	    FogRuntime runtime = new FogRuntime(args);
         try {
         	app.declareConfiguration(runtime.getHardware());
 		    GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());

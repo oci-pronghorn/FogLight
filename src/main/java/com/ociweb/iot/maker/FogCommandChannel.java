@@ -15,7 +15,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
  * or resource on an IoT system.
  * 
  */
-public abstract class CommandChannel extends GreenCommandChannel<HardwareImpl> {
+public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl> {
 
     protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
     protected final Pipe<GroveRequestSchema> pinOutput; //TODO: find a way to not create if not used like http or message pup/sub
@@ -32,7 +32,7 @@ public abstract class CommandChannel extends GreenCommandChannel<HardwareImpl> {
     
 	private final int MAX_COMMAND_FRAGMENTS_SIZE;
         
-    protected CommandChannel(GraphManager gm, HardwareImpl hardware, int features, int parallelInstanceId, PipeConfigManager pcm) {
+    protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int parallelInstanceId, PipeConfigManager pcm) {
     	    	
        super(gm, hardware, features, parallelInstanceId, pcm);
     	    	

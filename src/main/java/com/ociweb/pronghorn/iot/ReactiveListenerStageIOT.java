@@ -225,30 +225,6 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         
     }
         
-
-	private static final long MS_to_NS = 1_000_000;
-
-	private void processTimeEvents(TimeListener listener, long trigger) {
-		
-		long msRemaining = (trigger-builder.currentTimeMillis()); 
-		if (msRemaining > timeProcessWindow) {
-			//if its not near, leave
-			return;
-		}
-		if (msRemaining > 1) {
-			try {
-				Thread.sleep(msRemaining-1);
-			} catch (InterruptedException e) {
-			}
-		}		
-		while (builder.currentTimeMillis() < trigger) {
-			Thread.yield();                	
-		}
-		
-		listener.timeEvent(trigger);
-		timeTrigger += timeRate;
-	}
-
     
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
 
@@ -434,71 +410,6 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 				}
 			}
 		}
-	}
-        
-    
-    private boolean isNotExcluded(int newOrdinal, long[] excluded) {
-    	if (null!=excluded) {
-    		return 0 == (excluded[newOrdinal>>6] & (1L<<(newOrdinal & 0x3F)));			
-		}
-		return true;
-	}
-
-	private boolean isIncluded(int newOrdinal, long[] included) {
-		if (null!=included) {			
-			return 0 != (included[newOrdinal>>6] & (1L<<(newOrdinal & 0x3F)));
-		}
-		return true;
-	}
-	
-	private <T> boolean isNotExcluded(T port, T[] excluded) {
-		if (null!=excluded) {
-			int e = excluded.length;
-			while (--e>=0) {
-				if (excluded[e]==port) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	private boolean isNotExcluded(int a, int[] excluded) {
-		if (null!=excluded) {
-			int e = excluded.length;
-			while (--e>=0) {
-				if (excluded[e]==a) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	
-	private <T> boolean isIncluded(T port, T[] included) {
-		if (null!=included) {
-			int i = included.length;
-			while (--i>=0) {
-				if (included[i]==port) {
-					return true;
-				}
-			}
-			return false;
-		}
-		return true;
-	}
-	
-	private boolean isIncluded(int a, int[] included) {
-		if (null!=included) {
-			int i = included.length;
-			while (--i>=0) {
-				if (included[i]==a) {
-					return true;
-				}
-			}
-			return false;
-		}
-		return true;
 	}
 	
 	@Override

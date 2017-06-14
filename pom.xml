@@ -23,5 +23,6 @@
     <module>UVSensor</module>
     <module>Temprature</module>
     <module>FourDigitDisplay</module>
+    <module>MoistureSensor</module>
   </modules>
 </project>

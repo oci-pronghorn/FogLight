@@ -174,7 +174,7 @@
 	            <option>-keep public class com.ociweb.FogLight {
 			    	public static void main(java.lang.String[]);
 				}</option>
-				<option>-keep public class * implements com.ociweb.iot.maker.IoTSetup {
+				<option>-keep public class * implements com.ociweb.iot.maker.FogApp {
 				    public static void main(java.lang.String[]);
 				}</option>
             <option>-keep class jnr.ffi.** { *; }</option>

@@ -14,11 +14,11 @@ import com.ociweb.iot.maker.CommandChannel;
  * @author Ray Lo
  *
  */
-public class Grove_FourDigitDisplay {
+public class Grove_FourDigitDisplay implements IODevice{
 
 	//TODO: Hardcoded ports for now. The connection needs to be moved.
-	public static final Port  CLOCK = D2;
-	public static final Port  DATA = D3;
+	public static final Port  CLOCK = D5;
+	public static final Port  DATA = D6;
 
 	public static final int BRIGHTNESS = 15; // 0 to 15
 
@@ -173,6 +173,42 @@ public class Grove_FourDigitDisplay {
 	 */
 	private static int bitAt(byte b, int pos){
 		return (b & (0x01 << pos)) ;
+	}
+	@Override
+	public int response() {
+		return 20;
+	}
+	@Override
+	public int scanDelay() {
+		return 20;
+	}
+	@Override
+	public boolean isInput() {
+		return false;
+	}
+	@Override
+	public boolean isOutput() {
+		return true;
+	}
+	@Override
+	public boolean isPWM() {
+		return false;
+	}
+	@Override
+	public int range() {
+		return 2;
+	}
+	@Override
+	public I2CConnection getI2CConnection() {
+		return null;
+	}
+	@Override
+	public boolean isValid(byte[] backing, int position, int length, int mask) {
+		return true;
+	}
+	@Override
+	public int pinsUsed() {
+		return 2;
 	}
 
 }

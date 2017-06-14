@@ -94,7 +94,7 @@ public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 	}
 	@Override
 	public int range() {
-		return 0;
+		return 2;
 	}
 	@Override
 	public I2CConnection getI2CConnection() {

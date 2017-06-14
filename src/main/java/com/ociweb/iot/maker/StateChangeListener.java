@@ -2,7 +2,7 @@ package com.ociweb.iot.maker;
 
 /**
  * Functional interface for changes in a state machine registered with the
- * {@link DeviceRuntime}.
+ * {@link FogRuntime}.
  *
  * @author Nathan Tippy
  */
@@ -10,7 +10,7 @@ package com.ociweb.iot.maker;
 public interface StateChangeListener<E extends Enum<E>> {
 
 	/**
-	 * Invoked when a state machine registered with the {@link DeviceRuntime}
+	 * Invoked when a state machine registered with the {@link FogRuntime}
 	 * changes state.
 	 *
 	 * @param oldState Old state of the state machine.

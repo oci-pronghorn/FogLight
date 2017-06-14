@@ -1,7 +1,7 @@
 package com.ociweb.iot.grove.display;
 
 
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.grove.Grove_FourDigitDisplay;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
@@ -14,15 +14,15 @@ import com.ociweb.iot.hardware.IODevice;
  */
 public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 	
-	private CommandChannel target;
+	private FogCommandChannel target;
 	private boolean colon_on = false;
 	
-	public FourDigitDisplay(CommandChannel c){
+	public FourDigitDisplay(FogCommandChannel c){
 		this.target = c;
 	}
 	
 	/**
-	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#printDigitAt(CommandChannel,int, int, boolean)}
+	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#printDigitAt(FogCommandChannel,int, int, boolean)}
 	 * @param digit
 	 * @param position 
 	 */
@@ -32,7 +32,7 @@ public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 	}
 
 	/**
-	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#drawBitmapAt(CommandChannel, byte, int, boolean)}
+	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#drawBitmapAt(FogCommandChannel, byte, int, boolean)}
 	 * @param b
 	 * @param position
 	 */
@@ -53,7 +53,7 @@ public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 	}
 
 	/**
-	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#clearDisplay(CommandChannel)}
+	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#clearDisplay(FogCommandChannel)}
 	 */
 	@Override
 	public void clearDisplay() {
@@ -67,7 +67,7 @@ public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
 	 * @param c
 	 */
 	@Override
-	public void setCommandChannel(CommandChannel c) {
+	public void setCommandChannel(FogCommandChannel c) {
 		this.target = c;
 		
 	}

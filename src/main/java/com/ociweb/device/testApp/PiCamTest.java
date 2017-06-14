@@ -4,21 +4,21 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 
 /**
  * Simple Pi image capture test.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class PiCamTest implements IoTSetup {
+public class PiCamTest implements FogApp {
 
     private final List<File> images = new ArrayList<>();
 
     public static void main( String[] args) {
-        DeviceRuntime.run(new PiCamTest());
+        FogRuntime.run(new PiCamTest());
     }
 
     @Override
@@ -27,7 +27,7 @@ public class PiCamTest implements IoTSetup {
     }
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
         runtime.addImageListener((image) -> {
             System.out.println("Grove Pi Captured Image: ");
             System.out.println(image);

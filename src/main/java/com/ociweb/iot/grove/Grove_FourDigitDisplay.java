@@ -6,7 +6,7 @@ import static com.ociweb.iot.maker.Port.*;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 
 
 /**
@@ -65,21 +65,21 @@ public class Grove_FourDigitDisplay {
 
 	/**
 	 * Prints a digit at a given location with colon off
-	 * @param target {@link CommandChannel}
+	 * @param target {@link FogCommandChannel}
 	 * @param digit 0-9 number to be printed
 	 * @param position ranges from 0 to 3 on the 4-digit display
 	 */
-	public static void printDigitAt(CommandChannel target, int digit, int position){
+	public static void printDigitAt(FogCommandChannel target, int digit, int position){
 		printDigitAt(target, digit, position, false);
 	}
 	/**
 	 * Prints a digit at a given location
-	 * @param target {@link CommandChannel}
+	 * @param target {@link FogCommandChannel}
 	 * @param digit 0-9 number to be printed
 	 * @param position ranges from 0 to 3 on the 4-digit display
 	 * @param colon_on true value turns on the colon, false value turns it off
 	 */
-	public static void printDigitAt(CommandChannel target, int digit, int position, boolean colon_on){
+	public static void printDigitAt(FogCommandChannel target, int digit, int position, boolean colon_on){
 
 		drawBitmapAt(target, (byte)digit_font[digit], position, colon_on);
 
@@ -87,12 +87,12 @@ public class Grove_FourDigitDisplay {
 
 	/**
 	 * Prints a custom character according to the bitmap supplied at the given position
-	 * @param target {@link CommandChannel} 
+	 * @param target {@link FogCommandChannel} 
 	 * @param b byte with the bitmap to be printed
 	 * @param position ranges from 0 to 3 on the 4-digit display
 	 * @param colon_on true value turns on the colon, false value turns it off
 	 */
-	public static void drawBitmapAt(CommandChannel target, byte b, int position, boolean colon_on){
+	public static void drawBitmapAt(FogCommandChannel target, byte b, int position, boolean colon_on){
 		//go into fixed address mode
 		start(target);
 		sendByte(target, (byte)ADDR_FIXED);
@@ -115,9 +115,9 @@ public class Grove_FourDigitDisplay {
 	
 	/**
 	 * Clear out the 4-digit display
-	 * @param target {@link CommandChannel}
+	 * @param target {@link FogCommandChannel}
 	 */
-	public static void clearDisplay(CommandChannel target){
+	public static void clearDisplay(FogCommandChannel target){
 	}
 
 	//Address commands all start with 0xC0
@@ -126,7 +126,7 @@ public class Grove_FourDigitDisplay {
 	 * starts the TM1637 targetip's listening; data is changed from high to low while clock is high
 	 * @param target
 	 */
-	private static void start(CommandChannel target){
+	private static void start(FogCommandChannel target){
 		target.setValue(DATA, true);
 		target.setValueAndBlock(CLOCK, true,1);
 		target.setValueAndBlock(DATA, false,1);
@@ -136,7 +136,7 @@ public class Grove_FourDigitDisplay {
 	 * ends the TM1637 targetip's listening; data is from low to high while clock is high
 	 * @param target
 	 */
-	private static void stop(CommandChannel target){
+	private static void stop(FogCommandChannel target){
 		target.setValue(DATA, false);
 		target.setValueAndBlock(CLOCK, true,1);
 		target.setValueAndBlock(DATA, true,1);
@@ -149,7 +149,7 @@ public class Grove_FourDigitDisplay {
 	 * @param target
 	 * @param b
 	 */
-	private static void sendByte(CommandChannel target, byte b){
+	private static void sendByte(FogCommandChannel target, byte b){
 		target.setValueAndBlock(CLOCK,false,1);
 		for (int i = 7; i >= 0; i--){
 			target.setValueAndBlock(DATA, highBitAt(b,i), 1);

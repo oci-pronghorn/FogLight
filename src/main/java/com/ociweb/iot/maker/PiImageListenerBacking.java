@@ -40,7 +40,7 @@ public class PiImageListenerBacking implements TimeListener {
             logger.error("Unable to take picture from Raspberry Pi Camera due to error [{}].", e.getMessage(), e);
         }
 
-        return new File(fileName + ".jpg");
+        return new File(fileName + ".jpg"); //TODO: rewrite to be GC free
     }
 
     public PiImageListenerBacking(ImageListener handler) {
@@ -48,8 +48,8 @@ public class PiImageListenerBacking implements TimeListener {
     }
 
     @Override
-    public void timeEvent(long time) {
-        File f = takePicture("Pronghorn-Image-Capture-" + time);
+    public void timeEvent(long time, int iteration) {
+        File f = takePicture("Pronghorn-Image-Capture-" + time); //TODO: rewrite to be GC free
         handler.onImage(f);
     }
 }

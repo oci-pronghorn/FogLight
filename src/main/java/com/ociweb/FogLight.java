@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.FogApp;
 
 public class FogLight {
 	
@@ -30,7 +30,7 @@ public class FogLight {
 					try {
 						
 						Class<?> clazz = Class.forName(className);					
-						DeviceRuntime.run((IoTSetup) clazz.newInstance(),args);
+						FogRuntime.run((FogApp) clazz.newInstance(),args);
 						
 					} catch (ClassNotFoundException e) {
 						System.err.println("unable to launch FogLight, can not find class listed in launch properties resource");

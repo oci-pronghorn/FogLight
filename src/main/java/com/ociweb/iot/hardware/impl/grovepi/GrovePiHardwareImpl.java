@@ -12,7 +12,7 @@ import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
@@ -44,13 +44,13 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 
 	@Override
-	public CommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
+	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
 		this.commandIndex++;
 		return new PiCommandChannel(gm, this, features, instance, pcm, commandIndex);	
 	}
 
 	@Override
-	public CommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
+	public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
 		this.commandIndex++;
 		return new PiCommandChannel(gm, this, 0, instance, pcm, commandIndex);	
 	}

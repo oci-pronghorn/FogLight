@@ -10,7 +10,7 @@ import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -37,12 +37,12 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	}
 
 	@Override
-	public CommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
+	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
 		return new DefaultCommandChannel(gm, this, features, instance, pcm);
 	}
 
 	@Override
-	public CommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
+	public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
 		return new DefaultCommandChannel(gm, this, 0, instance, pcm);
 	}
 	

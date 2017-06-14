@@ -2,7 +2,7 @@ package com.ociweb.iot.maker;
 
 /**
  * Functional interface for analog events registered with the
- * {@link DeviceRuntime}.
+ * {@link FogRuntime}.
  *
  * @author Nathan Tippy
  */
@@ -11,7 +11,7 @@ public interface AnalogListener {
 
     /**
      * Invoked when the state of an analog device registered with the
-     * {@link DeviceRuntime} changes.
+     * {@link FogRuntime} changes.
      *
      * @param port {@link Port} of the analog device whose state changed.
      * @param time UNIX timestamp (milliseconds since the epoch) of when this event was received.

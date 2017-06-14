@@ -12,8 +12,8 @@ import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -132,12 +132,12 @@ public class TestHardware extends HardwareImpl {
 
     
     @Override
-    public CommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {    
+    public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {    
        return new DefaultCommandChannel(gm, this, features, instance, pcm);   //TODO: urgent rename as DefaultCommadnChannel     
     }
     
     @Override
-    public CommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {    
+    public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {    
        return new DefaultCommandChannel(gm, this, 0, instance, pcm);   //TODO: urgent rename as DefaultCommadnChannel     
     }
     

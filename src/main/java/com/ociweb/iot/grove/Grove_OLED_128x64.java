@@ -2,7 +2,7 @@ package com.ociweb.iot.grove;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.CommandChannel;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -16,7 +16,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	
 	
 	
-	private static boolean sendCommand(CommandChannel ch, int address, byte b){
+	private static boolean sendCommand(FogCommandChannel ch, int address, byte b){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -26,7 +26,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 	
-	private static boolean sendData(CommandChannel ch, int address, byte b){
+	private static boolean sendData(FogCommandChannel ch, int address, byte b){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -38,7 +38,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	
 	
 	
-	private static boolean writeByteSequence(CommandChannel ch, int address, byte[] seq){
+	private static boolean writeByteSequence(FogCommandChannel ch, int address, byte[] seq){
 		if(!ch.i2cIsReady()){
 			return false;
 		}
@@ -50,7 +50,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	
 	//Overloading the function to automatically mask ints and use their least significant 8-bits as our bytes to send
 	//Ideally, for best performance, we should send byte array and not int array to avoid this extra function call
-	private static boolean writeByteSequence(CommandChannel ch, int address, int[] seq){
+	private static boolean writeByteSequence(FogCommandChannel ch, int address, int[] seq){
 		byte[] byteSeq = new byte[seq.length];
 		int counter = 0;
 		for (int i: seq){

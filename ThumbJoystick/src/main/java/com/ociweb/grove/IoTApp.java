@@ -6,7 +6,7 @@ import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 import com.ociweb.gl.api.GreenCommandChannel;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 	private static final Port THUMBJOYSTICK_PORT_X = A0;
 	private static final Port THUMBJOYSTICK_PORT_Y = A1;
@@ -22,8 +22,8 @@ public class IoTApp implements IoTSetup
 
 
 	@Override
-	public void declareBehavior(DeviceRuntime runtime) {
-		final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+	public void declareBehavior(FogRuntime runtime) {
+		final GreenCommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
 			switch (port){
 			case A0:

@@ -57,7 +57,7 @@
   		<dependency>
 	  		<groupId>com.ociweb</groupId>
             <artifactId>FogLight</artifactId>
-            <version>[0.1.0-SNAPSHOT,0.2.0)</version>
+            <version>[0.1.2-SNAPSHOT,0.2.0)</version>
     	</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -193,7 +193,7 @@
 				<option>-keep public class com.ociweb.FogLight {
 			    	public static void main(java.lang.String[]);
 				}</option>
-				<option>-keep public class * implements com.ociweb.iot.maker.IoTSetup {
+				<option>-keep public class * implements com.ociweb.iot.maker.FogApp {
 				    public static void main(java.lang.String[]);
 				}</option>
 				

@@ -2,7 +2,6 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.iot.grove.GroveTwig.*;
-
 import com.ociweb.iot.maker.*;
 
 public class IoTApp implements IoTSetup

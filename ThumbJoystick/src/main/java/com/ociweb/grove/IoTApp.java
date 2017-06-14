@@ -2,11 +2,8 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.iot.grove.GroveTwig.*;
-
 import com.ociweb.iot.maker.*;
-
 import static com.ociweb.iot.maker.Port.*;
-
 import com.ociweb.gl.api.GreenCommandChannel;
 
 public class IoTApp implements IoTSetup
@@ -49,6 +46,4 @@ public class IoTApp implements IoTSetup
 			}
 		});
 	}
-
-
 }

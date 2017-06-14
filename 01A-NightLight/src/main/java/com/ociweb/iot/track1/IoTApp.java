@@ -5,10 +5,10 @@ import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 import static com.ociweb.iot.grove.GroveTwig.LightSensor;
 
 import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.iot.maker.Port.*;
 
@@ -19,7 +19,7 @@ import com.ociweb.gl.api.GreenCommandChannel;
  * Angle sensor is used for brightness adjustment
  */
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 	public static final Port LIGHT_SENSOR_PORT = A2;
 	public static final Port ANGLE_SENSOR_PORT = A1;
@@ -27,7 +27,7 @@ public class IoTApp implements IoTSetup
 	int brightness = 255;
 	
     public static void main( String[] args ) {
-        DeviceRuntime.run(new IoTApp());
+        FogRuntime.run(new IoTApp());
     }
     
     
@@ -41,11 +41,11 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
         
     	
     	
-    	final CommandChannel lcdScreenChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	final FogCommandChannel lcdScreenChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addAnalogListener((port, time, durationMillis, average, value)->{
  
     		switch(port) {

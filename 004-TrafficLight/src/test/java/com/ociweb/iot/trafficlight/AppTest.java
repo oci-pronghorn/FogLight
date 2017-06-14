@@ -3,7 +3,7 @@ package com.ociweb.iot.trafficlight;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 /**
@@ -21,7 +21,7 @@ public class AppTest {
 		    IoTApp.YELLOW_MS = 200; // .2 SEC 
 				 
 		 
-	        DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
+	        FogRuntime runtime = FogRuntime.test(new IoTApp());
 	    	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    

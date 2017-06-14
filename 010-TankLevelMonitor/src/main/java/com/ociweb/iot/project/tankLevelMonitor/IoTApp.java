@@ -6,15 +6,15 @@ import static com.ociweb.iot.grove.GroveTwig.UltrasonicRanger;
 import static com.ociweb.iot.maker.Port.A0;
 import static com.ociweb.iot.maker.Port.D2;
 
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 
     public static void main( String[] args ) {
-        DeviceRuntime.run(new IoTApp());
+        FogRuntime.run(new IoTApp());
     }
     
     
@@ -34,7 +34,7 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
         //////////////////////////////
         //Specify the desired behavior
         //////////////////////////////

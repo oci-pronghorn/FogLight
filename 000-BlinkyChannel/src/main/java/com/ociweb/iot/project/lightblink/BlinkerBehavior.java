@@ -2,21 +2,21 @@ package com.ociweb.iot.project.lightblink;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.TimeListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 
 public class BlinkerBehavior implements TimeListener {
 
 	private boolean state;
-	private CommandChannel commandChannel;
+	private FogCommandChannel commandChannel;
     private static final int PAUSE = 500;
     
-	public BlinkerBehavior(DeviceRuntime runtime) {
+	public BlinkerBehavior(FogRuntime runtime) {
 		commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 	}
 	
 	@Override
-	public void timeEvent(long arg0) {
+	public void timeEvent(long arg0, int iteration) {
 		
 		//keep adding commands if more can be accepted
 		while (commandChannel.setValueAndBlock(IoTApp.LED_PORT, state, PAUSE)) {

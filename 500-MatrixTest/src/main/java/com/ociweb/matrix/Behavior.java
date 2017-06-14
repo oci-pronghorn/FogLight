@@ -1,14 +1,14 @@
 package com.ociweb.matrix;
 
 import com.ociweb.gl.api.StartupListener;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 
 public class Behavior implements StartupListener
 {
-	private final DeviceRuntime runtime;
+	private final FogRuntime runtime;
 	
 
-	public Behavior(DeviceRuntime runtime) {
+	public Behavior(FogRuntime runtime) {
 		this.runtime = runtime;		
 	}
 

@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.util.Appendables;
@@ -18,11 +18,11 @@ public class IoTBehavior implements DigitalListener, AnalogListener{
 
 	private Logger logger = LoggerFactory.getLogger(IoTBehavior.class);
 	
-	private final CommandChannel channel;
+	private final FogCommandChannel channel;
 	
 	private final int fullTank = 13;
 	
-	public IoTBehavior(DeviceRuntime runtime) {
+	public IoTBehavior(FogRuntime runtime) {
 
    	  channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
    	 

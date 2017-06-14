@@ -17,20 +17,20 @@ import static com.ociweb.iot.grove.GroveTwig.LED;
 import static com.ociweb.iot.maker.Port.D5;
 
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
 
-public class IoTApp implements IoTSetup {
+public class IoTApp implements FogApp {
     
     private static final String TOPIC = "light";
     private static final int PAUSE = 500;    
     public static final Port LED_PORT = D5;
            
     public static void main( String[] args) {
-        DeviceRuntime.run(new IoTApp());
+        FogRuntime.run(new IoTApp());
     }    
     
     @Override
@@ -39,9 +39,9 @@ public class IoTApp implements IoTSetup {
     }
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
         
-        final CommandChannel blinkerChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);        
+        final FogCommandChannel blinkerChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);        
         runtime.addPubSubListener((topic,payload)->{
         	
 		    boolean value = payload.readBoolean();
@@ -55,7 +55,7 @@ public class IoTApp implements IoTSetup {
 		    
 		}).addSubscription(TOPIC); 
                 
-        final CommandChannel startupChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
+        final FogCommandChannel startupChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
         runtime.addStartupListener(
                 ()->{
                 	boolean ignored =  startupChannel.openTopic(TOPIC, w->{

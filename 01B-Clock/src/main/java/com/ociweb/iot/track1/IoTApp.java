@@ -14,10 +14,10 @@ import java.time.format.DateTimeFormatter;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.TimeTrigger;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
 
 /**
@@ -25,7 +25,7 @@ import com.ociweb.iot.maker.Port;
  * Angle sensor is used for brightness adjustment
  */
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 
 	public static final Port LIGHT_SENSOR_PORT = A2;
@@ -58,7 +58,7 @@ public class IoTApp implements IoTSetup
         
         boolean is24HourTime = args.length>0 && "24".equals(args[0]);
                 
-        DeviceRuntime.run(new IoTApp(is24HourTime));
+        FogRuntime.run(new IoTApp(is24HourTime));
     }
     
     
@@ -73,9 +73,9 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
             	    	
-    	final CommandChannel rgbLightChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	final FogCommandChannel rgbLightChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addAnalogListener((port, time, durationMillis, average, value)->{    	    
     		switch(port) {
 	    		case A2://LIGHT_SENSOR_PORT
@@ -98,8 +98,8 @@ public class IoTApp implements IoTSetup
     	});
     	
 
-    	final CommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-    	runtime.addTimeListener((time)->{ 
+    	final FogCommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	runtime.addTimeListener((time, instance)->{ 
     		
     		  LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), zone);
     		

@@ -3,7 +3,7 @@ package com.ociweb.gateway;
 import org.junit.Ignore;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 /**
@@ -15,7 +15,7 @@ public class AppTest {
 	 @Ignore
 	    public void testApp()
 	    {
-	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());	    	
+	    	FogRuntime runtime = FogRuntime.test(new IoTApp());	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    
 	    	scheduler.startup();

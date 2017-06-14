@@ -7,8 +7,8 @@ import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.StateChangeListener;
@@ -16,7 +16,7 @@ import com.ociweb.pronghorn.util.Appendables;
 
 public class PongBehavior implements StartupListener, TimeListener, AnalogListener, StateChangeListener, DigitalListener {
 
-	private CommandChannel pongChannel;
+	private FogCommandChannel pongChannel;
 
 	private int ballRow = 0; //row in pixels
 	private int ballCol =7*PongConstants.CHAR_WIDTH;
@@ -43,7 +43,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	};
 	private GameState gameState = GameState.startUp; //TODO: using state listener this is not needed.
 
-	public PongBehavior(DeviceRuntime runtime) {
+	public PongBehavior(FogRuntime runtime) {
 		this.pongChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
 	}	
 
@@ -63,7 +63,7 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	}
 
 	@Override
-	public void timeEvent(long time) {
+	public void timeEvent(long time, int iteration) {
 		switch(gameState){
 			case startUp:
 				doStartup(time);

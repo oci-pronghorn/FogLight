@@ -20,19 +20,19 @@ package com.ociweb.iot.project.lightblink;
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.FogApp;
 
 public class BlinkerBehavior implements StartupListener, PubSubListener {
  
     private static final String TOPIC = "light";
     private static final int PAUSE = 500;
 	
-	private CommandChannel blinkerChannel;
+	private FogCommandChannel blinkerChannel;
 	
-	public BlinkerBehavior(DeviceRuntime runtime) {
-		blinkerChannel = runtime.newCommandChannel(IoTSetup.DYNAMIC_MESSAGING); 
+	public BlinkerBehavior(FogRuntime runtime) {
+		blinkerChannel = runtime.newCommandChannel(FogApp.DYNAMIC_MESSAGING); 
 	}	
 	
 	@Override

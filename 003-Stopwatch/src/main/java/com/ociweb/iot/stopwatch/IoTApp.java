@@ -11,15 +11,15 @@ import java.time.format.DateTimeFormatter;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
 
 import static com.ociweb.iot.maker.Port.*;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 	public static final Port BUTTON_CONNECTION = D3; //long press clear, short press start/top
 	
@@ -33,7 +33,7 @@ public class IoTApp implements IoTSetup
 	private final ZoneId zone = ZoneOffset.UTC;
 	
     public static void main( String[] args ) {
-        DeviceRuntime.run(new IoTApp());
+        FogRuntime.run(new IoTApp());
     }
         
     @Override
@@ -46,9 +46,9 @@ public class IoTApp implements IoTSetup
     //TODO: rewrite this a a class, can not be done as two lambddas and be responsvie.
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
     	
-    	CommandChannel channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	FogCommandChannel channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	
     	runtime.addDigitalListener((connection, time, durationMillis, value)->{
     		    		
@@ -82,8 +82,8 @@ public class IoTApp implements IoTSetup
     		
     	});
     	
-    	final CommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-    	runtime.addTimeListener((time)->{ 
+    	final FogCommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	runtime.addTimeListener((time, instance)->{ 
     		
     		    
     		

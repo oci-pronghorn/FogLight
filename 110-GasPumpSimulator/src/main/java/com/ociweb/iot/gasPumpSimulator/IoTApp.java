@@ -11,12 +11,12 @@ import static com.ociweb.iot.maker.Port.D7;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.ListenerFilterIoT;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 
 	private static String serverURI;
@@ -39,14 +39,14 @@ public class IoTApp implements IoTSetup
 
     public static void main( String[] args ) {
 
-    	fuelName =                             DeviceRuntime.getOptArg("--fuelName",         "-fn", args, "diesel");
-    	centsPerGallon =  Integer.parseInt(    DeviceRuntime.getOptArg("--fuelPrice",        "-fp", args, "215"));
-    	serverURI =                            DeviceRuntime.getOptArg("--brokerURI",        "-br", args, "tcp://127.0.0.1:1883");
-    	clientId =                             DeviceRuntime.getOptArg("--clientId",         "-id", args, "unknownStation");
-    	tankDepth =       Integer.parseInt(    DeviceRuntime.getOptArg("--tankDepth",        "-td", args, "13"));
-    	publishTankData = Boolean.parseBoolean(DeviceRuntime.getOptArg("--publishTankData",  "-pt", args, "true"));
+    	fuelName =                             FogRuntime.getOptArg("--fuelName",         "-fn", args, "diesel");
+    	centsPerGallon =  Integer.parseInt(    FogRuntime.getOptArg("--fuelPrice",        "-fp", args, "215"));
+    	serverURI =                            FogRuntime.getOptArg("--brokerURI",        "-br", args, "tcp://127.0.0.1:1883");
+    	clientId =                             FogRuntime.getOptArg("--clientId",         "-id", args, "unknownStation");
+    	tankDepth =       Integer.parseInt(    FogRuntime.getOptArg("--tankDepth",        "-td", args, "13"));
+    	publishTankData = Boolean.parseBoolean(FogRuntime.getOptArg("--publishTankData",  "-pt", args, "true"));
 
-			DeviceRuntime.run(new IoTApp());
+			FogRuntime.run(new IoTApp());
 
     }
 
@@ -64,7 +64,7 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
 
     	runtime.registerListener(new ModeSelector(runtime, AngleSensor.range()))
     	                              .includePorts(A0);

@@ -8,14 +8,14 @@ import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.StateChangeListener;
 import com.ociweb.pronghorn.util.Appendables;
 
 public class DisplayController implements PubSubListener, StateChangeListener<PumpState> {
 	
-	private final CommandChannel commandChannel;
+	private final FogCommandChannel commandChannel;
 	public PumpState activeState = PumpState.Idle;
 	private final String topicTank;
 	private final String topicPump;
@@ -37,7 +37,7 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 	
 	private String showingNow = "";
 		
-	public DisplayController(DeviceRuntime runtime, String topicTank, String topicPump, String topicTotal) {
+	public DisplayController(FogRuntime runtime, String topicTank, String topicPump, String topicTotal) {
 		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		this.topicTank = topicTank;
 		this.topicPump = topicPump;

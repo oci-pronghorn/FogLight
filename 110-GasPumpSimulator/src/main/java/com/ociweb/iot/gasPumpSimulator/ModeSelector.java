@@ -5,19 +5,19 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 
 public class ModeSelector implements AnalogListener {
 
-	private final CommandChannel commandChannel;
+	private final FogCommandChannel commandChannel;
 	private final Logger logger = LoggerFactory.getLogger(ModeSelector.class);
 	
 	private int angleDivisor;
     private long lastChange; //used to keep user from toggling between states quickly
 
-	public ModeSelector(DeviceRuntime runtime, int angleRange) {
+	public ModeSelector(FogRuntime runtime, int angleRange) {
 		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		this.angleDivisor = 1+((angleRange-1)/PumpState.values().length); //rounds up so 1023 does not produce a new state
 	}

@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.stage.math.BuildMatrixCompute;
@@ -25,7 +25,7 @@ import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.stage.test.ConsoleSummaryStage;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
     public static void main( String[] args ) {
         IoTApp app = new IoTApp();
@@ -52,7 +52,7 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
     	runtime.registerListener(new Behavior(runtime));
     }
     

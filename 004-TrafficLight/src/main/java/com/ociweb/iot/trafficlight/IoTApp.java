@@ -8,12 +8,12 @@ import static com.ociweb.iot.maker.Port.D6;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 	private static final Port LED3_PORT = D5;
 	private static final Port LED1_PORT = D3;
@@ -43,7 +43,7 @@ public class IoTApp implements IoTSetup
 	}
 
 	public static void main(String[] args) {
-		DeviceRuntime.run(new IoTApp());
+		FogRuntime.run(new IoTApp());
 	}
 	
 	
@@ -66,7 +66,7 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
     	
     	if (isWebControlled) {
     		configureWebBasedColorChange(runtime); 
@@ -78,8 +78,8 @@ public class IoTApp implements IoTSetup
     }
 
 
-	private void configureWebBasedColorChange(DeviceRuntime runtime) {
-		final CommandChannel channel = runtime.newCommandChannel(
+	private void configureWebBasedColorChange(FogRuntime runtime) {
+		final FogCommandChannel channel = runtime.newCommandChannel(
 				GreenCommandChannel.DYNAMIC_MESSAGING | 
 				GreenCommandChannel.NET_RESPONDER);
 
@@ -102,8 +102,8 @@ public class IoTApp implements IoTSetup
 	}
 
 
-	protected void configureTimeBasedColorChange(DeviceRuntime runtime) {
-		final CommandChannel channel0 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+	protected void configureTimeBasedColorChange(FogRuntime runtime) {
+		final FogCommandChannel channel0 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
     		
     		turnOnRed(channel0);
@@ -113,7 +113,7 @@ public class IoTApp implements IoTSetup
 			return true;
     	}).addSubscription("RED");
 
-    	final CommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	final FogCommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
     		
     		turnOnGreen(channel1);
@@ -123,7 +123,7 @@ public class IoTApp implements IoTSetup
 			return true;
     	}).addSubscription("GREEN");
 
-    	final CommandChannel channel2 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	final FogCommandChannel channel2 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     	runtime.addPubSubListener((topic, payload)-> {
     		
     		turnOnYellow(channel2);
@@ -133,12 +133,12 @@ public class IoTApp implements IoTSetup
 			return true;
     	}).addSubscription("YELLOW");
     	
-       final CommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+       final FogCommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
        runtime.addStartupListener(()->{channel4.openTopic("RED",w->{w.publish();});});
 	}
 
 
-	private boolean turnOnGreen(final CommandChannel c) {
+	private boolean turnOnGreen(final FogCommandChannel c) {
 		return 
 		c.setValue(LED1_PORT, 0) |
 		c.setValue(LED2_PORT, 0) |
@@ -147,7 +147,7 @@ public class IoTApp implements IoTSetup
 	}
 
 
-	private boolean turnOnYellow(final CommandChannel c) {
+	private boolean turnOnYellow(final FogCommandChannel c) {
 		return
 		c.setValue(LED1_PORT, 0) |
 		c.setValue(LED2_PORT, 1) |
@@ -156,7 +156,7 @@ public class IoTApp implements IoTSetup
 	}
 
 
-	private boolean turnOnRed(final CommandChannel c) {
+	private boolean turnOnRed(final FogCommandChannel c) {
 		return
 		c.setValue(LED1_PORT, 1) |
 		c.setValue(LED2_PORT, 0) |

@@ -3,13 +3,13 @@ package com.ociweb.iot.pong;
 import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 import static com.ociweb.iot.grove.GroveTwig.Button;
 
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogApp;
 import static com.ociweb.iot.maker.Port.*;
 
 
-public class IoTApp implements IoTSetup {
+public class IoTApp implements FogApp {
 
 	public void declareConnections(Hardware c) {
 
@@ -23,12 +23,12 @@ public class IoTApp implements IoTSetup {
 
 	}    
 
-	public void declareBehavior(DeviceRuntime runtime){
+	public void declareBehavior(FogRuntime runtime){
 		runtime.registerListener(new PongBehavior(runtime));
 	}
 
 	public static void main(String[] args) {        
-		DeviceRuntime.run(new IoTApp());
+		FogRuntime.run(new IoTApp());
 	}
 
 }

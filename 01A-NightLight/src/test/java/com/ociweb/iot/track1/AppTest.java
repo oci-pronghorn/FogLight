@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.hardware.impl.test.TestI2CBacking;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 /**
@@ -15,7 +15,7 @@ public class AppTest {
 	
 	@Test
 	public void testApp() {
-	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());
+	    	FogRuntime runtime = FogRuntime.test(new IoTApp());
 	    	    	
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();

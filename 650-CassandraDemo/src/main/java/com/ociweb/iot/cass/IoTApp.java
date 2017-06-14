@@ -4,12 +4,12 @@ package com.ociweb.iot.cass;
 import static com.ociweb.iot.grove.GroveTwig.*;
 
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.FogApp;
 import static com.ociweb.iot.maker.Port.*;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
     ///////////////////////
     //Connection constants 
@@ -22,7 +22,7 @@ public class IoTApp implements IoTSetup
     //private static final Port LIGHT_SENSOR_PORT= A2;
            
     public static void main( String[] args ) {
-        DeviceRuntime.run(new IoTApp());
+        FogRuntime.run(new IoTApp());
     }
     
     
@@ -44,7 +44,7 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
      
     	
     	runtime.registerListener(new DBConnection());

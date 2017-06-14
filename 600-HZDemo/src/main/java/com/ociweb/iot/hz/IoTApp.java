@@ -4,9 +4,9 @@ package com.ociweb.iot.hz;
 import static com.ociweb.iot.grove.GroveTwig.*;
 
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.IoTSetup;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
 
 import static com.ociweb.iot.maker.Port.*;
@@ -14,7 +14,7 @@ import static com.ociweb.iot.maker.Port.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 	
 	private final Port BUTTON_PORT = D7;
@@ -28,7 +28,7 @@ public class IoTApp implements IoTSetup
 	private final static Logger logger = LoggerFactory.getLogger(IoTApp.class);
 
     public static void main( String[] args ) {
-        DeviceRuntime.run(new IoTApp());
+        FogRuntime.run(new IoTApp());
     }
     
     
@@ -46,7 +46,7 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
             	
     	runtime.registerListener(new PhysicalWatcher(runtime, DISPLAY_TOPIC) ).includePorts(SONIC_PORT, BUTTON_PORT);
     	

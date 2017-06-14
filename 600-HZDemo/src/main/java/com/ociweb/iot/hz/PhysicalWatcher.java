@@ -11,8 +11,8 @@ import com.hazelcast.core.IdGenerator;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Port;
 
@@ -24,11 +24,11 @@ public class PhysicalWatcher implements AnalogListener, DigitalListener, Startup
 	private final String displayTopic;
 	
     private HazelcastInstance hazelcastInstance;
-	private CommandChannel commandChannel;
+	private FogCommandChannel commandChannel;
 	 
 	private final static Logger logger = LoggerFactory.getLogger(PhysicalWatcher.class);
 	
-	public PhysicalWatcher(DeviceRuntime runtime, String displayTopic) {
+	public PhysicalWatcher(FogRuntime runtime, String displayTopic) {
 		this.displayTopic = displayTopic;
 		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 	}

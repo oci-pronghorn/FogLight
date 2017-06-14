@@ -12,20 +12,20 @@ import com.hazelcast.core.IMap;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 
 public class AlertTrigger implements TimeListener, StartupListener{
 
 	private HazelcastInstance hazelcastInstance;
-	private final CommandChannel commandChannel;
+	private final FogCommandChannel commandChannel;
 	private final Port port;
 	private final String displayTopic;
 	private final static Logger logger = LoggerFactory.getLogger(AlertTrigger.class);
 	//private boolean lastAlert = false;
 	
-	public AlertTrigger(DeviceRuntime runtime, Port alertPort, String displayTopic) {
+	public AlertTrigger(FogRuntime runtime, Port alertPort, String displayTopic) {
 	
 		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		this.port = alertPort;
@@ -43,7 +43,7 @@ public class AlertTrigger implements TimeListener, StartupListener{
 	}
 	
 	@Override
-	public void timeEvent(long time) {
+	public void timeEvent(long time, int iteration) {
 		
 		IMap<Long, Integer> map = hazelcastInstance.getMap("watchMap");
 		

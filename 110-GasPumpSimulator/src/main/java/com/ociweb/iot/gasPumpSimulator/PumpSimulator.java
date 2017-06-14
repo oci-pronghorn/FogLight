@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.StateChangeListener;
@@ -14,7 +14,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 
 	private Logger logger = LoggerFactory.getLogger(PumpSimulator.class);
 
-	private final CommandChannel channel;
+	private final FogCommandChannel channel;
 	private final String fuelName;
 	private final int centsPerUnit;
 
@@ -25,7 +25,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 	private int units;
 	private long time;
 
-	public PumpSimulator(DeviceRuntime runtime, String pumpTopic, String totalTopic, String fuelName, int centsPerGallon) {
+	public PumpSimulator(FogRuntime runtime, String pumpTopic, String totalTopic, String fuelName, int centsPerGallon) {
 
    	  this.channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
       this.pumpTopic = pumpTopic;

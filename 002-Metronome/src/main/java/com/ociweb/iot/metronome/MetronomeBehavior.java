@@ -7,8 +7,8 @@ import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 
 /*
@@ -36,8 +36,8 @@ import com.ociweb.iot.maker.Port;
 
 public class MetronomeBehavior implements AnalogListener, PubSubListener, StartupListener, TimeListener {
 
-    private final CommandChannel tickCommandChannel;
-    private final CommandChannel screenCommandChannel;
+    private final FogCommandChannel tickCommandChannel;
+    private final FogCommandChannel screenCommandChannel;
     
     private final String topic = "tick";
           
@@ -58,7 +58,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     
     private int showingBPM;
     
-    public MetronomeBehavior(DeviceRuntime runtime) {
+    public MetronomeBehavior(FogRuntime runtime) {
         this.tickCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
         this.screenCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
     }
@@ -108,7 +108,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
 
 
     @Override
-    public void timeEvent(long time) {
+    public void timeEvent(long time, int iteration) {
        if (requestedPBM != showingBPM) {
                       
            String tempo;

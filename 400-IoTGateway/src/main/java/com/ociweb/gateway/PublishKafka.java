@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
-import com.ociweb.iot.maker.DeviceRuntime;
+import com.ociweb.iot.maker.FogRuntime;
 
 public class PublishKafka implements PubSubListener {
 
@@ -28,7 +28,7 @@ public class PublishKafka implements PubSubListener {
 	private long expandedEpochSeconds = 0;
 	private String stationId = new String("unknownStation");
 
-	public PublishKafka(DeviceRuntime runtime, String kafkaURI, String clientId) {
+	public PublishKafka(FogRuntime runtime, String kafkaURI, String clientId) {
 		properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,kafkaURI);
 		properties.put(ProducerConfig.ACKS_CONFIG, "all");
 		properties.put(ProducerConfig.BLOCK_ON_BUFFER_FULL_CONFIG, "true");

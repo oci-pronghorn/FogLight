@@ -9,7 +9,7 @@ import com.ociweb.iot.grove.Grove_FourDigitDisplay;
 import com.ociweb.iot.grove.display.FourDigitDisplay;
 import com.ociweb.gl.api.GreenCommandChannel;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 	private static final Port CLOCK = D5;
 	private static final Port DATA = D6;
@@ -24,9 +24,9 @@ public class IoTApp implements IoTSetup
 	}
 
 	@Override
-	public void declareBehavior(DeviceRuntime runtime) {
+	public void declareBehavior(FogRuntime runtime) {
 
-		final CommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		final FogCommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		final FourDigitDisplay dis = new FourDigitDisplay(ch);
 		runtime.addDigitalListener((port, a,b, val)->{		
 			Grove_FourDigitDisplay.printDigitAt(ch, 1, 0, true);

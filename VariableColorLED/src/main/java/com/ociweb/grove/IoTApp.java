@@ -14,14 +14,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class IoTApp implements IoTSetup {
+public class IoTApp implements FogApp {
            
 	private static final Port LED_PORT = D3;
         private int lightIntensity = 0;
         private boolean brighter = true;
         
     public static void main( String[] args) {
-        DeviceRuntime.run(new IoTApp());
+        FogRuntime.run(new IoTApp());
     }    
     
     @Override
@@ -31,11 +31,11 @@ public class IoTApp implements IoTSetup {
     }
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
         
-        final CommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+        final FogCommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
            
-        runtime.addTimeListener((time)->{
+        runtime.addTimeListener((time,instance)->{
             if (lightIntensity == 0 || brighter){                
                 lightIntensity += 1;
                 ledChannel.setValue(LED_PORT, lightIntensity);

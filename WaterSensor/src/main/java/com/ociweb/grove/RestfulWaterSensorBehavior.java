@@ -6,9 +6,9 @@ import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
 
 public class RestfulWaterSensorBehavior implements AnalogListener, RestListener  {
 	private int val = -1;
-	private CommandChannel ch;
+	private FogCommandChannel ch;
 	
-	public RestfulWaterSensorBehavior(DeviceRuntime runtime) {
+	public RestfulWaterSensorBehavior(FogRuntime runtime) {
 		this.ch = runtime.newCommandChannel(GreenCommandChannel.NET_RESPONDER | GreenCommandChannel.DYNAMIC_MESSAGING); 
 	}	
 

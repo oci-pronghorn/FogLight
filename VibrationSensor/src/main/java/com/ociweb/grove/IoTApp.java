@@ -6,7 +6,7 @@ import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 import com.ociweb.gl.api.GreenCommandChannel;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 	private static final Port VIBRATION_SENSOR_PORT = A0;
 	private static final Port BUZZER_PORT = D2;
@@ -20,8 +20,8 @@ public class IoTApp implements IoTSetup
 
 
 	@Override
-	public void declareBehavior(DeviceRuntime runtime) {
-		final CommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+	public void declareBehavior(FogRuntime runtime) {
+		final FogCommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
 			if (port == VIBRATION_SENSOR_PORT){
 				if (value < threshold){

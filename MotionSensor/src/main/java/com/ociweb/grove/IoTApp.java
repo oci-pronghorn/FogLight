@@ -8,13 +8,13 @@ import com.ociweb.iot.maker.*;
 
 import static com.ociweb.iot.maker.Port.*;
 
-public class IoTApp implements IoTSetup {
+public class IoTApp implements FogApp {
            
 	private static final Port LED_PORT = D4;
         private static final Port PIR_SENSOR = D3;
         
     public static void main( String[] args) {
-        DeviceRuntime.run(new IoTApp());
+        FogRuntime.run(new IoTApp());
     }    
     
     @Override
@@ -24,9 +24,9 @@ public class IoTApp implements IoTSetup {
     }
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
         
-        final CommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING); 
+        final FogCommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING); 
         runtime.addDigitalListener((port,time,durationMillis, value)->{
                 ledChannel.setValue(LED_PORT,value==1);
                 System.out.println("Stop moving!");                    	        	

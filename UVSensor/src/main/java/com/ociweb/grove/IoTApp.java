@@ -7,6 +7,7 @@ import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.Port;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
@@ -20,6 +21,7 @@ public class IoTApp implements FogApp
 	//private static final Port LED_PORT    = D4;
     //private static final Port RELAY_PORT  = D7;
     //private static final Port LIGHT_SENSOR_PORT= A2;
+    private static final Port UV_SENSOR_PORT = A2;
 
     @Override
     public void declareConnections(Hardware c) {
@@ -34,6 +36,7 @@ public class IoTApp implements FogApp
         //c.connect(LightSensor, LIGHT_SENSOR_PORT); 
         //c.connect(LED, LED_PORT);        
         //c.useI2C();
+        c.connect(UVSensor, UV_SENSOR_PORT,500);
         
     }
 
@@ -61,7 +64,9 @@ public class IoTApp implements FogApp
         //                channel1.digitalBlock(RELAY_PORT, 1000); 
         //            }
         //        });
+        final FogCommandChannel UVChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+        runtime.addAnalogListener((port, time, durationMillis, average, value)->{
+            System.out.println("The Illumination intensity is : "+(value/1023*307)+"mW/m^2");
+        });   
     }
-        
-  
 }

@@ -21,7 +21,9 @@ public class Grove_FourDigitDisplay implements IODevice{
 	public static final Port  DATA = D6;
 
 	public static final int BRIGHTNESS = 15; // 0 to 15
-
+	
+	private static final int bit_duration = 1000;
+	
 	//commands: we can bit-wise or these commands to combine them
 
 	//Data commands:
@@ -127,20 +129,22 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 * @param target
 	 */
 	private static void start(FogCommandChannel target){
+		System.out.println("Starting message");
 		target.setValue(DATA, true);
-		target.setValueAndBlock(CLOCK, true,1);
-		target.setValueAndBlock(DATA, false,1);
-		target.setValueAndBlock(CLOCK, false,1);
+		target.setValueAndBlock(CLOCK, true, bit_duration);
+		target.setValueAndBlock(DATA, false, bit_duration);
+		target.setValueAndBlock(CLOCK, false,bit_duration);
 	}
 	/**
 	 * ends the TM1637 targetip's listening; data is from low to high while clock is high
 	 * @param target
 	 */
 	private static void stop(FogCommandChannel target){
+		System.out.println("Ending message");
 		target.setValue(DATA, false);
-		target.setValueAndBlock(CLOCK, true,1);
-		target.setValueAndBlock(DATA, true,1);
-		target.setValueAndBlock(CLOCK, false,1);
+		target.setValueAndBlock(CLOCK, true, bit_duration);
+		target.setValueAndBlock(DATA, true, bit_duration);
+		target.setValueAndBlock(CLOCK, false, bit_duration);
 
 	}
 
@@ -150,14 +154,15 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 * @param b
 	 */
 	private static void sendByte(FogCommandChannel target, byte b){
-		target.setValueAndBlock(CLOCK,false,1);
+		target.setValueAndBlock(CLOCK,false, bit_duration);
+		System.out.println("Sending byte: 0b" + Integer.toBinaryString(b));
 		for (int i = 7; i >= 0; i--){
-			target.setValueAndBlock(DATA, highBitAt(b,i), 1);
-			target.setValueAndBlock(CLOCK, true,1);
-			target.setValueAndBlock(CLOCK,false,1);
+			target.setValueAndBlock(DATA, highBitAt(b,i), bit_duration);
+			target.setValueAndBlock(CLOCK, true, bit_duration);
+			target.setValueAndBlock(CLOCK,false, bit_duration);
 		}
 		//ignoring ack, TODO: Ideally we would read the ack and return it
-		target.setValueAndBlock(CLOCK, true,1);
+		target.setValueAndBlock(CLOCK, true, bit_duration);
 		target.setValue(CLOCK, false);
 	}
 

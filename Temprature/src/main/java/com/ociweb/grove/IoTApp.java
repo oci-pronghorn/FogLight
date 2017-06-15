@@ -61,7 +61,5 @@ public class IoTApp implements FogApp
         //                channel1.digitalBlock(RELAY_PORT, 1000); 
         //            }
         //        });
-    }
-        
-  
+    }  
 }

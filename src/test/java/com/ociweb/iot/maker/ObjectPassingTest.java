@@ -69,8 +69,7 @@ public class ObjectPassingTest {
 							
 							return cc1.openTopic("test\\topic", w -> {
 								w.writeObject(serialized1);
-								w.writeObject(serialized2);
-								w.publish();								
+								w.writeObject(serialized2);							
 							});
 							
 							
@@ -87,7 +86,6 @@ public class ObjectPassingTest {
 
 								w.writeObject(serialized1);
 								w.writeObject(serialized2);
-								w.publish();
 								
 							});							
 						}						

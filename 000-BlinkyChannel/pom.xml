@@ -194,6 +194,10 @@
 				<option>-keep public class * implements com.ociweb.iot.maker.FogApp {
 				    public static void main(java.lang.String[]);
 				}</option>
+				<option>-keepclassmembers class * extends java.lang.Enum {
+				    public static **[] values();
+				    public static ** valueOf(java.lang.String);
+				}</option>
 				<option>-keep class jnr.ffi.** { *; }</option>
 				<option>-keep class com.kenai.jffi.** { *; }</option>
 	            <option>-dontobfuscate</option>

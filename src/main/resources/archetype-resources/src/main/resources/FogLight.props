@@ -1,1 +1,1 @@
-main=${package}.IoTApp
+main=${package}.${artifactId}

@@ -20,7 +20,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 	public static final Port  CLOCK = D5;
 	public static final Port  DATA = D6;
 
-	public static final int BRIGHTNESS = 15; // 0 to 15
+	public static final byte BRIGHTNESS = 15; // 0 to 15
 	
 	private static final int bit_duration = 1000;
 	
@@ -30,36 +30,36 @@ public class Grove_FourDigitDisplay implements IODevice{
 	//B7 and B6 are always "0 1" for data commands
 	//since all of the data commands have a 4 in them as bytes to start out with, there is 
 	//no need to bitwise 'or' with DATA_CMD again.
-	public static final int DATA_CMD = 0x40;
+	public static final byte DATA_CMD = 0x40 & 0xFF;
 
 	//B5 and B4 should always be 0
 
 	//B3 (test mode setting for internal)
-	public static final int NORM_MODE = 0x40;
-	public static final int TEST_MODE = 0x48;
+	public static final byte NORM_MODE = 0x40 & 0xFF;
+	public static final byte TEST_MODE = 0x48 & 0xFF;
 
 	//B2:
-	public static final int ADDR_AUTO = 0x40;
-	public static final int ADDR_FIXED = 0x44;
+	public static final byte ADDR_AUTO = 0x40 & 0xFF;
+	public static final byte ADDR_FIXED = 0x44 & 0xFF;
 
 	//B1 and B0
-	public static final int WRITE_TO_REGISTER = 0x40;
-	public static final int READ_KEY_SCAN_DATA = 0x42;
+	public static final byte WRITE_TO_REGISTER = 0x40 & 0xFF;
+	public static final byte READ_KEY_SCAN_DATA = 0x42 & 0xFF;
 
 
 	//Data input
-	public static final int COLON_DISPLAY_OFF = 0x00;
-	public static final int COLON_DISPLAY_ON = 0x80;
+	public static final byte COLON_DISPLAY_OFF = 0x00 & 0xFF;
+	public static final byte COLON_DISPLAY_ON = (byte) (0x80 & 0xFF);
 
 	//Display commands are signaled by 0x80 in the start.
 	//Brightness goes from 0 to 15 and can simply be added/ or bit-wise 'or'ed onto
 	//the DISPLAY_ON command byte.
 
-	public static final int DISPLAY_ON = 0x88;
-	public static final int DISPLAY_OFF = 0x80;
+	public static final byte DISPLAY_ON = (byte) (0x88 & 0xFF);
+	public static final byte DISPLAY_OFF = (byte)(0x80 & 0xFF);
 
 	//bitmap for the digits
-	public static final int [] digit_font = 
+	public static final byte [] digit_font = 
 		{
 				0x3f,0x06,0x5b,0x4f, 0x66,0x6d,0x7d,0x07, 0x7f
 		};
@@ -128,42 +128,54 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 * starts the TM1637 targetip's listening; data is changed from high to low while clock is high
 	 * @param target
 	 */
-	private static void start(FogCommandChannel target){
-		System.out.println("Starting message");
-		target.setValue(DATA, true);
-		target.setValueAndBlock(CLOCK, true, bit_duration);
-		target.setValueAndBlock(DATA, false, bit_duration);
-		target.setValueAndBlock(CLOCK, false,bit_duration);
+	public static void start(FogCommandChannel target){
+		System.out.println("Starting message"); //FIXME: remove after debugging
+		target.setValueAndBlock(CLOCK, false, bit_duration);
+		target.setValueAndBlock(DATA, true, bit_duration * 2);
+		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
+		target.setValueAndBlock(DATA, false, bit_duration * 2);
+		target.setValueAndBlock(CLOCK, false, bit_duration);
+		
+		//takes 4 * bit_duration
 	}
 	/**
 	 * ends the TM1637 targetip's listening; data is from low to high while clock is high
 	 * @param target
 	 */
-	private static void stop(FogCommandChannel target){
-		System.out.println("Ending message");
-		target.setValue(DATA, false);
-		target.setValueAndBlock(CLOCK, true, bit_duration);
-		target.setValueAndBlock(DATA, true, bit_duration);
+	public static void stop(FogCommandChannel target){
+		System.out.println("Stopping message"); //FIXME: remove after debugging
 		target.setValueAndBlock(CLOCK, false, bit_duration);
-
+		target.setValueAndBlock(DATA, false, bit_duration * 2);
+		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
+		target.setValueAndBlock(DATA, true, bit_duration * 2);
+		target.setValueAndBlock(CLOCK, false, bit_duration * 2);
+		target.setValueAndBlock(DATA, false, bit_duration);
+		
+		//takes 5 * bit_duraiton
 	}
 
 	/**
 	 * sends a byte and ignores the ack back bit by bit with bit-banging
+	 * blocking has to be longer sometimes because the API does not allow for blocking between ports, so the
+	 * blocking of the two ports are syncopated to gurantee ordering.
 	 * @param target
 	 * @param b
 	 */
 	private static void sendByte(FogCommandChannel target, byte b){
-		target.setValueAndBlock(CLOCK,false, bit_duration);
-		System.out.println("Sending byte: 0b" + Integer.toBinaryString(b));
+		target.setValueAndBlock(DATA, false, bit_duration);
+		System.out.println("Sending byte: 0b" + Integer.toBinaryString(b&0xFF)); //FIXME: remove after debugging
 		for (int i = 7; i >= 0; i--){
-			target.setValueAndBlock(DATA, highBitAt(b,i), bit_duration);
-			target.setValueAndBlock(CLOCK, true, bit_duration);
-			target.setValueAndBlock(CLOCK,false, bit_duration);
+			target.setValueAndBlock(CLOCK, false, bit_duration*2);
+			target.setValueAndBlock(CLOCK,true, bit_duration);
+			target.setValueAndBlock(DATA, highBitAt(b,i), bit_duration * 3);
 		}
+		target.setValueAndBlock(CLOCK, false, bit_duration);
 		//ignoring ack, TODO: Ideally we would read the ack and return it
 		target.setValueAndBlock(CLOCK, true, bit_duration);
-		target.setValue(CLOCK, false);
+		target.setValueAndBlock(CLOCK, false,bit_duration);
+		target.block(DATA, bit_duration * 2);
+		
+		// takes bit_duration * 27
 	}
 
 	private static boolean highBitAt(byte b, int pos){

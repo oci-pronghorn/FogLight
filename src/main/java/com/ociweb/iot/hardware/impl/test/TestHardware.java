@@ -48,7 +48,10 @@ public class TestHardware extends HardwareImpl {
     }
     
     public void enableTelemetry(boolean enable) {
-    	//do nothing this is a test.
+    	if (!isInUnitTest) {
+    		super.enableTelemetry(enable);
+    	}
+    	//else do nothing this is a test.
     }
     
     public void setI2CValueToRead(byte address, byte[] data, int length) {
@@ -133,12 +136,12 @@ public class TestHardware extends HardwareImpl {
     
     @Override
     public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {    
-       return new DefaultCommandChannel(gm, this, features, instance, pcm);   //TODO: urgent rename as DefaultCommadnChannel     
+       return new DefaultCommandChannel(gm, this, features, instance, pcm);       
     }
     
     @Override
     public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {    
-       return new DefaultCommandChannel(gm, this, 0, instance, pcm);   //TODO: urgent rename as DefaultCommadnChannel     
+       return new DefaultCommandChannel(gm, this, 0, instance, pcm);     
     }
     
     @Override

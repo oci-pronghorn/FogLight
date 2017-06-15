@@ -16,10 +16,9 @@ public class IoTApp implements FogApp
 
 	@Override
 	public void declareConnections(Hardware c) {
-	//	c.connect(FourDigitDisplay, CLOCK);
-	//	c.connect(FourDigitDisplay, DATA);
-		c.connect(Button, D2,5000,false);
-		c.enableTelemetry(true);
+		c.connect(FourDigitDisplay, CLOCK);
+		c.connect(FourDigitDisplay, DATA);
+		c.connect(Button, D2,50,false);
 
 	}
 
@@ -28,7 +27,8 @@ public class IoTApp implements FogApp
 
 		final FogCommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		final FourDigitDisplay dis = new FourDigitDisplay(ch);
-		runtime.addDigitalListener((port, a,b, val)->{		
+		runtime.addDigitalListener((port, a,b, val)->{	
+			System.out.println("printing to 4-digit display!");
 			Grove_FourDigitDisplay.printDigitAt(ch, 1, 0, true);
 			Grove_FourDigitDisplay.printDigitAt(ch, 2, 1, true);
 			Grove_FourDigitDisplay.printDigitAt(ch, 3, 2, true);
@@ -37,6 +37,4 @@ public class IoTApp implements FogApp
 		}).includePorts(D2);
 		
 	}
-
-
 }

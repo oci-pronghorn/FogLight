@@ -23,5 +23,10 @@
     <module>UVSensor</module>
     <module>Temprature</module>
     <module>FourDigitDisplay</module>
+    <module>MoistureSensor</module>
+    <module>ThreeAxisAccelerometer</module>
+    <module>RealTimeClock</module>
+    <module>IICMotorDriver</module>
+    <module>IICMiniMotorDriver</module>
   </modules>
 </project>

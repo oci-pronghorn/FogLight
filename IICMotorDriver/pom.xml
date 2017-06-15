@@ -8,7 +8,7 @@
     <version>1</version>
   </parent>
   <groupId>com.ociweb.grove</groupId>
-  <artifactId>Button</artifactId>
+  <artifactId>IICMotorDriver</artifactId>
   <version>1.0-SNAPSHOT</version>
   <properties>
     <java.secure.socket.extension.classes>${java.home}/lib/jsse.jar</java.secure.socket.extension.classes>
@@ -144,7 +144,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uberButton</finalName>
+          <finalName>uberIICMotorDriver</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -177,14 +177,6 @@
             <option>-keep public class * implements com.ociweb.iot.maker.FogApp {
 				    public static void main(java.lang.String[]);
 				}</option>
-				<option>-keepclassmembers class * extends java.lang.Enum {
-				    public static **[] values();
-				    public static ** valueOf(java.lang.String);
-				}</option>
-				<option>-keepclassmembers class * extends java.lang.Enum {
-				    public static **[] values();
-				    public static ** valueOf(java.lang.String);
-				}</option>
             <option>-keep class jnr.ffi.** { *; }</option>
             <option>-keep class com.kenai.jffi.** { *; }</option>
             <option>-dontobfuscate</option>
@@ -199,8 +191,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uberButton.jar</injar>
-          <outjar>Button.jar</outjar>
+          <injar>uberIICMotorDriver.jar</injar>
+          <outjar>IICMotorDriver.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

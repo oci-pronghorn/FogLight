@@ -100,9 +100,14 @@
         <plugin>
 		   <groupId>org.apache.maven.plugins</groupId>
 		   <artifactId>maven-jar-plugin</artifactId>
-		   <version>2.4</version>
+		   <version>2.6</version>
 		   <configuration>
 		     <forceCreation>true</forceCreation>
+		     <archive>
+                 <manifestEntries>
+	              	<Build-Time>${maven.build.timestamp}</Build-Time>
+	            </manifestEntries>
+             </archive>
 		   </configuration>
 		</plugin>
 
@@ -195,7 +200,7 @@
 				}</option>
 				<option>-keep public class * implements com.ociweb.iot.maker.FogApp {
 				    public static void main(java.lang.String[]);
-				}</option>
+				}</option><!-- Keeping all enums may be dangerous but it is safe -->
 				<option>-keepclassmembers class * extends java.lang.Enum {
 				    public static **[] values();
 				    public static ** valueOf(java.lang.String);

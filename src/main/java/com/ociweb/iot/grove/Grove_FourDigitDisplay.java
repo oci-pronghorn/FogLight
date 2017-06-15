@@ -22,7 +22,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 
 	public static final byte BRIGHTNESS = 15; // 0 to 15
 	
-	private static final int bit_duration = 1000;
+	private static final int bit_duration = 1;
 	
 	//commands: we can bit-wise or these commands to combine them
 
@@ -96,9 +96,9 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 */
 	public static void drawBitmapAt(FogCommandChannel target, byte b, int position, boolean colon_on){
 		//go into fixed address mode
-		start(target);
-		sendByte(target, (byte)ADDR_FIXED);
-		stop(target);
+		start(target);//5
+		sendByte(target, (byte)ADDR_FIXED);//29
+		stop(target);//6
 
 		b = (byte) (b | COLON_DISPLAY_OFF);
 
@@ -106,13 +106,13 @@ public class Grove_FourDigitDisplay implements IODevice{
 			b = (byte) (b | COLON_DISPLAY_ON);
 		}
 		//send position of the digit (0 through 4) and the bitmap
-		start(target);
-		sendByte(target, (byte)(position | ADDR_CMD));
-		sendByte(target, (byte)(b));
-		stop(target);
-		start(target);
-		sendByte(target,(byte)(DISPLAY_ON | BRIGHTNESS));
-		stop(target);
+		start(target); //5
+		sendByte(target, (byte)(position | ADDR_CMD));//29
+		sendByte(target, (byte)(b));//29
+		stop(target); //6
+		start(target);//5
+		sendByte(target,(byte)(DISPLAY_ON | BRIGHTNESS));//29
+		stop(target);//6
 	}
 	
 	/**
@@ -129,6 +129,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 * @param target
 	 */
 	public static void start(FogCommandChannel target){
+		//takes up 5 commands
 		System.out.println("Starting message"); //FIXME: remove after debugging
 		target.setValueAndBlock(CLOCK, false, bit_duration);
 		target.setValueAndBlock(DATA, true, bit_duration * 2);
@@ -143,7 +144,8 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 * @param target
 	 */
 	public static void stop(FogCommandChannel target){
-		System.out.println("Stopping message"); //FIXME: remove after debugging
+		System.out.println("Stop"); //FIXME: remove after debugging
+		//takes up 6 commands
 		target.setValueAndBlock(CLOCK, false, bit_duration);
 		target.setValueAndBlock(DATA, false, bit_duration * 2);
 		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
@@ -151,7 +153,6 @@ public class Grove_FourDigitDisplay implements IODevice{
 		target.setValueAndBlock(CLOCK, false, bit_duration * 2);
 		target.setValueAndBlock(DATA, false, bit_duration);
 		
-		//takes 5 * bit_duraiton
 	}
 
 	/**
@@ -161,19 +162,43 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 * @param target
 	 * @param b
 	 */
-	private static void sendByte(FogCommandChannel target, byte b){
-		target.setValueAndBlock(DATA, false, bit_duration);
+	private static boolean sendByte(FogCommandChannel target, byte b){
+		//takes up 29 commands
+		if (! target.setValue(DATA, false)) {
+			return false;
+		}
+		
+		if (! target.setValueAndBlock(CLOCK, false, bit_duration)){
+			return false;
+		}
+		
 		System.out.println("Sending byte: 0b" + Integer.toBinaryString(b&0xFF)); //FIXME: remove after debugging
 		for (int i = 7; i >= 0; i--){
-			target.setValueAndBlock(CLOCK, false, bit_duration*2);
-			target.setValueAndBlock(CLOCK,true, bit_duration);
-			target.setValueAndBlock(DATA, highBitAt(b,i), bit_duration * 3);
+			if (!target.setValueAndBlock(DATA, highBitAt(b,i), bit_duration)){
+				return false;
+			}
+			System.out.print(highBitAt(b,i));
+			if (!target.setValueAndBlock(CLOCK,true, bit_duration)){
+				return false;
+			}
+			if (!target.setValueAndBlock(CLOCK, false, bit_duration)){
+				return false;
+			}
+			
 		}
-		target.setValueAndBlock(CLOCK, false, bit_duration);
-		//ignoring ack, TODO: Ideally we would read the ack and return it
-		target.setValueAndBlock(CLOCK, true, bit_duration);
-		target.setValueAndBlock(CLOCK, false,bit_duration);
-		target.block(DATA, bit_duration * 2);
+		System.out.println();
+		
+		//Cycling the clock once to ignore the ack
+		if (!target.setValueAndBlock(CLOCK, true, bit_duration)){
+			return false;
+		}
+		if (!target.setValueAndBlock(CLOCK, false,bit_duration)){
+			return false;
+		}
+		if  (!target.setValue(DATA, false)){
+			return false;
+		}
+		return true;
 		
 		// takes bit_duration * 27
 	}

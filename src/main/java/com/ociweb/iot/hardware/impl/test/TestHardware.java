@@ -43,7 +43,7 @@ public class TestHardware extends HardwareImpl {
     private long lastProvidedTime;
     
     public TestHardware(GraphManager gm) {
-        super(gm, new TestI2CBacking());
+        super(gm, new TestI2CBacking().configure((byte) 1));
         //logger.trace("You are running on the test hardware.");
     }
     

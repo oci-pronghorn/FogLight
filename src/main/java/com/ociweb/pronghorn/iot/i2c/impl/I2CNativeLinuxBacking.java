@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class I2CNativeLinuxBacking implements I2CBacking {
 
-    private static final byte[] EMPTY = new byte[] {};
+    private static final byte[] EMPTY = new byte[]{};
 
     private static final Logger logger = LoggerFactory.getLogger(I2CNativeLinuxBacking.class);
 
@@ -23,6 +23,8 @@ public class I2CNativeLinuxBacking implements I2CBacking {
 
     //Native C library.
     private static final UnixIoctlLib c = UnixIoctlLib.instance;
+
+    private boolean configured = false;
 
     //Native I2C file handle.
     private int i2cFile = -1;
@@ -35,7 +37,7 @@ public class I2CNativeLinuxBacking implements I2CBacking {
      *
      * @param address Byte address of the I2C device to configure for.
      */
-    private boolean ensureI2CDevice(byte address) {        
+    private boolean ensureI2CDevice(byte address) {
         if (lastAddress == address) {
             return true;
         }
@@ -49,28 +51,37 @@ public class I2CNativeLinuxBacking implements I2CBacking {
              */
             if (c.ioctl(i2cFile, UnixIoctlLib.I2C_SLAVE_FORCE, address) >= 0) {
                 lastAddress = address;
-                logger.debug("IOCTL configured for I2C device at {}",address);
+                logger.debug("IOCTL configured for I2C device at {}", address);
                 return true;
             } else {
-                throw new RuntimeException("Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));            	
+                throw new RuntimeException(
+                        "Could not configure IOCTL for I2C device at 0x" + Integer.toHexString(address));
             }
         } else {
-            throw new RuntimeException("I2C Device 0x" + Integer.toHexString(address) + " is outside of the possible I2C address range.");
+            throw new RuntimeException(
+                    "I2C Device 0x" + Integer.toHexString(address) + " is outside of the possible I2C address range.");
         }
     }
 
-    public I2CNativeLinuxBacking(byte connector) {
-        String device = "/dev/i2c-" + connector;
-        
+    @Override
+    public I2CNativeLinuxBacking configure(byte bus) {
+        if (configured) {
+            throw new IllegalStateException("Bus is already configured.");
+        } else {
+            configured = true;
+        }
+
+        String device = "/dev/i2c-" + bus;
+
         //Get the I2C file.
         i2cFile = c.open(device, UnixIoctlLib.O_RDWR);
 
         //Make sure it worked....
         if (i2cFile < 0) {
-            logger.debug("unable to open {}",device);
-            throw new RuntimeException("Could not open "+device);
+            logger.debug("unable to open {}", device);
+            throw new RuntimeException("Could not open " + device);
         } else {
-            logger.debug("Successfully opened {}",device);
+            logger.debug("Successfully opened {}", device);
         }
 
         //Close the file when the application shuts down.
@@ -81,13 +92,20 @@ public class I2CNativeLinuxBacking implements I2CBacking {
                 }
             }
         });
+
+        return this;
     }
 
-    @Override public byte[] read(byte address, byte[] target, int bufferSize) {
+    @Override
+    public byte[] read(byte address, byte[] target, int bufferSize) {
+        if (!configured) {
+            throw new IllegalStateException("Bus is not configured yet.");
+        }
+
         //Check if we need to load the address into memory.
         if (ensureI2CDevice(address)) {
             int result = c.read(i2cFile, target, bufferSize);
-            if (result!=bufferSize) {//did not read so flag this as an error
+            if (result != bufferSize) {//did not read so flag this as an error
                 target[0] = -2;
             }
             return target;
@@ -96,14 +114,18 @@ public class I2CNativeLinuxBacking implements I2CBacking {
         }
     }
 
-    @Override public boolean write(byte address, byte[] message, int length) {
-        assert(length>=0);
+    @Override
+    public boolean write(byte address, byte[] message, int length) {
+        if (!configured) {
+            throw new IllegalStateException("Bus is not configured yet.");
+        }
+
+        assert (length >= 0);
         //System.out.println("write to address:"+ Integer.toHexString(address));
-        
+
         //Check if we need to load the address into memory.
         ensureI2CDevice(address); //throws on failure
         return -1 != c.write(i2cFile, message, length);
-        
-        
+
     }
 }

@@ -12,6 +12,11 @@ public class Grove_OLED_128x64_Constants {
 	//OLED screen params
 	public static final byte OLEDADDRESS = (byte)(0x3C & 0xFF);
 	
+	//READ/WRITE MODE is determined by the last bit in the address
+	
+	public static final byte WRITE_BIT = (byte)(0x0 & 0xFF);
+	public static final byte READ_BIT = (byte)(0x01 & 0xFF);
+	
 	
 	//commands
 	

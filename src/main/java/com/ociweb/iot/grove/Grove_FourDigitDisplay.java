@@ -20,44 +20,46 @@ public class Grove_FourDigitDisplay implements IODevice{
 	public static final Port  CLOCK = D5;
 	public static final Port  DATA = D6;
 
-	public static final int BRIGHTNESS = 15; // 0 to 15
-
+	public static final byte BRIGHTNESS = 15; // 0 to 15
+	
+	private static final int bit_duration = 1;
+	
 	//commands: we can bit-wise or these commands to combine them
 
 	//Data commands:
 	//B7 and B6 are always "0 1" for data commands
 	//since all of the data commands have a 4 in them as bytes to start out with, there is 
 	//no need to bitwise 'or' with DATA_CMD again.
-	public static final int DATA_CMD = 0x40;
+	public static final byte DATA_CMD = 0x40 & 0xFF;
 
 	//B5 and B4 should always be 0
 
 	//B3 (test mode setting for internal)
-	public static final int NORM_MODE = 0x40;
-	public static final int TEST_MODE = 0x48;
+	public static final byte NORM_MODE = 0x40 & 0xFF;
+	public static final byte TEST_MODE = 0x48 & 0xFF;
 
 	//B2:
-	public static final int ADDR_AUTO = 0x40;
-	public static final int ADDR_FIXED = 0x44;
+	public static final byte ADDR_AUTO = 0x40 & 0xFF;
+	public static final byte ADDR_FIXED = 0x44 & 0xFF;
 
 	//B1 and B0
-	public static final int WRITE_TO_REGISTER = 0x40;
-	public static final int READ_KEY_SCAN_DATA = 0x42;
+	public static final byte WRITE_TO_REGISTER = 0x40 & 0xFF;
+	public static final byte READ_KEY_SCAN_DATA = 0x42 & 0xFF;
 
 
 	//Data input
-	public static final int COLON_DISPLAY_OFF = 0x00;
-	public static final int COLON_DISPLAY_ON = 0x80;
+	public static final byte COLON_DISPLAY_OFF = 0x00 & 0xFF;
+	public static final byte COLON_DISPLAY_ON = (byte) (0x80 & 0xFF);
 
 	//Display commands are signaled by 0x80 in the start.
 	//Brightness goes from 0 to 15 and can simply be added/ or bit-wise 'or'ed onto
 	//the DISPLAY_ON command byte.
 
-	public static final int DISPLAY_ON = 0x88;
-	public static final int DISPLAY_OFF = 0x80;
+	public static final byte DISPLAY_ON = (byte) (0x88 & 0xFF);
+	public static final byte DISPLAY_OFF = (byte)(0x80 & 0xFF);
 
 	//bitmap for the digits
-	public static final int [] digit_font = 
+	public static final byte [] digit_font = 
 		{
 				0x3f,0x06,0x5b,0x4f, 0x66,0x6d,0x7d,0x07, 0x7f
 		};
@@ -94,9 +96,9 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 */
 	public static void drawBitmapAt(FogCommandChannel target, byte b, int position, boolean colon_on){
 		//go into fixed address mode
-		start(target);
-		sendByte(target, (byte)ADDR_FIXED);
-		stop(target);
+		start(target);//5
+		sendByte(target, (byte)ADDR_FIXED);//29
+		stop(target);//6
 
 		b = (byte) (b | COLON_DISPLAY_OFF);
 
@@ -104,13 +106,13 @@ public class Grove_FourDigitDisplay implements IODevice{
 			b = (byte) (b | COLON_DISPLAY_ON);
 		}
 		//send position of the digit (0 through 4) and the bitmap
-		start(target);
-		sendByte(target, (byte)(position | ADDR_CMD));
-		sendByte(target, (byte)(b));
-		stop(target);
-		start(target);
-		sendByte(target,(byte)(DISPLAY_ON | BRIGHTNESS));
-		stop(target);
+		start(target); //5
+		sendByte(target, (byte)(position | ADDR_CMD));//29
+		sendByte(target, (byte)(b));//29
+		stop(target); //6
+		start(target);//5
+		sendByte(target,(byte)(DISPLAY_ON | BRIGHTNESS));//29
+		stop(target);//6
 	}
 	
 	/**
@@ -126,39 +128,79 @@ public class Grove_FourDigitDisplay implements IODevice{
 	 * starts the TM1637 targetip's listening; data is changed from high to low while clock is high
 	 * @param target
 	 */
-	private static void start(FogCommandChannel target){
-		target.setValue(DATA, true);
-		target.setValueAndBlock(CLOCK, true,1);
-		target.setValueAndBlock(DATA, false,1);
-		target.setValueAndBlock(CLOCK, false,1);
+	public static void start(FogCommandChannel target){
+		//takes up 5 commands
+		System.out.println("Starting message"); //FIXME: remove after debugging
+		target.setValueAndBlock(CLOCK, false, bit_duration);
+		target.setValueAndBlock(DATA, true, bit_duration * 2);
+		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
+		target.setValueAndBlock(DATA, false, bit_duration * 2);
+		target.setValueAndBlock(CLOCK, false, bit_duration);
+		
+		//takes 4 * bit_duration
 	}
 	/**
 	 * ends the TM1637 targetip's listening; data is from low to high while clock is high
 	 * @param target
 	 */
-	private static void stop(FogCommandChannel target){
-		target.setValue(DATA, false);
-		target.setValueAndBlock(CLOCK, true,1);
-		target.setValueAndBlock(DATA, true,1);
-		target.setValueAndBlock(CLOCK, false,1);
-
+	public static void stop(FogCommandChannel target){
+		System.out.println("Stop"); //FIXME: remove after debugging
+		//takes up 6 commands
+		target.setValueAndBlock(CLOCK, false, bit_duration);
+		target.setValueAndBlock(DATA, false, bit_duration * 2);
+		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
+		target.setValueAndBlock(DATA, true, bit_duration * 2);
+		target.setValueAndBlock(CLOCK, false, bit_duration * 2);
+		target.setValueAndBlock(DATA, false, bit_duration);
+		
 	}
 
 	/**
 	 * sends a byte and ignores the ack back bit by bit with bit-banging
+	 * blocking has to be longer sometimes because the API does not allow for blocking between ports, so the
+	 * blocking of the two ports are syncopated to gurantee ordering.
 	 * @param target
 	 * @param b
 	 */
-	private static void sendByte(FogCommandChannel target, byte b){
-		target.setValueAndBlock(CLOCK,false,1);
-		for (int i = 7; i >= 0; i--){
-			target.setValueAndBlock(DATA, highBitAt(b,i), 1);
-			target.setValueAndBlock(CLOCK, true,1);
-			target.setValueAndBlock(CLOCK,false,1);
+	private static boolean sendByte(FogCommandChannel target, byte b){
+		//takes up 29 commands
+		if (! target.setValue(DATA, false)) {
+			return false;
 		}
-		//ignoring ack, TODO: Ideally we would read the ack and return it
-		target.setValueAndBlock(CLOCK, true,1);
-		target.setValue(CLOCK, false);
+		
+		if (! target.setValueAndBlock(CLOCK, false, bit_duration)){
+			return false;
+		}
+		
+		System.out.println("Sending byte: 0b" + Integer.toBinaryString(b&0xFF)); //FIXME: remove after debugging
+		for (int i = 7; i >= 0; i--){
+			if (!target.setValueAndBlock(DATA, highBitAt(b,i), bit_duration)){
+				return false;
+			}
+			System.out.print(highBitAt(b,i));
+			if (!target.setValueAndBlock(CLOCK,true, bit_duration)){
+				return false;
+			}
+			if (!target.setValueAndBlock(CLOCK, false, bit_duration)){
+				return false;
+			}
+			
+		}
+		System.out.println();
+		
+		//Cycling the clock once to ignore the ack
+		if (!target.setValueAndBlock(CLOCK, true, bit_duration)){
+			return false;
+		}
+		if (!target.setValueAndBlock(CLOCK, false,bit_duration)){
+			return false;
+		}
+		if  (!target.setValue(DATA, false)){
+			return false;
+		}
+		return true;
+		
+		// takes bit_duration * 27
 	}
 
 	private static boolean highBitAt(byte b, int pos){

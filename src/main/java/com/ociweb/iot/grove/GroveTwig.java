@@ -196,6 +196,9 @@ public enum GroveTwig implements IODevice {
     	public int pinsUsed(){
     		return 2;
     	}
+    	public boolean isPressed(int val){
+    		return val == 1023;
+    	}
     },
     FourDigitDisplay(){
     	@Override
@@ -240,7 +243,7 @@ public enum GroveTwig implements IODevice {
         return false;
     }
 
-    /**
+	/**
      * @return True if this twig is an output device, and false otherwise.
      */
     public boolean isOutput() {

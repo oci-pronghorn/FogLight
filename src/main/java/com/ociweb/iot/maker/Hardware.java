@@ -43,9 +43,18 @@ public interface Hardware extends Builder {
 
    
     /**
-     * Asks this hardware instance to enable I2C communications.
+     * Asks this hardware instance to enable I2C communications on the default I2C bus.
      *
      * @return A reference to this hardware instance.
      */
     Hardware useI2C();
+
+    /**
+     * Asks this hardware instance to enable I2C communications.
+     *
+     * @param bus I2C bus to use.
+     *
+     * @return A reference to this hardware instance.
+     */
+    Hardware useI2C(int bus);
 }

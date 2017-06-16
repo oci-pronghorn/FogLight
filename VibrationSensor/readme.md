@@ -9,7 +9,7 @@
 - [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
 
 # Starting your Maven project: 
-[Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
+[Starting a FogLight project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
 ```java

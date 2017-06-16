@@ -35,10 +35,10 @@ public class IoTApp implements FogApp
 		final FogCommandChannel ch = runtime.newCommandChannel();
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
 				if (value < threshold){
-					ch.setValue(BUZZER_PORT,0);
+					ch.setValue(BUZZER_PORT,false);
 				}
 				else {
-					ch.setValueAndBlock(BUZZER_PORT, 1,100);//set the buzzer_port high for at least 100ms
+					ch.setValueAndBlock(BUZZER_PORT, true,100);//set the buzzer_port high for at least 100ms
 				}		
 			
 		}).includePorts(VIBRATION_SENSOR_PORT);

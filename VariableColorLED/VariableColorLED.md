@@ -1,3 +1,7 @@
+# Hardware Needed
+- [Raspberry Pi](https://www.raspberrypi.org/)
+- [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
+
 # Starting a FogLighter project using Maven: 
 [Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
  
@@ -5,7 +9,7 @@
  
 The following sketch demonstrates a simple application to control the Grove LED's brightness using PWM technique: the LED will fade in and out following a "sinusoidal" manner.
  
-Demo code:
+Demo code (copy and paste this to a FogLighter project):
 ```java
 import static com.ociweb.iot.grove.GroveTwig.*;
 import java.lang.*;

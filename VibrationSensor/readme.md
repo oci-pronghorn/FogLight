@@ -1,9 +1,12 @@
 # What you will need before you start:
--[Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) 
+- ** [Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) 
 
--[Maven](https://maven.apache.org/install.html), which downloads and manages the libraries and APIs needed to get the Grove device working.
+- ** [Maven](https://maven.apache.org/install.html), which downloads and manages the libraries and APIs needed to get the Grove device working.
 
--[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
+- ** [Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
+# Hardware Needed
+- [Raspberry Pi](https://www.raspberrypi.org/)
+- [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
 
 # Starting your Maven project: 
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
@@ -13,9 +16,8 @@
 import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
-import com.ociweb.gl.api.GreenCommandChannel;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
 	private static final Port VIBRATION_SENSOR_PORT = A0;
 	private static final Port BUZZER_PORT = D2;
@@ -29,18 +31,17 @@ public class IoTApp implements IoTSetup
 
 
 	@Override
-	public void declareBehavior(DeviceRuntime runtime) {
-		final CommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+	public void declareBehavior(FogRuntime runtime) {
+		final FogCommandChannel ch = runtime.newCommandChannel();
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-			if (port == VIBRATION_SENSOR_PORT){
 				if (value < threshold){
 					ch.setValue(BUZZER_PORT,0);
 				}
 				else {
-					ch.setValue(BUZZER_PORT, 1);
+					ch.setValueAndBlock(BUZZER_PORT, 1,100);//set the buzzer_port high for at least 100ms
 				}		
-			}
-		});
+			
+		}).includePorts(VIBRATION_SENSOR_PORT);
 	}
 }
 ```

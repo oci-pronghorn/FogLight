@@ -28,5 +28,8 @@
     <module>RealTimeClock</module>
     <module>IICMotorDriver</module>
     <module>IICMiniMotorDriver</module>
+    <module>LCDRGB</module>
+    <module>OLED96x96</module>
+    <module>OLED128x64</module>
   </modules>
 </project>

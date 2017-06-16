@@ -22,7 +22,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 
 	public static final byte BRIGHTNESS = 15; // 0 to 15
 	
-	private static final int bit_duration = 1;
+	private static final int bit_duration = 15;
 	
 	//commands: we can bit-wise or these commands to combine them
 

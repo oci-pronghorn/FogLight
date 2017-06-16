@@ -5,8 +5,8 @@
 
 - [**Git**](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
 # Hardware Needed
-- [Raspberry Pi](https://www.raspberrypi.org/)
-- [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
+- [**Raspberry Pi**](https://www.raspberrypi.org/)
+- [**GrovePi+ Board**](https://www.dexterindustries.com/shop/grovepi-board/)
 
 # Starting your Maven project: 
 [Starting a FogLight project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)

@@ -2,9 +2,9 @@
 # Starting a FogLighter project using Maven: 
 [Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
  
-# Example project:
+# Example project (Door Monitor):
  
-The following sketch demonstrate a simple application using the Line Finder Sensor: whenever the Line Finder sees a black line, an LED will turn on and when the Line Finder sees a white line, the LED will turn off.
+The following sketch demonstrate a simple application using the Line Finder Sensor: a black object covering the sensor will simulate door being closed, while an uncovered sensor will simulate the door being opened. The program can track the duration that the door has been opened/ closed.
  
 Demo code:
 ```java
@@ -40,9 +40,9 @@ public class IoTApp implements IoTSetup {
     } 
 }
 ```			
-When executed, the above code will cause the LED on D4 (digital output 4) to turn on when the Line Finder sensor on D3 (digital input 3) detects a black line.
- 
-The addDigitalListener() method returns a 1 as ```value``` when the Line Finder sensor detects a black line, and 0 for white lines. In order to turn on the LED on the digital port, we need to use setValue() method to send boolean value to the digital port connected to the LED (a _true_ will turn the LED on, while a _false_ will turn if off).
+Note: Make sure that the black object covers the sensor completely to trigger the sensor.
+
+The addDigitalListener() method returns a 1 as ```value``` when the Line Finder sensor detects a black line, and 0 for white lines. Whenever ```value``` changes, the lambda which was passed to addDigitalListener() executes. The ```durationMillis``` indicates how long (in ms) that ```value``` remains unchanged before it changes.
 
  
  

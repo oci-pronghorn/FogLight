@@ -46,10 +46,8 @@ public class IoTApp implements FogApp {
         	
 		    boolean value = payload.readBoolean();
 		    blinkerChannel.setValueAndBlock(LED_PORT, value, PAUSE);               
-		    boolean ignored = blinkerChannel.openTopic(TOPIC, w->{
+		    boolean ignored = blinkerChannel.publishTopic(TOPIC, w->{
 		    	w.writeBoolean(!value);
-		    	w.publish();	    	
-		    	
 		    });
 		    return true;
 		    
@@ -58,9 +56,8 @@ public class IoTApp implements FogApp {
         final FogCommandChannel startupChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
         runtime.addStartupListener(
                 ()->{
-                	boolean ignored =  startupChannel.openTopic(TOPIC, w->{
-                		w.writeBoolean(true);
-                		w.publish();                		
+                	boolean ignored =  startupChannel.publishTopic(TOPIC, w->{
+                		w.writeBoolean(true);             		
                 	});
                 });        
     }  

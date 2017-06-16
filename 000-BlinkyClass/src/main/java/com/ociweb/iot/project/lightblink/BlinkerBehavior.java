@@ -40,9 +40,8 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 
 		 int value = payload.readInt();
          blinkerChannel.setValueAndBlock(IoTApp.LED_PORT, value==1, PAUSE);               
-         return blinkerChannel.openTopic(TOPIC, w->{
-        	 w.writeInt( 1==value ? 0 : 1 );
-        	 w.publish();        	 
+         return blinkerChannel.publishTopic(TOPIC, w->{
+        	 w.writeInt( 1==value ? 0 : 1 );        	 
          });
     }
 
@@ -50,9 +49,8 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	public void startup() {
 
 		blinkerChannel.subscribe(TOPIC, this);
-		blinkerChannel.openTopic(TOPIC,w->{
+		blinkerChannel.publishTopic(TOPIC,w->{
 			w.writeInt( 1 );
-			w.publish();
 		});
 	}
 

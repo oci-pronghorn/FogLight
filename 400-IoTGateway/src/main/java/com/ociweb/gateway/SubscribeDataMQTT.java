@@ -64,10 +64,9 @@ public class SubscribeDataMQTT implements StartupListener {
 								
 					logger.info("received MQTT message on topic {}",topic);
 					
-					commandChannel.openTopic(publishTopic, w-> {
+					commandChannel.publishTopic(publishTopic, w-> {
 						w.writeUTF(topic);
 						w.write(message.getPayload());
-						w.publish();						
 					});
 					
 				}

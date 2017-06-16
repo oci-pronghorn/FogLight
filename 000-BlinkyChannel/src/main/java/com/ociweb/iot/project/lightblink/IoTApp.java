@@ -6,6 +6,8 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
+import com.ociweb.pronghorn.network.ServerSocketReaderStage;
+import com.ociweb.pronghorn.network.http.HTTP1xRouterStage;
 
 public class IoTApp implements FogApp {
     
@@ -19,6 +21,12 @@ public class IoTApp implements FogApp {
     public void declareConnections(Hardware c) {
         c.connect(LED, LED_PORT);
         c.setTriggerRate(100);
+
+        //ServerSocketReaderStage.showRequests = true;
+        //HTTP1xRouterStage.showHeader = true;
+        //c.enableTelemetry(true);
+                
+        
     }
 
     @Override

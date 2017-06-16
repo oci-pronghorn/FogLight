@@ -65,9 +65,8 @@ public class PhysicalWatcher implements AnalogListener, DigitalListener, Startup
 		
 		String text = "local: "+recordedDistance+"   "+value;
 		
-		commandChannel.openTopic(displayTopic, w-> {
-			w.writeUTF(text);
-			w.publish();			
+		commandChannel.publishTopic(displayTopic, w-> {
+			w.writeUTF(text);			
 		});
 						
 		lastDistance = value;

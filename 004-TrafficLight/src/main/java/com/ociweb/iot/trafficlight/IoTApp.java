@@ -109,7 +109,7 @@ public class IoTApp implements FogApp
     		turnOnRed(channel0);
 			channel0.block(State.REDLIGHT.getTime());
 			
-			channel0.openTopic("GREEN",w->{w.publish();});
+			channel0.publishTopic("GREEN",w->{w.publish();});
 			return true;
     	}).addSubscription("RED");
 
@@ -119,7 +119,7 @@ public class IoTApp implements FogApp
     		turnOnGreen(channel1);
 			channel1.block(State.GREENLIGHT.getTime());
 			
-			channel1.openTopic("YELLOW",w->{w.publish();});
+			channel1.publishTopic("YELLOW",w->{w.publish();});
 			return true;
     	}).addSubscription("GREEN");
 
@@ -129,12 +129,12 @@ public class IoTApp implements FogApp
     		turnOnYellow(channel2);
 			channel2.block(State.YELLOWLIGHT.getTime());
 			
-			channel2.openTopic("RED",w->{w.publish();});
+			channel2.publishTopic("RED",w->{w.publish();});
 			return true;
     	}).addSubscription("YELLOW");
     	
        final FogCommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-       runtime.addStartupListener(()->{channel4.openTopic("RED",w->{w.publish();});});
+       runtime.addStartupListener(()->{channel4.publishTopic("RED",w->{w.publish();});});
 	}
 
 

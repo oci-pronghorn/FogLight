@@ -44,13 +44,11 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 			this.units += value;
 			this.time = time;
 
-			channel.openTopic(pumpTopic,w->{
+			channel.publishTopic(pumpTopic,w->{
 				w.writeLong(time);
 				w.writeUTF(fuelName);
 				w.writeInt(centsPerUnit);
-				w.writeInt(units);
-				
-				w.publish();				
+				w.writeInt(units);		
 			});
 
 		}
@@ -67,14 +65,12 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 
 			if (units>0) {
 
-				channel.openTopic(totalTopic, w->{
+				channel.publishTopic(totalTopic, w->{
 					w.writeLong(this.time);
 					w.writeUTF(fuelName);
 					w.writeInt(centsPerUnit);
 					w.writeInt(units);
-					units = 0;
-					
-					w.publish();					
+					units = 0;					
 				});
 			}
 		}

@@ -25,7 +25,7 @@ public class IoTApp implements FogApp {
     @Override
     public void declareConnections(Hardware hardware) {
         hardware.connect(LED, LED_PORT);
-        hardware.connect(Button, D3);
+        hardware.connect(Button, D3);        
     }
 
     @Override

@@ -43,13 +43,10 @@ public class TankMonitor implements AnalogListener {
 
 			int volumeCM = computeVolumeCM2(value);
 
-			commandChannel.openTopic(topic, w->{
+			commandChannel.publishTopic(topic, w->{
 				w.writeLong(time); //local time, may be off, do check the os
 				w.writeInt(volumeCM);
 				w.writeUTF(fuelName);
-				
-				w.publish();
-				
 			});
 			lastValue = value;
 		}

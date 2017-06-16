@@ -1,6 +1,6 @@
 package com.ociweb.iot.maker;
 
-import com.ociweb.gl.api.GreenApp;
+import com.ociweb.gl.api.MsgApp;
 import com.ociweb.gl.api.GreenCommandChannel;
 
 /**
@@ -13,7 +13,7 @@ import com.ociweb.gl.api.GreenCommandChannel;
  *
  * @author Nathan Tippy
  */
-public interface FogApp extends GreenApp<Hardware, FogRuntime> {
+public interface FogApp extends MsgApp<Hardware, FogRuntime> {
 	
 	public static final int ALL = GreenCommandChannel.DYNAMIC_MESSAGING | 
 			                      GreenCommandChannel.NET_REQUESTER | 

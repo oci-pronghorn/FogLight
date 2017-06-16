@@ -67,7 +67,7 @@ public class ObjectPassingTest {
 								fail("failed after "+count.get());
 							}
 							
-							return cc1.openTopic("test\\topic", w -> {
+							return cc1.publishTopic("test\\topic", w -> {
 								w.writeObject(serialized1);
 								w.writeObject(serialized2);							
 							});
@@ -82,7 +82,7 @@ public class ObjectPassingTest {
 						@Override
 						public void startup() {
 						
-							cc2.openTopic("test\\topic",w -> {
+							cc2.publishTopic("test\\topic",w -> {
 
 								w.writeObject(serialized1);
 								w.writeObject(serialized2);

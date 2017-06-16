@@ -1,9 +1,15 @@
 package com.ociweb.iot.maker;
 
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.GreenRuntime;
+import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
@@ -24,7 +30,7 @@ import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class FogRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>  {
+public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
  
     private static final Logger logger = LoggerFactory.getLogger(FogRuntime.class);
 
@@ -61,6 +67,8 @@ public class FogRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>  {
     public Hardware getHardware(){
     	if(this.builder==null){
 
+    		reportLibs();
+    		
             ///////////////
             //setup system for binary binding in case Zulu is found on Arm
             //must populate os.arch as "arm" instead of "aarch32" or "aarch64" in that case, JIFFI is dependent on this value.
@@ -118,7 +126,28 @@ public class FogRuntime extends GreenRuntime<HardwareImpl, ListenerFilterIoT>  {
     	return this.builder;
     }
 
-    public FogCommandChannel newCommandChannel() {
+    private void reportLibs() {
+    	
+    	//does not work because final jars do not contain these manifests.
+    	
+//    	try {
+//	    	Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+//			while (resources.hasMoreElements()) {
+//			      Manifest manifest = new Manifest(resources.nextElement().openStream());
+//			      
+//			      System.out.println(manifest.getMainAttributes().getValue("Specification-Title"));
+////			      Map<String, Attributes> entries = manifest.getEntries();
+////			      System.out.println(entries.get("Specification-Title"));
+////			      System.out.println(entries.get("Specification-Version"));
+////			      System.out.println(entries.get("Build-Time"));
+//			   
+//			}
+//    	} catch (Exception e) {
+//    		throw new RuntimeException(e);
+//    	}
+	}
+
+	public FogCommandChannel newCommandChannel() {
 
     	int instance = -1;
 

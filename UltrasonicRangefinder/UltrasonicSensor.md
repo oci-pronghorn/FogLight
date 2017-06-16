@@ -10,6 +10,7 @@
 The following sketch demonstrates a simple application to measure the depth of water in a tank and output it on an LCD screen.
 
 Demo code (copy and paste this to a FogLighter project):
+
 In IoTApp.java:
 ```java
 

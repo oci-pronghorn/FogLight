@@ -15,13 +15,23 @@ import com.ociweb.gl.api.GreenCommandChannel;
  */
 public interface FogApp extends MsgApp<Hardware, FogRuntime> {
 	
-	public static final int ALL = GreenCommandChannel.DYNAMIC_MESSAGING | 
-			                      GreenCommandChannel.NET_REQUESTER | 
-			                      GreenCommandChannel.NET_RESPONDER;
 	
 	public static final int DYNAMIC_MESSAGING = GreenCommandChannel.DYNAMIC_MESSAGING;
-	public static final int NET_REQUESTER = GreenCommandChannel.NET_REQUESTER;
-	public static final int NET_RESPONDER = GreenCommandChannel.NET_RESPONDER;
+	public static final int NET_REQUESTER     = GreenCommandChannel.NET_REQUESTER;
+	public static final int NET_RESPONDER     = GreenCommandChannel.NET_RESPONDER;
+	
+	public static final int I2C_WRITER        = FogCommandChannel.I2C_WRITER;
+	public static final int PIN_WRITER        = FogCommandChannel.PIN_WRITER;
+	public static final int SERIAL_WRITER     = FogCommandChannel.SERIAL_WRITER;
+	public static final int BT_WRITER         = FogCommandChannel.BT_WRITER;
+	
+	public static final int ALL = DYNAMIC_MESSAGING | 
+								  NET_REQUESTER | 
+								  NET_RESPONDER |
+								  I2C_WRITER |
+								  PIN_WRITER |
+								  SERIAL_WRITER |
+								  BT_WRITER;
 	
 	void declareConnections(Hardware builder);
 	

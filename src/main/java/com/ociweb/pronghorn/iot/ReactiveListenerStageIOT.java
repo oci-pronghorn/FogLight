@@ -11,6 +11,7 @@ import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
+import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -18,6 +19,7 @@ import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.SerialListener;
+import com.ociweb.iot.maker.SerialReader;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
@@ -198,26 +200,24 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         while (--p >= 0) {
             //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
 
-            Pipe<?> localPipe = inputPipes[p];
-
-            if (Pipe.isForSchema(localPipe, SerialDataSchema.instance)) {
-            	consumeSerialMessage(listener, (Pipe<SerialDataSchema>) localPipe);
-            } else if (Pipe.isForSchema(localPipe, GroveResponseSchema.instance)) {
-                consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) localPipe);
-            } else if (Pipe.isForSchema(localPipe, I2CResponseSchema.instance)) {
+            if (Pipe.isForSchema((Pipe<SerialInputSchema>)inputPipes[p], SerialInputSchema.class)) {
+            	consumeSerialMessage(listener, (Pipe<SerialInputSchema>) inputPipes[p]);
+            } else if (Pipe.isForSchema((Pipe<GroveResponseSchema>)inputPipes[p], GroveResponseSchema.class)) {
+                consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) inputPipes[p]);
+            } else if (Pipe.isForSchema((Pipe<I2CResponseSchema>)inputPipes[p], I2CResponseSchema.class)) {
             	//listener may be analog or digital if we are using the grovePi board            	
-            	consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) localPipe);
-            } else if (Pipe.isForSchema(localPipe, MessageSubscription.instance)) {                
-                consumePubSubMessage(listener, (Pipe<MessageSubscription>) localPipe);
-            } else if (Pipe.isForSchema(localPipe, NetResponseSchema.instance)) {
+            	consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) inputPipes[p]);
+            } else if (Pipe.isForSchema((Pipe<MessageSubscription>)inputPipes[p], MessageSubscription.class)) {                
+                consumePubSubMessage(listener, (Pipe<MessageSubscription>) inputPipes[p]);
+            } else if (Pipe.isForSchema((Pipe<NetResponseSchema>)inputPipes[p], NetResponseSchema.class)) {
                //should only have this pipe if listener is also instance of HTTPResponseListener
-               consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) localPipe);
-            } else if (Pipe.isForSchema(localPipe, HTTPRequestSchema.instance)) {            	
-               consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) localPipe, 
+               consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) inputPipes[p]);
+            } else if (Pipe.isForSchema((Pipe<HTTPRequestSchema>)inputPipes[p], HTTPRequestSchema.class)) {            	
+               consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) inputPipes[p], 
             			          routeIds[p], parallelIds[p]);                           
             } else 
             {   // HTTPRequestSchema
-                logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(localPipe));
+                logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(inputPipes[p]));
             }
         }
         
@@ -265,7 +265,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 	}
 
 
-	private void consumeSerialMessage(Object listener, Pipe<SerialDataSchema> p) {
+	private void consumeSerialMessage(Object listener, Pipe<SerialInputSchema> p) {
 		
 		SerialListener serial = (SerialListener)p;
 	
@@ -273,7 +273,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 						
 			if (PipeReader.peekMsg(p, SerialDataSchema.MSG_CHUNKEDSTREAM_1)) {
 				
-				DataInputBlobReader<SerialDataSchema> stream = PipeReader.peekInputStream(p,SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+				SerialReader stream = (SerialReader)PipeReader.peekInputStream(p,SerialInputSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 				boolean msg = serial.message(stream);
 				if (msg) {
 					PipeReader.tryReadFragment(p);

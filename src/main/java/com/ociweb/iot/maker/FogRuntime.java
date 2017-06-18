@@ -1,11 +1,5 @@
 package com.ociweb.iot.maker;
 
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +8,8 @@ import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.impl.SerialDataSchema;
+import com.ociweb.iot.hardware.impl.SerialInputSchema;
+import com.ociweb.iot.hardware.impl.SerialOutputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -24,10 +19,11 @@ import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.pipe.DataInputBlobReader;
+import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
-import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
@@ -42,7 +38,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
     
     private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
     private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x();
-    private final PipeConfig<SerialDataSchema> serialInputConfig = new PipeConfig<SerialDataSchema>(SerialDataSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x(); 
+    private final PipeConfig<SerialInputSchema> serialInputConfig = new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x(); 
 
     private static final byte piI2C = 1;
     private static final byte edI2C = 6;
@@ -261,7 +257,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         	inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(responsePinsConfig);
         }
         if (this.builder.isListeningToSerial(listener) && this.builder.hasSerialInputs()) {
-        	inputPipes[--pipesCount] = new Pipe<SerialDataSchema>(serialInputConfig);        
+        	inputPipes[--pipesCount] = newSerialInputPipe(serialInputConfig);        
         }
 
         populateGreenPipes(listener, pipesCount, inputPipes);
@@ -278,7 +274,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		int testId = -1;
 		int i = inputPipes.length;
 		while (--i>=0) {
-			if (inputPipes[i]!=null && Pipe.isForSchema(inputPipes[i], MessageSubscription.instance)) {
+			if (inputPipes[i]!=null && Pipe.isForSchema((Pipe<MessageSubscription>)inputPipes[i], MessageSubscription.class)) {
 				testId = inputPipes[i].id;
 			}
 		}
@@ -286,6 +282,16 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		assert(-1==testId || GraphManager.allPipesOfType(gm, MessageSubscription.instance)[subscriptionPipeIdx-1].id==testId) : "GraphManager has returned the pipes out of the expected order";
         return reactiveListener;
 
+    }
+    
+    private static Pipe<SerialInputSchema> newSerialInputPipe(PipeConfig<SerialInputSchema> config) {
+    	return new Pipe<SerialInputSchema>(config) {
+			@SuppressWarnings("unchecked")
+			@Override
+			protected DataInputBlobReader<SerialInputSchema> createNewBlobReader() {
+				return new SerialReader(this);
+			}    		
+    	};
     }
 
 

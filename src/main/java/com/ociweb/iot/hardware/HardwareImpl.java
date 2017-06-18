@@ -16,7 +16,10 @@ import com.ociweb.gl.impl.stage.MessagePubSubStage;
 import com.ociweb.gl.impl.stage.TrafficCopStage;
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
-import com.ociweb.iot.hardware.impl.UARTDataStage;
+import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
+import com.ociweb.iot.hardware.impl.SerialInputSchema;
+import com.ociweb.iot.hardware.impl.SerialOutputSchema;
+import com.ociweb.iot.hardware.impl.SerialDataReaderStage;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 
 import com.ociweb.iot.maker.AnalogListener;
@@ -31,6 +34,7 @@ import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
+import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -92,8 +96,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	protected ReentrantLock devicePinConfigurationLock = new ReentrantLock();
 
+	protected RS232Client rs232Client;
+	protected String rs232ClientDevice = "/dev/ttyMFD1";//custom hardware should override this edison value
+	protected int    rs232ClientBaud = RS232Client.B9600;
+	protected String bluetoothDevice = null;
+	
 
-    public IODevice getConnectedDevice(Port p) {
+	
+    public IODevice getConnectedDevice(Port p) {    	
     	return deviceOnPort[p.ordinal()];
     }
 
@@ -211,6 +221,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.i2cBus = bus;
 		return this;
 	}
+	
+	public boolean isUseI2C() {
+		return this.configI2C;
+	}
 
 	public abstract HardwarePlatformType getPlatformType();
 	public abstract int read(Port port); //Platform specific
@@ -284,6 +298,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     private int IDX_I2C = -1;
     private int IDX_MSG = -1;
     private int IDX_NET = -1;
+    private int IDX_SER = -1;
 	
 
 	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<NetResponseSchema>[] netResponsePipes, Pipe<ClientHTTPRequestSchema>[] netRequestPipes) {
@@ -295,20 +310,20 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return !IntHashTable.isEmpty(netPipeLookup) && (netResponsePipes.length!=0) && (netRequestPipes.length!=0);
 	}
 
-	private void createMessagePubSubStage(IntHashTable subscriptionPipeLookup,
-			Pipe<MessagePubSub>[] messagePubSub,
-			Pipe<TrafficReleaseSchema>[] masterMsggoOut, 
-			Pipe<TrafficAckSchema>[] masterMsgackIn, 
-			Pipe<MessageSubscription>[] subscriptionPipes) {
 
-
-		new MessagePubSubStage(this.gm, subscriptionPipeLookup, this, messagePubSub, masterMsggoOut, masterMsgackIn, subscriptionPipes);
-
-
+	private void createUARTInputStage(Pipe<SerialInputSchema> masterUARTPipe) {
+		RS232Client client = buildSerialClient();
+		new SerialDataReaderStage(this.gm, masterUARTPipe, client);
 	}
 
-	private void createUARTInputStage(Pipe<SerialDataSchema> masterUARTPipe) {
-		new UARTDataStage(this.gm, masterUARTPipe);
+
+	
+	protected RS232Client buildSerialClient() {
+		if (null==rs232Client) {
+			//custom hardware can override this
+			rs232Client = new RS232Client(rs232ClientDevice, rs232ClientBaud);
+		}
+		return rs232Client;
 	}
 	
 	protected void createADInputStage(Pipe<GroveResponseSchema> masterResponsePipe) {
@@ -512,15 +527,15 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	public void releasePinOutTraffic(int count, GreenCommandChannel<?> gcc) {		
-		gcc.publishGo(count, IDX_PIN);		
+		GreenCommandChannel.publishGo(count, IDX_PIN, gcc);		
 	}
 
 	public void releaseI2CTraffic(int count, GreenCommandChannel<?> gcc) {
-		gcc.publishGo(count, IDX_I2C);
+		GreenCommandChannel.publishGo(count, IDX_I2C, gcc);
 	}
 	
 	public void releasePubSubTraffic(int count, GreenCommandChannel<?> gcc) {
-		gcc.publishGo(count, IDX_MSG);
+		GreenCommandChannel.publishGo(count, IDX_MSG, gcc);
 	}
 
 	public void buildStages(IntHashTable subscriptionPipeLookup2, IntHashTable netPipeLookup2, GraphManager gm2) {
@@ -532,8 +547,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfType(gm2, TrafficOrderSchema.instance);
 		Pipe<GroveRequestSchema>[] requestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
-		Pipe<ClientHTTPRequestSchema>[] netRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);
-		Pipe<SerialDataSchema>[] UARTResponsePipes = GraphManager.allPipesOfType(gm2, SerialDataSchema.instance);
+		Pipe<ClientHTTPRequestSchema>[] netRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
+		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfType(gm2, SerialOutputSchema.instance);		
+		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfType(gm2, SerialInputSchema.instance);
 		
 		int commandChannelCount = orderPipes.length;
 		
@@ -544,7 +560,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		IDX_I2C = eventSchemas++;
 		IDX_MSG = eventSchemas++;
 		IDX_NET = useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
-						
+		IDX_SER = serialOutputPipes.length>0 ? eventSchemas++ : -1;
+		
 		
 		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][commandChannelCount];
 		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][commandChannelCount];
@@ -646,18 +663,32 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 		
 		//////////////
-		//only build UART response if the responses are consumed
+		//only build serial input if the data is consumed
 		//////////////
-		if (UARTResponsePipes.length>0) {
-			Pipe<SerialDataSchema> masterUARTPipe = SerialDataSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
-			new ReplicatorStage<SerialDataSchema>(gm, masterUARTPipe, UARTResponsePipes);   
+		if (serialInputPipes.length>0) {
+			Pipe<SerialInputSchema> masterUARTPipe = SerialDataSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			new ReplicatorStage<SerialInputSchema>(gm, masterUARTPipe, serialInputPipes);   
 			createUARTInputStage(masterUARTPipe);
 		}		
+		
+		/////////////
+		//only build serial output if data is sent
+		/////////////
+		if (serialOutputPipes.length>0) {			
+			createSerialOutputStage(serialOutputPipes, masterGoOut, masterAckIn);			
+		}
+		
 		
 		///////////////
 		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
 		///////////////
 		createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
+	}
+
+	protected void createSerialOutputStage(Pipe<SerialOutputSchema>[] serialOutputPipes,
+			Pipe<TrafficReleaseSchema>[][] masterGoOut, Pipe<TrafficAckSchema>[][] masterAckIn) {
+		new SerialDataWriterStage(gm, serialOutputPipes, masterGoOut[IDX_SER], masterAckIn[IDX_SER],
+				                     this, this.buildSerialClient());
 	}
 
 	

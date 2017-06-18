@@ -3,8 +3,6 @@ package com.ociweb.iot.hardware.impl.grovepi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.impl.schema.MessagePubSub;
-import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.iot.grove.GroveTwig;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -12,19 +10,15 @@ import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
-import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
-import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
-import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
+import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -33,16 +27,28 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	private static final Logger logger = LoggerFactory.getLogger(GrovePiHardwareImpl.class);
 
+	
+	private final PiModel model;
+	
 	private byte commandIndex = -1;
 
 	//TODO: urgent need for unit tests here, this custom pi logic is easily broken.
 
 	public GrovePiHardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
 		super(gm, i2cBacking);
-		System.out.println("You are running on the GrovePi hardware.");
+		
+		model = PiModel.detect();
+		rs232ClientDevice = model.serialDevice();
+		rs232ClientBaud = RS232Client.B57600;
+		bluetoothDevice = model.bluetoothDevice();
+		
+		System.out.println("You are running on the GrovePi hardware on the "+model);
 	}
 
 
+	
+	
+	
 	@Override
 	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
 		this.commandIndex++;

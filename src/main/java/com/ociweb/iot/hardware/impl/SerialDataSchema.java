@@ -8,7 +8,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 
-public class SerialDataSchema extends MessageSchema<SerialDataSchema> {
+public class SerialDataSchema<T extends SerialDataSchema<T>> extends MessageSchema<T> {
 	public final static FieldReferenceOffsetManager FROM = new FieldReferenceOffsetManager(
 		    new int[]{0xc0400002,0xb8000000,0xc0200002},
 		    (short)0,
@@ -30,7 +30,7 @@ public class SerialDataSchema extends MessageSchema<SerialDataSchema> {
 		public static final int MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2 = 0x01c00001;
 
 
-		public static void consume(Pipe<SerialDataSchema> input) {
+		public static <T extends SerialDataSchema<T>> void consume(Pipe<T> input) {
 		    while (PipeReader.tryReadFragment(input)) {
 		        int msgIdx = PipeReader.getMsgIdx(input);
 		        switch(msgIdx) {
@@ -45,11 +45,11 @@ public class SerialDataSchema extends MessageSchema<SerialDataSchema> {
 		    }
 		}
 
-		public static void consumeChunkedStream(Pipe<SerialDataSchema> input) {
+		public static <T extends SerialDataSchema<T>> void consumeChunkedStream(Pipe<T> input) {
 		    ByteBuffer fieldByteArray = PipeReader.readBytes(input,MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2,ByteBuffer.allocate(PipeReader.readBytesLength(input,MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2)));
 		}
 
-		public static boolean publishChunkedStream(Pipe<SerialDataSchema> output, byte[] fieldByteArrayBacking, int fieldByteArrayPosition, int fieldByteArrayLength) {
+		public static <T extends SerialDataSchema<T>> boolean publishChunkedStream(Pipe<T> output, byte[] fieldByteArrayBacking, int fieldByteArrayPosition, int fieldByteArrayLength) {
 		    boolean result = false;
 		    if (PipeWriter.tryWriteFragment(output, MSG_CHUNKEDSTREAM_1)) {
 		        PipeWriter.writeBytes(output,MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2, fieldByteArrayBacking, fieldByteArrayPosition, fieldByteArrayLength);

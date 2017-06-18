@@ -11,26 +11,20 @@ import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class UARTDataStage extends PronghornStage{
+public class SerialDataReaderStage extends PronghornStage{
 
-	private RS232Client client;
-	private final Pipe<SerialDataSchema> output;
-	private Logger logger = LoggerFactory.getLogger(UARTDataStage.class);
+	private final RS232Client client;
+	private final Pipe<SerialInputSchema> output;
+	private Logger logger = LoggerFactory.getLogger(SerialDataReaderStage.class);
 	
-	public static void newInstance(GraphManager gm, Pipe<SerialDataSchema> output) {
-		new UARTDataStage(gm, output);
+	public static void newInstance(GraphManager gm, Pipe<SerialInputSchema> output, RS232Client client) {
+		new SerialDataReaderStage(gm, output, client);
 		
 	}
-	public UARTDataStage(GraphManager gm, Pipe<SerialDataSchema> output) {
+	public SerialDataReaderStage(GraphManager gm, Pipe<SerialInputSchema> output, RS232Client client) {
 		super(gm, NONE, output);
 		this.output = output;
-		
-	}
-
-	@Override 
-	public void startup() {
-        client = new RS232Client("/dev/ttyMFD1", RS232Client.B9600);
-        //logger.info("started up");
+		this.client = client;
 	}
 	
 	@Override

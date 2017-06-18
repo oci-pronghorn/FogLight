@@ -248,9 +248,9 @@
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
-            <manifestEntries>
+            <!-- manifestEntries>
               <Build-Time>${maven.build.timestamp}</Build-Time>
-            </manifestEntries>
+            </manifestEntries -->
           </archive>
         </configuration>
       </plugin>
@@ -259,6 +259,6 @@
     </build>
 
 
-    <description>FogLight</description>
+    <description>Open Edge - Fog Light</description>
     <url>https://github.com/oci-pronghorn/EmbeddedToolkit</url>
 </project>

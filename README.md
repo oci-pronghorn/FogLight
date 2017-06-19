@@ -18,7 +18,7 @@
 - Button
 -- [wiki](http://wiki.seeed.cc/Grove-Button/) || [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Button/Button.md)
 - Buzzer
--- [wiki](http://wiki.seeed.cc/Grove-Buzzer/) || [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Buzzer/Buzzer.md)
+  - [wiki](http://wiki.seeed.cc/Grove-Buzzer/) || [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Buzzer/Buzzer.md)
 - Four Digit Display
 -- [wiki](http://wiki.seeed.cc/Grove-4-Digit_Display/) || [demo]()
 - I2C Mini Motor Driver

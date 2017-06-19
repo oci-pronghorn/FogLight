@@ -1,34 +1,25 @@
 package com.ociweb.grove;
 
-
 import static com.ociweb.iot.grove.GroveTwig.*;
-
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
 public class TouchSensor implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
-
-
+	private static final Port TOUCH_SENSOR_PORT = D4;
+	private static final Port LED_PORT = D2;
+	
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-
-        
+    	c.connect(TouchSensor, TOUCH_SENSOR_PORT);
+    	c.connect(LED, LED_PORT);
     }
-
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
-
+    	final FogCommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+        runtime.addDigitalListener((port, connection, time, value)->{ 
+            channel1.setValueAndBlock(LED_PORT, value == 1, 500);                                                                            //delays a future action
+        });
     }
-          
 }

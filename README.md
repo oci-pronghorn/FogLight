@@ -12,9 +12,9 @@
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 ## Information and Demos for Grove Devices
 - Analog TollC
-  -[wiki]() || [demo]()
+  - [wiki]() || [demo]()
 - Angle Sensor
-  -   [wiki](http://wiki.seeed.cc/Grove-Rotary_Angle_Sensor/) || [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AngleSensor/AngleSensor.md)
+  - [wiki](http://wiki.seeed.cc/Grove-Rotary_Angle_Sensor/) || [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AngleSensor/AngleSensor.md)
 - Button
   - [wiki](http://wiki.seeed.cc/Grove-Button/) || [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Button/Button.md)
 - Buzzer

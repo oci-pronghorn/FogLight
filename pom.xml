@@ -31,5 +31,7 @@
     <module>LCDRGB</module>
     <module>OLED96x96</module>
     <module>OLED128x64</module>
+    <module>TouchSensor</module>
+    <module>AnalogToIIC</module>
   </modules>
 </project>

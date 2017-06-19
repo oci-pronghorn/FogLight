@@ -235,6 +235,22 @@ public enum GroveTwig implements IODevice {
     	public int range(){
     		return 1024;
     	}
+    },
+	TouchSensor() {
+    	@Override()
+    	public boolean isInput(){
+    		return true;
+    	}
+    	
+    	@Override
+    	public int range(){
+    		return 1;
+    	}
+    	
+    	@Override
+    	public int response(){
+    		return 60;
+    	}
     };
     /**
      * @return True if this twig is an input device, and false otherwise.

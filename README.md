@@ -53,7 +53,7 @@ A very simple example of a FogLight application is below (omitting boilerplate i
         } 
     }
     
-Of course, this is just a simple example; for more interesting examples that demonstrate the various features currently available in FogLight, you should take a look at [our examples repository](##information-and-demos-for-grove-devices).
+Of course, this is just a simple example; for more interesting examples that demonstrate the various features currently available in FogLight, you should take a look at [our examples repository](#information-and-demos-for-grove-devices).
 ## What You Need Befor You Start:
 ### Hardware
 - [Raspberry Pi](https://www.raspberrypi.org/)

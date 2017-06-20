@@ -18,18 +18,18 @@ public class Grove_OLED_128x64 implements IODevice{
 
 
 		sendCommand(target, PUT_DISPLAY_TO_SLEEP);     //display off
-	    sendCommand(target, WAKE_DISPLAY);  //display on
-	    sendCommand(target, TURN_OFF_INVERSE_DISPLAY);  //Set Normal Display (default)
-	    
-	    target.i2cFlushBatch();
-	    
+		sendCommand(target, WAKE_DISPLAY);  //display on
+		sendCommand(target, TURN_OFF_INVERSE_DISPLAY);  //Set Normal Display (default)
+
+		target.i2cFlushBatch();
+
 		return isStarted;
 	}
 
 
 
 
-	public static boolean sendCommand(FogCommandChannel ch, byte b){
+	public static boolean sendCommand(FogCommandChannel ch, int b){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -41,7 +41,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
-	public static boolean sendData(FogCommandChannel ch, byte b ){
+	public static boolean sendData(FogCommandChannel ch, int b ){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -63,7 +63,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		}
 
 	}
-	
+
 	public static boolean setPageMode(FogCommandChannel ch){
 		if (sendCommand(ch,SET_MEMORY) && sendCommand(ch, (byte) 0x02) ){
 			ch.i2cFlushBatch();
@@ -74,7 +74,7 @@ public class Grove_OLED_128x64 implements IODevice{
 			return false;
 		}
 	}
-	
+
 	public static boolean setHorizontalMode(FogCommandChannel ch){
 		if (sendCommand(ch,SET_MEMORY) && sendCommand(ch, (byte)0x00)){
 			ch.i2cFlushBatch();
@@ -85,7 +85,7 @@ public class Grove_OLED_128x64 implements IODevice{
 			return false;
 		}
 	}
-	
+
 	public static boolean setVerticalMode(FogCommandChannel ch){
 		if (sendCommand(ch,SET_MEMORY) && sendCommand(ch, (byte)0x01)){
 			ch.i2cFlushBatch();
@@ -96,26 +96,26 @@ public class Grove_OLED_128x64 implements IODevice{
 			return false;
 		}
 	}
-	
+
 	/**
-	 * NOTE: this method leave sthe display in horizontal mode
+	 * NOTE: this method leaves the display in horizontal mode
 	 * @param ch
 	 * @param map
 	 * @return true if the i2c commands were succesfully sent, false otherwise
 	 */
 	public static boolean drawBitmap(FogCommandChannel ch, int[] map){
 		if (!setHorizontalMode(ch)){
-			System.out.println("Java");
+
 			return false;
 		}
 		for (int bitmap: map){
-			System.out.println("Guava");
+
 			if (!sendData(ch, (byte) bitmap)){
 				return false;
 			}
 			ch.i2cFlushBatch();
 		}
-		
+
 		return true;
 	}
 
@@ -123,13 +123,13 @@ public class Grove_OLED_128x64 implements IODevice{
 		if(sendCommand(ch, TURN_ON_INVERSE_DISPLAY)){
 			ch.i2cFlushBatch();
 			return true;
-			
+
 		}
 		ch.i2cFlushBatch();
 		return false;
 	}
-	
-	public static boolean tuffOffInverseDisplay(FogCommandChannel ch){
+
+	public static boolean turnOffInverseDisplay(FogCommandChannel ch){
 		if(sendCommand(ch, TURN_OFF_INVERSE_DISPLAY)){
 			ch.i2cFlushBatch();
 			return true;
@@ -137,7 +137,43 @@ public class Grove_OLED_128x64 implements IODevice{
 		ch.i2cFlushBatch();
 		return false;
 	}
+
+	public static boolean putChar(FogCommandChannel ch, char c){
+		if (c > 127 || c < 32){
+			//'c' has no defined font for Grove_OLED_128x64");
+			return false;
+		}
+		for (int i = 0; i < 8; i++){
+			if (sendData(ch, (byte)BASIC_FONT[c][i])){	//successful send is expected to be more common
+				ch.i2cFlushBatch();
+			}
+			else {
+				ch.i2cFlushBatch();
+				return false;
+			}
+		}
+		return true;
+	}
+	public static boolean setTextXY(FogCommandChannel ch, int x, int y){
+		//bit-mask because x and y can only be within a certain range (0-7)
+		
+		//TODO: avoid three seperate if-statements by ANDing them in the condtional, is there a better way?
+		if (sendCommand(ch, (ROW_START_ADDRESS_PAGE_MODE + (x & 0x07))) 
+				&& sendCommand(ch,  (LOWER_COL_START_ADDRESS_PAGE_MODE + (8*y & 0x0F)))
+				&& sendCommand(ch,  (HIGHER_COL_START_ADDRESS_PAGE_MODE) + (8*y >> 4 & 0x0F)))
+		{
+			ch.i2cFlushBatch();
+			return true;
+		}
+		ch.i2cFlushBatch();
+		return false;
+	}
 	
+	public static boolean setPageModeAndTextXY(FogCommandChannel ch, int x, int y){
+		return setPageMode(ch) && setTextXY(ch,x,y);
+		
+	}
+
 	private static boolean writeByteSequence(FogCommandChannel ch, byte[] seq){
 		if(!ch.i2cIsReady()){
 			return false;

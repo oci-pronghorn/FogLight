@@ -58,7 +58,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
        
        boolean setupSerial = (0 != (features & SERIAL_WRITER));//if feature bit is on then set for write...
        if (setupSerial) {
-    	   serialOutput = newSerialOutputPipe(pcm.getConfig(SerialOutputSchema.class));
+    	   serialOutput = newSerialOutputPipe(pcm.getConfig(SerialOutputSchema.class), hardware);
        } else {
     	   serialOutput = null;
        }
@@ -93,13 +93,13 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
        //////////////////////////
        
        int optionalPipeCount = 0;
-       if (null!=serialOutput) {
+       if (null != serialOutput) {
     	   optionalPipeCount++;
        }
-       if (null!=pinOutput) {
+       if (null != pinOutput) {
     	   optionalPipeCount++;
        }
-       if (null!=i2cOutput) {
+       if (null != i2cOutput) {
     	   optionalPipeCount++;
        }
        optionalOutputPipes = new Pipe<?>[optionalPipeCount];
@@ -124,12 +124,12 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
     }
     
     
-    private static Pipe<SerialOutputSchema> newSerialOutputPipe(PipeConfig<SerialOutputSchema> config) {
+    private static Pipe<SerialOutputSchema> newSerialOutputPipe(PipeConfig<SerialOutputSchema> config,HardwareImpl hardware) {
     	return new Pipe<SerialOutputSchema>(config) {
 			@SuppressWarnings("unchecked")
 			@Override
 			protected DataOutputBlobWriter<SerialOutputSchema> createNewBlobWriter() {
-				return new SerialWriter(this);
+				return new SerialWriter(this, HardwareImpl.serialIndex(hardware));
 			}    		
     	};
     }
@@ -252,7 +252,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
         	PipeWriter.tryWriteFragment(serialOutput, SerialDataSchema.MSG_CHUNKEDSTREAM_1)) {
   	
         	SerialWriter pw = (SerialWriter) Pipe.outputStream(serialOutput);
-            pw.openField(SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2,this,builder);            
+            pw.openField(SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2, this);            
             writable.write(pw);//TODO: cool feature, writable to return false to abandon write.. 
             
             pw.closeHighLevelField(SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
+import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -13,15 +14,15 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class SerialDataReaderStage extends PronghornStage{
 
-	private final RS232Client client;
+	private final RS232Clientable client;
 	private final Pipe<SerialInputSchema> output;
 	private Logger logger = LoggerFactory.getLogger(SerialDataReaderStage.class);
 	
-	public static void newInstance(GraphManager gm, Pipe<SerialInputSchema> output, RS232Client client) {
+	public static void newInstance(GraphManager gm, Pipe<SerialInputSchema> output, RS232Clientable client) {
 		new SerialDataReaderStage(gm, output, client);
 		
 	}
-	public SerialDataReaderStage(GraphManager gm, Pipe<SerialInputSchema> output, RS232Client client) {
+	public SerialDataReaderStage(GraphManager gm, Pipe<SerialInputSchema> output, RS232Clientable client) {
 		super(gm, NONE, output);
 		this.output = output;
 		this.client = client;

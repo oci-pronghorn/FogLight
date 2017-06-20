@@ -16,6 +16,8 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
+import com.ociweb.pronghorn.iot.rs232.RS232Client;
+import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
@@ -25,6 +27,7 @@ import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
+import com.ociweb.pronghorn.util.Appendables;
 
 public class TestHardware extends HardwareImpl {
 
@@ -42,6 +45,24 @@ public class TestHardware extends HardwareImpl {
     
     private long lastProvidedTime;
     
+    private RS232Clientable fakeRS232 = new RS232Clientable() {
+
+		@Override
+		public int readInto(byte[] array, int position, int remaining, byte[] array2, int position2, int remaining2) {
+			System.out.println("reading from serial device");
+			return 0;
+		}
+
+		@Override
+		public int writeFrom(byte[] backing, int pos, int length) {
+			/////////////
+			///Appendables.appendArray(System.out, '[',backing,pos,Integer.MAX_VALUE,']',length);
+			/////////////
+			return 0;
+		}
+    	
+    };
+    
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking().configure((byte) 1));
         //logger.trace("You are running on the test hardware.");
@@ -52,6 +73,11 @@ public class TestHardware extends HardwareImpl {
     		super.enableTelemetry(enable);
     	}
     	//else do nothing this is a test.
+    }
+    
+    
+    protected RS232Clientable buildSerialClient() {
+    	return fakeRS232;
     }
     
     public void setI2CValueToRead(byte address, byte[] data, int length) {

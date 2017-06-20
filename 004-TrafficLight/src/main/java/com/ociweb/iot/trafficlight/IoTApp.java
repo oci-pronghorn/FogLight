@@ -56,7 +56,7 @@ public class IoTApp implements FogApp
 		
 		if (isWebControlled) {
 			c.enableServer(false, false, "127.0.0.1", 8088);			
-			c.enableTelemetry(true);			
+		//	c.enableTelemetry(true);			
 			webRoute = c.registerRoute("/trafficLight?color=${color}");
 			
 		}

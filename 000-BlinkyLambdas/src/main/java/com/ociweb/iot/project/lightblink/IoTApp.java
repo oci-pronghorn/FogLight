@@ -36,14 +36,15 @@ public class IoTApp implements FogApp {
     @Override
     public void declareConnections(Hardware c) {
         c.connect(LED, D5);
+        
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        final FogCommandChannel blinkerChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);        
+        final FogCommandChannel blinkerChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);        
         runtime.addPubSubListener((topic,payload)->{
-        	
+
 		    boolean value = payload.readBoolean();
 		    blinkerChannel.setValueAndBlock(LED_PORT, value, PAUSE);               
 		    boolean ignored = blinkerChannel.publishTopic(TOPIC, w->{
@@ -53,7 +54,7 @@ public class IoTApp implements FogApp {
 		    
 		}).addSubscription(TOPIC); 
                 
-        final FogCommandChannel startupChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
+        final FogCommandChannel startupChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING); 
         runtime.addStartupListener(
                 ()->{
                 	boolean ignored =  startupChannel.publishTopic(TOPIC, w->{

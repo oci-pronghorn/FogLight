@@ -6,4 +6,6 @@ public interface RS232Clientable {
 
 	int writeFrom(byte[] backing, int pos, int length);
 
+	int write(byte[] data);
+
 }

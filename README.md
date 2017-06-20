@@ -118,7 +118,7 @@ Of course, this is just a simple example; for more interesting examples that dem
 - Touch Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Touch_Sensor/)
   - demo - Coming Soon!
-  - UV Sensor
+- UV Sensor
   - [wiki](http://wiki.seeed.cc/Grove-UV_Sensor/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UVSensor/UVSensor.md)
 - Ultrasonic Rangefinder

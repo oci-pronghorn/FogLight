@@ -12,7 +12,7 @@ import java.nio.charset.Charset;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class RS232Client {
+public class RS232Client implements RS232Clientable {
 
     private static final Logger logger = LoggerFactory.getLogger(RS232Client.class);
 

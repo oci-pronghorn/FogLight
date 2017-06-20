@@ -223,7 +223,12 @@ public enum GroveTwig implements IODevice {
     	}
     },
     
- 
+    OLED_128x64(){
+    	@Override
+    	public boolean isOutput(){
+    		return true;
+    	}
+    },
     
     WaterSensor(){
     	@Override

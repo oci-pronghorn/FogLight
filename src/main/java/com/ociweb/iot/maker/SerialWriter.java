@@ -6,8 +6,8 @@ import com.ociweb.pronghorn.pipe.Pipe;
 
 public class SerialWriter extends PayloadWriter<SerialOutputSchema>{
 
-	protected SerialWriter(Pipe<SerialOutputSchema> p) {
-		super(p);
+	protected SerialWriter(Pipe<SerialOutputSchema> p, int goIndex) {
+		super(p, goIndex);
 	}
 
 }

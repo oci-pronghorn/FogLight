@@ -17,7 +17,6 @@ import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 public class ObjectPassingTest {
-
 	 
 	
 	 @Test
@@ -29,10 +28,7 @@ public class ObjectPassingTest {
 		    final Serializable serialized1 = new TestPojo("hello",42);
 		    final Serializable serialized2 = new String("world");
 		 
-		    final int features = GreenCommandChannel.DYNAMIC_MESSAGING;
-		    
-	    	FogRuntime runtime = FogRuntime.test(new FogApp() {
-
+		    FogRuntime runtime = FogRuntime.test(new FogApp() {
 	
 				@Override
 				public void declareConnections(Hardware builder) {					
@@ -41,7 +37,7 @@ public class ObjectPassingTest {
 				@Override
 				public void declareBehavior(FogRuntime runtime) {
 					
-					final FogCommandChannel cc1 = runtime.newCommandChannel(features);
+					final FogCommandChannel cc1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 					runtime.addPubSubListener(new PubSubListener() {
 
 						@Override
@@ -76,7 +72,7 @@ public class ObjectPassingTest {
 						}}).addSubscription("test\\topic");
 					
 					
-					final FogCommandChannel cc2 = runtime.newCommandChannel(features);
+					final FogCommandChannel cc2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 					runtime.addStartupListener(new StartupListener() {
 
 						@Override

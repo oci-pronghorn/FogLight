@@ -8,6 +8,7 @@ import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
+import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -17,7 +18,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareImpl> {
 
 	private Pipe<SerialOutputSchema>[] fromCommandChannels;
-	private RS232Client rs232Client;
+	private RS232Clientable rs232Client;
 	private static final Logger logger = LoggerFactory.getLogger(SerialDataWriterStage.class);
 	private byte[] backing;
 	private int length;
@@ -29,7 +30,7 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 			Pipe<SerialOutputSchema>[] ccToAdOut, //many stages requesting writes
 			Pipe<TrafficReleaseSchema>[] goPipe, //traffic releases for each
 			Pipe<TrafficAckSchema>[] ackPipe, 
-			HardwareImpl hardware, RS232Client rs232Client) {
+			HardwareImpl hardware, RS232Clientable rs232Client) {
 		
 		super(graphManager, hardware, ccToAdOut, goPipe, ackPipe);
 		this.fromCommandChannels = ccToAdOut;
@@ -136,6 +137,7 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 				return false;
 			}			
 		}
+		pipeIdx = -1;
 		return true;
 	}	
 

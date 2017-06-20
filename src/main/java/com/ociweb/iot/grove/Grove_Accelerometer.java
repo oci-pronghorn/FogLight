@@ -59,9 +59,9 @@ public class Grove_Accelerometer {
         i2cPayloadWriter.writeByte(register);
         target.i2cCommandClose();
 
-        DataInputBlobReader<I2CCommandSchema> i2cPayloadReader = target.i2cCommandOpen(address);
-        i2cPayloadReader.read(_buff, 0, 6);
-        target.i2cCommandClose();
+//        DataInputBlobReader<I2CCommandSchema> i2cPayloadReader = target.i2cCommandOpen(address);
+//        i2cPayloadReader.read(_buff, 0, 6);
+//        target.i2cCommandClose();
         
     }
     private static void readXYZ(FogCommandChannel target, double x,double y,double z){

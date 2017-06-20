@@ -41,7 +41,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_write(JNIEnv *env, jobject object, jint fd, jbyteArray message) {
     jbyte* buffer = (*env)->GetByteArrayElements(env, message, NULL);
     int textLength = strlen((const char*) buffer);
-    char* actualMessage = malloc(textLength + 1);
+    char actualMessage[textLength + 1];
     memcpy(actualMessage, buffer, textLength);
     actualMessage[textLength] = '\0';
     (*env)->ReleaseByteArrayElements(env, message, buffer, 0);
@@ -89,7 +89,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinu
 
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_writeFrom(JNIEnv *env, jobject object, jint fd, jbyteArray rawBuffer, jint start, jint maxLength) {
     jbyte* buffer = (*env)->GetByteArrayElements(env, rawBuffer, NULL);
-    char* actualMessage = malloc(maxLength + 1);
+    char actualMessage[maxLength + 1];
     memcpy(actualMessage, &buffer[start], maxLength * sizeof(char));
     actualMessage[maxLength] = '\0';
     (*env)->ReleaseByteArrayElements(env, rawBuffer, buffer, 0);

@@ -85,7 +85,7 @@ public class RS232ClientTest {
 
     @Test
     public void shouldWriteAndReadBytes() throws Exception {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             String str = "bazinga #" + i;
             client1.write((str).getBytes("UTF-8"));
 
@@ -99,7 +99,7 @@ public class RS232ClientTest {
 
     @Test
     public void shouldWriteBytesFromArrays() throws Exception {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             String str = "bazinga #" + i;
             int write = client1.writeFrom(str.getBytes("UTF-8"), 0, str.length());
 
@@ -113,7 +113,7 @@ public class RS232ClientTest {
 
     @Test
     public void shouldWriteBytesFromTwoArrays() throws Exception {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             String str = "bazinga #" + i;
             String str2 = "bazoinga #" + i;
             int write = client1.writeFrom(str.getBytes("UTF-8"), 0, str.length(),
@@ -131,7 +131,7 @@ public class RS232ClientTest {
 
     @Test
     public void shouldReadBytesIntoArrays() throws Exception {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             String str = "bazinga #" + i;
             client1.write((str).getBytes("UTF-8"));
 

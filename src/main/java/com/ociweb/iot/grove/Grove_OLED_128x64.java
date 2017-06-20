@@ -16,7 +16,6 @@ public class Grove_OLED_128x64 implements IODevice{
 		}
 		isStarted = true;
 
-
 		sendCommand(target, PUT_DISPLAY_TO_SLEEP);     //display off
 		sendCommand(target, WAKE_DISPLAY);  //display on
 		sendCommand(target, TURN_OFF_INVERSE_DISPLAY);  //Set Normal Display (default)
@@ -24,21 +23,6 @@ public class Grove_OLED_128x64 implements IODevice{
 		target.i2cFlushBatch();
 
 		return isStarted;
-	}
-
-
-
-
-	public static boolean sendCommand(FogCommandChannel ch, int b){
-		if (!ch.i2cIsReady()){
-			return false;
-		}
-		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
-		i2cPayloadWriter.write(Grove_OLED_128x64_Constants.COMMAND_MODE);
-		i2cPayloadWriter.write(b);
-		ch.i2cCommandClose();
-
-		return true;
 	}
 
 	public static boolean sendData(FogCommandChannel ch, int b ){
@@ -53,49 +37,40 @@ public class Grove_OLED_128x64 implements IODevice{
 	}
 
 	public static boolean setContrast(FogCommandChannel ch, int contrast){
-		if (sendCommand(ch, SET_CONTRAST_CONTROL) && sendCommand(ch, (byte)(contrast & 0xFF))){
-			ch.i2cFlushBatch();
-			return true;
-		}
-		else {
-			ch.i2cFlushBatch();
-			return false;
-		}
-
+		int[] commands = {SET_CONTRAST_CONTROL, contrast & 0xFF};
+		return sendCommands(ch, commands);
 	}
 
 	public static boolean setPageMode(FogCommandChannel ch){
-		if (sendCommand(ch,SET_MEMORY) && sendCommand(ch, (byte) 0x02) ){
-			ch.i2cFlushBatch();
-			return true ;
-		}
-		else {
-			ch.i2cFlushBatch();
-			return false;
-		}
+		int[] commands = {SET_MEMORY, 0x02};
+		return sendCommands(ch, commands);
 	}
 
 	public static boolean setHorizontalMode(FogCommandChannel ch){
-		if (sendCommand(ch,SET_MEMORY) && sendCommand(ch, (byte)0x00)){
-			ch.i2cFlushBatch();
-			return true;
-		}
-		else {
-			ch.i2cFlushBatch();
-			return false;
-		}
+		int[] commands = {SET_MEMORY, 0x00};
+		return sendCommands(ch, commands);
 	}
 
 	public static boolean setVerticalMode(FogCommandChannel ch){
-		if (sendCommand(ch,SET_MEMORY) && sendCommand(ch, (byte)0x01)){
-			ch.i2cFlushBatch();
-			return true;
-		}
-		else {
-			ch.i2cFlushBatch();
-			return false;
-		}
+		int[] commands = {SET_MEMORY, 0x01};
+		return sendCommands(ch,commands);
 	}
+	
+	public static boolean turnOnInverseDisplay(FogCommandChannel ch){
+		return sendCommands(ch, TURN_ON_INVERSE_DISPLAY);
+	}
+
+	public static boolean turnOffInverseDisplay(FogCommandChannel ch){
+		return sendCommands(ch, TURN_OFF_INVERSE_DISPLAY);
+	}
+	
+	public static boolean activateScroll(FogCommandChannel ch){
+		return sendCommands(ch, ACTIVATE_SCROLL);
+	}
+
+	public static boolean deactivateScroll(FogCommandChannel ch){
+		return sendCommands(ch, DEACTIVATE_SCROLL);
+	}	
 
 	/**
 	 * NOTE: this method leaves the display in horizontal mode
@@ -118,33 +93,14 @@ public class Grove_OLED_128x64 implements IODevice{
 
 		return true;
 	}
-
-	public static boolean turnOnInverseDisplay(FogCommandChannel ch){
-		if(sendCommand(ch, TURN_ON_INVERSE_DISPLAY)){
-			ch.i2cFlushBatch();
-			return true;
-
-		}
-		ch.i2cFlushBatch();
-		return false;
-	}
-
-	public static boolean turnOffInverseDisplay(FogCommandChannel ch){
-		if(sendCommand(ch, TURN_OFF_INVERSE_DISPLAY)){
-			ch.i2cFlushBatch();
-			return true;
-		}
-		ch.i2cFlushBatch();
-		return false;
-	}
-
-	public static boolean putChar(FogCommandChannel ch, char c){
+	
+	public static boolean printChar(FogCommandChannel ch, char c){
 		if (c > 127 || c < 32){
 			//'c' has no defined font for Grove_OLED_128x64");
 			return false;
 		}
 		for (int i = 0; i < 8; i++){
-			if (sendData(ch, (byte)BASIC_FONT[c][i])){	//successful send is expected to be more common
+			if (sendData(ch, (byte)BASIC_FONT[c-32][i])){	//successful send is expected to be more common
 				ch.i2cFlushBatch();
 			}
 			else {
@@ -154,13 +110,26 @@ public class Grove_OLED_128x64 implements IODevice{
 		}
 		return true;
 	}
-	public static boolean setTextXY(FogCommandChannel ch, int x, int y){
+
+	public static boolean printString(FogCommandChannel ch, String s){
+		for (char c: s.toCharArray()){
+			if (printChar(ch,c)){
+			} 
+			else {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	
+	public static boolean setTextRowCol(FogCommandChannel ch, int row, int col){
 		//bit-mask because x and y can only be within a certain range (0-7)
-		
+
 		//TODO: avoid three seperate if-statements by ANDing them in the condtional, is there a better way?
-		if (sendCommand(ch, (ROW_START_ADDRESS_PAGE_MODE + (x & 0x07))) 
-				&& sendCommand(ch,  (LOWER_COL_START_ADDRESS_PAGE_MODE + (8*y & 0x0F)))
-				&& sendCommand(ch,  (HIGHER_COL_START_ADDRESS_PAGE_MODE) + (8*y >> 4 & 0x0F)))
+		if (sendCommand(ch, (ROW_START_ADDRESS_PAGE_MODE + (row & 0x07))) 
+				&& sendCommand(ch,  (LOWER_COL_START_ADDRESS_PAGE_MODE + (8*col & 0x0F)))
+				&& sendCommand(ch,  (HIGHER_COL_START_ADDRESS_PAGE_MODE) + (8*col >> 4 & 0x0F)))
 		{
 			ch.i2cFlushBatch();
 			return true;
@@ -168,12 +137,67 @@ public class Grove_OLED_128x64 implements IODevice{
 		ch.i2cFlushBatch();
 		return false;
 	}
-	
-	public static boolean setPageModeAndTextXY(FogCommandChannel ch, int x, int y){
-		return setPageMode(ch) && setTextXY(ch,x,y);
-		
+
+	public static boolean setPageModeAndTextRowCol(FogCommandChannel ch, int row, int col){
+		return setPageMode(ch) && setTextRowCol(ch,row,col);
+
 	}
 
+	public static boolean clear(FogCommandChannel ch){
+		if (setPageMode(ch)){
+		} else {
+			return false;
+		}
+
+		for (int row = 0; row < 8; row++){
+			setTextRowCol(ch, row, 0);
+			if (printString(ch,"                ")){
+				//16 spaces will clear up an entire row
+			}
+			else {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static boolean cleanClear(FogCommandChannel ch){
+		if (sendCommand(ch, PUT_DISPLAY_TO_SLEEP)
+				&& clear(ch) 
+				&& sendCommand(ch, WAKE_DISPLAY))
+		{
+			ch.i2cFlushBatch();
+			return true;
+		}
+		ch.i2cFlushBatch();		
+		return false;
+	}
+	
+	public static boolean sendCommand(FogCommandChannel ch, int b){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
+		i2cPayloadWriter.write(Grove_OLED_128x64_Constants.COMMAND_MODE);
+		i2cPayloadWriter.write(b);
+		ch.i2cCommandClose();
+
+		return true;
+	}
+	
+	public static boolean sendCommands(FogCommandChannel ch, int... commands){
+		for (int com: commands)
+			if (sendCommand(ch, com)){
+				ch.i2cFlushBatch();
+			} else {
+				ch.i2cFlushBatch();
+				return false;
+			}
+
+		return true;
+	}
+
+	@Deprecated 
 	private static boolean writeByteSequence(FogCommandChannel ch, byte[] seq){
 		if(!ch.i2cIsReady()){
 			return false;

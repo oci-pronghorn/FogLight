@@ -10,6 +10,7 @@ public class IoTApp implements FogApp
 {
 	private static final Port THUMBJOYSTICK_PORT_X = A0;
 	private static final Port THUMBJOYSTICK_PORT_Y = A1;
+	private static final String GroveTwig = null;
 
 	@Override
 	public void declareConnections(Hardware c) {
@@ -23,26 +24,20 @@ public class IoTApp implements FogApp
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		final GreenCommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-			switch (port){
-			case A0:
+			if ( port == THUMBJOYSTICK_PORT_X){
 				//the X value should be roughly between 200 to 800 unless pressed
-				if (value < 1023){
+				if (!ThumbJoystick.isPressed(value)){
 					System.out.println("X: "+value);
 				}
 				else {
 					System.out.println("Pressed");
 				}
-				break;
-				
-			case A1:
+			}
+			
+			else if (port == THUMBJOYSTICK_PORT_Y){
 				System.out.println("Y: "+value);
-				break;
-				
-			default:
-				System.out.println("Please ensure that you are connecting to the correct physical port (A0)");
-				break;
+
 			}
 		});
 	}

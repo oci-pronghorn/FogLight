@@ -19,7 +19,7 @@ public class IoTApp implements FogApp
 
 		c.enableTelemetry(true);
 
-		webRoute = c.registerRoute(RestfulWaterSensorConstants.requestRoute);
+		webRoute = c.registerRoute(requestRoute);
 	}
 
 

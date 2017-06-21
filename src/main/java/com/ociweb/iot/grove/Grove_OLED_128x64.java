@@ -29,11 +29,24 @@ public class Grove_OLED_128x64 implements IODevice{
 	};
 
 	public static boolean isStarted = false;
+	
+	/**
+	 * Flashes the display screen off and then on and ensures that the inverse_display and scrolling functions
+	 *  are turned off. The display is left in the Horizontal mode afterwards.
+	 * @param target is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection.
+	 * @return true if the commands were sent, returns false if any single command was not sent.
+	 */
 	public static boolean init(FogCommandChannel target){
 		int commands[] = {PUT_DISPLAY_TO_SLEEP, WAKE_DISPLAY, TURN_OFF_INVERSE_DISPLAY, DEACTIVATE_SCROLL};
-		return sendCommands(target, commands);
+		return sendCommands(target, commands) && setHorizontalMode(target);
 	}
 
+	/**
+	 * Sends a "data" identifier byte followed by the user-supplied byte over the i2c.
+	 * @param ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection to this OLED.
+	 * @param b is the byte to be sent in the form of an integer (the L.S. 8 bits are used.)
+	 * @return true if the command byte and the supplied byte were succesfully sent, false otherwise.
+	 */
 	public static boolean sendData(FogCommandChannel ch, int b ){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -45,38 +58,97 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
+	/**
+	 * Sets the contrast (olso refered to as brightness) of the display.
+	 * @param ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection to this OLED.
+	 * @param contrast is a value ranging from 0 to 255. A bit-mask is enforced so that only the lowest 8 bits of the supplied integer will matter.
+	 * @return true if the command byte and the contrast byte were sent, false otherwise.
+	 */
 	public static boolean setContrast(FogCommandChannel ch, int contrast){
 		int[] commands = {SET_CONTRAST_CONTROL, contrast & 0xFF};
 		return sendCommands(ch, commands);
 	}
 
+	/**
+	 * Sets the display in page mode, necessary for {@link #setTextRowCol(FogCommandChannel,int,int)}, {@link #printString(FogCommandChannel, String)} 
+	 * and {@link #printChar(FogCommandChannel, char)}. 
+	 * @param ch is the ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection to this OLED.
+	 * @return true if all three bytes needed were sent, false otherwise.
+	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
+	 *for information on page mode.
+	 */
 	public static boolean setPageMode(FogCommandChannel ch){
 		int[] commands = {SET_MEMORY, 0x02};
 		return sendCommands(ch, commands);
 	}
 
+	/**
+	 * Sets the display in horizontal mode, necessary for {@link #drawBitmap(FogCommandChannel, int[])} and {@link #displayImage(FogCommandChannel, int[][])}
+	 * Note that both {@link #drawBitmap(FogCommandChannel, int[])} and {@link #displayImage(FogCommandChannel, int[][])} already automatically set the display in
+	 * horizontal mode.
+	 * @param ch is the ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection to this OLED.
+	 * @return true if all three bytes needed were sent, false otherwise.
+	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
+	 * for information on horizontal mode. 
+	 */
+	
 	public static boolean setHorizontalMode(FogCommandChannel ch){
 		int[] commands = {SET_MEMORY, 0x00};
 		return sendCommands(ch, commands);
 	}
 
+	/**
+	 * Sets the display in vertical mode.
+	 * @param ch is the ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection to this OLED.
+	 * @return true if all three bytes needed were sent, false otherwise. 
+	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
+	 * for information on vertical mode.
+	 */
+	
 	public static boolean setVerticalMode(FogCommandChannel ch){
 		int[] commands = {SET_MEMORY, 0x01};
 		return sendCommands(ch,commands);
 	}
 
+	/**
+	 * Turns on the inverse feature which switches all black pixels with white pixels and vice versa.
+	 * @param ch is the ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection of this OLED.
+	 * @return true if all two necessary bytes were sent, false otherwise.
+	 */
 	public static boolean turnOnInverseDisplay(FogCommandChannel ch){
 		return sendCommands(ch, TURN_ON_INVERSE_DISPLAY);
 	}
 
+	/**
+	 * Turns off the inverse feature which switches all black pixels with white pixels and vice versa.
+	 * @param ch is the ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection of this OLED.
+	 * @return true if all two necessary bytes were sent, false otherwise.
+	 */
 	public static boolean turnOffInverseDisplay(FogCommandChannel ch){
 		return sendCommands(ch, TURN_OFF_INVERSE_DISPLAY);
 	}
 
+	/**
+	 * Activates the scroll feature.
+	 * NOTE: One of the four set-up methods ({@link #setUpRightContinuousVerticalHorizontalScroll(FogCommandChannel, ScrollSpeed, int, int, int)},
+	 * {@link #setUpLeftContinuousVerticalHorizontalScroll(FogCommandChannel, ScrollSpeed, int, int, int)}, {@link #setUpRightContinuousHorizontalScroll(FogCommandChannel, ScrollSpeed, int, int)},
+	 * and {@link #setUpLeftContinuousVerticalHorizontalScroll(FogCommandChannel, ScrollSpeed, int, int, int)}) needs to be invoked first.
+	 * @param ch is the ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection of this OLED.
+	 * @return true if all two necessary bytes were sent, false otherwise.
+	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
+	 * for information on scrolling.
+	 */
 	public static boolean activateScroll(FogCommandChannel ch){
 		return sendCommands(ch, ACTIVATE_SCROLL);
 	}
 
+	/**
+	 * Deactivates the scroll feature.
+	 * @param ch is the ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection of this OLED.
+	 * @return true if all two necessary bytes were sent, false otherwise.
+	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
+	 * for information on scrolling.
+	 */
 	public static boolean deactivateScroll(FogCommandChannel ch){
 		return sendCommands(ch, DEACTIVATE_SCROLL);
 	}	

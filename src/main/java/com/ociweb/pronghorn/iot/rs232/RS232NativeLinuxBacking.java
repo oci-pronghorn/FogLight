@@ -40,6 +40,7 @@ public final class RS232NativeLinuxBacking implements RS232NativeBacking {
     public native int open(String port, int baud);
     public native int close(int fd);
     public native int write(int fd, byte[] message);
+    public native int getBytesInOutputBuffer(int fd);
     public native int getAvailableBytes(int fd);
     public native byte[] readBlocking(int fd, int size);
     public native byte[] read(int fd, int size);

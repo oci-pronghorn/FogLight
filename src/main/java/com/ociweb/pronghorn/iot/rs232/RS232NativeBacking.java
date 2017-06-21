@@ -68,6 +68,16 @@ public interface RS232NativeBacking {
     int write(int fd, byte[] message);
 
     /**
+     * Returns the number of unsent bytes in the serial output buffer.
+     *
+     * @param fd File descriptor for the port, obtained from a call
+     *           to {@link #open(String, int)}
+     *
+     * @return The number of unsent bytes in the serial output buffer.
+     */
+    int getBytesInOutputBuffer(int fd);
+
+    /**
      * Returns the number of available bytes for reading on the serial port.
      *
      * @param fd File descriptor for the port, obtained from a call

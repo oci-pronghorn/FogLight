@@ -108,6 +108,19 @@ public class RS232Client implements RS232Clientable {
     }
 
     /**
+     * Returns the number of unsent bytes in the serial output buffer.
+     *
+     * @return The number of unsent bytes in the serial output buffer.
+     */
+    public int getBytesInOutputBuffer() {
+        if (connected) {
+            return backing.getBytesInOutputBuffer(fd);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
      * Returns the number of available bytes for reading on this serial port.
      *
      * @return The number of bytes currently available for reading on this serial port.

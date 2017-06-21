@@ -7,22 +7,31 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
+import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Direction.*;
 public class Grove_OLED_128x64 implements IODevice{
+
+	//this enum is here because makers will need this and they would already have the Grove_OLED_128 class imported
+	public static enum ScrollSpeed{
+		Scroll_2Frames(0x07),
+		Scroll_3Frames(0x04),
+		Scroll_4Frames(0x05),
+		Scroll_5Frames(0x00),
+		Scroll_25Frames(0x06),
+		Scroll_64Frames(0x01),
+		Scroll_128Frames(0x02),
+		Scroll_256Frames(0x03);
+
+		final int command;
+		private ScrollSpeed(int command){ 
+			this.command = command;
+		};
+
+	};
 
 	public static boolean isStarted = false;
 	public static boolean init(FogCommandChannel target){
-		if (!target.i2cIsReady()) {
-			return false;
-		}
-		isStarted = true;
-
-		sendCommand(target, PUT_DISPLAY_TO_SLEEP);     //display off
-		sendCommand(target, WAKE_DISPLAY);  //display on
-		sendCommand(target, TURN_OFF_INVERSE_DISPLAY);  //Set Normal Display (default)
-
-		target.i2cFlushBatch();
-
-		return isStarted;
+		int commands[] = {PUT_DISPLAY_TO_SLEEP, WAKE_DISPLAY, TURN_OFF_INVERSE_DISPLAY, DEACTIVATE_SCROLL};
+		return sendCommands(target, commands);
 	}
 
 	public static boolean sendData(FogCommandChannel ch, int b ){
@@ -55,7 +64,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		int[] commands = {SET_MEMORY, 0x01};
 		return sendCommands(ch,commands);
 	}
-	
+
 	public static boolean turnOnInverseDisplay(FogCommandChannel ch){
 		return sendCommands(ch, TURN_ON_INVERSE_DISPLAY);
 	}
@@ -63,7 +72,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	public static boolean turnOffInverseDisplay(FogCommandChannel ch){
 		return sendCommands(ch, TURN_OFF_INVERSE_DISPLAY);
 	}
-	
+
 	public static boolean activateScroll(FogCommandChannel ch){
 		return sendCommands(ch, ACTIVATE_SCROLL);
 	}
@@ -71,7 +80,85 @@ public class Grove_OLED_128x64 implements IODevice{
 	public static boolean deactivateScroll(FogCommandChannel ch){
 		return sendCommands(ch, DEACTIVATE_SCROLL);
 	}	
+	
+	public static boolean setMultiplexRatio(FogCommandChannel ch, int mux_ratio){
+		int [] commands = {SET_MUX_RATIO, mux_ratio & 0x3F};
+		return sendCommands(ch, commands);
+	}
+	
+	public static boolean setClockDivRatioAndOscFreq(FogCommandChannel ch, int clock_div_ratio, int osc_freq){
+		int [] commands = {SET_CLOCK_DIV_RATIO, (clock_div_ratio & 0x0F) | (osc_freq << 4 & 0xF0)};
+		return sendCommands(ch,commands);
+	}
+	public static boolean setVerticalDisplayOffset(FogCommandChannel ch, int offset){
+		int [] commands = {SET_DISPLAY_OFFSET,(offset & 0x3F)};
+		return sendCommands(ch, commands);
+	}
 
+	public static boolean setUpRightContinuousHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage){
+		return setUpContinuousHorizontalScroll(ch, speed, startPage, endPage, Right);
+	}
+	public static boolean setUpLeftContinuousHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage){
+		return setUpContinuousHorizontalScroll(ch, speed, startPage, endPage, Left);
+	}
+	
+	public static boolean setUpRightContinuousVerticalHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, 
+			int endPage, int offset){
+		return setUpContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, Vertical_Right);
+	}
+	
+	public static boolean setUpLeftContinuousVerticalHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, 
+			int endPage, int offset){
+		return setUpContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, Vertical_Left);
+	}
+	
+	private static boolean setUpContinuousHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage, 
+			Direction orientation){
+		int dir_command = 0;
+		switch (orientation){
+		case Right:
+			dir_command = SET_RIGHT_HOR_SCROLL;
+			break;
+		case Left:
+			dir_command = SET_LEFT_HOR_SCROLL;
+			break;
+		}
+		int [] commands = {
+				dir_command, 
+				0x00,  //dummy byte as required
+				startPage & 0x07, 
+				speed.command, 
+				endPage & 07, 
+				0xFF, //dummy byte as required
+				0x00};//dummy byte as required
+
+		sendCommands(ch,commands);
+		return false;
+	}
+
+	private static boolean setUpContinuousVerticalHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage,
+			int offset, Direction orientation){
+		int dir_command = 0;
+		switch (orientation){
+		case Vertical_Left:
+			dir_command =  SET_VER_AND_RIGHT_HOR_SCROLL;
+			break;
+		case Vertical_Right:
+			dir_command =  SET_VER_AND_LEFT_HOR_SCROLL;
+			break;	
+		}
+		
+		int [] commands = {
+				dir_command, 
+				0x00,  //dummy byte as required
+				startPage & 0x07, 
+				speed.command, 
+				endPage & 0x07, 
+				offset & 0x1F};
+		
+		return true;
+		
+	}
 	/**
 	 * NOTE: this method leaves the display in horizontal mode
 	 * @param ch
@@ -80,7 +167,6 @@ public class Grove_OLED_128x64 implements IODevice{
 	 */
 	public static boolean drawBitmap(FogCommandChannel ch, int[] map){
 		if (!setHorizontalMode(ch)){
-
 			return false;
 		}
 		for (int bitmap: map){
@@ -93,7 +179,7 @@ public class Grove_OLED_128x64 implements IODevice{
 
 		return true;
 	}
-	
+
 	public static boolean printChar(FogCommandChannel ch, char c){
 		if (c > 127 || c < 32){
 			//'c' has no defined font for Grove_OLED_128x64");
@@ -122,14 +208,14 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
-	
-	public static boolean setTextRowCol(FogCommandChannel ch, int row, int col){
+
+	public static boolean setTextRowCol(FogCommandChannel ch, int row, int col){ //only works in Page Mode
 		//bit-mask because x and y can only be within a certain range (0-7)
 
 		//TODO: avoid three seperate if-statements by ANDing them in the condtional, is there a better way?
 		if (sendCommand(ch, (ROW_START_ADDRESS_PAGE_MODE + (row & 0x07))) 
 				&& sendCommand(ch,  (LOWER_COL_START_ADDRESS_PAGE_MODE + (8*col & 0x0F)))
-				&& sendCommand(ch,  (HIGHER_COL_START_ADDRESS_PAGE_MODE) + (8*col >> 4 & 0x0F)))
+				&& sendCommand(ch,  (HIGHER_COL_START_ADDRESS_PAGE_MODE) + ((8*col >> 4) & 0x0F)))
 		{
 			ch.i2cFlushBatch();
 			return true;
@@ -145,6 +231,7 @@ public class Grove_OLED_128x64 implements IODevice{
 
 	public static boolean clear(FogCommandChannel ch){
 		if (setPageMode(ch)){
+			
 		} else {
 			return false;
 		}
@@ -172,7 +259,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		ch.i2cFlushBatch();		
 		return false;
 	}
-	
+
 	public static boolean sendCommand(FogCommandChannel ch, int b){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -184,7 +271,7 @@ public class Grove_OLED_128x64 implements IODevice{
 
 		return true;
 	}
-	
+
 	public static boolean sendCommands(FogCommandChannel ch, int... commands){
 		for (int com: commands)
 			if (sendCommand(ch, com)){
@@ -197,6 +284,24 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
+	public static boolean displayImage(FogCommandChannel ch, int[][] raw_image){
+		int[] bitmap = new int[1024];//64*128 divided by 8 (since there are 8 bits per byte)
+		int counter = 0;
+		for (int page = 0; page < 8; page++){
+			for (int seg = 0; seg < 128; seg++){
+				bitmap[counter] = parseColByte(raw_image, page*8, seg);
+				counter++;
+			}
+		}
+		return drawBitmap(ch, bitmap);
+	}
+	private static int parseColByte(int[][]raw_image, int row, int col){
+		int ret = 0;
+		for (int i = 0; i < 8; i ++){
+			ret = ret | (raw_image[row+i][col] & 0x01) << i;
+		}
+		return ret;
+	}
 	@Deprecated 
 	private static boolean writeByteSequence(FogCommandChannel ch, byte[] seq){
 		if(!ch.i2cIsReady()){
@@ -219,7 +324,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		}
 		return writeByteSequence(ch, byteSeq);
 	}
-
+	
 	@Override
 	public int response() {
 		return 20;

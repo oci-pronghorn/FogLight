@@ -40,12 +40,17 @@ public class RS232Client implements RS232Clientable {
     public static final int B3500000 = 0010016;
     public static final int B4000000 = 0010017;
 
+    private int failCount = 25;
     /**
      * @param port Port identifier to open.
      * @param baud Baud rate to use.
      */
     public RS232Client(String port, int baud) {
         try {
+        	assert(baud>=B9600);
+        	assert(baud<=B4000000);
+        	logger.info("connecting to serial {} {}",port,baud);
+        	
             backing = new RS232NativeLinuxBacking();
             fd = backing.open(port, baud);
 
@@ -101,7 +106,13 @@ public class RS232Client implements RS232Clientable {
      */
     public int write(byte[] message) {
         if (connected) {
-            return backing.write(fd, message);
+        	logger.info("call write {}",message.length);
+            int result = backing.write(fd, message);
+            logger.info("did write {}",result);
+            if (0==result && --failCount<=0) {
+            	System.exit(-1);
+            }
+            return result;
         } else {
             return -1;
         }
@@ -168,6 +179,7 @@ public class RS232Client implements RS232Clientable {
      */
     public byte[] read(int size) {
         if (connected) {
+        
             return backing.read(fd, size);
         } else {
             return new byte[0];
@@ -185,8 +197,15 @@ public class RS232Client implements RS232Clientable {
      */
     public int writeFrom(byte[] buffer, int start, int maxLength) {
         if (connected) {
-            return backing.writeFrom(fd, buffer, start, maxLength);
+        	logger.info("call write {}",maxLength);
+            int result = backing.writeFrom(fd, buffer, start, maxLength);
+            logger.info("did write {}",result);
+            if (0==result && --failCount<=0) {
+            	System.exit(-1);
+            }
+            return result;
         } else {
+        	logger.info("not connected");
             return -1;
         }
     }
@@ -206,9 +225,16 @@ public class RS232Client implements RS232Clientable {
     public int writeFrom(byte[] buffer1, int start1, int maxLength1,
                          byte[] buffer2, int start2, int maxLength2) {
         if (connected) {
-            return backing.writeFromTwo(fd, buffer1, start1, maxLength1,
+        	logger.info("called write {} {} ",maxLength1,maxLength2);
+            int result = backing.writeFromTwo(fd, buffer1, start1, maxLength1,
                                             buffer2, start2, maxLength2);
+            logger.info("write results {} ", result);
+            if (0==result && --failCount<=0) {
+            	System.exit(-1);
+            }
+            return result;
         } else {
+        	logger.info("not connected");
             return -1;
         }
     }

@@ -48,7 +48,7 @@ public class PiCommandChannel extends FogCommandChannel{
 
 				PipeWriter.publishWrites(i2cOutput);
 
-                GreenCommandChannel.publishGo(1,i2cPipeIdx,this);
+                GreenCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
                 return true;
 			} else {			  
                 return false; 
@@ -73,7 +73,7 @@ public class PiCommandChannel extends FogCommandChannel{
 
                 PipeWriter.publishWrites(i2cOutput);
 
-                GreenCommandChannel.publishGo(1,i2cPipeIdx,this);
+                GreenCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
                 return true;
             } else {              
                 return false; 
@@ -146,7 +146,7 @@ public class PiCommandChannel extends FogCommandChannel{
                                 
                 PipeWriter.publishWrites(i2cOutput);                    
                 
-                GreenCommandChannel.publishGo(msgCount,i2cPipeIdx,this);
+                GreenCommandChannel.publishGo(msgCount,HardwareImpl.i2cIndex(builder),this);
                                     
                 return true;
             }else{
@@ -192,7 +192,7 @@ public class PiCommandChannel extends FogCommandChannel{
 				logger.debug("CommandChannel sends analogWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
 				
-				GreenCommandChannel.publishGo(1,i2cPipeIdx,this);				
+				GreenCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);				
 				return true;
 			}else{
 				return false;
@@ -245,7 +245,7 @@ public class PiCommandChannel extends FogCommandChannel{
                 PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 PipeWriter.publishWrites(i2cOutput);
 
-                GreenCommandChannel.publishGo(2,i2cPipeIdx,this);
+                GreenCommandChannel.publishGo(2,HardwareImpl.i2cIndex(builder),this);
                 
                 return true;
             }else{
@@ -268,7 +268,7 @@ public class PiCommandChannel extends FogCommandChannel{
                 PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
                 PipeWriter.publishWrites(i2cOutput);
 
-                GreenCommandChannel.publishGo(1,i2cPipeIdx,this);
+                GreenCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
                 return true;
             } else {              
                 return false; 

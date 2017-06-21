@@ -39,7 +39,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		
 		model = PiModel.detect();
 		rs232ClientDevice = model.serialDevice();
-		rs232ClientBaud = RS232Client.B57600;
+		rs232ClientBaud = RS232Client.B9600;
 		bluetoothDevice = model.bluetoothDevice();
 		
 		System.out.println("You are running on the GrovePi hardware on the "+model);

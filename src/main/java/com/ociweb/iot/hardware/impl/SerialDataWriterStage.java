@@ -1,5 +1,7 @@
 package com.ociweb.iot.hardware.impl;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,8 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 		super(graphManager, hardware, ccToAdOut, goPipe, ackPipe);
 		this.fromCommandChannels = ccToAdOut;
 		this.rs232Client = rs232Client;
+		
+		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 1000_000_000, this);
 	}
 
 	
@@ -95,16 +99,23 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 
 	private boolean pumpData(int activePipe) {
 		Pipe<SerialOutputSchema> pipe = fromCommandChannels[activePipe];
-		int lenFromOffsetToEnd = pipe.sizeOfBlobRing-pos;           
+		final int lenFromOffsetToEnd = pipe.sizeOfBlobRing - pos;           
 		
 		if (lenFromOffsetToEnd>=length) {
 		    //simple add bytes
-			int wroteLen = rs232Client.writeFrom(backing, pos, length);
+			
+			int wroteLen = rs232Client.write(Arrays.copyOfRange(backing, pos, pos+length));
+			
+			///////////
+			//NASTY HACK TO TEST C CODE
+			//////////
+			//int wroteLen = rs232Client.writeFrom(backing, pos, length);
 			if (wroteLen < length) {
 				//only wrote some, now what?
 				//update position
 				if (wroteLen>=0) {
-					pos += wroteLen;
+					pos = mask&(pos+wroteLen);
+					length -= wroteLen;
 				}
 				//
 				//now store for write later
@@ -114,9 +125,11 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 			
 		} else {                        
 		    //rolled over the end of the buffer
-			int wroteLenA = rs232Client.writeFrom(backing, pos, lenFromOffsetToEnd);
+			//int wroteLenA = rs232Client.writeFrom(backing, pos, lenFromOffsetToEnd);
+			int wroteLenA = rs232Client.write(Arrays.copyOfRange(backing, pos, pos+lenFromOffsetToEnd));
 			if (wroteLenA>=0) {
-				pos += wroteLenA;
+				pos = mask&(pos+wroteLenA);
+				length -= wroteLenA;
 			}
 			if (wroteLenA < lenFromOffsetToEnd) {
 				//
@@ -125,11 +138,12 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 				return false;
 			}
 			
-			int len2 = length-lenFromOffsetToEnd;
-			int wroteLenB = rs232Client.writeFrom(backing, 0, len2);
-			if (wroteLenB < len2) {
+	///		int wroteLenB = rs232Client.writeFrom(backing, pos, len2);
+			int wroteLenB = rs232Client.write(Arrays.copyOfRange(backing, pos, pos+length));
+			if (wroteLenB < length) {
 				if (wroteLenB>=0) {
-					pos += wroteLenB;
+					pos = mask&(pos+wroteLenB);
+					length -= wroteLenB;
 				}
 				//
 				//now store for write later

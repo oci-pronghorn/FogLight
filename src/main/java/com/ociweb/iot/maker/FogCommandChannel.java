@@ -41,9 +41,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
     public static final int PIN_WRITER      = 1<<28;
     public static final int SERIAL_WRITER   = 1<<27;
     public static final int BT_WRITER       = 1<<26;
-    
-	protected final byte i2cPipeIdx;
-	private final byte serialPipeIdx;
+
     
 	private final int MAX_COMMAND_FRAGMENTS_SIZE;
         
@@ -107,16 +105,12 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
        
        
        if (null!=serialOutput) {
-    	   serialPipeIdx = (byte)--optionalPipeCount;
+    	   int serialPipeIdx = (byte)--optionalPipeCount;
     	   optionalOutputPipes[serialPipeIdx] = serialOutput;
-       } else {
-    	   serialPipeIdx = -1;
        }
        if (null!=i2cOutput) {
-    	   i2cPipeIdx = (byte)(--optionalPipeCount);
+    	   int i2cPipeIdx = (byte)(--optionalPipeCount);
     	   optionalOutputPipes[i2cPipeIdx] = i2cOutput;
-       } else {
-    	   i2cPipeIdx = -1;
        }
        if (null!=pinOutput) {
     	   optionalOutputPipes[--optionalPipeCount] = pinOutput;
@@ -130,7 +124,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
 			@SuppressWarnings("unchecked")
 			@Override
 			protected DataOutputBlobWriter<SerialOutputSchema> createNewBlobWriter() {
-				return new SerialWriter(this, HardwareImpl.serialIndex(hardware));
+				return new SerialWriter(this);
 			}    		
     	};
     }
@@ -259,8 +253,8 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
             pw.closeHighLevelField(SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
             
             PipeWriter.publishWrites(serialOutput);     
-            
-            GreenCommandChannel.publishGo(1, serialPipeIdx, (GreenCommandChannel<?>) this);
+           
+            GreenCommandChannel.publishGo(1, HardwareImpl.serialIndex(builder), (GreenCommandChannel<?>) this);
             
             return true;
             
@@ -354,9 +348,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
         }
     }
 
-    /**
-     * TODO: What does this do?
-     */
+
     public void i2cCommandClose() {  
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {

@@ -704,6 +704,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return hardware.IDX_SER;
 	}
 	
+	public static int i2cIndex(HardwareImpl hardware) {
+		return hardware.IDX_I2C;
+	}
+	
 	@Override
 	public int pubSubIndex() {
 		return IDX_MSG;

@@ -2,17 +2,10 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.iot.grove.GroveTwig.*;
-import java.lang.*;
-
-import com.ociweb.gl.api.TimeTrigger;
 
 import com.ociweb.iot.maker.*;
 
 import static com.ociweb.iot.maker.Port.*;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 
 public class IoTApp implements FogApp {
            
@@ -50,9 +43,9 @@ public class IoTApp implements FogApp {
                     brighter = true;
                 }
                 System.out.println("going down "+lightIntensity);
-            }            
+            }
+            System.out.println(127* Math.sin(time/6.14) + 127);
             });            
     }
-    
 }
 

@@ -18,19 +18,19 @@ public class IoTApp implements FogApp
     
     @Override
     public void declareConnections(Hardware c) {
-
+        
         c.connect(LED, LED1_PORT);
         c.connect(LED,LED2_PORT);
         c.connect(AngleSensor,ANGLE_SENSOR);
         
     }
-
-
+    
+    
     @Override
     public void declareBehavior(FogRuntime runtime) {
         final FogCommandChannel led1Channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         final FogCommandChannel led2Channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-
+        
         runtime.addAnalogListener((port, time, durationMillis, average, value)->{
             if(value>512){
                 led2Channel.setValue(LED2_PORT,true);
@@ -38,9 +38,6 @@ public class IoTApp implements FogApp
                 led2Channel.setValue(LED2_PORT,false);
             }
             led1Channel.setValue(LED1_PORT,value/4);
-        }).includePorts(ANGLE_SENSOR); 
-
+        }).includePorts(ANGLE_SENSOR);   
     }
-        
-  
 }

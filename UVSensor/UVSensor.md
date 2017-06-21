@@ -2,15 +2,18 @@
 - [Raspberry Pi](https://www.raspberrypi.org/)
 - [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
 
-# Starting a FogLighter project using Maven: 
+# Starting a FogLighter project using Maven:
 [Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
- 
+
 # Example project:
- 
+
 The following sketch demonstrates a simple application to measure the illumination density using a UV Sensor.
 
 Demo code (copy and paste this to a FogLighter project):
+
 ```java
+package com.ociweb.grove;
+
 
 import static com.ociweb.iot.grove.GroveTwig.*;
 
@@ -41,10 +44,11 @@ public class IoTApp implements FogApp
         });   
     }
 }
+```
 
-```			
 
- 
- 
- 
- 
+
+
+
+
+

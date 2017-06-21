@@ -2,15 +2,18 @@
 - [Raspberry Pi](https://www.raspberrypi.org/)
 - [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
 
-# Starting a FogLighter project using Maven: 
+# Starting a FogLighter project using Maven:
 [Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
- 
+
 # Example project:
- 
+
 The following sketch demonstrates a simple application to control two LEDs using an Angle Sensor.
 
 Demo code (copy and paste this to a FogLighter project):
+
 ```java
+package com.ociweb.grove;
+
 
 import static com.ociweb.iot.grove.GroveTwig.*;
 
@@ -36,6 +39,7 @@ public class IoTApp implements FogApp
         
     }
     
+    
     @Override
     public void declareBehavior(FogRuntime runtime) {
         final FogCommandChannel led1Channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
@@ -48,12 +52,14 @@ public class IoTApp implements FogApp
                 led2Channel.setValue(LED2_PORT,false);
             }
             led1Channel.setValue(LED1_PORT,value/4);
-        }).includePorts(ANGLE_SENSOR);       
-    }    
+        }).includePorts(ANGLE_SENSOR);   
+    }
 }
-```			
-When executed, turning the knob will cause LED2 to turn on/off and LED1 to fade in/out accordingly. 
- 
- 
- 
- 
+```
+
+
+When executed, turning the knob will cause LED2 to turn on/off and LED1 to fade in/out accordingly.
+
+
+
+

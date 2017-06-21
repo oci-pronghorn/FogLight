@@ -8,27 +8,36 @@ import static com.ociweb.iot.maker.Port.*;
 
 public class Timer implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
-
+	private static final long timeInterval = 60_000; //Time in milliseconds
+	private static long startTime;
+	private static boolean haveStartTime = false;
 
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-
+    	c.setTriggerRate(1); //the rate at which time is checked in milliseconds
         
     }
 
-
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
 
+    	runtime.addTimeListener((time, instance)->{
+    		//Demo 1
+    		if(time%timeInterval == 0){	
+        		System.out.println(time);
+    		}
+    		
+    		////////////////////////////////////////
+    		////////////////////////////////////////
+    		
+    		//Demo 2
+    		//if(!haveStartTime){
+    		//	startTime = time;
+    		//	haveStartTime = true;
+    		//}
+    		//if((time-startTime)%timeInterval == 0){
+    		//	System.out.println(time);
+    		//}
+    	});
     }
-          
 }

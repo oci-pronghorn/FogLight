@@ -58,7 +58,12 @@ public class TestHardware extends HardwareImpl {
 			/////////////
 			///Appendables.appendArray(System.out, '[',backing,pos,Integer.MAX_VALUE,']',length);
 			/////////////
-			return 0;
+			return length; //must be length to indicate all consumed
+		}
+
+		@Override
+		public int write(byte[] data) {
+			return data.length;
 		}
     	
     };
@@ -77,6 +82,8 @@ public class TestHardware extends HardwareImpl {
     
     
     protected RS232Clientable buildSerialClient() {
+    	System.err.println("baud select: "+this.rs232ClientBaud);
+    	
     	return fakeRS232;
     }
     

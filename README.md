@@ -81,7 +81,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - LED
   - [wiki](http://wiki.seeed.cc/Grove-LED_Socket_Kit/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LED/LED.md)
 - Light Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Light_Sensor/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LightSensor/LightSensor.md)
@@ -117,13 +117,13 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/ThumbJoystick/readme.md)
 - Touch Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Touch_Sensor/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/TouchSensor/TouchSensor.md)
 - UV Sensor
   - [wiki](http://wiki.seeed.cc/Grove-UV_Sensor/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UVSensor/UVSensor.md)
 - Ultrasonic Rangefinder
   - [wiki](http://wiki.seeed.cc/Grove-Ultrasonic_Ranger/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UltrasonicRangefinder/UltrasonicSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UltrasonicRangefinder/UltrasonicRangefinder.md)
 - Variable Color LED
   - [wiki](http://wiki.seeed.cc/Grove-Variable_Color_LED/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/VariableColorLED/VariableColorLED.md)

@@ -284,6 +284,24 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
+	public static boolean displayImage(FogCommandChannel ch, int[][] raw_image){
+		int[] bitmap = new int[1024];//64*128 divided by 8 (since there are 8 bits per byte)
+		int counter = 0;
+		for (int page = 0; page < 8; page++){
+			for (int seg = 0; seg < 128; seg++){
+				bitmap[counter] = parseColByte(raw_image, page*8, seg);
+				counter++;
+			}
+		}
+		return drawBitmap(ch, bitmap);
+	}
+	private static int parseColByte(int[][]raw_image, int row, int col){
+		int ret = 0;
+		for (int i = 0; i < 8; i ++){
+			ret = ret | (raw_image[row+i][col] & 0x01) << i;
+		}
+		return ret;
+	}
 	@Deprecated 
 	private static boolean writeByteSequence(FogCommandChannel ch, byte[] seq){
 		if(!ch.i2cIsReady()){
@@ -306,7 +324,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		}
 		return writeByteSequence(ch, byteSeq);
 	}
-
+	
 	@Override
 	public int response() {
 		return 20;

@@ -2,17 +2,19 @@
 - [Raspberry Pi](https://www.raspberrypi.org/)
 - [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
 
-# Starting a FogLighter project using Maven: 
+# Starting a FogLighter project using Maven:
 [Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
- 
+
 # Example project:
- 
+
 The following sketch demonstrates a simple application to measure the depth of water in a tank and output it on an LCD screen.
 
 Demo code (copy and paste this to a FogLighter project). There will be 2 .java files in the source code folder: IoTApp.java and IoTBehavior.java:
 
 In IoTApp.java:
+
 ```java
+package com.ociweb.grove;
 
 import static com.ociweb.iot.grove.GroveTwig.Button;
 import static com.ociweb.iot.grove.GroveTwig.UltrasonicRanger;
@@ -51,11 +53,20 @@ public class IoTApp implements FogApp
         runtime.registerListener(new IoTBehavior(runtime));
     }
 }
-
 ```
+
+
 In IoTBehavior.java:
 
+
 ```java
+/*
+* To change this license header, choose License Headers in Project Properties.
+* To change this template file, choose Tools | Templates
+* and open the template in the editor.
+*/
+package com.ociweb.grove;
+
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.grove.Grove_LCD_RGB;
@@ -74,7 +85,7 @@ public class IoTBehavior implements AnalogListener{
     public IoTBehavior(FogRuntime runtime) {
         
         channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-       
+        
     }
     
     @Override
@@ -91,16 +102,23 @@ public class IoTBehavior implements AnalogListener{
             builder.append("depth");
             
             Grove_LCD_RGB.commandForColor(channel, 200, 200, 180);
-            Grove_LCD_RGB.commandForText(channel, builder);   
-        }   
+            Grove_LCD_RGB.commandForText(channel, builder);
+            
+            
+        }
+        
+        
+        
     }
+    
 }
+```
 
-```			
+
 The sensor returns ```value``` which is the distance between the sensor and the water surface in _cm_
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+

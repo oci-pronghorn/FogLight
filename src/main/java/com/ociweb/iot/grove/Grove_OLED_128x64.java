@@ -10,6 +10,9 @@ import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Direction.*;
 public class Grove_OLED_128x64 implements IODevice{
 
+	
+
+	
 	//this enum is here because makers will need this and they would already have the Grove_OLED_128 class imported
 	public static enum ScrollSpeed{
 		Scroll_2Frames(0x07),
@@ -38,9 +41,8 @@ public class Grove_OLED_128x64 implements IODevice{
 	 */
 	public static boolean init(FogCommandChannel target){
 		int commands[] = {PUT_DISPLAY_TO_SLEEP, WAKE_DISPLAY, TURN_OFF_INVERSE_DISPLAY, DEACTIVATE_SCROLL};
-		return sendCommands(target, commands) && setHorizontalMode(target);
+		return sendCommands(target, commands) && setHorizontalMode(target) && setVerticalOffset(target,0) && setDisplayStartLine(target,0);
 	}
-
 	/**
 	 * Sends a "data" identifier byte followed by the user-supplied byte over the i2c.
 	 * @param ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection to this OLED.
@@ -163,7 +165,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		int [] commands = {SET_CLOCK_DIV_RATIO, (clock_div_ratio & 0x0F) | (osc_freq << 4 & 0xF0)};
 		return sendCommands(ch,commands);
 	}
-	public static boolean setVerticalDisplayOffset(FogCommandChannel ch, int offset){
+	public static boolean setVerticalOffset(FogCommandChannel ch, int offset){
 		int [] commands = {SET_DISPLAY_OFFSET,(offset & 0x3F)};
 		return sendCommands(ch, commands);
 	}
@@ -238,18 +240,49 @@ public class Grove_OLED_128x64 implements IODevice{
 	 * @param map
 	 * @return true if the i2c commands were succesfully sent, false otherwise
 	 */
-	public static boolean drawBitmap(FogCommandChannel ch, int[] map){
+	public static boolean drawBitmapInHorizontalMode(FogCommandChannel ch, int[] map){
 		if (!setHorizontalMode(ch)){
 			return false;
 		}
 		for (int bitmap: map){
-
 			if (!sendData(ch, (byte) bitmap)){
+				ch.i2cFlushBatch();
 				return false;
 			}
 			ch.i2cFlushBatch();
 		}
 
+		return true;
+	}
+	
+	public static boolean drawBitmap(FogCommandChannel ch, int[] map){
+		return drawBitmapInPageMode(ch, map);
+	}
+	
+	/**
+	 * NOTE: drawing in page mode instead of horizontal mode sends 16 extra bytes per reflash compared to drawing
+	 * in horizontal mode as we need to reset textRowCol everytime we reach a new page. It may be preferable to use
+	 * drawing in page mode however, as it eliminates the need to switch between page mode and horizontal mode when doing
+	 * both drawing and string printing.
+	 * @param ch
+	 * @param map
+	 * @return true
+	 */
+	public static boolean drawBitmapInPageMode(FogCommandChannel ch, int[] map ){
+		int counter = 0;
+		for (int page = 0; page <8; page++){
+			if (! setTextRowCol(ch,page,0)){
+				return false;
+			}
+			for (int i = 0; i < 128; i ++){
+				if (!sendData(ch, map[counter])){
+					return false;
+				};
+				ch.i2cFlushBatch();
+				counter++;
+			}
+			
+		}
 		return true;
 	}
 
@@ -301,7 +334,24 @@ public class Grove_OLED_128x64 implements IODevice{
 		return setPageMode(ch) && setTextRowCol(ch,row,col);
 
 	}
+	
+	public static boolean setDisplayStartLine(FogCommandChannel ch, int startLine){
+		return sendCommands(ch, DISPLAY_START_LINE + (startLine & 0x3F));
+	}
+	
+	public static boolean remapSegment(FogCommandChannel ch, boolean isRemapped){
+		int remap_cmd = MAP_ADDRESS_0_TO_SEG0;
+		if (isRemapped){
+			remap_cmd = MAP_ADDRESS_127_TO_SEG0;
+		}
+		return sendCommands(ch, remap_cmd);
+	}
 
+	/**
+	 * Note: leaves the display in page mode
+	 * @param ch
+	 * @return true 
+	 */
 	public static boolean clear(FogCommandChannel ch){
 		if (setPageMode(ch)){
 			
@@ -333,6 +383,25 @@ public class Grove_OLED_128x64 implements IODevice{
 		return false;
 	}
 
+	public static boolean displayImage(FogCommandChannel ch, int[][] raw_image){
+		int[] bitmap = new int[(row_count * col_count) / 8];//64*128 divided by 8 (since there are 8 bits per byte)
+		int counter = 0;
+		for (int page = 0; page < row_count/8; page++){
+			for (int seg = 0; seg < col_count; seg++){
+				bitmap[counter] = parseColByte(raw_image, page*8, seg);
+				counter++;
+			}
+		}
+		return drawBitmap(ch, bitmap);
+	}
+	private static int parseColByte(int[][]raw_image, int row, int col){
+		int ret = 0;
+		for (int i = 0; i < 8; i ++){
+			ret = ret | (raw_image[row+i][col] & 0x01) << i;
+		}
+		return ret;
+	}
+	
 	public static boolean sendCommand(FogCommandChannel ch, int b){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -357,24 +426,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
-	public static boolean displayImage(FogCommandChannel ch, int[][] raw_image){
-		int[] bitmap = new int[1024];//64*128 divided by 8 (since there are 8 bits per byte)
-		int counter = 0;
-		for (int page = 0; page < 8; page++){
-			for (int seg = 0; seg < 128; seg++){
-				bitmap[counter] = parseColByte(raw_image, page*8, seg);
-				counter++;
-			}
-		}
-		return drawBitmap(ch, bitmap);
-	}
-	private static int parseColByte(int[][]raw_image, int row, int col){
-		int ret = 0;
-		for (int i = 0; i < 8; i ++){
-			ret = ret | (raw_image[row+i][col] & 0x01) << i;
-		}
-		return ret;
-	}
+	
 	@Deprecated 
 	private static boolean writeByteSequence(FogCommandChannel ch, byte[] seq){
 		if(!ch.i2cIsReady()){

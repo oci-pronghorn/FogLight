@@ -8,24 +8,44 @@
 #include <jni.h>
 #include <sys/ioctl.h>
 
+struct serial_struct {
+	int	type;
+	int	line;
+	unsigned int	port;
+	int	irq;
+	int	flags;
+	int	xmit_fifo_size;
+	int	custom_divisor;
+	int	baud_base;
+	unsigned short	close_delay;
+	char	io_type;
+	char	reserved_char[1];
+	int	hub6;
+	unsigned short	closing_wait; /* time to wait before closing */
+	unsigned short	closing_wait2; /* no longer used... */
+	unsigned char	*iomem_base;
+	unsigned short	iomem_reg_shift;
+	unsigned int	port_high;
+	unsigned long	iomap_base;	/* cookie passed into ioremap */
+};
+
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_open(JNIEnv *env, jobject object, jstring port, jint baud) {
     const char *actualPort = (*env)->GetStringUTFChars(env, port, NULL);
-    int fd = open(actualPort, O_RDWR | O_NOCTTY | O_NDELAY);
+    int fd = open(actualPort, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
     if (fd == -1) {
         return fd;
     } else {
-        fcntl(fd, F_SETFL, 0);
-
         // Get port options.
         struct termios options;
         tcgetattr(fd, &options);
 
-        // Set I/O baud to 19,200.
+        // Set I/O baud.
         cfsetispeed(&options, baud);
         cfsetospeed(&options, baud);
 
         // Something about receivers and local modes.
         options.c_cflag |= (CLOCAL | CREAD);
+        options.c_oflag &= ~OPOST;
 
         // Apply the options.
         tcsetattr(fd, TCSANOW, &options);
@@ -49,8 +69,18 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
     return write(fd, actualMessage, strlen(actualMessage));
 }
 
+JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_getBytesInOutputBuffer(JNIEnv *env, jobject object, jint fd) {
+    // Read bytes in the queue.
+    int bytes;
+    ioctl(fd, TIOCOUTQ, &bytes);
+
+    // Return the difference.
+    return bytes;
+}
+
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_getAvailableBytes(JNIEnv *env, jobject object, jint fd) {
     int bytes;
+//    ioctl(fd, TIOCINQ, &bytes);
     ioctl(fd, FIONREAD, &bytes);
     return bytes;
 }

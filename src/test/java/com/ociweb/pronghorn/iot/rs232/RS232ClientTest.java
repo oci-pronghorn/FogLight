@@ -3,6 +3,7 @@ package com.ociweb.pronghorn.iot.rs232;
 import org.junit.*;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -99,15 +100,28 @@ public class RS232ClientTest {
 
     @Test
     public void shouldWriteBytesFromArrays() throws Exception {
+        // TOOD: Update to test free-space checking.
         for (int i = 0; i < 100; i++) {
             String str = "bazinga #" + i;
+
+            // TODO: No deterministic way to get maximum buffer size. 50 is guessed based on
+            // the buffers failing around ~150.
+            // Give the buffer a moment to live its life.
+            if (client1.getBytesInOutputBuffer() > 50) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Assert.fail(e.getMessage());
+                }
+            }
+
             int write = client1.writeFrom(str.getBytes("UTF-8"), 0, str.length());
-
-            // TODO: 10 MS seems to be a good space for general testing...the ports aren't that fast.
-            Thread.sleep(10);
-
             Assert.assertEquals(str.length(), write);
-            Assert.assertTrue(new String(client2.read(50), "UTF-8").contains(str));
+        }
+
+        for (int i = 0; i < 100; i++) {
+            String str = "bazinga #" + i;
+            Assert.assertEquals(new String(client2.read(str.length()), "UTF-8"), str);
         }
     }
 

@@ -1,15 +1,13 @@
 package com.ocweb.grove;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.IoTSetup;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.I2CListener;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
     ///////////////////////
     //Connection constants 
@@ -39,28 +37,35 @@ public class IoTApp implements IoTSetup
 
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
         //////////////////////////////
         //Specify the desired behavior
         //////////////////////////////
+    	XYZListener coordListener = new XYZListener() {
+			
+			@Override
+			public void setCoord(int x, int y, int z) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
         
-        //  //Use lambdas or classes and add listeners to the runtime object
-        //  //CommandChannels are created to send outgoing events to the hardware
-        //  //CommandChannels must never be shared between two lambdas or classes.
-        //  //A single lambda or class can use mulitiple CommandChannels for cuoncurrent behavior
-        
-        
-        //        final CommandChannel channel1 = runtime.newCommandChannel();
-        //        //this digital listener will get all the button press and un-press events 
-        //        runtime.addDigitalListener((connection, time, value)->{ 
-        //            
-        //            //connection could be checked but unnecessary since we only have 1 digital source
-        //            
-        //            if (channel1.digitalSetValue(RELAY_PORT, value)) {
-        //                //keep the relay on or off for 1 second before doing next command
-        //                channel1.digitalBlock(RELAY_PORT, 1000); 
-        //            }
-        //        });
+    	FogCommandChannel c = runtime.newCommandChannel();
+    	
+    	final XYZRequester r = new XYZRequester(c);
+    	
+    	runtime.addStartupListener(()-> {
+    		
+    		r.request();
+    		
+    	});
+    	
+    	
+		runtime.addI2CListener(new XYZReader(coordListener) );
+    	
+    	
+    	
+    	
     }
         
   

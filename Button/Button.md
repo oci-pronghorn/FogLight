@@ -7,13 +7,13 @@
 The following sketch demonstrates a simple application using the Button: whenever the Button is pressed, a relay will flash a light.
 
 Demo code:
-```
+```java
 package com.ociweb.grove;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.grove.GroveTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
     private static final Port BUTTON_PORT = D3;
     private static final Port RELAY_PORT  = D7;
@@ -25,9 +25,9 @@ public class IoTApp implements IoTSetup
     }
 
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
+    public void declareBehavior(FogRuntime runtime) {
     
-        final CommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+        final FogCommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         runtime.addDigitalListener((port, connection, time, value)->{ 
             channel1.setValueAndBlock(RELAY_PORT, value == 1, 500); //500 is the amount of time in milliseconds that                                                                                         //delays a future action
         });

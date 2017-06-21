@@ -153,6 +153,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		return sendCommands(ch, DEACTIVATE_SCROLL);
 	}	
 	
+	
 	public static boolean setMultiplexRatio(FogCommandChannel ch, int mux_ratio){
 		int [] commands = {SET_MUX_RATIO, mux_ratio & 0x3F};
 		return sendCommands(ch, commands);

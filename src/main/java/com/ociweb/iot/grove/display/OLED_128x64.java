@@ -51,7 +51,8 @@ public class OLED_128x64 implements IODevice{
 	
 	public boolean displayImage(int[][] raw_image){
 		int counter = 0;
-		for (int page = 0; page < row_count/8; page++){
+		int pageLimit = row_count >> 3;
+		for (int page = 0; page < pageLimit; page++){
 			for (int seg = 0; seg < col_count; seg++){
 				data_output[counter] = parseColByte(raw_image, page*8, seg);
 				counter++;

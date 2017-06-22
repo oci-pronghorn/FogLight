@@ -12,11 +12,24 @@ import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Direction.*;
 import com.ociweb.iot.grove.display.OLED_128x64;
 
 /**
- * Utility class that communicates with the i2c Grove OLED 128x64 display.
+ * Utility class that communicates with the i2c Grove OLED 128x64 display, includes basic functionality such as printing
+ * bitmap or string.
  * @author Ray Lo, Nathan Tippy
  *
  */
 public class Grove_OLED_128x64 implements IODevice{
+	private Grove_OLED_128x64(){
+	}
+	
+	public Grove_OLED_128x64 getInstace(){
+		return this;
+	}
+	
+	public OLED_128x64 newObj(FogCommandChannel ch){
+		return new OLED_128x64(ch);
+	}
+	
+	//TODO: bring enum into its own java class
 	public static enum ScrollSpeed{
 		Scroll_2Frames(0x07),
 		Scroll_3Frames(0x04),
@@ -61,6 +74,8 @@ public class Grove_OLED_128x64 implements IODevice{
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
 		int counter = 1;
 		i2cPayloadWriter.write(DATA_MODE);
+		
+		//TODO: Fix for loop to not check batch size every iteration
 		for (int i = start; i < start+length; i ++){
 			if (counter < BATCH_SIZE){	
 				i2cPayloadWriter.write(data[i]);
@@ -297,16 +312,14 @@ public class Grove_OLED_128x64 implements IODevice{
 	 * @param map
 	 * @return true
 	 */
-	public static boolean drawBitmapInPageMode(FogCommandChannel ch, int[] map, int[] output){
+	public static boolean drawBitmapInPageMode(FogCommandChannel ch, int[] map, int[] cmd_output){
 		for (int page = 0; page <8; page++){
-			if (! setTextRowCol(ch,page,0, output)){
+			if (! setTextRowCol(ch,page,0, cmd_output)){
 				return false;
 			}
-			int [] cur_data = new int [128];
-			for (int i = 0; i < 128; i ++){
-				cur_data[i] = map[(page * 128) + i];
-			}
-			if (!sendData(ch, cur_data)){
+			int startingPoint = page*128;
+
+			if (!sendData(ch, map, startingPoint, 128)){
 				return false;
 			}
 

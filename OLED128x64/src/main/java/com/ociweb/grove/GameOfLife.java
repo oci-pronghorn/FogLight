@@ -12,36 +12,10 @@ public class GameOfLife implements StartupListener, TimeListener {
 	private FogCommandChannel ch;
 	private int[][] cur_state = new int[row_count][col_count];
 	private int[][] next_state = new int[row_count][col_count];
-	private boolean enableMonitoring = true;
+	private boolean enableMonitoring = false;
 	private OLED_128x64 display;
 
-	@Override
-	public void startup() {
-		display = new OLED_128x64(ch);
-		display.init(); //TODO: Can also call init() and clear() in the constructor automatically.
-		display.clear();
-		
-		display.setTextRowCol(3, 4);
-		display.printString("Conway's");
-		
-		//maker may also set textRowCOl and printString in the same aggergate function
-		display.printStringAt("Game of Life", 4,2);
-	}
-
-	@Override
-	public void timeEvent(long time, int iteration) {
-		if (iteration > 5){
-			ageUniverse();
-			System.out.println("Iteration: " + iteration + ", Time: " + time);
-			
-			display.displayImage(cur_state);
-
-			if (enableMonitoring) {
-				monitorInConsole();
-			}
-		}
-	}
-
+	
 	public GameOfLife(FogCommandChannel ch){
 		this(ch, def_start);
 	}
@@ -57,6 +31,33 @@ public class GameOfLife implements StartupListener, TimeListener {
 	public GameOfLife(FogCommandChannel ch, int[][] start_state){
 		this.ch = ch;
 		cur_state = start_state;
+		display = new OLED_128x64(ch);
+	}
+	
+	@Override
+	public void startup() {
+		display.init(); 
+		display.clear();
+		
+		display.setTextRowCol(3, 4);
+		display.printString("Conway's");
+		
+		//maker may also set textRowCOl and printString in the same aggergate function
+		display.printStringAt("Game of Life", 4,2);
+	}
+
+	@Override
+	public void timeEvent(long time, int iteration) {
+		if (iteration > 10){
+			ageUniverse();
+			System.out.println("Iteration: " + iteration + ", Time: " + time);
+			
+			display.displayImage(cur_state);
+
+			if (enableMonitoring) {
+				monitorInConsole();
+			}
+		}
 	}
 
 	private void randomizeCurrentState(){
@@ -88,7 +89,7 @@ public class GameOfLife implements StartupListener, TimeListener {
 	public void monitorInConsole(){
 		for (int row = 0; row < cur_state.length; row++){
 			for (int col = 0; col < cur_state[0].length; col++){
-				System.out.print(displayFont(cur_state[row][col]));
+				System.out.print(cur_state[row][col] == 1? "o": " ");
 			}
 			System.out.println();
 		}
@@ -98,22 +99,6 @@ public class GameOfLife implements StartupListener, TimeListener {
 		System.out.println();
 	}
 
-	private void zeroOutArray(int[][] a){
-		for (int i = 0; i < a.length; i++){
-			for (int j = 0; j < a[0].length; j++){
-				a[i][j] = 0;
-			}
-		}
-	}
-
-	private String displayFont(int input){
-		if (input ==0 ){
-			return " ";
-		}
-		else {
-			return "o";
-		}
-	}
 	private void ageCell(int row, int col){
 		int nb_alive = tallyAliveNeighbors(row,col);
 		if (cur_state[row][col]==1){

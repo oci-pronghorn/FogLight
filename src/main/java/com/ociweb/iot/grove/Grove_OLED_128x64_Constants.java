@@ -5,7 +5,7 @@ public class Grove_OLED_128x64_Constants {
 	public static int row_count = 64;
 	public static int col_count = 128;
 	
-	public static int batch_size = 50;
+	public static int BATCH_SIZE = 50;
 	
 	/*
 	 * NOTE: The bit-mask is there because Java does not have unsigned bytes. 

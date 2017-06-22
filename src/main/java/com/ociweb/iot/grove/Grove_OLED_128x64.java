@@ -10,9 +10,9 @@ import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Direction.*;
 public class Grove_OLED_128x64 implements IODevice{
 
-	
 
-	
+
+
 	//this enum is here because makers will need this and they would already have the Grove_OLED_128 class imported
 	public static enum ScrollSpeed{
 		Scroll_2Frames(0x07),
@@ -32,7 +32,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	};
 
 	public static boolean isStarted = false;
-	
+
 	/**
 	 * Flashes the display screen off and then on and ensures that the inverse_display and scrolling functions
 	 *  are turned off. The display is left in the Horizontal mode afterwards.
@@ -93,7 +93,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
 	 * for information on horizontal mode. 
 	 */
-	
+
 	public static boolean setHorizontalMode(FogCommandChannel ch){
 		int[] commands = {SET_MEMORY, 0x00};
 		return sendCommands(ch, commands);
@@ -106,7 +106,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
 	 * for information on vertical mode.
 	 */
-	
+
 	public static boolean setVerticalMode(FogCommandChannel ch){
 		int[] commands = {SET_MEMORY, 0x01};
 		return sendCommands(ch,commands);
@@ -154,13 +154,13 @@ public class Grove_OLED_128x64 implements IODevice{
 	public static boolean deactivateScroll(FogCommandChannel ch){
 		return sendCommands(ch, DEACTIVATE_SCROLL);
 	}	
-	
-	
+
+
 	public static boolean setMultiplexRatio(FogCommandChannel ch, int mux_ratio){
 		int [] commands = {SET_MUX_RATIO, mux_ratio & 0x3F};
 		return sendCommands(ch, commands);
 	}
-	
+
 	public static boolean setClockDivRatioAndOscFreq(FogCommandChannel ch, int clock_div_ratio, int osc_freq){
 		int [] commands = {SET_CLOCK_DIV_RATIO, (clock_div_ratio & 0x0F) | (osc_freq << 4 & 0xF0)};
 		return sendCommands(ch,commands);
@@ -176,17 +176,17 @@ public class Grove_OLED_128x64 implements IODevice{
 	public static boolean setUpLeftContinuousHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage){
 		return setUpContinuousHorizontalScroll(ch, speed, startPage, endPage, Left);
 	}
-	
+
 	public static boolean setUpRightContinuousVerticalHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, 
 			int endPage, int offset){
 		return setUpContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, Vertical_Right);
 	}
-	
+
 	public static boolean setUpLeftContinuousVerticalHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, 
 			int endPage, int offset){
 		return setUpContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, Vertical_Left);
 	}
-	
+
 	private static boolean setUpContinuousHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage, 
 			Direction orientation){
 		int dir_command = 0;
@@ -222,7 +222,7 @@ public class Grove_OLED_128x64 implements IODevice{
 			dir_command =  SET_VER_AND_LEFT_HOR_SCROLL;
 			break;	
 		}
-		
+
 		int [] commands = {
 				dir_command, 
 				0x00,  //dummy byte as required
@@ -230,9 +230,9 @@ public class Grove_OLED_128x64 implements IODevice{
 				speed.command, 
 				endPage & 0x07, 
 				offset & 0x1F};
-		
+
 		return true;
-		
+
 	}
 	/**
 	 * NOTE: this method leaves the display in horizontal mode
@@ -254,11 +254,11 @@ public class Grove_OLED_128x64 implements IODevice{
 
 		return true;
 	}
-	
+
 	public static boolean drawBitmap(FogCommandChannel ch, int[] map){
 		return drawBitmapInPageMode(ch, map);
 	}
-	
+
 	/**
 	 * NOTE: drawing in page mode instead of horizontal mode sends 16 extra bytes per reflash compared to drawing
 	 * in horizontal mode as we need to reset textRowCol everytime we reach a new page. It may be preferable to use
@@ -281,7 +281,7 @@ public class Grove_OLED_128x64 implements IODevice{
 				ch.i2cFlushBatch();
 				counter++;
 			}
-			
+
 		}
 		return true;
 	}
@@ -334,11 +334,11 @@ public class Grove_OLED_128x64 implements IODevice{
 		return setPageMode(ch) && setTextRowCol(ch,row,col);
 
 	}
-	
+
 	public static boolean setDisplayStartLine(FogCommandChannel ch, int startLine){
 		return sendCommands(ch, DISPLAY_START_LINE + (startLine & 0x3F));
 	}
-	
+
 	public static boolean remapSegment(FogCommandChannel ch, boolean isRemapped){
 		int remap_cmd = MAP_ADDRESS_0_TO_SEG0;
 		if (isRemapped){
@@ -354,7 +354,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	 */
 	public static boolean clear(FogCommandChannel ch){
 		if (setPageMode(ch)){
-			
+
 		} else {
 			return false;
 		}
@@ -401,7 +401,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		}
 		return ret;
 	}
-	
+
 	public static boolean sendCommand(FogCommandChannel ch, int b){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -415,18 +415,37 @@ public class Grove_OLED_128x64 implements IODevice{
 	}
 
 	public static boolean sendCommands(FogCommandChannel ch, int... commands){
-		for (int com: commands)
-			if (sendCommand(ch, com)){
-				ch.i2cFlushBatch();
-			} else {
-				ch.i2cFlushBatch();
-				return false;
-			}
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
+		int counter = 0;  //intialized to one because we have already assgigned one "command" register byte to be sent
 
+		for (int com: commands){
+			if (counter < BATCH_SIZE){
+				i2cPayloadWriter.write(COMMAND_MODE);
+				i2cPayloadWriter.write(com);
+				counter = counter + 2;
+			}
+			else {
+				ch.i2cCommandClose();
+				ch.i2cFlushBatch();
+				
+				i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
+				i2cPayloadWriter.write(COMMAND_MODE);
+				i2cPayloadWriter.write(com);
+				counter = 2;
+			}
+		}
+		if (counter > 0){
+			ch.i2cCommandClose();
+			ch.i2cFlushBatch();
+		}
 		return true;
 	}
 
-	
+
 	@Deprecated 
 	private static boolean writeByteSequence(FogCommandChannel ch, byte[] seq){
 		if(!ch.i2cIsReady()){
@@ -449,7 +468,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		}
 		return writeByteSequence(ch, byteSeq);
 	}
-	
+
 	@Override
 	public int response() {
 		return 20;

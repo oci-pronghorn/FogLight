@@ -3,13 +3,20 @@ package com.ociweb.iot.grove.display;
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.col_count;
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.row_count;
 
+import static com.ociweb.iot.grove.Grove_OLED_128x64.ScrollSpeed;
+
 import com.ociweb.iot.grove.Grove_OLED_128x64;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 
-public class OLED_128x64 implements IODevice{
 
+/**
+ * IODevice that holds on to the FogCommandChannel, data_output array, and cmd_output array needed for the static Grove_OLED_128x64
+ * @author Ray Lo, Nathan Tippy
+ *
+ */
+public class OLED_128x64 implements IODevice{
 	FogCommandChannel ch;
 	
 	int[] data_output = new int[1024]; //the most amount of data we can ever send at once as this is one entire frame worth of data
@@ -57,6 +64,7 @@ public class OLED_128x64 implements IODevice{
 		return Grove_OLED_128x64.drawBitmap(this.ch, bitmap, cmd_output);
 	}
 	
+
 	private static int parseColByte(int[][]raw_image, int row, int col){
 		int ret = 0;
 		for (int i = 0; i < 8; i ++){
@@ -65,6 +73,66 @@ public class OLED_128x64 implements IODevice{
 		return ret;
 	}
 	
+	public boolean turnOnInverseDisplay(){
+		return Grove_OLED_128x64.turnOnInverseDisplay(this.ch);
+	}
+	
+	public boolean turnOffInverseDisplay(){
+		return Grove_OLED_128x64.turnOffInverseDisplay(this.ch);
+	}
+	
+	public boolean setPageMode(){
+		return Grove_OLED_128x64.setPageMode(ch, cmd_output);
+	}
+	
+	public boolean setHorizontalMode(){
+		return Grove_OLED_128x64.setHorizontalMode(ch, cmd_output);
+	}
+	public boolean setVerticalMode(){
+		return Grove_OLED_128x64.setVerticalMode(ch, cmd_output);
+	}
+	
+	public boolean activateScroll(){
+		return Grove_OLED_128x64.activateScroll(this.ch);
+	}
+	
+	public boolean deactivateScroll(){
+		return Grove_OLED_128x64.deactivateScroll(this.ch);
+	}
+	
+	public boolean setMultiplexRatio(int mux_ratio){
+		return Grove_OLED_128x64.setMultiplexRatio(this.ch, mux_ratio, cmd_output);
+	}
+	
+	public boolean setClockDivRatioAndOscFreq(int clock_div_ratio, int osc_freq){
+		return Grove_OLED_128x64.setClockDivRatioAndOscFreq(ch, clock_div_ratio, osc_freq, cmd_output);
+	}
+
+	public boolean setVerticalOffset(int offset){
+		return Grove_OLED_128x64.setVerticalOffset(this.ch, offset, cmd_output);
+	}
+	
+	public boolean setUpRightContinuousHorizontalScroll(ScrollSpeed speed, int startPage, int endPage){
+		return Grove_OLED_128x64.setUpRightContinuousHorizontalScroll(this.ch,speed,startPage,endPage, cmd_output);
+		
+	}
+	public boolean setUpLeftContinuousHorizontalScroll(ScrollSpeed speed, int startPage, int endPage){
+		return Grove_OLED_128x64.setUpLeftContinuousHorizontalScroll(this.ch,speed,startPage,endPage, cmd_output);		
+	}
+	
+	public boolean setUpRightContinuousVerticalHorizontalScroll(ScrollSpeed speed, int startPage, 
+			int endPage, int offset){
+		return Grove_OLED_128x64.setUpRightContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, cmd_output);
+	}
+	
+	public boolean setUpLeftContinuousVerticalHorizontalScroll(ScrollSpeed speed, int startPage, 
+			int endPage, int offset){
+		return Grove_OLED_128x64.setUpLeftContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, cmd_output);
+	}
+	
+	public boolean remapSegment(boolean isRemapped){
+		return Grove_OLED_128x64.remapSegment(this.ch, isRemapped);
+	}
 	
 	@Override
 	public int response() {

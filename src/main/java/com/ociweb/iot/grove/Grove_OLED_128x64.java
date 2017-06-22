@@ -1,6 +1,7 @@
 package com.ociweb.iot.grove;
 
 import com.ociweb.iot.hardware.I2CConnection;
+
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -8,14 +9,14 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Direction.*;
-
 import com.ociweb.iot.grove.display.OLED_128x64;
+
+/**
+ * Utility class that communicates with the i2c Grove OLED 128x64 display.
+ * @author Ray Lo, Nathan Tippy
+ *
+ */
 public class Grove_OLED_128x64 implements IODevice{
-
-
-
-
-	//this enum is here because makers will need this and they would already have the Grove_OLED_128 class imported
 	public static enum ScrollSpeed{
 		Scroll_2Frames(0x07),
 		Scroll_3Frames(0x04),
@@ -313,24 +314,6 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
-	/*
-	public static boolean printChar(FogCommandChannel ch, char c){
-		if (c > 127 || c < 32){
-			//'c' has no defined font for Grove_OLED_128x64");
-			return false;
-		}
-		for (int i = 0; i < 8; i++){
-			if (sendData(ch, (byte)BASIC_FONT[c-32][i])){	//successful send is expected to be more common
-				ch.i2cFlushBatch();
-			}
-			else {
-				ch.i2cFlushBatch();
-				return false;
-			}
-		}
-		return true;
-	}*/
-
 	public static boolean encodeChar(char c, int[] output){
 		return encodeChar(c, output, 0);
 	}
@@ -436,7 +419,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		return false;
 	}
 	
-	public static boolean sendCommand(FogCommandChannel ch, int b){
+	private static boolean sendCommand(FogCommandChannel ch, int b){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -450,7 +433,7 @@ public class Grove_OLED_128x64 implements IODevice{
 
 
 	
-	public static boolean sendCommands(FogCommandChannel ch, int[] commands, int start, int length){
+	private static boolean sendCommands(FogCommandChannel ch, int[] commands, int start, int length){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -495,6 +478,8 @@ public class Grove_OLED_128x64 implements IODevice{
 
 	//Overloading the function to automatically mask ints and use their least significant 8-bits as our bytes to send
 	//Ideally, for best performance, we should send byte array and not int array to avoid this extra function call
+	
+	@Deprecated
 	private static boolean writeByteSequence(FogCommandChannel ch, int[] seq){
 		byte[] byteSeq = new byte[seq.length];
 		int counter = 0;

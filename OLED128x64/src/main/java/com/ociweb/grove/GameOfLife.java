@@ -12,26 +12,28 @@ public class GameOfLife implements StartupListener, TimeListener {
 	private FogCommandChannel ch;
 	private int[][] cur_state = new int[row_count][col_count];
 	private int[][] next_state = new int[row_count][col_count];
-	private boolean enableMonitoring = false;
+	private boolean enableMonitoring = true;
 	private OLED_128x64 display;
 
 	@Override
 	public void startup() {
 		display = new OLED_128x64(ch);
-		display.init();
+		display.init(); //TODO: Can also call init() and clear() in the constructor automatically.
 		display.clear();
+		
 		display.setTextRowCol(3, 4);
 		display.printString("Conway's");
-		display.setTextRowCol(4, 2);
-		display.printString("Game of Life");
+		
+		//maker may also set textRowCOl and printString in the same aggergate function
+		display.printStringAt("Game of Life", 4,2);
 	}
 
 	@Override
 	public void timeEvent(long time, int iteration) {
 		if (iteration > 5){
 			ageUniverse();
-			System.out.println("Iteration: " + iteration);
-
+			System.out.println("Iteration: " + iteration + ", Time: " + time);
+			
 			display.displayImage(cur_state);
 
 			if (enableMonitoring) {

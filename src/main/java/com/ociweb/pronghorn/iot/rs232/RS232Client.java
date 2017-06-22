@@ -21,24 +21,24 @@ public class RS232Client implements RS232Clientable {
     private int fd = -1;
 
     // Standard baud rates.
-    public static final int B9600 =  0000015;
-    public static final int B19200 = 0000016;
-    public static final int B38400 = 0000017;
-    public static final int B57600 = 0010001;
-    public static final int B115200 = 0010002;
-    public static final int B230400 = 0010003;
-    public static final int B460800 = 0010004;
-    public static final int B500000 = 0010005;
-    public static final int B576000 = 0010006;
-    public static final int B921600 = 0010007;
-    public static final int B1000000 = 0010010;
-    public static final int B1152000 = 0010011;
-    public static final int B1500000 = 0010012;
-    public static final int B2000000 = 0010013;
-    public static final int B2500000 = 0010014;
-    public static final int B3000000 = 0010015;
-    public static final int B3500000 = 0010016;
-    public static final int B4000000 = 0010017;
+    public static final int B9600 = 13;
+    public static final int B19200 = 14;
+    public static final int B38400 = 15;
+    public static final int B57600 = 4097;
+    public static final int B115200 = 4098;
+    public static final int B230400 = 4099;
+    public static final int B460800 = 4100;
+    public static final int B500000 = 4101;
+    public static final int B576000 = 4102;
+    public static final int B921600 = 4103;
+    public static final int B1000000 = 4104;
+    public static final int B1152000 = 4105;
+    public static final int B1500000 = 4106;
+    public static final int B2000000 = 4107;
+    public static final int B2500000 = 4108;
+    public static final int B3000000 = 4109;
+    public static final int B3500000 = 4110;
+    public static final int B4000000 = 4111;
 
     private int failCount = 25;
     /**

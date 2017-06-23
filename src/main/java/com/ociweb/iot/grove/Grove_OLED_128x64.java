@@ -331,7 +331,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		return sendCommands(ch,output,0,6);
 
 	}
-	
+
 	private static void generateVerticalHorizontalScrollComamnds(ScrollSpeed speed, int startPage, int endPage, 
 			int offset, Orientation ori, int[] output){
 		

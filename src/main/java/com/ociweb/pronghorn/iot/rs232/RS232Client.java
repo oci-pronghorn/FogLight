@@ -10,6 +10,10 @@ import java.nio.charset.Charset;
  *
  * TODO: Should no-op return empty/default values or throw an exception?
  *
+ * When building the native code on the pi:
+ *   declare -x JAVA_HOME="/usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt"
+ *   gcc -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin -I${JAVA_HOME}/include/linux -shared -o rs232.so -fPIC src/main/c/RS232.c
+ *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class RS232Client implements RS232Clientable {

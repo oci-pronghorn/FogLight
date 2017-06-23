@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.impl.BuilderImpl;
+import com.ociweb.gl.impl.schema.IngressMessages;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficAckSchema;
@@ -409,7 +410,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	public boolean hasDigitalOrAnalogInputs() {
 		return (analogInputs.length+digitalInputs.length)>0;
 	}
-
+	
+	public boolean hasDigitalOrAnalogOutputs() {
+		return (pwmOutputs.length+digitalOutputs.length)>0;
+	}
+	
 	public HardwareConnection[] combinedADConnections() {
 		HardwareConnection[] localAInputs = getAnalogInputs();
 		HardwareConnection[] localDInputs = getDigitalInputs();
@@ -551,13 +556,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfType(gm2, MessageSubscription.instance);
 		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfType(gm2, MessagePubSub.instance);
-	
+		Pipe<IngressMessages>[] ingressMessagePipes = GraphManager.allPipesOfType(gm2, IngressMessages.instance);
 		
 		int commandChannelCount = orderPipes.length;
 
 		int eventSchemas = 0;
 		
-		IDX_PIN = eventSchemas++;
+		IDX_PIN = requestPipes.length>0 ? eventSchemas++ : -1;
 		IDX_I2C = eventSchemas++;
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
 		IDX_NET = useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
@@ -643,11 +648,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 //		}
 //		createMessagePubSubStage(subscriptionPipeLookup2, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], 
 //				                 subscriptionPipes);
-		
+
 		if (IDX_MSG <0) {
 				logger.info("saved some resources by not starting up the unused pub sub service.");
 		} else {
-			 	createMessagePubSubStage(subscriptionPipeLookup2, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
+			 	createMessagePubSubStage(subscriptionPipeLookup2, ingressMessagePipes, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
 		}
 				
 		//////////////////
@@ -686,12 +691,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		if (serialOutputPipes.length>0) {			
 			createSerialOutputStage(serialOutputPipes, masterGoOut, masterAckIn);			
 		}
-		
-		
+				
 		///////////////
-		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
+		//only build direct pin output when we detected its use
 		///////////////
-		createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
+		if (IDX_PIN>=0) {
+			createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
+		}
 	}
 
 	protected void createSerialOutputStage(Pipe<SerialOutputSchema>[] serialOutputPipes,

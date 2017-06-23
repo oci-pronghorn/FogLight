@@ -84,6 +84,8 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		}
 		return super.hasI2CInputs() | super.hasDigitalOrAnalogInputs();
 	}
+	
+	//TODO: test override of hasDigitalOrAnalogInputs to false and hasDigitalOrAnalogOutputs to false.
 
 	@Override
 	public boolean isListeningToPins(Object listener) {

@@ -30,8 +30,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
     
     public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog .0vs digital
     protected static final long MS_TO_NS = 1_000_000;
-    
-    protected DataOutputBlobWriter<I2CCommandSchema> i2cWriter;  
+     
     protected int runningI2CCommandCount;
     
     //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
@@ -51,9 +50,13 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
     protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int parallelInstanceId, PipeConfigManager pcm) {
     	    	
        super(gm, hardware, features, parallelInstanceId, pcm);
-    	    	
-       //TODO: must also check for command channel recursively when looking....
-       this.pinOutput = new Pipe<GroveRequestSchema>(pcm.getConfig(GroveRequestSchema.class));
+
+       boolean setupPins = hardware.hasDigitalOrAnalogOutputs();
+       if (setupPins) {
+    	   this.pinOutput = new Pipe<GroveRequestSchema>(pcm.getConfig(GroveRequestSchema.class));
+       } else {
+    	   this.pinOutput = null;
+       }
        
        boolean setupSerial = (0 != (features & SERIAL_WRITER));//if feature bit is on then set for write...
        if (setupSerial) {
@@ -254,7 +257,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
             
             PipeWriter.publishWrites(serialOutput);     
            
-            GreenCommandChannel.publishGo(1, HardwareImpl.serialIndex(builder), (GreenCommandChannel<?>) this);
+            GreenCommandChannel.publishGo(1, HardwareImpl.serialIndex(builder), this);
             
             return true;
             
@@ -279,14 +282,9 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
 
             if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
                 PipeWriter.writeInt(i2cOutput, I2CCommandSchema.MSG_COMMAND_7_FIELD_ADDRESS_12, targetAddress);
-
-                if (null==i2cWriter) {
-                    //TODO: add init method that we we will call from stage to do this.
-                    i2cWriter = new DataOutputBlobWriter<I2CCommandSchema>(i2cOutput);//hack for now until we can get this into the scheduler TODO: nathan follow up.
-                }
-                 
-                DataOutputBlobWriter.openField(i2cWriter);
-                return i2cWriter;
+                DataOutputBlobWriter<I2CCommandSchema> writer = PipeWriter.outputStream(i2cOutput);
+                DataOutputBlobWriter.openField(writer);
+                return writer;
             } else {
                 throw new UnsupportedOperationException("Pipe is too small for large volume of i2c data");
             }
@@ -355,8 +353,8 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
             if (++runningI2CCommandCount > maxCommands) {
                 throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
             }
-            
-            DataOutputBlobWriter.closeHighLevelField(i2cWriter, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+           
+            DataOutputBlobWriter.closeHighLevelField(PipeWriter.outputStream(i2cOutput), I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             PipeWriter.publishWrites(i2cOutput);
         } finally {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      

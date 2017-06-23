@@ -24,6 +24,7 @@ import com.ociweb.iot.hardware.impl.SerialDataReaderStage;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 
 import com.ociweb.iot.maker.AnalogListener;
+import com.ociweb.iot.maker.Baud;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
@@ -100,7 +101,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	protected RS232Client rs232Client;
 	protected String rs232ClientDevice = "/dev/ttyMFD1";//custom hardware should override this edison value
-	protected int    rs232ClientBaud = RS232Client.B9600;
+	protected Baud   rs232ClientBaud = Baud.B_____9600;
 	protected String bluetoothDevice = null;
 	
 
@@ -213,7 +214,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 
-
+	public Hardware useSerial(Baud baud) {
+		this.rs232ClientBaud = baud;
+		return this;
+	}
 
 	public Hardware useI2C() {
 		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,

@@ -10,6 +10,7 @@ import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.AnalogListener;
+import com.ociweb.iot.maker.Baud;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
@@ -39,7 +40,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		
 		model = PiModel.detect();
 		rs232ClientDevice = model.serialDevice();
-		rs232ClientBaud = RS232Client.B9600;
+		rs232ClientBaud = Baud.B___921600;
 		bluetoothDevice = model.bluetoothDevice();
 		
 		System.out.println("You are running on the GrovePi hardware on the "+model);

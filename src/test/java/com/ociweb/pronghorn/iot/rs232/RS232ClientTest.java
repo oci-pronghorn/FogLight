@@ -2,6 +2,8 @@ package com.ociweb.pronghorn.iot.rs232;
 
 import org.junit.*;
 
+import com.ociweb.iot.maker.Baud;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -61,8 +63,8 @@ public class RS232ClientTest {
         }
 
         // TODO: Test at different bauds?
-        client1 = new RS232Client(SERIAL_1, RS232Client.B9600);
-        client2 = new RS232Client(SERIAL_2, RS232Client.B9600);
+        client1 = new RS232Client(SERIAL_1, Baud.B_____9600);
+        client2 = new RS232Client(SERIAL_2, Baud.B_____9600);
     }
 
     @AfterClass

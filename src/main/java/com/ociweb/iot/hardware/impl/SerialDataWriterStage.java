@@ -44,12 +44,13 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 	
 	@Override
 	public void run() {
-		if (pipeIdx>=0) {
+		int activePipe = pipeIdx;
+		if (activePipe>=0) {
 			//never start new work until old work is finished		
-			if (pumpData(pipeIdx)) {				
-	            PipeReader.releaseReadLock(fromCommandChannels[pipeIdx]);
+			if (pumpData(activePipe)) {				
+	            PipeReader.releaseReadLock(fromCommandChannels[activePipe]);
 	            //only do now after we know its not blocked and was completed
-	            decReleaseCount(pipeIdx);			
+	            decReleaseCount(activePipe);			
 				pipeIdx = -1;
 			} else {
 				return;//try again later.

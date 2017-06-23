@@ -17,9 +17,9 @@ import java.nio.file.Files;
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class PiImageListenerBacking extends PronghornStage {
+public class PiImageListenerStage extends PronghornStage {
 
-    private static final Logger logger = LoggerFactory.getLogger(PiImageListenerBacking.class);
+    private static final Logger logger = LoggerFactory.getLogger(PiImageListenerStage.class);
 
     private final Pipe<RawDataSchema> output;
 
@@ -50,7 +50,7 @@ public class PiImageListenerBacking extends PronghornStage {
         return new File(fileName + ".jpg"); //TODO: rewrite to be GC free
     }
 
-    public PiImageListenerBacking(GraphManager graphManager, Pipe<RawDataSchema> output) {
+    public PiImageListenerStage(GraphManager graphManager, Pipe<RawDataSchema> output) {
         super(graphManager, NONE, output);
 
         // Attach to our output pipe.

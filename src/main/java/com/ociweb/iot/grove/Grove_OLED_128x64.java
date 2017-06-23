@@ -9,6 +9,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Direction.*;
+import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Orientation.*;
 import com.ociweb.iot.grove.display.OLED_128x64;
 
 /**
@@ -305,50 +306,43 @@ public class Grove_OLED_128x64 implements IODevice{
 		return setUpContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, Vertical_Left, output);
 	}
 
+	
 	private static boolean setUpContinuousHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage, 
-			Direction orientation, int[] output){
-		int dir_command = 0;
-		switch (orientation){
-		case Right:
-			dir_command = SET_RIGHT_HOR_SCROLL;
-			break;
-		case Left:
-			dir_command = SET_LEFT_HOR_SCROLL;
-			break;
-		}
+			Direction dir, int[] output){	
+		generateHorizontalScrollComamnds(speed,startPage,endPage,dir,output);
+		return sendCommands(ch, output, 0,7);
+	}
+	
+	private static void generateHorizontalScrollComamnds(ScrollSpeed speed, int startPage, int endPage, 
+			Direction dir, int[] output){
 
-		output[0] = dir_command;
+		output[0] = dir == Right? SET_RIGHT_HOR_SCROLL:SET_LEFT_HOR_SCROLL;
 		output[1] = 0x00; //dummy byte as required
 		output[2] = startPage & 0x07;
 		output[3] =speed.command;
 		output[4] =endPage & 0x07;
 		output[5] = 0xFF; // dummy byte as required
-		output[6] = 0x00; // dummy byte as required
-
-		return sendCommands(ch, output, 0,7);
+		output[6] = 0x00; // dummy byte as required		
 	}
-
+	
 	private static boolean setUpContinuousVerticalHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage,
-			int offset, Direction orientation, int[] output){
-		int dir_command = 0;
-		switch (orientation){
-		case Vertical_Left:
-			dir_command =  SET_VER_AND_RIGHT_HOR_SCROLL;
-			break;
-		case Vertical_Right:
-			dir_command =  SET_VER_AND_LEFT_HOR_SCROLL;
-			break;	
-		}
-		output[0] = dir_command;
+			int offset, Orientation dir, int[] output){
+		generateVerticalHorizontalScrollComamnds(speed,startPage,endPage,offset,dir,output);
+		return sendCommands(ch,output,0,6);
+
+	}
+	
+	private static void generateVerticalHorizontalScrollComamnds(ScrollSpeed speed, int startPage, int endPage, 
+			int offset, Orientation ori, int[] output){
+		
+		output[0] = ori == Vertical_Right? SET_VER_AND_RIGHT_HOR_SCROLL:SET_VER_AND_LEFT_HOR_SCROLL;
 		output[1] = 0x00; //dummy byte as required
 		output[2] = startPage & 0x07;
 		output[3] =speed.command;
 		output[4] =endPage & 0x07;
 		output[5] = offset & 0x1F;
-
-		return sendCommands(ch,output,0,6);
-
 	}
+	
 	/**
 	 * NOTE: this method leaves the display in horizontal mode
 	 * @param ch

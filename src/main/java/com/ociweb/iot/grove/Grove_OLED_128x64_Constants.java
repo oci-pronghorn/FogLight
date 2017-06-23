@@ -79,8 +79,9 @@ public class Grove_OLED_128x64_Constants {
 
 	public static final byte NOP = (byte)(0xE3 & 0xFF);
 
-	protected static enum Direction{Right, Left, Vertical_Right, Vertical_Left}; //protected because only Grove_OLED static class is using this
-
+	protected static enum Direction{Right, Left}; //protected because only Grove_OLED static class is using this
+	protected static enum Orientation{Vertical_Right, Vertical_Left};
+	
 	public static final int [] EMPTY_ROW = {
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

@@ -23,7 +23,7 @@ public class IoTApp implements FogApp
 	public static int GREEN_MS = 8000;
 	public static int YELLOW_MS = 2000;
 			
-	private boolean isWebControlled = true;//false;////set this to true;
+	private boolean isWebControlled = false;////set this to true;
 	
 	private int webRoute = -1;
 	private byte[] COLOR = "color".getBytes();
@@ -42,9 +42,7 @@ public class IoTApp implements FogApp
 		public int getTime(){return deltaTime;}
 	}
 
-	public static void main(String[] args) {
-		FogRuntime.run(new IoTApp());
-	}
+
 	
 	
     @Override
@@ -109,7 +107,7 @@ public class IoTApp implements FogApp
     		turnOnRed(channel0);
 			channel0.block(State.REDLIGHT.getTime());
 			
-			channel0.publishTopic("GREEN",w->{w.publish();});
+			channel0.publishTopic("GREEN",w->{});
 			return true;
     	}).addSubscription("RED");
 
@@ -119,7 +117,7 @@ public class IoTApp implements FogApp
     		turnOnGreen(channel1);
 			channel1.block(State.GREENLIGHT.getTime());
 			
-			channel1.publishTopic("YELLOW",w->{w.publish();});
+			channel1.publishTopic("YELLOW",w->{});
 			return true;
     	}).addSubscription("GREEN");
 
@@ -129,12 +127,12 @@ public class IoTApp implements FogApp
     		turnOnYellow(channel2);
 			channel2.block(State.YELLOWLIGHT.getTime());
 			
-			channel2.publishTopic("RED",w->{w.publish();});
+			channel2.publishTopic("RED",w->{});
 			return true;
     	}).addSubscription("YELLOW");
     	
        final FogCommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-       runtime.addStartupListener(()->{channel4.publishTopic("RED",w->{w.publish();});});
+       runtime.addStartupListener(()->{channel4.publishTopic("RED",w->{});});
 	}
 
 

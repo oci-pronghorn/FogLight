@@ -1,13 +1,12 @@
 package com.ociweb.iot.project.lightblink;
 
 import static com.ociweb.iot.grove.GroveTwig.LED;
-import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.maker.Port.D5;
+
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.network.ServerSocketReaderStage;
-import com.ociweb.pronghorn.network.http.HTTP1xRouterStage;
 
 public class IoTApp implements FogApp {
     

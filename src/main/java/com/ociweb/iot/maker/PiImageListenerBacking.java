@@ -1,23 +1,30 @@
 package com.ociweb.iot.maker;
 
+import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.stage.PronghornStage;
+import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-
-import com.ociweb.gl.api.TimeListener;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
 
 /**
  * Time-based image listener backing for Raspberry Pi hardware.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class PiImageListenerBacking implements TimeListener {
+public class PiImageListenerBacking extends PronghornStage {
 
     private static final Logger logger = LoggerFactory.getLogger(PiImageListenerBacking.class);
 
-    private final ImageListener handler;
+    private final Pipe<RawDataSchema> output;
+
+    private byte[] fileBytes = null;
+    private int fileBytesReadIndex = -1;
 
     /**
      * Takes a picture from the currently connected Raspberry Pi camera and
@@ -43,13 +50,67 @@ public class PiImageListenerBacking implements TimeListener {
         return new File(fileName + ".jpg"); //TODO: rewrite to be GC free
     }
 
-    public PiImageListenerBacking(ImageListener handler) {
-        this.handler = handler;
+    public PiImageListenerBacking(GraphManager graphManager, Pipe<RawDataSchema> output) {
+        super(graphManager, NONE, output);
+
+        // Attach to our output pipe.
+        this.output = output;
+
     }
 
     @Override
-    public void timeEvent(long time, int iteration) {
-        File f = takePicture("Pronghorn-Image-Capture-" + time); //TODO: rewrite to be GC free
-        handler.onImage(f);
+    public void shutdown() {
+        // Wait for room on the pipe to write any remaining data.
+        Pipe.spinBlockForRoom(output, Pipe.EOF_SIZE);
+
+        // Publish remaining data.
+        Pipe.publishEOF(output);
+    }
+
+    @Override
+    public void run() {
+
+        // Only execute while we have room to write our output.
+        if (Pipe.hasRoomForWrite(output)) {
+
+            // Do we have image data? If not, get some!
+            if (fileBytesReadIndex == -1) {
+                // TODO: rewrite to be GC free
+                // TODO: RandomAccessFile may be the best choice once it's available to us...
+                // Take a picture and load the byte information.
+                File imageFile = takePicture("Pronghorn-Image-Capture-" + System.currentTimeMillis());
+                try {
+                    fileBytes = Files.readAllBytes(imageFile.toPath());
+                    fileBytesReadIndex = 0;
+                } catch (IOException e) {
+                    // TODO: Exception or just a log error and no write?
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            }
+
+            // Load byte buffers from the pipe so we have somewhere to put the image data.
+            ByteBuffer[] buffers = Pipe.wrappedWritingBuffers(output);
+
+            // Determine maximum write size.
+            final int maximumToWrite = Math.min(buffers[0].remaining(), fileBytes.length - fileBytesReadIndex);
+
+            // Fill the buffers as much as possible.
+            System.arraycopy(fileBytes, fileBytesReadIndex,
+                             buffers[0].array(), buffers[0].position(), maximumToWrite);
+
+            // Progress index by the number of bytes written.
+            fileBytesReadIndex += maximumToWrite;
+
+            // If the index exceeds our bounds, we're done writing.
+            if (fileBytesReadIndex >= fileBytes.length) {
+                fileBytesReadIndex = -1;
+            }
+
+            // Publish our changes.
+            final int size = Pipe.addMsgIdx(output, RawDataSchema.MSG_CHUNKEDSTREAM_1);
+            Pipe.moveBlobPointerAndRecordPosAndLength(maximumToWrite, output);
+            Pipe.confirmLowLevelWrite(output, size);
+            Pipe.publishWrites(output);
+        }
     }
 }

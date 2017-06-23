@@ -637,22 +637,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, 10, 1<<15, clientRequests, netResponsePipes); 
 			
 						
-		}// else {
-			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );
-		//}
+		}
 		
-		/////////
-		//always create the pub sub and state management stage?
-		/////////
-		
-		
-//		//TODO: only create when subscriptionPipeLookup is not empty and subscriptionPipes has zero length.
-//		if (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0) {
-//			logger.trace("can save some resources by not starting up the unused pub sub service.");
-//		}
-//		createMessagePubSubStage(subscriptionPipeLookup2, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], 
-//				                 subscriptionPipes);
-
 		if (IDX_MSG <0) {
 				logger.info("saved some resources by not starting up the unused pub sub service.");
 		} else {

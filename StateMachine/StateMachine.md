@@ -13,6 +13,6 @@
 The following sketch will demonstrate a simple use of the addStateChangeListener() method.
 
 Demo code: 
-
+```
 #### ERROR:  could not read file ./src/main/java/com/ociweb/oe/foglight/StateMachine.java
-
+```

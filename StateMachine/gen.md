@@ -13,7 +13,7 @@
 The following sketch will demonstrate a simple use of the addStateChangeListener() method.
  
 Demo code: 
-
+```
 .include "./src/main/java/com/ociweb/oe/foglight/StateMachine.java"
-
+```
 The above code simulates a stop light, changing between the different enums, ```Go```, ```Caution```, and ```Stop```. The ```StateChangeListener()``` will listen for any change in the state of an enum. In this demo, each change will also trigger another change in the state, however, by blocking the channel, the next change in state will not be immedeate. 

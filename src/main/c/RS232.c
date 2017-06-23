@@ -60,13 +60,9 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
 
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_write(JNIEnv *env, jobject object, jint fd, jbyteArray message) {
     jbyte* buffer = (*env)->GetByteArrayElements(env, message, NULL);
-    int textLength = strlen((const char*) buffer);
-    char actualMessage[textLength + 1];
-    memcpy(actualMessage, buffer, textLength);
-    actualMessage[textLength] = '\0';
+    int status = write(fd, buffer, (*env)->GetArrayLength(env, message));
     (*env)->ReleaseByteArrayElements(env, message, buffer, 0);
-
-    return write(fd, actualMessage, strlen(actualMessage));
+    return status;
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_getBytesInOutputBuffer(JNIEnv *env, jobject object, jint fd) {
@@ -80,7 +76,6 @@ JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacki
 
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_getAvailableBytes(JNIEnv *env, jobject object, jint fd) {
     int bytes;
-//    ioctl(fd, TIOCINQ, &bytes);
     ioctl(fd, FIONREAD, &bytes);
     return bytes;
 }
@@ -119,12 +114,9 @@ JNIEXPORT jbyteArray JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinu
 
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_writeFrom(JNIEnv *env, jobject object, jint fd, jbyteArray rawBuffer, jint start, jint maxLength) {
     jbyte* buffer = (*env)->GetByteArrayElements(env, rawBuffer, NULL);
-    char actualMessage[maxLength + 1];
-    memcpy(actualMessage, &buffer[start], maxLength * sizeof(char));
-    actualMessage[maxLength] = '\0';
+    int status = write(fd, buffer, maxLength);
     (*env)->ReleaseByteArrayElements(env, rawBuffer, buffer, 0);
-
-    return write(fd, actualMessage, strlen(actualMessage));
+    return status;
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_pronghorn_iot_rs232_RS232NativeLinuxBacking_writeFromTwo(JNIEnv *env, jobject object, jint fd,

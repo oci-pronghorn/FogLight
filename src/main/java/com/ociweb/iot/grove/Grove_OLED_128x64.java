@@ -18,10 +18,19 @@ import com.ociweb.iot.grove.display.OLED_128x64;
  *
  */
 public class Grove_OLED_128x64 implements IODevice{
+	
 	private static Grove_OLED_128x64 instance = null;
+	
+	/**
+	 * Private constructor for singleton design pattern.
+	 */
 	private Grove_OLED_128x64(){
 	}
 
+	/**
+	 * Returns the singleton instance of Grove_OLED_128x64, lazily initializes the instance if it's still.
+	 * @return singleton instance
+	 */
 	public static Grove_OLED_128x64 getInstace(){
 		if (instance == null){
 			instance = new Grove_OLED_128x64();
@@ -29,6 +38,11 @@ public class Grove_OLED_128x64 implements IODevice{
 		return instance;
 	}
 
+	/**
+	 * Dynamically allocates an instance of {@link OLED_128x64}
+	 * @param ch {@link FogCommandChannel} reference to be held onto by the new {@link OLED_128x64}
+	 * @return the new instance of {@link OLED_128x64} created.
+	 */
 	public static OLED_128x64 newObj(FogCommandChannel ch){
 		return new OLED_128x64(ch);
 	}
@@ -53,6 +67,16 @@ public class Grove_OLED_128x64 implements IODevice{
 		return sendCommands(target, output, 0, 8);
 	}
 
+	/**
+	 * Send an array of data
+	 * Implemented by calling {@link #sendData(FogCommandChannel, int[], int, int, int)}, which recursively calls itself
+	 * exactly 'm' times, where 'm' is the number of batches requires to send the data array specified by the start and length.
+	 * @param ch
+	 * @param data
+	 * @param start
+	 * @param length
+	 * @return true if the i2c bus is ready, false otherwise.
+	 */
 	private static boolean sendData(FogCommandChannel ch, int[] data, int start, int length){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -70,14 +94,10 @@ public class Grove_OLED_128x64 implements IODevice{
 		}
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();
-		
 		if (i == finalTargetIndex){
 			return true;
 		}
-		else {
-			return sendData(ch, data, i + 1, BATCH_SIZE, finalTargetIndex);
-		}
-		
+		return sendData(ch, data, i + 1, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 /*
 	private static boolean iterativeSendData(FogCommandChannel ch, int[] data, int start, int length){

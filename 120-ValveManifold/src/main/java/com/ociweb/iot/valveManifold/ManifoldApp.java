@@ -46,7 +46,7 @@ public class ManifoldApp {
 		
 		String gatewayHost = HTTPServer.getOptArg("-host", "--h", args, "127.0.0.1");	
 		String clientId = HTTPServer.getOptArg("-clientName", "--n", args, "UnknownManifold");	
-		String runSimulation = HTTPServer.getOptArg("-simulation", "--s", args, "False");
+		String runSimulation = HTTPServer.getOptArg("-simulation", "--s", args, "True");
 		
 		instance = new ManifoldApp(gatewayHost, clientId);
 		instance.buildGraph(Boolean.parseBoolean(runSimulation));
@@ -57,34 +57,35 @@ public class ManifoldApp {
 	public void buildGraph(boolean simulate) {
 		//logger.info("build graph");
 
-		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
 		if (!simulate) {
-			buildRealPipes(uartBytesPipe);
+			buildRealPipes();
 			MonitorConsoleStage.attach(gm);
 		} else {
 			logger.info("running simulation");
-			buildAllFakePipes(uartBytesPipe);
+			buildAllFakePipes();
 		}
 	}
 
-	private void buildRealPipes(Pipe<RawDataSchema> uartBytesPipe) {
+	private void buildRealPipes() {
+		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
 		UARTDataStage.newInstance(gm, uartBytesPipe); //take the raw data off the UART and put it on the pipe
 		buildPipes(clientId, uartBytesPipe);
 	}
 
-	private void buildAllFakePipes(Pipe<RawDataSchema> uartBytesPipe) {
+	private void buildAllFakePipes() {
 		//build up simulators
 		// The manifold ids are 1, 2, 3, 4, and 5.
 		// The one they focus on is in the lower left corner and is id 4.
 		// The valve ids go from 0 to 5 on each manifold.
-		buildFakePipes("1", uartBytesPipe,5, 1,   false);
-		buildFakePipes("2", uartBytesPipe,5, 10,  false);
-		buildFakePipes("3", uartBytesPipe,5, 10,  false);
-		buildFakePipes("4", uartBytesPipe,5, 100, false);
-		buildFakePipes("5", uartBytesPipe,5, 100, true);
+		buildFakePipes("1",5, 1,   false);
+		buildFakePipes("2",5, 10,  false);
+		buildFakePipes("3",5, 10,  false);
+		buildFakePipes("4",5, 100, false);
+		buildFakePipes("5",5, 100, true);
 	}
 
-	private void buildFakePipes(String clientId, Pipe<RawDataSchema> uartBytesPipe, int valves, int base, boolean canFail) {
+	private void buildFakePipes(String clientId, int valves, int base, boolean canFail) {
+		Pipe<RawDataSchema> uartBytesPipe = new Pipe<RawDataSchema>(uartBytesPipeConfig);
 		SimulatedUARTDataStage.newInstance(gm, uartBytesPipe, clientId, valves, base, canFail); //for making fake data
 		buildPipes(clientId, uartBytesPipe);
 	}

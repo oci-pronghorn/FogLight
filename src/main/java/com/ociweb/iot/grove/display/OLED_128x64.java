@@ -1,15 +1,11 @@
 package com.ociweb.iot.grove.display;
 
-import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.col_count;
-import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.row_count;
-
-import static com.ociweb.iot.grove.Grove_OLED_128x64.ScrollSpeed;
-
+import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 import com.ociweb.iot.grove.Grove_OLED_128x64;
+import com.ociweb.iot.grove.ScrollSpeed;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-
 
 /**
  * IODevice that holds on to the FogCommandChannel, data_output array, and cmd_output array needed for the static Grove_OLED_128x64
@@ -17,10 +13,10 @@ import com.ociweb.iot.maker.FogCommandChannel;
  *
  */
 public class OLED_128x64 implements IODevice{
-	FogCommandChannel ch;
+	private final FogCommandChannel ch;
 	
-	int[] data_output = new int[1024]; //the most amount of data we can ever send at once as this is one entire frame worth of data
-	int[] cmd_output = new int[32]; // the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
+	private final int[] data_output = new int[1024]; //the most amount of data we can ever send at once as this is one entire frame worth of data
+	private final int[] cmd_output = new int[32]; // the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
 	
 	public OLED_128x64(FogCommandChannel ch){
 		this.ch = ch;
@@ -41,12 +37,12 @@ public class OLED_128x64 implements IODevice{
 	public boolean setTextRowCol(int row, int col){
 		return Grove_OLED_128x64.setTextRowCol(this.ch, row, col, cmd_output);
 	}
-	public boolean printString(String s){
-		return Grove_OLED_128x64.printString(this.ch, s , data_output);
+	public boolean printCharSequence(CharSequence s){
+		return Grove_OLED_128x64.printCharSequence(this.ch, s , data_output);
 	}
 	
-	public boolean printStringAt(String s, int row, int col){
-		return Grove_OLED_128x64.printStringAt(this.ch, s, data_output, row, col, cmd_output);
+	public boolean printCharSequenceAt(CharSequence s, int row, int col){
+		return Grove_OLED_128x64.printCharSequenceAt(this.ch, s, data_output, row, col, cmd_output);
 	}
 	
 	public boolean displayImage(int[][] raw_image){

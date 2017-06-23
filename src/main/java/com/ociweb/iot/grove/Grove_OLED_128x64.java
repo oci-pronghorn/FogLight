@@ -13,7 +13,7 @@ import com.ociweb.iot.grove.display.OLED_128x64;
 
 /**
  * Utility class that communicates with the i2c Grove OLED 128x64 display, includes basic functionality such as printing
- * bitmap or string.
+ * bitmap or CharSequence.
  * @author Ray Lo, Nathan Tippy
  *
  */
@@ -29,24 +29,6 @@ public class Grove_OLED_128x64 implements IODevice{
 		return new OLED_128x64(ch);
 	}
 	
-	//TODO: bring enum into its own java class
-	public static enum ScrollSpeed{
-		Scroll_2Frames(0x07),
-		Scroll_3Frames(0x04),
-		Scroll_4Frames(0x05),
-		Scroll_5Frames(0x00),
-		Scroll_25Frames(0x06),
-		Scroll_64Frames(0x01),
-		Scroll_128Frames(0x02),
-		Scroll_256Frames(0x03);
-
-		final int command;
-		private ScrollSpeed(int command){ 
-			this.command = command;
-		};
-
-	};
-
 	public static boolean isStarted = false;
 
 	/**
@@ -121,7 +103,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	}
 
 	/**
-	 * Sets the display in page mode, necessary for {@link #setTextRowCol(FogCommandChannel,int,int, int[])}, {@link #printString(FogCommandChannel, String, int[])} . 
+	 * Sets the display in page mode, necessary for {@link #setTextRowCol(FogCommandChannel,int,int, int[])}, {@link #printCharSequence(FogCommandChannel, CharSequence, int[])} . 
 	 * @param ch is the ch is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection to this OLED.
 	 * @return true if all three bytes needed were sent, false otherwise.
 	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
@@ -307,7 +289,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	 * NOTE: drawing in page mode instead of horizontal mode sends 16 extra bytes per reflash compared to drawing
 	 * in horizontal mode as we need to reset textRowCol everytime we reach a new page. It may be preferable to use
 	 * drawing in page mode however, as it eliminates the need to switch between page mode and horizontal mode when doing
-	 * both drawing and string printing.
+	 * both drawing and CharSequence printing.
 	 * @param ch
 	 * @param map
 	 * @return true
@@ -344,12 +326,12 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
-	public static boolean encodeString(String s, int[] output){
-		return encodeString(s, output, 0, s.length());
+	public static boolean encodeCharSequence(CharSequence s, int[] output){
+		return encodeCharSequence(s, output, 0, s.length());
 	}
 
-	public static boolean encodeString(String s,  int[] output, int start, int string_length){
-		for (int i = start; i < start + string_length; i++){
+	public static boolean encodeCharSequence(CharSequence s,  int[] output, int start, int CharSequence_length){
+		for (int i = start; i < start + CharSequence_length; i++){
 			if (encodeChar(s.charAt(i), output, i*8)){	
 			} else {
 				return false;
@@ -358,12 +340,12 @@ public class Grove_OLED_128x64 implements IODevice{
 		return true;
 	}
 
-	public static boolean printStringAt(FogCommandChannel ch, String s, int[] data_output, int row, int col, int[] cmd_output){
-		return setTextRowCol(ch,row,col, cmd_output) && printString(ch,s,data_output);
+	public static boolean printCharSequenceAt(FogCommandChannel ch, CharSequence s, int[] data_output, int row, int col, int[] cmd_output){
+		return setTextRowCol(ch,row,col, cmd_output) && printCharSequence(ch,s,data_output);
 	}
 	
-	public static boolean printString(FogCommandChannel ch, String s, int[] output){
-		encodeString(s, output);
+	public static boolean printCharSequence(FogCommandChannel ch, CharSequence s, int[] output){
+		encodeCharSequence(s, output);
 		return sendData(ch, output, 0, s.length()*8);
 	}
 

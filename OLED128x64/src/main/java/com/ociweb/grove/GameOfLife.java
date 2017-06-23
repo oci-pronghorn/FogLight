@@ -9,11 +9,10 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 
 public class GameOfLife implements StartupListener, TimeListener {
-	private FogCommandChannel ch;
 	private int[][] cur_state = new int[row_count][col_count];
 	private int[][] next_state = new int[row_count][col_count];
-	private boolean enableMonitoring = false;
-	private OLED_128x64 display;
+	private final boolean enableMonitoring = false;
+	private final OLED_128x64 display;
 
 	
 	public GameOfLife(FogCommandChannel ch){
@@ -29,7 +28,6 @@ public class GameOfLife implements StartupListener, TimeListener {
 
 	}
 	public GameOfLife(FogCommandChannel ch, int[][] start_state){
-		this.ch = ch;
 		cur_state = start_state;
 		display = new OLED_128x64(ch);
 	}
@@ -40,10 +38,10 @@ public class GameOfLife implements StartupListener, TimeListener {
 		display.clear();
 		
 		display.setTextRowCol(3, 4);
-		display.printString("Conway's");
+		display.printCharSequence("Conway's");
 		
 		//maker may also set textRowCOl and printString in the same aggergate function
-		display.printStringAt("Game of Life", 4,2);
+		display.printCharSequenceAt("Game of Life", 4,2);
 	}
 
 	@Override
@@ -173,9 +171,7 @@ public class GameOfLife implements StartupListener, TimeListener {
 		return num >= lower_bound && num < higher_bound; 
 	}
 
-	public void enableMonitoring(){
-		enableMonitoring = true;
-	}
+
 
 	private static int[][] def_start = 
 		{

@@ -8,13 +8,12 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**
- * IODevice that holds on to the FogCommandChannel, data_output array, and cmd_output array needed for the static Grove_OLED_128x64
+ * IODevice object that holds on to the FogCommandChannel, data_output array, and cmd_output array needed for the static Grove_OLED_128x64 utility class.
  * @author Ray Lo, Nathan Tippy
  *
  */
 public class OLED_128x64 implements IODevice{
 	private final FogCommandChannel ch;
-	
 	private final int[] data_output = new int[1024]; //the most amount of data we can ever send at once as this is one entire frame worth of data
 	private final int[] cmd_output = new int[32]; // the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
 	
@@ -175,5 +174,4 @@ public class OLED_128x64 implements IODevice{
 	public int pinsUsed() {
 		return 1;
 	}
-
 }

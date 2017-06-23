@@ -12,23 +12,27 @@ import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Direction.*;
 import com.ociweb.iot.grove.display.OLED_128x64;
 
 /**
- * Utility class that communicates with the i2c Grove OLED 128x64 display, includes basic functionality such as printing
+ * Singleton utility class that communicates with the i2c Grove OLED 128x64 display, includes basic functionality such as printing
  * bitmap or CharSequence.
  * @author Ray Lo, Nathan Tippy
  *
  */
 public class Grove_OLED_128x64 implements IODevice{
+	private static Grove_OLED_128x64 instance = null;
 	private Grove_OLED_128x64(){
 	}
-	
-	public Grove_OLED_128x64 getInstace(){
-		return this;
+
+	public static Grove_OLED_128x64 getInstace(){
+		if (instance == null){
+			instance = new Grove_OLED_128x64();
+		}
+		return instance;
 	}
-	
-	public OLED_128x64 newObj(FogCommandChannel ch){
+
+	public static OLED_128x64 newObj(FogCommandChannel ch){
 		return new OLED_128x64(ch);
 	}
-	
+
 	public static boolean isStarted = false;
 
 	/**
@@ -49,14 +53,40 @@ public class Grove_OLED_128x64 implements IODevice{
 		return sendCommands(target, output, 0, 8);
 	}
 
-	public static boolean sendData(FogCommandChannel ch, int[] data, int start, int length){
+	private static boolean sendData(FogCommandChannel ch, int[] data, int start, int length){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
+		//call the helper method to recursively send batches
+		return sendData(ch,data,start,BATCH_SIZE, start+length);
+	}
+
+	private static boolean sendData(FogCommandChannel ch, int[] data, int start, int length, int finalTargetIndex){
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
+		i2cPayloadWriter.write(DATA_MODE);
+		int i;
+		for (i = start; i < Math.min(start + length, finalTargetIndex); i++){
+			i2cPayloadWriter.write(data[i]);
+		}
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();
+		
+		if (i == finalTargetIndex){
+			return true;
+		}
+		else {
+			return sendData(ch, data, i + 1, BATCH_SIZE, finalTargetIndex);
+		}
+		
+	}
+/*
+	private static boolean iterativeSendData(FogCommandChannel ch, int[] data, int start, int length){
+		
+		 * 
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
 		int counter = 1;
 		i2cPayloadWriter.write(DATA_MODE);
-		
+
 		//TODO: Fix for loop to not check batch size every iteration
 		for (int i = start; i < start+length; i ++){
 			if (counter < BATCH_SIZE){	
@@ -77,8 +107,39 @@ public class Grove_OLED_128x64 implements IODevice{
 			ch.i2cCommandClose();
 			ch.i2cFlushBatch();
 		}
+		 */
+		/*
+		final int num_batches = length / BATCH_SIZE;
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
+		i2cPayloadWriter.write(DATA_MODE);
+
+		//iterate through all the batches we need to send
+
+		for (int i = 0; i < num_batches; i++){
+			//iterate through all the indiviusal bytes in each batch
+			for (int j = start + (i * BATCH_SIZE); j < start + ( (i + 1) * BATCH_SIZE); j++){
+				i2cPayloadWriter.write(data[j]);
+			}
+			//flush the batch once a batch is full
+			ch.i2cCommandClose();
+			ch.i2cFlushBatch();
+			i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
+			i2cPayloadWriter.write(DATA_MODE);
+		}
+
+		//send the last fraction of batch worth of remaining bytes.
+		int start_last_batch = start + (num_batches * BATCH_SIZE);
+
+		for (int j = start_last_batch; j < start + length; j++){
+			i2cPayloadWriter.write(data[j]);
+		}
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();
+
 		return true;
-	}
+		}
+		 */
+
 
 	/**
 	 * Sends a "data" identifier byte followed by the user-supplied byte over the i2c.
@@ -199,7 +260,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		output[0] = SET_CLOCK_DIV_RATIO;
 		output[1] = (clock_div_ratio & 0x0F) | (osc_freq << 4 & 0xF0);
 		return sendCommands(ch, output, 0,2);
-		
+
 	}
 	public static boolean setVerticalOffset(FogCommandChannel ch, int offset, int[] output){
 		output[0] = SET_DISPLAY_OFFSET;
@@ -235,7 +296,7 @@ public class Grove_OLED_128x64 implements IODevice{
 			dir_command = SET_LEFT_HOR_SCROLL;
 			break;
 		}
-		
+
 		output[0] = dir_command;
 		output[1] = 0x00; //dummy byte as required
 		output[2] = startPage & 0x07;
@@ -264,7 +325,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		output[3] =speed.command;
 		output[4] =endPage & 0x07;
 		output[5] = offset & 0x1F;
-		
+
 		return sendCommands(ch,output,0,6);
 
 	}
@@ -343,7 +404,7 @@ public class Grove_OLED_128x64 implements IODevice{
 	public static boolean printCharSequenceAt(FogCommandChannel ch, CharSequence s, int[] data_output, int row, int col, int[] cmd_output){
 		return setTextRowCol(ch,row,col, cmd_output) && printCharSequence(ch,s,data_output);
 	}
-	
+
 	public static boolean printCharSequence(FogCommandChannel ch, CharSequence s, int[] output){
 		encodeCharSequence(s, output);
 		return sendData(ch, output, 0, s.length()*8);
@@ -357,7 +418,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		output[1] = LOWER_COL_START_ADDRESS_PAGE_MODE + (8*col & 0x0F);
 		output[2] = HIGHER_COL_START_ADDRESS_PAGE_MODE + ((8*col >> 4) & 0x0F);
 		//TODO: avoid three seperate if-statements by ANDing them in the condtional, is there a better way?
-		
+
 		return sendCommands(ch, output, 0, 3);
 	}
 
@@ -413,7 +474,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		ch.i2cFlushBatch();		
 		return false;
 	}
-	
+
 	private static boolean sendCommand(FogCommandChannel ch, int b){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -427,35 +488,32 @@ public class Grove_OLED_128x64 implements IODevice{
 	}
 
 
-	
+	/**
+	 * Unliked send data, sendCommands makes the assumption that the call is not sending more than one batch worth of commands
+	 *Each command  involves two bytes. So if the caller is trying to send a command array of size 5, they are really sending
+	 *10 bytes.
+	 * @param ch
+	 * @param commands
+	 * @param start
+	 * @param length
+	 * @return
+	 */
 	private static boolean sendCommands(FogCommandChannel ch, int[] commands, int start, int length){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
 
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
-		int counter = 0;
-
+		
+		assert(length*2 <= BATCH_SIZE);
 		for (int i = start; i < start + length; i++){
-			if (counter < BATCH_SIZE){
+		
 				i2cPayloadWriter.write(COMMAND_MODE);
 				i2cPayloadWriter.write(commands[i]);
-				counter = counter + 2;
-			}
-			else {
-				ch.i2cCommandClose();
-				ch.i2cFlushBatch();
-
-				i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
-				i2cPayloadWriter.write(COMMAND_MODE);
-				i2cPayloadWriter.write(commands[i]);
-				counter = 2;
-			}
+		
 		}
-		if (counter > 0){
-			ch.i2cCommandClose();
-			ch.i2cFlushBatch();
-		}
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();
 		return true;
 	}
 
@@ -473,7 +531,7 @@ public class Grove_OLED_128x64 implements IODevice{
 
 	//Overloading the function to automatically mask ints and use their least significant 8-bits as our bytes to send
 	//Ideally, for best performance, we should send byte array and not int array to avoid this extra function call
-	
+
 	@Deprecated
 	private static boolean writeByteSequence(FogCommandChannel ch, int[] seq){
 		byte[] byteSeq = new byte[seq.length];

@@ -14,6 +14,8 @@ import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.Appendables;
 
+import static com.ociweb.iot.valveManifold.schema.ValveSchema.*;
+
 
 public class MQTTPublishPAHOStage extends PronghornStage {
 
@@ -107,37 +109,101 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 			String dataTopic = Pipe.from(input).fieldNameScript[msgIdx]; //skip over id to the field;
 			
 			int stationId = Pipe.takeInt(input);
-			
-			switch (size) {
-			
-				case 3:
-					int idx = dataTopic.indexOf('/');
-					assert(idx>=0);
-					//System.err.println("data to send: "+dataTopic.substring(idx+1));
-					//the body is in the dataTopic
-					data = dataTopic.substring(idx+1).getBytes();
-					dataTopic = dataTopic.substring(0, idx);										
-				break;
-				case 4:
-					//single int value
+			long timeStamp = Pipe.takeLong(input);
+
+			switch(msgIdx) {
+				case MSG_VALVESERIALNUMBER_311: {
 					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new 
-					write32(data,0,value);
-				break;
-				case 5:
-					//probably text
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_LIFECYCLECOUNT_312: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_SUPPLYPRESSURE_313: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_DURATIONOFLAST1_4SIGNAL_314: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_DURATIONOFLAST1_2SIGNAL_315: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_EQUALIZATIONAVERAGEPRESSURE_316: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_EQUALIZATIONPRESSURERATE_317: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_RESIDUALOFDYNAMICANALYSIS_318: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_PARTNUMBER_330: {
 					int meta = Pipe.takeRingByteMetaData(input);
 					int len = Pipe.takeRingByteLen(input);
 					int pos = Pipe.bytePosition(meta, input, len);
-					data = new byte[len]; //must be new 
-					
-					Pipe.copyBytesFromToRing(Pipe.blob(input), pos, Pipe.blobMask(input), 
-							                 data, 0, Integer.MAX_VALUE, len);
-					
-				break;
+					data = new byte[len]; //must be new
+					Pipe.copyBytesFromToRing(Pipe.blob(input), pos, Pipe.blobMask(input),
+							data, 0, Integer.MAX_VALUE, len);
+					break;
+				}
+				case MSG_VALVEFAULT_340: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_PRESSUREFAULT_350: {
+					int meta = Pipe.takeRingByteMetaData(input);
+					int len = Pipe.takeRingByteLen(input);
+					int pos = Pipe.bytePosition(meta, input, len);
+					data = new byte[len]; //must be new
+					Pipe.copyBytesFromToRing(Pipe.blob(input), pos, Pipe.blobMask(input),
+							data, 0, Integer.MAX_VALUE, len);
+					break;
+				}
+				case MSG_LEAKFAULT_360: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_DATAFAULT_362: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
+				case MSG_PRESSUREPOINT_319: {
+					int value = Pipe.takeInt(input);
+					data = new byte[4]; //must be new
+					write32(data, 0, value);
+					break;
+				}
 				default:
 					//throw new UnsupportedOperationException("unexpected msg size "+size);
-			
 			}
 						
 			mqttTopic.setLength(0);

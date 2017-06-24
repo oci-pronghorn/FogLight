@@ -6,6 +6,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.maker.Baud;
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -33,7 +34,7 @@ public class UARTDataStage extends PronghornStage{
 
 	@Override 
 	public void startup() {
-        client = new RS232Client("/dev/ttyMFD1", RS232Client.B9600);
+        client = new RS232Client("/dev/ttyMFD1", Baud.B_____9600);
         //logger.info("started up");
 	}
 	

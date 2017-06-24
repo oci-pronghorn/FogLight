@@ -112,94 +112,33 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 			long timeStamp = Pipe.takeLong(input);
 
 			switch(msgIdx) {
-				case MSG_VALVESERIALNUMBER_311: {
+				case MSG_VALVESERIALNUMBER_311:
+				case MSG_LIFECYCLECOUNT_312:
+				case MSG_SUPPLYPRESSURE_313:
+				case MSG_DURATIONOFLAST1_4SIGNAL_314:
+				case MSG_DURATIONOFLAST1_2SIGNAL_315:
+				case MSG_EQUALIZATIONAVERAGEPRESSURE_316:
+				case MSG_EQUALIZATIONPRESSURERATE_317:
+				case MSG_RESIDUALOFDYNAMICANALYSIS_318:
+				case MSG_VALVEFAULT_340:
+				case MSG_LEAKFAULT_360:
+				case MSG_DATAFAULT_362:
+				case MSG_PRESSUREPOINT_319: {
 					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
+					data = new byte[12]; //must be new
+					write64(data, 0, timeStamp);
+					write32(data, 8, value);
 					break;
 				}
-				case MSG_LIFECYCLECOUNT_312: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_SUPPLYPRESSURE_313: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_DURATIONOFLAST1_4SIGNAL_314: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_DURATIONOFLAST1_2SIGNAL_315: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_EQUALIZATIONAVERAGEPRESSURE_316: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_EQUALIZATIONPRESSURERATE_317: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_RESIDUALOFDYNAMICANALYSIS_318: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
+				case MSG_PRESSUREFAULT_350:
 				case MSG_PARTNUMBER_330: {
 					int meta = Pipe.takeRingByteMetaData(input);
 					int len = Pipe.takeRingByteLen(input);
 					int pos = Pipe.bytePosition(meta, input, len);
-					data = new byte[len]; //must be new
+					data = new byte[len + 8]; //must be new
+					write64(data, 0, timeStamp);
 					Pipe.copyBytesFromToRing(Pipe.blob(input), pos, Pipe.blobMask(input),
-							data, 0, Integer.MAX_VALUE, len);
-					break;
-				}
-				case MSG_VALVEFAULT_340: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_PRESSUREFAULT_350: {
-					int meta = Pipe.takeRingByteMetaData(input);
-					int len = Pipe.takeRingByteLen(input);
-					int pos = Pipe.bytePosition(meta, input, len);
-					data = new byte[len]; //must be new
-					Pipe.copyBytesFromToRing(Pipe.blob(input), pos, Pipe.blobMask(input),
-							data, 0, Integer.MAX_VALUE, len);
-					break;
-				}
-				case MSG_LEAKFAULT_360: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_DATAFAULT_362: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
-					break;
-				}
-				case MSG_PRESSUREPOINT_319: {
-					int value = Pipe.takeInt(input);
-					data = new byte[4]; //must be new
-					write32(data, 0, value);
+							data, 8, Integer.MAX_VALUE, len);
 					break;
 				}
 				default:
@@ -224,7 +163,19 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 
 		}
 	}
-	
+
+
+	private static int write64(byte[] buf, int pos, long v) {
+		buf[pos++] = (byte)(v >>> 64);
+		buf[pos++] = (byte)(v >>> 56);
+		buf[pos++] = (byte)(v >>> 48);
+		buf[pos++] = (byte)(v >>> 32);
+		buf[pos++] = (byte)(v >>> 24);
+		buf[pos++] = (byte)(v >>> 16);
+		buf[pos++] = (byte)(v >>> 8);
+		buf[pos++] = (byte) v;
+		return pos;
+	}
 	
     private static int write32(byte[] buf, int pos, int v) {
         buf[pos++] = (byte)(v >>> 24);

@@ -1,7 +1,5 @@
 package com.ociweb.iot.hardware.impl;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +7,6 @@ import com.ociweb.gl.impl.schema.TrafficAckSchema;
 import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -17,7 +14,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 
 
-public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareImpl> {
+public class SerialDataWriterStage extends AbstractTrafficOrderedStage {
 
 	private Pipe<SerialOutputSchema>[] fromCommandChannels;
 	private RS232Clientable rs232Client;

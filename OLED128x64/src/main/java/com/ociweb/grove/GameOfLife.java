@@ -29,7 +29,7 @@ public class GameOfLife implements StartupListener, TimeListener {
 	}
 	public GameOfLife(FogCommandChannel ch, int[][] start_state){
 		cur_state = start_state;
-		display = new OLED_128x64(ch);
+		display = Grove_OLED_128x64.newObj(ch);
 	}
 	
 	@Override
@@ -41,14 +41,14 @@ public class GameOfLife implements StartupListener, TimeListener {
 		display.printCharSequence("Conway's");
 		
 		//maker may also set textRowCOl and printString in the same aggergate function
-		display.printCharSequenceAt("Game of Life", 4,2);
+		display.printCharSequenceAt("Game of Life", 4, 2);
 	}
 
 	@Override
 	public void timeEvent(long time, int iteration) {
-		if (iteration > 10){
+		if (iteration > 20){
 			ageUniverse();
-			System.out.println("Iteration: " + iteration + ", Time: " + time);
+			//System.out.println("Iteration: " + iteration + ", Time: " + time);
 			
 			display.displayImage(cur_state);
 
@@ -56,6 +56,7 @@ public class GameOfLife implements StartupListener, TimeListener {
 				monitorInConsole();
 			}
 		}
+
 	}
 
 	private void randomizeCurrentState(){

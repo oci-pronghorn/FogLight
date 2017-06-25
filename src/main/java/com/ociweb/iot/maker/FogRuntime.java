@@ -9,7 +9,6 @@ import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
-import com.ociweb.iot.hardware.impl.SerialOutputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -20,7 +19,6 @@ import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
-import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
@@ -271,6 +269,9 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, inputPipes, outputPipes);
 		configureStageRate(listener,reactiveListener);
 
+		//////////
+		///only for assert, TODO: remove upon assert disabled
+		///////////
 		int testId = -1;
 		int i = inputPipes.length;
 		while (--i>=0) {
@@ -278,9 +279,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				testId = inputPipes[i].id;
 			}
 		}
-
 		assert(-1==testId || GraphManager.allPipesOfType(gm, MessageSubscription.instance)[subscriptionPipeIdx-1].id==testId) : "GraphManager has returned the pipes out of the expected order";
-        return reactiveListener;
+        //////////////////
+		
+		return reactiveListener;
 
     }
     
@@ -339,6 +341,12 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		    runtime.declareBehavior(app);
 
+		    //TODO: at this point realize the stages in declare behavior
+		    //      all updates are done so create the reactors with the right pipes and names
+		    //      this change will let us move routes to part of the fluent API plus other benifits..
+		    //      move all reactor fields into object created early, shell is created here.
+		    //      register must hold list of all temp objects (linked list to preserve order?)
+		    
 		    System.out.println("To exit app press Ctrl-C");
 		    runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
@@ -351,7 +359,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				   }
 			   //exportGraphDotFile();
 
-			   runtime.scheduler = runtime.builder.createScheduler(runtime);
+			runtime.scheduler = runtime.builder.createScheduler(runtime);
 		    runtime.scheduler.startup();
 		} catch (Throwable t) {
 		    t.printStackTrace();

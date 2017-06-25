@@ -1,7 +1,5 @@
 package com.ociweb.iot.hardware.impl;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +7,6 @@ import com.ociweb.gl.impl.schema.TrafficAckSchema;
 import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -17,7 +14,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 
 
-public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareImpl> {
+public class SerialDataWriterStage extends AbstractTrafficOrderedStage {
 
 	private Pipe<SerialOutputSchema>[] fromCommandChannels;
 	private RS232Clientable rs232Client;
@@ -44,12 +41,13 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 	
 	@Override
 	public void run() {
-		if (pipeIdx>=0) {
+		int activePipe = pipeIdx;
+		if (activePipe>=0) {
 			//never start new work until old work is finished		
-			if (pumpData(pipeIdx)) {				
-	            PipeReader.releaseReadLock(fromCommandChannels[pipeIdx]);
+			if (pumpData(activePipe)) {				
+	            PipeReader.releaseReadLock(fromCommandChannels[activePipe]);
 	            //only do now after we know its not blocked and was completed
-	            decReleaseCount(pipeIdx);			
+	            decReleaseCount(activePipe);			
 				pipeIdx = -1;
 			} else {
 				return;//try again later.
@@ -104,12 +102,7 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 		if (lenFromOffsetToEnd>=length) {
 		    //simple add bytes
 			
-			int wroteLen = rs232Client.write(Arrays.copyOfRange(backing, pos, pos+length));
-			
-			///////////
-			//NASTY HACK TO TEST C CODE
-			//////////
-			//int wroteLen = rs232Client.writeFrom(backing, pos, length);
+			int wroteLen = rs232Client.writeFrom(backing, pos, length);
 			if (wroteLen < length) {
 				//only wrote some, now what?
 				//update position
@@ -125,8 +118,7 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 			
 		} else {                        
 		    //rolled over the end of the buffer
-			//int wroteLenA = rs232Client.writeFrom(backing, pos, lenFromOffsetToEnd);
-			int wroteLenA = rs232Client.write(Arrays.copyOfRange(backing, pos, pos+lenFromOffsetToEnd));
+			int wroteLenA = rs232Client.writeFrom(backing, pos, lenFromOffsetToEnd);
 			if (wroteLenA>=0) {
 				pos = mask&(pos+wroteLenA);
 				length -= wroteLenA;
@@ -138,8 +130,7 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage<HardwareI
 				return false;
 			}
 			
-	///		int wroteLenB = rs232Client.writeFrom(backing, pos, len2);
-			int wroteLenB = rs232Client.write(Arrays.copyOfRange(backing, pos, pos+length));
+			int wroteLenB = rs232Client.writeFrom(backing, pos, length);
 			if (wroteLenB < length) {
 				if (wroteLenB>=0) {
 					pos = mask&(pos+wroteLenB);

@@ -3,12 +3,16 @@ package com.ociweb.pronghorn.iot.rs232;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.Charset;
+import com.ociweb.iot.maker.Baud;
 
 /**
  * Represents a client for an RS232 serial port.
  *
  * TODO: Should no-op return empty/default values or throw an exception?
+ *
+ * When building the native code on the pi:
+ *   declare -x JAVA_HOME="/usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt"
+ *   gcc -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin -I${JAVA_HOME}/include/linux -shared -o rs232.so -fPIC src/main/c/RS232.c
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
@@ -20,39 +24,19 @@ public class RS232Client implements RS232Clientable {
     private boolean connected = false;
     private int fd = -1;
 
-    // Standard baud rates.
-    public static final int B9600 = 13;
-    public static final int B19200 = 14;
-    public static final int B38400 = 15;
-    public static final int B57600 = 4097;
-    public static final int B115200 = 4098;
-    public static final int B230400 = 4099;
-    public static final int B460800 = 4100;
-    public static final int B500000 = 4101;
-    public static final int B576000 = 4102;
-    public static final int B921600 = 4103;
-    public static final int B1000000 = 4104;
-    public static final int B1152000 = 4105;
-    public static final int B1500000 = 4106;
-    public static final int B2000000 = 4107;
-    public static final int B2500000 = 4108;
-    public static final int B3000000 = 4109;
-    public static final int B3500000 = 4110;
-    public static final int B4000000 = 4111;
+
 
     private int failCount = 25;
     /**
      * @param port Port identifier to open.
      * @param baud Baud rate to use.
      */
-    public RS232Client(String port, int baud) {
+    public RS232Client(String port, Baud baud) {
         try {
-        	assert(baud>=B9600);
-        	assert(baud<=B4000000);
         	logger.info("connecting to serial {} {}",port,baud);
         	
             backing = new RS232NativeLinuxBacking();
-            fd = backing.open(port, baud);
+            fd = backing.open(port, baud.code());
 
             if (fd != -1) {
                 connected = true;
@@ -106,9 +90,9 @@ public class RS232Client implements RS232Clientable {
      */
     public int write(byte[] message) {
         if (connected) {
-        	logger.info("call write {}",message.length);
+        	logger.trace("call write {}",message.length);
             int result = backing.write(fd, message);
-            logger.info("did write {}",result);
+            logger.trace("did write {}",result);
             if (0==result && --failCount<=0) {
             	System.exit(-1);
             }
@@ -197,15 +181,15 @@ public class RS232Client implements RS232Clientable {
      */
     public int writeFrom(byte[] buffer, int start, int maxLength) {
         if (connected) {
-        	logger.info("call write {}",maxLength);
+        	logger.trace("call write {}",maxLength);
             int result = backing.writeFrom(fd, buffer, start, maxLength);
-            logger.info("did write {}",result);
+            logger.trace("did write {}",result);
             if (0==result && --failCount<=0) {
             	System.exit(-1);
             }
             return result;
         } else {
-        	logger.info("not connected");
+        	logger.trace("not connected");
             return -1;
         }
     }
@@ -225,16 +209,16 @@ public class RS232Client implements RS232Clientable {
     public int writeFrom(byte[] buffer1, int start1, int maxLength1,
                          byte[] buffer2, int start2, int maxLength2) {
         if (connected) {
-        	logger.info("called write {} {} ",maxLength1,maxLength2);
+        	logger.trace("called write {} {} ",maxLength1,maxLength2);
             int result = backing.writeFromTwo(fd, buffer1, start1, maxLength1,
                                             buffer2, start2, maxLength2);
-            logger.info("write results {} ", result);
+            logger.trace("write results {} ", result);
             if (0==result && --failCount<=0) {
             	System.exit(-1);
             }
             return result;
         } else {
-        	logger.info("not connected");
+        	logger.trace("not connected");
             return -1;
         }
     }

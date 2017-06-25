@@ -22,7 +22,7 @@ import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
-public class I2CJFFIStage extends AbstractTrafficOrderedStage<HardwareImpl> {
+public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
 	private final I2CBacking i2c;
 	private final Pipe<I2CCommandSchema>[] fromCommandChannels;
@@ -73,8 +73,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage<HardwareImpl> {
 		
 		this.inputs = hardware.getI2CInputs();
 		
-		if (this.hardware.hasI2CInputs()) {			
-			this.schedule = this.hardware.buildI2CPollSchedule();    		
+		if (((HardwareImpl)this.hardware).hasI2CInputs()) {			
+			this.schedule = ((HardwareImpl)this.hardware).buildI2CPollSchedule();    		
 		} else {
 			logger.debug("skipped buildI2CPollSchedule has no i2c inputs" );
 		}

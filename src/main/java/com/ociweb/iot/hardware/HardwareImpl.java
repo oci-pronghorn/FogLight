@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.impl.BuilderImpl;
+import com.ociweb.gl.impl.schema.IngressMessages;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficAckSchema;
@@ -23,6 +24,7 @@ import com.ociweb.iot.hardware.impl.SerialDataReaderStage;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 
 import com.ociweb.iot.maker.AnalogListener;
+import com.ociweb.iot.maker.Baud;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
@@ -99,7 +101,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	protected RS232Client rs232Client;
 	protected String rs232ClientDevice = "/dev/ttyMFD1";//custom hardware should override this edison value
-	protected int    rs232ClientBaud = RS232Client.B9600;
+	protected Baud   rs232ClientBaud = Baud.B_____9600;
 	protected String bluetoothDevice = null;
 	
 
@@ -212,7 +214,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 
-
+	public Hardware useSerial(Baud baud) {
+		this.rs232ClientBaud = baud;
+		return this;
+	}
 
 	public Hardware useI2C() {
 		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,
@@ -409,7 +414,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	public boolean hasDigitalOrAnalogInputs() {
 		return (analogInputs.length+digitalInputs.length)>0;
 	}
-
+	
+	public boolean hasDigitalOrAnalogOutputs() {
+		return (pwmOutputs.length+digitalOutputs.length)>0;
+	}
+	
 	public HardwareConnection[] combinedADConnections() {
 		HardwareConnection[] localAInputs = getAnalogInputs();
 		HardwareConnection[] localDInputs = getDigitalInputs();
@@ -551,13 +560,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfType(gm2, MessageSubscription.instance);
 		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfType(gm2, MessagePubSub.instance);
-	
+		Pipe<IngressMessages>[] ingressMessagePipes = GraphManager.allPipesOfType(gm2, IngressMessages.instance);
 		
 		int commandChannelCount = orderPipes.length;
 
 		int eventSchemas = 0;
 		
-		IDX_PIN = eventSchemas++;
+		IDX_PIN = requestPipes.length>0 ? eventSchemas++ : -1;
 		IDX_I2C = eventSchemas++;
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
 		IDX_NET = useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
@@ -628,26 +637,12 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, 10, 1<<15, clientRequests, netResponsePipes); 
 			
 						
-		}// else {
-			//System.err.println("skipped  "+IntHashTable.isEmpty(netPipeLookup)+"  "+netResponsePipes.length+"   "+netRequestPipes.length  );
-		//}
-		
-		/////////
-		//always create the pub sub and state management stage?
-		/////////
-		
-		
-//		//TODO: only create when subscriptionPipeLookup is not empty and subscriptionPipes has zero length.
-//		if (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0) {
-//			logger.trace("can save some resources by not starting up the unused pub sub service.");
-//		}
-//		createMessagePubSubStage(subscriptionPipeLookup2, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], 
-//				                 subscriptionPipes);
+		}
 		
 		if (IDX_MSG <0) {
 				logger.info("saved some resources by not starting up the unused pub sub service.");
 		} else {
-			 	createMessagePubSubStage(subscriptionPipeLookup2, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
+			 	createMessagePubSubStage(subscriptionPipeLookup2, ingressMessagePipes, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
 		}
 				
 		//////////////////
@@ -686,12 +681,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		if (serialOutputPipes.length>0) {			
 			createSerialOutputStage(serialOutputPipes, masterGoOut, masterAckIn);			
 		}
-		
-		
+				
 		///////////////
-		//must always create output stage   TODO: if there are no outputs attached do not schedule this stage, could trim earlier
+		//only build direct pin output when we detected its use
 		///////////////
-		createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
+		if (IDX_PIN>=0) {
+			createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
+		}
 	}
 
 	protected void createSerialOutputStage(Pipe<SerialOutputSchema>[] serialOutputPipes,

@@ -52,7 +52,7 @@ public class Grove_OLED_128x64 implements IODevice{
 
 	/**
 	 * Flashes the display screen off and then on and ensures that the inverse_display and scrolling functions
-	 *  are turned off. The display is left in the Horizontal mode afterwards.
+	 *  are turned off. The display is left in the Page mode afterwards.
 	 * @param target is the {@link com.ociweb.iot.maker.FogCommandChannel} in charge of the i2c connection.
 	 * @return true if the commands were sent, returns false if any single command was not sent.
 	 */
@@ -62,7 +62,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		output[2] = TURN_OFF_INVERSE_DISPLAY;
 		output[3] = DEACTIVATE_SCROLL;
 		output[4] = SET_MEMORY;
-		output[5] = 0x00;
+		output[5] = 0x02;
 		output[6] = SET_DISPLAY_OFFSET;
 		output[7] = 0x00;
 		return sendCommands(target, output, 0, 8);
@@ -98,7 +98,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		if (i == finalTargetIndex){
 			return true;
 		}
-		return sendData(ch, data, i + 1, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
+		return sendData(ch, data, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 /*
 	private static boolean iterativeSendData(FogCommandChannel ch, int[] data, int start, int length){

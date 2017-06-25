@@ -3,8 +3,6 @@ package com.ociweb.iot.grove.display;
 import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 import com.ociweb.iot.grove.Grove_OLED_128x64;
 import com.ociweb.iot.grove.ScrollSpeed;
-import com.ociweb.iot.hardware.I2CConnection;
-import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**
@@ -12,27 +10,55 @@ import com.ociweb.iot.maker.FogCommandChannel;
  * @author Ray Lo, Nathan Tippy
  *
  */
-public class OLED_128x64 implements IODevice{
+public class OLED_128x64{
 	private final FogCommandChannel ch;
 	private final int[] data_output = new int[1024]; //the most amount of data we can ever send at once as this is one entire frame worth of data
 	private final int[] cmd_output = new int[32]; // the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
+	
+	
+	/**
+	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
+	 * @param ch
+	 */
 	
 	public OLED_128x64(FogCommandChannel ch){
 		this.ch = ch;
 	}
 	
+	/**
+	 * Flashes the display screen off and then on and ensures that the inverse_display and scrolling functions
+	 *  are turned off. The display is left in the Page mode afterwards.
+	 *  Implementation: calls {@link Grove_OLED_128x64#init(FogCommandChannel, int[])}}
+	 * @return true if the commands were sent, returns false if any single command was not sent.
+	 */
 	public boolean init(){
 		return Grove_OLED_128x64.init(this.ch, cmd_output);
 	}
 	
+	/**
+	 * Switches the display to page mode to print spaces all across the screen.
+	 * Implementation: calls {@link Grove_OLED_128x64#clear(FogCommandChannel, int[])}}
+	 * @return true if the commands were sent, false otherwise.
+	 */
 	public boolean clear(){
 		return Grove_OLED_128x64.clear(this.ch, cmd_output);
 	}
 	
+	/**
+	 * Turns off the screen before clearing. Turns the blank screen back on once done clearing.
+	 * Implementation: calls {@link Grove_OLED_128x64#cleanClear(FogCommandChannel, int[])}
+	 * @return true if the commands were sent, false otherwise.
+	 */
 	public boolean cleanClear(){
 		return Grove_OLED_128x64.cleanClear(this.ch, cmd_output);
 	}
 	
+	/**
+	 * 
+	 * @param row
+	 * @param col
+	 * @return true TODO
+	 */
 	public boolean setTextRowCol(int row, int col){
 		return Grove_OLED_128x64.setTextRowCol(this.ch, row, col, cmd_output);
 	}
@@ -128,50 +154,5 @@ public class OLED_128x64 implements IODevice{
 	
 	public boolean remapSegment(boolean isRemapped){
 		return Grove_OLED_128x64.remapSegment(this.ch, isRemapped);
-	}
-	
-	@Override
-	public int response() {
-		return 0;
-	}
-
-	@Override
-	public int scanDelay() {
-		return 0;
-	}
-
-	@Override
-	public boolean isInput() {
-		return false;
-	}
-
-	@Override
-	public boolean isOutput() {
-		return true;
-	}
-
-	@Override
-	public boolean isPWM() {
-		return false;
-	}
-
-	@Override
-	public int range() {
-		return 0;
-	}
-
-	@Override
-	public I2CConnection getI2CConnection() {
-		return null;
-	}
-
-	@Override
-	public boolean isValid(byte[] backing, int position, int length, int mask) {
-		return false;
-	}
-
-	@Override
-	public int pinsUsed() {
-		return 1;
 	}
 }

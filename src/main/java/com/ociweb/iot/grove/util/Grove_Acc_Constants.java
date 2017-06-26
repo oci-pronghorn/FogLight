@@ -10,7 +10,7 @@ package com.ociweb.iot.grove.util;
  * @author huydo
  */
 public class Grove_Acc_Constants {
-    public static final int ADXL345_POWER_CTL = 0x2d;
+    public static final int ADXL345_POWER_CTL = 0x2D;
     public static final int ADXL345_DEVICE    = 0x53;
     public static final int ADXL345_DATAX0    = 0x32;    
 

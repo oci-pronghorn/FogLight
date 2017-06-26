@@ -2,9 +2,9 @@ package com.ociweb.iot.grove.display;
 
 
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.grove.Grove_FourDigitDisplay;
-import com.ociweb.iot.hardware.I2CConnection;
-import com.ociweb.iot.hardware.IODevice;
+
 
 
 /**
@@ -12,101 +12,69 @@ import com.ociweb.iot.hardware.IODevice;
  * @author Ray Lo
  *
  */
-public class FourDigitDisplay implements Seven_Segmentable, IODevice  {
+public class FourDigitDisplay {
 	
-	private FogCommandChannel target;
-	private boolean colon_on = false;
+	private final FogCommandChannel ch;
+	private final Port p;
 	
-	public FourDigitDisplay(FogCommandChannel c){
-		this.target = c;
+	public FourDigitDisplay(FogCommandChannel ch, Port p){
+		this.ch = ch;
+		this.p = p;
 	}
 	
-	/**
-	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#printDigitAt(FogCommandChannel,int, int, boolean)}
-	 * @param digit
-	 * @param position 
-	 */
-	@Override
-	public void printDigitAt(int digit, int position) {
-		Grove_FourDigitDisplay.printDigitAt(this.target, digit, position, colon_on);
+	public boolean init(){
+		return Grove_FourDigitDisplay.init(ch,p);
 	}
 
-	/**
-	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#drawBitmapAt(FogCommandChannel, byte, int, boolean)}
-	 * @param b
-	 * @param position
-	 */
-	@Override
-	public void drawDigitalBitmapAt(byte b, int position) {
-		Grove_FourDigitDisplay.drawBitmapAt(this.target, b, position, colon_on);
-
+	public boolean printDigitAt(int index, int digit) {
+		return Grove_FourDigitDisplay.printDigitAt(this.ch, this.p,index, digit);
 	}
 
-	/**
-	 * Switch colon_on field on or off so that the next digit print or bitmap draw will
-	 * turn on or off the colon.
-	 * @param on true switches the colon on, false switches the colon off, on the next print event.
-	 */
-	@Override
-	public void switchColon(boolean on) {
-		colon_on = true;
+	public boolean printFourDigitsWithColon(int leftPair, int rightPair){
+		return Grove_FourDigitDisplay.printFourDigitsWithColon(this.ch, this.p, leftPair, rightPair);
+	}
+	
+	public boolean setBrightness(int brightness){
+		return Grove_FourDigitDisplay.setBrightness(ch, p, brightness);
+	}
+	
+	public boolean displayOn(){
+		return Grove_FourDigitDisplay.displayOn(this.ch, this.p);
+	}
+	
+	public boolean displayOff(){
+		return Grove_FourDigitDisplay.displayOff(this.ch, this.p);
 	}
 
-	/**
-	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#clearDisplay(FogCommandChannel)}
-	 */
-	@Override
-	public void clearDisplay() {
-		
-		Grove_FourDigitDisplay.clearDisplay(this.target);
-		
-	}
-
-	/**
-	 * Setter for the single CommandChannel associated with the four-digit display
-	 * @param c
-	 */
-	@Override
-	public void setCommandChannel(FogCommandChannel c) {
-		this.target = c;
-		
-	}
-
-	@Override
-	public int response() {
-		return 0;
-	}
-	@Override
-	public int scanDelay() {
-		return 0;
-	}
-	@Override
-	public boolean isInput() {
-		return false;
-	}
-	@Override
-	public boolean isOutput() {
-		return true;
-	}
-	@Override
-	public boolean isPWM() {
-		return false;
-	}
-	@Override
-	public int range() {
-		return 2;
-	}
-	@Override
-	public I2CConnection getI2CConnection() {
-		return null;
-	}
-	@Override
-	public boolean isValid(byte[] backing, int position, int length, int mask) {
-		return true;
-	}
-	@Override
-	public int pinsUsed() {
-		return 2;
-	}
+//	/**
+//	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#drawBitmapAt(FogCommandChannel, byte, int, boolean)}
+//	 * @param b
+//	 * @param position
+//	 */
+//	@Override
+//	public void drawDigitalBitmapAt(byte b, int position) {
+//		Grove_FourDigitDisplay.drawBitmapAt(this.target, b, position, colon_on);
+//
+//	}
+//
+//	/**
+//	 * Switch colon_on field on or off so that the next digit print or bitmap draw will
+//	 * turn on or off the colon.
+//	 * @param on true switches the colon on, false switches the colon off, on the next print event.
+//	 */
+//	@Override
+//	public void switchColon(boolean on) {
+//		colon_on = true;
+//	}
+//
+//	/**
+//	 * Calls {@link com.ociweb.iot.grove.Grove_FourDigitDisplay#clearDisplay(FogCommandChannel)}
+//	 */
+//	@Override
+//	public void clearDisplay() {
+//		
+//		Grove_FourDigitDisplay.clearDisplay(this.target);
+//		
+//	}
 
 }

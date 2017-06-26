@@ -6,6 +6,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 import static com.ociweb.iot.maker.Port.*;
 
+import com.ociweb.iot.grove.display.FourDigitDisplay;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -60,7 +61,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 	public static final byte DISPLAY_ON = (byte) (0x88 & 0xFF);
 	public static final byte DISPLAY_OFF = (byte)(0x80 & 0xFF);
 
-	public static final int GROVE_TM1637_ADDRESS = 0x04;
+	public static final int GROVE_TM1637_ADDRESS = 0x4;
 	public static final int GROVE_TM1637_INIT = 70; // in decimal as provided by Grove github
 	public static final int GROVE_TM1637_SET_BRIGHTNESS = 71;
 	public static final int GROVE_TM1637_DISPLAY_WITH_LEADING_ZEROES = 72;
@@ -81,7 +82,22 @@ public class Grove_FourDigitDisplay implements IODevice{
 				0x3f,0x06,0x5b,0x4f, 0x66,0x6d,0x7d,0x07, 0x7f
 		};
 
+	private static Grove_FourDigitDisplay instance;
 
+	private Grove_FourDigitDisplay(){
+	}
+	
+	public static Grove_FourDigitDisplay getInstance(){
+		if (instance == null){
+			instance = new Grove_FourDigitDisplay();
+		}
+		return instance;
+	}
+	
+	public static FourDigitDisplay newObj(FogCommandChannel ch, Port p){
+		return new FourDigitDisplay(ch, p);
+	}
+	
 	public static boolean init(FogCommandChannel ch, Port p){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -89,6 +105,8 @@ public class Grove_FourDigitDisplay implements IODevice{
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
 		i2cPayloadWriter.writeByte(GROVE_TM1637_INIT);
 		i2cPayloadWriter.writeByte(p.port);
+		i2cPayloadWriter.writeByte(0x00);//dummy byte
+		i2cPayloadWriter.writeByte(0x00);//dummy byte
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();	
 		return true;
@@ -102,6 +120,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 		i2cPayloadWriter.writeByte(GROVE_TM1637_SET_BRIGHTNESS);
 		i2cPayloadWriter.writeByte(p.port);
 		i2cPayloadWriter.writeByte(brightness & 0x07); //brightness is only valid 0 through 7
+		i2cPayloadWriter.writeByte(0x00);//dummy byte
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();	
 		return true;
@@ -114,8 +133,8 @@ public class Grove_FourDigitDisplay implements IODevice{
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
 		i2cPayloadWriter.writeByte(GROVE_TM1637_SET_INDV_DIGIT);
 		i2cPayloadWriter.writeByte(p.port);
-		i2cPayloadWriter.writeByte(index & 0x03); //brightness is only valid 0 through 3
-		i2cPayloadWriter.writeByte(digit & 0x09); //digit only 0 through 9
+		i2cPayloadWriter.writeByte(index); //index is only valid 0 through 3
+		i2cPayloadWriter.writeByte(digit); //digit only 0 through 9
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();	
 		return true;
@@ -128,8 +147,8 @@ public class Grove_FourDigitDisplay implements IODevice{
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
 		i2cPayloadWriter.writeByte(GROVE_TM1637_SET_SCOREBOARD);
 		i2cPayloadWriter.writeByte(p.port);
-		i2cPayloadWriter.writeByte(leftPair & 99); //brightness is only valid 0 through 3
-		i2cPayloadWriter.writeByte(rightPair & 99); //digit only 0 through 9
+		i2cPayloadWriter.writeByte(leftPair); //brightness is only valid 0 through 3
+		i2cPayloadWriter.writeByte(rightPair); //digit only 0 through 9
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();	
 		return true;
@@ -143,6 +162,8 @@ public class Grove_FourDigitDisplay implements IODevice{
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
 		i2cPayloadWriter.writeByte(GROVE_TM1637_DISPLAY_ON);
 		i2cPayloadWriter.writeByte(p.port);
+		i2cPayloadWriter.writeByte(0x00);//dummy byte
+		i2cPayloadWriter.writeByte(0x00);//dummy byte
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();	
 		return true;
@@ -155,6 +176,8 @@ public class Grove_FourDigitDisplay implements IODevice{
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
 		i2cPayloadWriter.writeByte(GROVE_TM1637_DISPLAY_OFF);
 		i2cPayloadWriter.writeByte(p.port);
+		i2cPayloadWriter.writeByte(0x00);//dummy byte
+		i2cPayloadWriter.writeByte(0x00);//dummy byte
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();	
 		return true;
@@ -162,148 +185,148 @@ public class Grove_FourDigitDisplay implements IODevice{
 	
 	
 	
-	
-	/**
-	 * Prints a digit at a given location with colon off
-	 * @param target {@link FogCommandChannel}
-	 * @param digit 0-9 number to be printed
-	 * @param position ranges from 0 to 3 on the 4-digit display
-	 */
-	public static void printDigitAt(FogCommandChannel target, int digit, int position){
-		printDigitAt(target, digit, position, false);
-	}
-	/**
-	 * Prints a digit at a given location
-	 * @param target {@link FogCommandChannel}
-	 * @param digit 0-9 number to be printed
-	 * @param position ranges from 0 to 3 on the 4-digit display
-	 * @param colon_on true value turns on the colon, false value turns it off
-	 */
-	public static void printDigitAt(FogCommandChannel target, int digit, int position, boolean colon_on){
-
-		drawBitmapAt(target, (byte)digit_font[digit], position, colon_on);
-
-	}
-
-	/**
-	 * Prints a custom character according to the bitmap supplied at the given position
-	 * @param target {@link FogCommandChannel} 
-	 * @param b byte with the bitmap to be printed
-	 * @param position ranges from 0 to 3 on the 4-digit display
-	 * @param colon_on true value turns on the colon, false value turns it off
-	 */
-	public static void drawBitmapAt(FogCommandChannel target, byte b, int position, boolean colon_on){
-		//go into fixed address mode
-		start(target);//5
-		sendByte(target, (byte)ADDR_FIXED);//29
-		stop(target);//6
-
-		b = (byte) (b | COLON_DISPLAY_OFF);
-
-		if (colon_on){
-			b = (byte) (b | COLON_DISPLAY_ON);
-		}
-		//send position of the digit (0 through 4) and the bitmap
-		start(target); //5
-		sendByte(target, (byte)(position | ADDR_CMD));//29
-		sendByte(target, (byte)(b));//29
-		stop(target); //6
-		start(target);//5
-		sendByte(target,(byte)(DISPLAY_ON | BRIGHTNESS));//29
-		stop(target);//6
-	}
-	
-	/**
-	 * Clear out the 4-digit display
-	 * @param target {@link FogCommandChannel}
-	 */
-	public static void clearDisplay(FogCommandChannel target){
-	}
-
-	//Address commands all start with 0xC0
-	public static final int ADDR_CMD = 0xC0;
-	/**
-	 * starts the TM1637 targetip's listening; data is changed from high to low while clock is high
-	 * @param target
-	 */
-	public static void start(FogCommandChannel target){
-		//takes up 5 commands
-		System.out.println("Starting message"); //FIXME: remove after debugging
-		target.setValueAndBlock(CLOCK, false, bit_duration);
-		target.setValueAndBlock(DATA, true, bit_duration * 2);
-		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
-		target.setValueAndBlock(DATA, false, bit_duration * 2);
-		target.setValueAndBlock(CLOCK, false, bit_duration);
-		
-		//takes 4 * bit_duration
-	}
-	/**
-	 * ends the TM1637 targetip's listening; data is from low to high while clock is high
-	 * @param target
-	 */
-	public static void stop(FogCommandChannel target){
-		System.out.println("Stop"); //FIXME: remove after debugging
-		//takes up 6 commands
-		target.setValueAndBlock(CLOCK, false, bit_duration);
-		target.setValueAndBlock(DATA, false, bit_duration * 2);
-		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
-		target.setValueAndBlock(DATA, true, bit_duration * 2);
-		target.setValueAndBlock(CLOCK, false, bit_duration * 2);
-		target.setValueAndBlock(DATA, false, bit_duration);
-		
-	}
-
-	/**
-	 * sends a byte and ignores the ack back bit by bit with bit-banging
-	 * blocking has to be longer sometimes because the API does not allow for blocking between ports, so the
-	 * blocking of the two ports are syncopated to gurantee ordering.
-	 * @param target
-	 * @param b
-	 */
-	private static boolean sendByte(FogCommandChannel target, byte b){
-		//takes up 29 commands
-		if (! target.setValue(DATA, false)) {
-			return false;
-		}
-		
-		if (! target.setValueAndBlock(CLOCK, false, bit_duration)){
-			return false;
-		}
-		
-		System.out.println("Sending byte: 0b" + Integer.toBinaryString(b&0xFF)); //FIXME: remove after debugging
-		for (int i = 7; i >= 0; i--){
-			if (!target.setValueAndBlock(DATA, highBitAt(b,i), bit_duration)){
-				return false;
-			}
-			System.out.print(highBitAt(b,i));
-			if (!target.setValueAndBlock(CLOCK,true, bit_duration)){
-				return false;
-			}
-			if (!target.setValueAndBlock(CLOCK, false, bit_duration)){
-				return false;
-			}
-			
-		}
-		System.out.println();
-		
-		//Cycling the clock once to ignore the ack
-		if (!target.setValueAndBlock(CLOCK, true, bit_duration)){
-			return false;
-		}
-		if (!target.setValueAndBlock(CLOCK, false,bit_duration)){
-			return false;
-		}
-		if  (!target.setValue(DATA, false)){
-			return false;
-		}
-		return true;
-		
-		// takes bit_duration * 27
-	}
-
-	private static boolean highBitAt(byte b, int pos){
-		return (b & (0x01 << pos))!=0; 
-	}
+//	
+//	/**
+//	 * Prints a digit at a given location with colon off
+//	 * @param target {@link FogCommandChannel}
+//	 * @param digit 0-9 number to be printed
+//	 * @param position ranges from 0 to 3 on the 4-digit display
+//	 */
+//	public static void printDigitAt(FogCommandChannel target, int digit, int position){
+//		printDigitAt(target, digit, position, false);
+//	}
+//	/**
+//	 * Prints a digit at a given location
+//	 * @param target {@link FogCommandChannel}
+//	 * @param digit 0-9 number to be printed
+//	 * @param position ranges from 0 to 3 on the 4-digit display
+//	 * @param colon_on true value turns on the colon, false value turns it off
+//	 */
+//	public static void printDigitAt(FogCommandChannel target, int digit, int position, boolean colon_on){
+//
+//		drawBitmapAt(target, (byte)digit_font[digit], position, colon_on);
+//
+//	}
+//
+//	/**
+//	 * Prints a custom character according to the bitmap supplied at the given position
+//	 * @param target {@link FogCommandChannel} 
+//	 * @param b byte with the bitmap to be printed
+//	 * @param position ranges from 0 to 3 on the 4-digit display
+//	 * @param colon_on true value turns on the colon, false value turns it off
+//	 */
+//	public static void drawBitmapAt(FogCommandChannel target, byte b, int position, boolean colon_on){
+//		//go into fixed address mode
+//		start(target);//5
+//		sendByte(target, (byte)ADDR_FIXED);//29
+//		stop(target);//6
+//
+//		b = (byte) (b | COLON_DISPLAY_OFF);
+//
+//		if (colon_on){
+//			b = (byte) (b | COLON_DISPLAY_ON);
+//		}
+//		//send position of the digit (0 through 4) and the bitmap
+//		start(target); //5
+//		sendByte(target, (byte)(position | ADDR_CMD));//29
+//		sendByte(target, (byte)(b));//29
+//		stop(target); //6
+//		start(target);//5
+//		sendByte(target,(byte)(DISPLAY_ON | BRIGHTNESS));//29
+//		stop(target);//6
+//	}
+//	
+//	/**
+//	 * Clear out the 4-digit display
+//	 * @param target {@link FogCommandChannel}
+//	 */
+//	public static void clearDisplay(FogCommandChannel target){
+//	}
+//
+//	//Address commands all start with 0xC0
+//	public static final int ADDR_CMD = 0xC0;
+//	/**
+//	 * starts the TM1637 targetip's listening; data is changed from high to low while clock is high
+//	 * @param target
+//	 */
+//	public static void start(FogCommandChannel target){
+//		//takes up 5 commands
+//		System.out.println("Starting message"); //FIXME: remove after debugging
+//		target.setValueAndBlock(CLOCK, false, bit_duration);
+//		target.setValueAndBlock(DATA, true, bit_duration * 2);
+//		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
+//		target.setValueAndBlock(DATA, false, bit_duration * 2);
+//		target.setValueAndBlock(CLOCK, false, bit_duration);
+//		
+//		//takes 4 * bit_duration
+//	}
+//	/**
+//	 * ends the TM1637 targetip's listening; data is from low to high while clock is high
+//	 * @param target
+//	 */
+//	public static void stop(FogCommandChannel target){
+//		System.out.println("Stop"); //FIXME: remove after debugging
+//		//takes up 6 commands
+//		target.setValueAndBlock(CLOCK, false, bit_duration);
+//		target.setValueAndBlock(DATA, false, bit_duration * 2);
+//		target.setValueAndBlock(CLOCK, true, bit_duration * 2);
+//		target.setValueAndBlock(DATA, true, bit_duration * 2);
+//		target.setValueAndBlock(CLOCK, false, bit_duration * 2);
+//		target.setValueAndBlock(DATA, false, bit_duration);
+//		
+//	}
+//
+//	/**
+//	 * sends a byte and ignores the ack back bit by bit with bit-banging
+//	 * blocking has to be longer sometimes because the API does not allow for blocking between ports, so the
+//	 * blocking of the two ports are syncopated to gurantee ordering.
+//	 * @param target
+//	 * @param b
+//	 */
+//	private static boolean sendByte(FogCommandChannel target, byte b){
+//		//takes up 29 commands
+//		if (! target.setValue(DATA, false)) {
+//			return false;
+//		}
+//		
+//		if (! target.setValueAndBlock(CLOCK, false, bit_duration)){
+//			return false;
+//		}
+//		
+//		System.out.println("Sending byte: 0b" + Integer.toBinaryString(b&0xFF)); //FIXME: remove after debugging
+//		for (int i = 7; i >= 0; i--){
+//			if (!target.setValueAndBlock(DATA, highBitAt(b,i), bit_duration)){
+//				return false;
+//			}
+//			System.out.print(highBitAt(b,i));
+//			if (!target.setValueAndBlock(CLOCK,true, bit_duration)){
+//				return false;
+//			}
+//			if (!target.setValueAndBlock(CLOCK, false, bit_duration)){
+//				return false;
+//			}
+//			
+//		}
+//		System.out.println();
+//		
+//		//Cycling the clock once to ignore the ack
+//		if (!target.setValueAndBlock(CLOCK, true, bit_duration)){
+//			return false;
+//		}
+//		if (!target.setValueAndBlock(CLOCK, false,bit_duration)){
+//			return false;
+//		}
+//		if  (!target.setValue(DATA, false)){
+//			return false;
+//		}
+//		return true;
+//		
+//		// takes bit_duration * 27
+//	}
+//
+//	private static boolean highBitAt(byte b, int pos){
+//		return (b & (0x01 << pos))!=0; 
+//	}
 
 	/**
 	 * 

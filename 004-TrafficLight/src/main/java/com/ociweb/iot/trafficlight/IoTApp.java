@@ -23,7 +23,7 @@ public class IoTApp implements FogApp
 	public static int GREEN_MS = 8000;
 	public static int YELLOW_MS = 2000;
 			
-	private boolean isWebControlled = false;////set this to true;
+	private boolean isWebControlled = false;
 	
 	private int webRoute = -1;
 	private byte[] COLOR = "color".getBytes();
@@ -42,7 +42,9 @@ public class IoTApp implements FogApp
 		public int getTime(){return deltaTime;}
 	}
 
-
+    public static void main(String[] args) {
+    	FogRuntime.run(new IoTApp());
+    }
 	
 	
     @Override
@@ -96,7 +98,7 @@ public class IoTApp implements FogApp
 										 
 										 return channel.publishHTTPResponse(reader, 404);
 										 
-									 }}	, webRoute);
+									 }}).includeRoutes(webRoute);
 	}
 
 

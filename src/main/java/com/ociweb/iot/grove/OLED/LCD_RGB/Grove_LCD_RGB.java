@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.util;
+package com.ociweb.iot.grove.OLED.LCD_RGB;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;

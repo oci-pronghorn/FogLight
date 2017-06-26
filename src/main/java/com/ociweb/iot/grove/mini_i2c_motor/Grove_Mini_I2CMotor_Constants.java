@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ociweb.iot.grove.util;
+package com.ociweb.iot.grove.mini_i2c_motor;
 
 /**
  *

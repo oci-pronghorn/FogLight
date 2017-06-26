@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.util;
+package com.ociweb.iot.grove.OLED.OLED_128x64;
 
 import com.ociweb.iot.hardware.I2CConnection;
 
@@ -7,12 +7,12 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.*;
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.Direction.*;
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.Orientation.*;
-import static com.ociweb.iot.grove.util.Grove_OLED_DataAndCommandsSender.*;
+import static com.ociweb.iot.grove.OLED.Grove_OLED_DataAndCommandsSender.*;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.*;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.Direction.*;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.Orientation.*;
 
-import com.ociweb.iot.grove.obj.OLED_128x64;
+import com.ociweb.iot.grove.OLED.ScrollSpeed;
 
 /**
  * Singleton utility class that communicates with the i2c Grove OLED 128x64 display, includes basic functionality such as printing
@@ -281,7 +281,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		output[0] = dir == Right? SET_RIGHT_HOR_SCROLL:SET_LEFT_HOR_SCROLL;
 		output[1] = 0x00; //dummy byte as required
 		output[2] = startPage & 0x07;
-		output[3] =speed.command;
+		output[3] =speed.COMMAND;
 		output[4] =endPage & 0x07;
 		output[5] = 0xFF; // dummy byte as required
 		output[6] = 0x00; // dummy byte as required		
@@ -300,7 +300,7 @@ public class Grove_OLED_128x64 implements IODevice{
 		output[0] = ori == Vertical_Right? SET_VER_AND_RIGHT_HOR_SCROLL:SET_VER_AND_LEFT_HOR_SCROLL;
 		output[1] = 0x00; //dummy byte as required
 		output[2] = startPage & 0x07;
-		output[3] =speed.command;
+		output[3] =speed.COMMAND;
 		output[4] =endPage & 0x07;
 		output[5] = offset & 0x1F;
 	}

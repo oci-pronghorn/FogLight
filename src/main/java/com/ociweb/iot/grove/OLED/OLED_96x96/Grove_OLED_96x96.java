@@ -1,9 +1,10 @@
-package com.ociweb.iot.grove.util;
+package com.ociweb.iot.grove.OLED.OLED_96x96;
 
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.BATCH_SIZE;
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.COMMAND_MODE;
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.OLEDADDRESS;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.BATCH_SIZE;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.COMMAND_MODE;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.OLEDADDRESS;
 
+import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;

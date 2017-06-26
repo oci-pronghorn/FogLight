@@ -1,16 +1,17 @@
-package com.ociweb.iot.grove.util;
+package com.ociweb.iot.grove.OLED;
 
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.BATCH_SIZE;
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.COMMAND_MODE;
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.DATA_MODE;
-import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.OLEDADDRESS;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.BATCH_SIZE;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.COMMAND_MODE;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.DATA_MODE;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.OLEDADDRESS;
 
+import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 public class Grove_OLED_DataAndCommandsSender {
-	protected static boolean sendCommand(FogCommandChannel ch, int b){
+	public static boolean sendCommand(FogCommandChannel ch, int b){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -31,9 +32,9 @@ public class Grove_OLED_DataAndCommandsSender {
 	 * @param commands
 	 * @param start
 	 * @param length
-	 * @return
+	 * @return true
 	 */
-	protected static boolean sendCommands(FogCommandChannel ch, int[] commands, int start, int length){
+	public static boolean sendCommands(FogCommandChannel ch, int[] commands, int start, int length){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -59,7 +60,7 @@ public class Grove_OLED_DataAndCommandsSender {
 	 * @param data is the array of data to be sent in the form of an integer array (the L.S. 8 bits of each int are used.)
 	 * @return true if the command byte and the supplied byte were succesfully sent, false otherwise.
 	 */
-	protected static boolean sendData(FogCommandChannel ch, int[] data ){
+	public static boolean sendData(FogCommandChannel ch, int[] data ){
 		return sendData(ch, data,0, data.length);
 	}
 
@@ -74,7 +75,7 @@ public class Grove_OLED_DataAndCommandsSender {
 	 * @param length
 	 * @return true if the i2c bus is ready, false otherwise.
 	 */
-	protected static boolean sendData(FogCommandChannel ch, int[] data, int start, int length){
+	public static boolean sendData(FogCommandChannel ch, int[] data, int start, int length){
 		if (!ch.i2cIsReady()){
 			return false;
 		}
@@ -82,7 +83,7 @@ public class Grove_OLED_DataAndCommandsSender {
 		return sendData(ch,data,start,BATCH_SIZE, start+length);
 	}
 
-	protected static boolean sendData(FogCommandChannel ch, int[] data, int start, int length, int finalTargetIndex){
+	public static boolean sendData(FogCommandChannel ch, int[] data, int start, int length, int finalTargetIndex){
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(OLEDADDRESS);
 		i2cPayloadWriter.write(DATA_MODE);
 		int i;

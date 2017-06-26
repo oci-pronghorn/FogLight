@@ -3,7 +3,7 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.util;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
@@ -12,7 +12,7 @@ import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
-import static com.ociweb.iot.grove.Grove_Mini_I2CMotor_Constants.*;
+import static com.ociweb.iot.grove.util.Grove_Mini_I2CMotor_Constants.*;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 
 /**

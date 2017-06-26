@@ -228,12 +228,15 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         return registerListenerImpl(listener);
     }
 
-    private ListenerFilterIoT registerListenerImpl(Object listener, int ... optionalInts) {
+    private ListenerFilterIoT registerListenerImpl(Object listener) {//, int ... optionalInts) {
 
     	outputPipes = new Pipe<?>[0];
 		
-		if (optionalInts.length>0 && listener instanceof RestListener) {
-			httpRequestPipes = new ListenerConfig(builder, optionalInts, parallelInstanceUnderActiveConstruction).getHTTPRequestPipes();
+		if (listener instanceof RestListener) {
+			
+			final int p = ListenerConfig.computeParallel(builder, parallelInstanceUnderActiveConstruction);
+			httpRequestPipes = ListenerConfig.newHTTPRequestPipes(builder, p);
+
 		} else {
 			httpRequestPipes = (Pipe<HTTPRequestSchema>[]) new Pipe<?>[0];     	
 		}
@@ -279,7 +282,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         //TimeListener, time rate signals are sent from the stages its self and therefore does not need a pipe to consume.
         /////////////////////
 
-        ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, inputPipes, outputPipes);
+        ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, 
+        		                                                                   inputPipes, outputPipes, parallelInstanceUnderActiveConstruction);
 		configureStageRate(listener,reactiveListener);
 
 		//////////

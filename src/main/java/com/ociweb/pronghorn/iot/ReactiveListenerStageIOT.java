@@ -70,10 +70,12 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     /////////////////////
     private Number stageRate;
     
-    public ReactiveListenerStageIOT(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
+    public ReactiveListenerStageIOT(GraphManager graphManager, Object listener, 
+    		                        Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, 
+    		                        HardwareImpl hardware, int parallelInstance) {
 
         
-        super(graphManager, listener, inputPipes, outputPipes, hardware);
+        super(graphManager, listener, inputPipes, outputPipes, hardware, parallelInstance);
       
         this.builder = hardware;
                    

@@ -1,15 +1,15 @@
-package com.ociweb.iot.grove.display;
+package com.ociweb.iot.grove.obj;
 
 
+import com.ociweb.iot.grove.util.Grove_FourDigitDisplay;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.grove.Grove_FourDigitDisplay;
 
 
 
 /**
- * OOP Wrapper class around the Grove_FourDigitDisplay class
- * @author Ray Lo
+ * Object class holding onto the FogCommandChannel and Port used by the Grove_FourDigitDisplay class
+ * @author Ray Lo, Nathan Tippy
  *
  */
 public class FourDigitDisplay {

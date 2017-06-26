@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.util;
 
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -6,7 +6,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 import static com.ociweb.iot.maker.Port.*;
 
-import com.ociweb.iot.grove.display.FourDigitDisplay;
+import com.ociweb.iot.grove.obj.FourDigitDisplay;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;

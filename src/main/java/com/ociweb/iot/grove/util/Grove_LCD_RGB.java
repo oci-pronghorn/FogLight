@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.util;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;

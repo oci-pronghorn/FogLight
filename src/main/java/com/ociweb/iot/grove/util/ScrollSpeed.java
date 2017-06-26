@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.util;
 
 public enum ScrollSpeed{
 	Scroll_2Frames(0x07),

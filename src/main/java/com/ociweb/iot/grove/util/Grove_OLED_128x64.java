@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.util;
 
 import com.ociweb.iot.hardware.I2CConnection;
 
@@ -7,10 +7,11 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
-import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
-import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Direction.*;
-import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.Orientation.*;
-import com.ociweb.iot.grove.display.OLED_128x64;
+import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.*;
+import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.Direction.*;
+import static com.ociweb.iot.grove.util.Grove_OLED_128x64_Constants.Orientation.*;
+
+import com.ociweb.iot.grove.obj.OLED_128x64;
 
 /**
  * Singleton utility class that communicates with the i2c Grove OLED 128x64 display, includes basic functionality such as printing

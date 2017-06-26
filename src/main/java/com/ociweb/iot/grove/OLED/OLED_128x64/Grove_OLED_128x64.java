@@ -13,6 +13,7 @@ import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.
 import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.Orientation.*;
 
 import com.ociweb.iot.grove.OLED.ScrollSpeed;
+import com.ociweb.iot.grove.obj.OLED_128x64;
 
 /**
  * Singleton utility class that communicates with the i2c Grove OLED 128x64 display, includes basic functionality such as printing
@@ -22,7 +23,7 @@ import com.ociweb.iot.grove.OLED.ScrollSpeed;
  */
 public class Grove_OLED_128x64 implements IODevice{
 	
-	private static Grove_OLED_128x64 instance = null;
+	public static final Grove_OLED_128x64 instance = new Grove_OLED_128x64();
 	
 	/**
 	 * Private constructor for singleton design pattern.
@@ -30,16 +31,6 @@ public class Grove_OLED_128x64 implements IODevice{
 	private Grove_OLED_128x64(){
 	}
 
-	/**
-	 * Returns the singleton instance of Grove_OLED_128x64, lazily initializes the instance if it's still.
-	 * @return singleton instance
-	 */
-	public static Grove_OLED_128x64 getInstace(){
-		if (instance == null){
-			instance = new Grove_OLED_128x64();
-		}
-		return instance;
-	}
 
 	/**
 	 * Dynamically allocates an instance of {@link OLED_128x64}

@@ -1,8 +1,9 @@
-package com.ociweb.iot.grove.OLED.OLED_128x64;
+package com.ociweb.iot.grove.obj;
 
 import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.*;
 
 import com.ociweb.iot.grove.OLED.ScrollSpeed;
+import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**

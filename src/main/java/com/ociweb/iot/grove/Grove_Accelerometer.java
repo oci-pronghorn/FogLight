@@ -25,7 +25,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
  *
  * @author huydo
  */
-public class Grove_Accelerometer {
+public class Grove_Accelerometer implements IODevice {
     
     public static boolean isStarted = false;
     
@@ -36,11 +36,10 @@ public class Grove_Accelerometer {
         isStarted = true;
 
         writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_POWER_CTL,0);
-
+        target.i2cFlushBatch();
         writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_POWER_CTL,16);
-
+        target.i2cFlushBatch();
         writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_POWER_CTL,8);
-
         target.i2cFlushBatch();
         return true;
     }
@@ -52,28 +51,55 @@ public class Grove_Accelerometer {
         i2cPayloadWriter.writeByte(value);
 
         target.i2cCommandClose();
-    }
-    
-    private static void readFrom(FogCommandChannel target, int address, int register, byte[] _buff) {
-        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
-        i2cPayloadWriter.writeByte(register);
-        target.i2cCommandClose();
+    }  
 
-//        DataInputBlobReader<I2CCommandSchema> i2cPayloadReader = target.i2cCommandOpen(address);
-//        i2cPayloadReader.read(_buff, 0, 6);
-//        target.i2cCommandClose();
-        
-    }
-    private static void readXYZ(FogCommandChannel target, double x,double y,double z){
-        byte[] _buff = new byte[6];
-        readFrom(target,Grove_Acc_Constants.ADXL345_DEVICE,Grove_Acc_Constants.ADXL345_DATAX0,_buff);
-        x = (short)(((( short)_buff[1]) << 8) | _buff[0])*Grove_Acc_Constants.X_GAIN;   
-        y = (short)(((( short)_buff[3]) << 8) | _buff[2])*Grove_Acc_Constants.Y_GAIN;
-        z = (short)(((( short)_buff[5]) << 8) | _buff[4])*Grove_Acc_Constants.Z_GAIN;
-        
-        
+    @Override
+    public boolean isInput() {
+        return true;
     }
     
+    @Override
+    public boolean isOutput() {
+        return false;
+    }
     
+    @Override
+    public boolean isPWM() {
+        return false;
+    }
     
+    @Override
+    public int range() {
+        return 0;
+    }
+    
+    @Override
+    public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
+        byte[] ACC_READCMD = {Grove_Acc_Constants.ADXL345_DATAX0};
+        byte[] ACC_SETUP = {Grove_Acc_Constants.ADXL345_POWER_CTL,8};
+        byte ACC_ADDR = Grove_Acc_Constants.ADXL345_DEVICE;
+        byte ACC_BYTESTOREAD = 6;
+        byte ACC_REGISTER = Grove_Acc_Constants.ADXL345_DATAX0;
+        return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+    }
+    
+    @Override
+    public int response() {
+        return 20;
+    }
+    
+    @Override
+    public boolean isValid(byte[] backing, int position, int length, int mask) {
+        return true;
+    }
+    
+    @Override
+    public int pinsUsed() {
+        return 1;
+    }
+
+    @Override
+    public int scanDelay() {
+        return 0;
+    }
 }

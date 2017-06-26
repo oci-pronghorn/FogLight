@@ -12,7 +12,10 @@ package com.ociweb.iot.grove;
 public class Grove_Acc_Constants {
     public static final int ADXL345_POWER_CTL = 0x2d;
     public static final int ADXL345_DEVICE    = 0x53;
-    public static final int ADXL345_DATAX0    = 0x32;    
+    public static final int ADXL345_DATAX0    = 0x32;
+
+    public static final byte WRITE_BIT = (byte)(0xA6 & 0xFF);
+    public static final byte READ_BIT = (byte)(0xA7 & 0xFF);
 
     public static final double X_GAIN = 0.00376390;
     public static final double Y_GAIN = 0.00376009;

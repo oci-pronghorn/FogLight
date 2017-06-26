@@ -1,6 +1,8 @@
 package com.ociweb.iot.grove;
 
 import com.ociweb.iot.maker.Port;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 import static com.ociweb.iot.maker.Port.*;
 
@@ -58,6 +60,21 @@ public class Grove_FourDigitDisplay implements IODevice{
 	public static final byte DISPLAY_ON = (byte) (0x88 & 0xFF);
 	public static final byte DISPLAY_OFF = (byte)(0x80 & 0xFF);
 
+	public static final int GROVE_TM1637_ADDRESS = 0x04;
+	public static final int GROVE_TM1637_INIT = 70; // in decimal as provided by Grove github
+	public static final int GROVE_TM1637_SET_BRIGHTNESS = 71;
+	public static final int GROVE_TM1637_DISPLAY_WITH_LEADING_ZEROES = 72;
+	public static final int GROVE_TM1637_DISPLAY_WITHOUT_LEADING_ZEROES = 73;
+	public static final int GROVE_TM1637_SET_INDV_DIGIT = 74;
+	public static final int GROVE_TM1637_SET_INDV_SEGMENT = 75;
+	public static final int GROVE_TM1637_SET_SCOREBOARD = 76;
+	public static final int GROVE_TM1637_DISPLAY_ANALOG_READ_ = 77;
+	public static final int GROVE_TM1637_DISPLAY_ON = 78;
+	public static final int GROVE_TM1637_DISPLAY_OFF = 79;
+	
+	
+	
+	
 	//bitmap for the digits
 	public static final byte [] digit_font = 
 		{
@@ -65,6 +82,87 @@ public class Grove_FourDigitDisplay implements IODevice{
 		};
 
 
+	public static boolean init(FogCommandChannel ch, Port p){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
+		i2cPayloadWriter.writeByte(GROVE_TM1637_INIT);
+		i2cPayloadWriter.writeByte(p.port);
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();	
+		return true;
+	}
+	
+	public static boolean setBrightness(FogCommandChannel ch, Port p, int brightness){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
+		i2cPayloadWriter.writeByte(GROVE_TM1637_SET_BRIGHTNESS);
+		i2cPayloadWriter.writeByte(p.port);
+		i2cPayloadWriter.writeByte(brightness & 0x07); //brightness is only valid 0 through 7
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();	
+		return true;
+	}
+	
+	public static boolean printDigitAt(FogCommandChannel ch, Port p, int index, int digit){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
+		i2cPayloadWriter.writeByte(GROVE_TM1637_SET_INDV_DIGIT);
+		i2cPayloadWriter.writeByte(p.port);
+		i2cPayloadWriter.writeByte(index & 0x03); //brightness is only valid 0 through 3
+		i2cPayloadWriter.writeByte(digit & 0x09); //digit only 0 through 9
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();	
+		return true;
+	}
+	
+	public static boolean printFourDigitsWithColon(FogCommandChannel ch, Port p, int leftPair, int rightPair){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
+		i2cPayloadWriter.writeByte(GROVE_TM1637_SET_SCOREBOARD);
+		i2cPayloadWriter.writeByte(p.port);
+		i2cPayloadWriter.writeByte(leftPair & 99); //brightness is only valid 0 through 3
+		i2cPayloadWriter.writeByte(rightPair & 99); //digit only 0 through 9
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();	
+		return true;
+	}
+	
+	
+	public static boolean displayOn(FogCommandChannel ch, Port p){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
+		i2cPayloadWriter.writeByte(GROVE_TM1637_DISPLAY_ON);
+		i2cPayloadWriter.writeByte(p.port);
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();	
+		return true;
+	}
+	
+	public static boolean displayOff(FogCommandChannel ch, Port p){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
+		i2cPayloadWriter.writeByte(GROVE_TM1637_DISPLAY_OFF);
+		i2cPayloadWriter.writeByte(p.port);
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();	
+		return true;
+	}
+	
+	
+	
+	
 	/**
 	 * Prints a digit at a given location with colon off
 	 * @param target {@link FogCommandChannel}

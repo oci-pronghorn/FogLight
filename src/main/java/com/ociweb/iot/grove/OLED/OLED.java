@@ -14,8 +14,5 @@ public interface OLED {
 	public boolean activateScroll();
 	public boolean deactivateScroll();
 	public boolean setUpScroll();
-	boolean sendData();
-	boolean sendData(int start, int length);
-	boolean sendCommand(int cmd);
-	boolean sendCommands(int start, int length);
+	
 }

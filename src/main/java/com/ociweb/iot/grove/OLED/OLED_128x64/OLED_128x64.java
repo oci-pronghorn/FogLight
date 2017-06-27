@@ -342,11 +342,12 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		}
 		return sendData(ch,map);
 	}
-
-	public static boolean drawBitmap(FogCommandChannel ch, int[] map, int[] cmd_output){
-		return drawBitmapInPageMode(ch, map, cmd_output);
-	}
 */
+	@Override
+	public boolean drawBitmap(int[] map){
+		return drawBitmapInPageMode( map);
+	}
+
 	/**
 	 * NOTE: drawing in page mode instead of horizontal mode sends 16 extra bytes per reflash compared to drawing
 	 * in horizontal mode as we need to reset textRowCol everytime we reach a new page. It may be preferable to use
@@ -354,15 +355,15 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	 * both drawing and CharSequence printing.
 	 * @return true
 	 */
-	/*
-	public static boolean drawBitmapInPageMode(FogCommandChannel ch, int[] map, int[] cmd_output){
+	
+	public  boolean drawBitmapInPageMode (int[] map){
 		for (int page = 0; page <8; page++){
-			if (! setTextRowCol(ch,page,0, cmd_output)){
+			if (! setTextRowCol(page,0)){
 				return false;
 			}
 			int startingPoint = page*128;
 
-			if (!sendData(ch, map, startingPoint, 128)){
+			if (!sendData(map, startingPoint, 128)){
 				return false;
 			}
 
@@ -371,11 +372,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	}
 
 	
-	/**
-	 * Turns off the screen before clearing. Turns the blank screen back on once done clearing.
-	 * Implementation: calls {@link Grove_OLED_128x64#cleanClear(FogCommandChannel, int[])}
-	 * @return true if the commands were sent, false otherwise.
-	 */
+
 	
 	/*
 	public boolean cleanClear(){
@@ -383,23 +380,19 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	}
 	
 
-	
+	*/
 	public boolean displayImage(int[][] raw_image){
 		int counter = 0;
 		int pageLimit = row_count >> 3;
 		for (int page = 0; page < pageLimit; page++){
 			for (int seg = 0; seg < col_count; seg++){
-				data_output[counter] = parseColByte(raw_image, page*8, seg);
+				data_out[counter] = parseColByte(raw_image, page*8, seg);
 				counter++;
 			}
 		}
-		return Grove_OLED_128x64.drawBitmap(ch, data_output, cmd_output);
+		return drawBitmap(data_out);
 	}
-	
-	public boolean drawBitmap(int[] bitmap){
-		return Grove_OLED_128x64.drawBitmap(this.ch, bitmap, cmd_output);
-	}
-	
+
 
 	private static int parseColByte(int[][]raw_image, int row, int col){
 		int ret = 0;
@@ -408,7 +401,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		}
 		return ret;
 	}
-	
+	/*
 	public boolean setUpRightContinuousHorizontalScroll(ScrollSpeed speed, int startPage, int endPage){
 		return Grove_OLED_128x64.setUpRightContinuousHorizontalScroll(this.ch,speed,startPage,endPage, cmd_output);
 		
@@ -452,11 +445,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		return false;
 	}
 
-	@Override
-	public boolean drawBitmap(int[] bitmap) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+
 	
 
 }

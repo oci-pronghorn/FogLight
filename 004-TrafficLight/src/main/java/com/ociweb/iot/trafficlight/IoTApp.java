@@ -22,9 +22,15 @@ public class IoTApp implements FogApp
 	public static int RED_MS = 10000;
 	public static int GREEN_MS = 8000;
 	public static int YELLOW_MS = 2000;
+<<<<<<< HEAD
 
 	private boolean isWebControlled = true;//false;////set this to true;
 
+=======
+			
+	private boolean isWebControlled = false;
+	
+>>>>>>> 08fedb8aaa0283b60d03bfbf08697a88fa5a0eaa
 	private int webRoute = -1;
 	private byte[] COLOR = "color".getBytes();
 
@@ -42,6 +48,7 @@ public class IoTApp implements FogApp
 		public int getTime(){return deltaTime;}
 	}
 
+<<<<<<< HEAD
 	public static void main(String[] args) {
 		FogRuntime.run(new IoTApp());
 	}
@@ -49,6 +56,15 @@ public class IoTApp implements FogApp
 
 	@Override
 	public void declareConnections(Hardware c) {
+=======
+    public static void main(String[] args) {
+    	FogRuntime.run(new IoTApp());
+    }
+	
+	
+    @Override
+    public void declareConnections(Hardware c) {
+>>>>>>> 08fedb8aaa0283b60d03bfbf08697a88fa5a0eaa
 		c.connect(LED, LED1_PORT);
 		c.connect(LED, LED2_PORT);
 		c.connect(LED, LED3_PORT);
@@ -56,7 +72,7 @@ public class IoTApp implements FogApp
 
 		if (isWebControlled) {
 			c.enableServer(false, false, "127.0.0.1", 8088);			
-			c.enableTelemetry(true);			
+		//	c.enableTelemetry(true);			
 			webRoute = c.registerRoute("/trafficLight?color=${color}");
 
 		}
@@ -85,6 +101,7 @@ public class IoTApp implements FogApp
 
 
 		runtime.addRestListener((reader)->{
+<<<<<<< HEAD
 			if (reader.isEqual(COLOR, RED)) {
 				return channel.publishHTTPResponse(reader, turnOnRed(channel) ? 200 : 500);
 
@@ -97,6 +114,22 @@ public class IoTApp implements FogApp
 				return channel.publishHTTPResponse(reader, 404);
 			}
 		}	, webRoute);
+=======
+									 if (reader.isEqual(COLOR, RED)) {
+										 return channel.publishHTTPResponse(reader, turnOnRed(channel) ? 200 : 500);
+										 
+									 } else if (reader.isEqual(COLOR, GREEN)) {
+										 return channel.publishHTTPResponse(reader, turnOnGreen(channel) ? 200 : 500);
+										 
+									 } else if (reader.isEqual(COLOR, YELLOW)) {
+										 return channel.publishHTTPResponse(reader, turnOnYellow(channel) ? 200 : 500);
+										 
+									 } else {
+										 
+										 return channel.publishHTTPResponse(reader, 404);
+										 
+									 }}).includeRoutes(webRoute);
+>>>>>>> 08fedb8aaa0283b60d03bfbf08697a88fa5a0eaa
 	}
 
 
@@ -106,8 +139,13 @@ public class IoTApp implements FogApp
 
 			turnOnRed(channel0);
 			channel0.block(State.REDLIGHT.getTime());
+<<<<<<< HEAD
 
 			channel0.publishTopic("GREEN",w->{w.publish();});
+=======
+			
+			channel0.publishTopic("GREEN",w->{});
+>>>>>>> 08fedb8aaa0283b60d03bfbf08697a88fa5a0eaa
 			return true;
 		}).addSubscription("RED");
 
@@ -116,8 +154,13 @@ public class IoTApp implements FogApp
 
 			turnOnGreen(channel1);
 			channel1.block(State.GREENLIGHT.getTime());
+<<<<<<< HEAD
 
 			channel1.publishTopic("YELLOW",w->{w.publish();});
+=======
+			
+			channel1.publishTopic("YELLOW",w->{});
+>>>>>>> 08fedb8aaa0283b60d03bfbf08697a88fa5a0eaa
 			return true;
 		}).addSubscription("GREEN");
 
@@ -126,6 +169,7 @@ public class IoTApp implements FogApp
 
 			turnOnYellow(channel2);
 			channel2.block(State.YELLOWLIGHT.getTime());
+<<<<<<< HEAD
 
 			channel2.publishTopic("RED",w->{w.publish();});
 			return true;
@@ -133,6 +177,15 @@ public class IoTApp implements FogApp
 
 		final FogCommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addStartupListener(()->{channel4.publishTopic("RED",w->{w.publish();});});
+=======
+			
+			channel2.publishTopic("RED",w->{});
+			return true;
+    	}).addSubscription("YELLOW");
+    	
+       final FogCommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+       runtime.addStartupListener(()->{channel4.publishTopic("RED",w->{});});
+>>>>>>> 08fedb8aaa0283b60d03bfbf08697a88fa5a0eaa
 	}
 
 

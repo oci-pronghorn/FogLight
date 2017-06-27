@@ -2,9 +2,9 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.*;
 
-import com.ociweb.iot.grove.Grove_OLED_128x64;
-import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
+import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64;
 import com.ociweb.iot.maker.*;
 
 
@@ -17,7 +17,7 @@ public class OLED128x64 implements FogApp
 	public void declareConnections(Hardware c) {
 		c.useI2C();
 		c.setTriggerRate(125);
-		//c.enableTelemetry(true);
+		c.enableTelemetry(true);
 		//TODO: give warning message if trigger rate was not set and time listener is used
 	}
 

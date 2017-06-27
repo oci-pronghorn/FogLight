@@ -40,7 +40,7 @@ public class PiImageListenerStage extends PronghornStage {
      *
      * @return A reference to the created image file.
      */
-    public static File takePicture(String fileName) {
+    private static File takePicture(String fileName) {
         try {
             Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
         } catch (IOException e) {

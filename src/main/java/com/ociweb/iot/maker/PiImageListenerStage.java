@@ -21,8 +21,10 @@ public class PiImageListenerStage extends PronghornStage {
 
     private static final Logger logger = LoggerFactory.getLogger(PiImageListenerStage.class);
 
+    // Output pipe for image data.
     private final Pipe<RawDataSchema> output;
 
+    // Image buffer information; we only process one image at a time.
     private byte[] fileBytes = null;
     private int fileBytesReadIndex = -1;
 
@@ -40,7 +42,7 @@ public class PiImageListenerStage extends PronghornStage {
      *
      * @return A reference to the created image file.
      */
-    private static File takePicture(String fileName) {
+    private File takePicture(String fileName) {
         try {
             Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
         } catch (IOException e) {
@@ -50,12 +52,14 @@ public class PiImageListenerStage extends PronghornStage {
         return new File(fileName + ".jpg"); //TODO: rewrite to be GC free
     }
 
-    public PiImageListenerStage(GraphManager graphManager, Pipe<RawDataSchema> output) {
+    public PiImageListenerStage(GraphManager graphManager, Pipe<RawDataSchema> output, int triggerRateMilliseconds) {
         super(graphManager, NONE, output);
 
         // Attach to our output pipe.
         this.output = output;
 
+        // Add this listener to the graph.
+        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMilliseconds, this);
     }
 
     @Override

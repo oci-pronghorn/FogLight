@@ -7,8 +7,8 @@ import com.ociweb.iot.maker.FogCommandChannel;
 
 
 /**
- * Singleton utility class that communicates with the i2c Grove OLED 128x64 display, includes basic functionality such as printing
- * bitmap or CharSequence.
+ * Singleton class that defines basic properties of the display. Main purpose is to inialize and return a OLED_128x64
+ * object for the user.
  * @author Ray Lo, Nathan Tippy
  *
  */

@@ -21,7 +21,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	FogCommandChannel ch; //TODO: THIS IS A HACK FOR THE REFLECTION. IDEALLY, WE WOULD JUST LEAVE IT IN THE BASE ABSTRACT CLASS
 	/**
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
-	 * @param ch
+	 * @param ch FogCommandChannel used for the i2c write.
 	 */
 	
 	public OLED_128x64(FogCommandChannel ch){
@@ -74,7 +74,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	}
 
 	/**
-	 * Sets the display in horizontal mode, necessary for {drawBitmap(FogCommandChannel, int[], int[])} and {displayImage(int[][])}
+	 * Sets the display in horizontal mode, necessary for {@link #drawBitmap(int[])} and {@link #displayImage(int[][])}
 	 * Note that both {drawBitmap(FogCommandChannel, int[], int[])} and {displayImage(int[][])} already automatically set the display in
 	 * horizontal mode.
 	 * @return true if all three bytes needed were sent, false otherwise.
@@ -244,8 +244,8 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		}
 		return true;
 	}
-
-	public  boolean cleanClear(FogCommandChannel ch, int[] output){
+	@Override
+	public  boolean cleanClear(){
 		if (sendCommand(PUT_DISPLAY_TO_SLEEP)
 				&& clear() 
 				&& sendCommand(WAKE_DISPLAY))
@@ -380,6 +380,8 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		return Grove_OLED_128x64.cleanClear(this.ch, cmd_output);
 	}
 	*/
+	
+	@Override
 	public boolean displayImage(int[][] raw_image){
 		int counter = 0;
 		int pageLimit = row_count >> 3;
@@ -402,15 +404,13 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	}
 	
 	@Override
-	public boolean displayOn() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean displayOn() {	
+		return sendCommand(WAKE_DISPLAY);
 	}
 
 	@Override
 	public boolean displayOff() {
-		// TODO Auto-generated method stub
-		return false;
+		return sendCommand(PUT_DISPLAY_TO_SLEEP);
 	}
 
 	@Override
@@ -418,14 +418,5 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		// TODO Auto-generated method stub
 		return false;
 	}
-
-	@Override
-	public boolean cleanClear() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-
 	
-
 }

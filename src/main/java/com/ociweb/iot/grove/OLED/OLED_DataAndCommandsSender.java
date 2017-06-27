@@ -21,7 +21,6 @@ public abstract class OLED_DataAndCommandsSender {
 		this.i2c_address = i2c_address;
 	}
 	
-	
 	/**
 	 * Sends a "data" identifier byte followed by the user-supplied byte over the i2c.
 	 * @return true if the command byte and the supplied byte were succesfully sent, false otherwise.
@@ -134,4 +133,5 @@ public abstract class OLED_DataAndCommandsSender {
 	public abstract boolean activateScroll();
 	public abstract boolean deactivateScroll();
 	public abstract boolean setUpScroll();
+	public abstract boolean displayImage(int[][] raw_image);
 }

@@ -15,5 +15,7 @@
     <module>HTTPClient</module>
     <module>HTTPServer</module>
     <module>CustomDevice</module>
+    <module>PubSubStructured</module>
+    <module>Shutdown</module>
   </modules>
 </project>

@@ -225,6 +225,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 	
+	@Deprecated //would be nice if we did not have to do this.
 	public Hardware useI2C(int bus) {
 		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,
 		                       //TODO: when this is NOT on do not build the i2c pipes.

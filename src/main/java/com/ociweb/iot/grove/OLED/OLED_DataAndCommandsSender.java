@@ -134,4 +134,7 @@ public abstract class OLED_DataAndCommandsSender {
 	public abstract boolean deactivateScroll();
 	public abstract boolean setUpScroll();
 	public abstract boolean displayImage(int[][] raw_image);
+	public abstract boolean setHorizontalMode();
+	public abstract boolean setVerticalMode();
+	
 }

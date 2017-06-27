@@ -82,6 +82,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	 * for information on horizontal mode. 
 	 */
 
+	@Override
 	public boolean setHorizontalMode(){
 		cmd_out[0] = SET_MEMORY;
 		cmd_out[1] = 0x00;
@@ -95,6 +96,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	 * for information on vertical mode.
 	 */
 
+	@Override
 	public boolean setVerticalMode(){
 		cmd_out[0] = SET_MEMORY;
 		cmd_out[1] = 0x01;

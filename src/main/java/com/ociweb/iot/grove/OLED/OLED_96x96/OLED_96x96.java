@@ -129,4 +129,16 @@ public class OLED_96x96 extends OLED_DataAndCommandsSender{
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	@Override
+	public boolean setHorizontalMode() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean setVerticalMode() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

@@ -15,6 +15,9 @@ public class Grove_Mini_I2CMotor_Constants {
     
     public static final int CTL_REG = 0x00;
     public static final int FAULT_REG = 0x01;
+    
     public static final int CLEAR = (byte)(0x80 & 0xFF);  
+    public static final int STOP  = 0;
+    public static final int BRAKE = 0x03;
     
 }

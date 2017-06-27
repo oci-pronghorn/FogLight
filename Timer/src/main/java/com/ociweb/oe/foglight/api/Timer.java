@@ -24,19 +24,19 @@ public class Timer implements FogApp
     	runtime.addTimeListener((time, instance)->{
     		//Demo 1
     		if(time%timeInterval == 0){	
-        		System.out.println(time);
+        		System.out.println("clock");
     		}
     		
     		////////////////////////////////////////
     		////////////////////////////////////////
     		
     		//Demo 2
+    		//if((time-startTime)%timeInterval == 0){
+    		//	System.out.println("clock");
+    		//}
     		//if(!haveStartTime){
     		//	startTime = time;
     		//	haveStartTime = true;
-    		//}
-    		//if((time-startTime)%timeInterval == 0){
-    		//	System.out.println(time);
     		//}
     	});
     }

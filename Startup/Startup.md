@@ -14,6 +14,32 @@ The following sketch will demonstrate a simple use of the addStartupListener met
 
 Demo code: 
 
-#### ERROR:  could not read file ./src/main/java/com/ociweb/oe/foglight/Startup.java
+
+```java
+package com.ociweb.oe.foglight.api;
+
+
+import static com.ociweb.iot.grove.GroveTwig.*;
+
+import com.ociweb.iot.maker.*;
+import static com.ociweb.iot.maker.Port.*;
+
+public class Startup implements FogApp
+{
+    @Override
+    public void declareConnections(Hardware c) {
+    //No connections are needed
+    }
+
+    @Override
+    public void declareBehavior(FogRuntime runtime) {
+
+    	runtime.addStartupListener(()->{
+    		System.out.println("Hello, this message will display once at start");
+    	});
+    }
+}
+```
+
 
 When executed, the above code will send the string ```"Hello, this message will display once at start"``` as soon as the program begins running. 

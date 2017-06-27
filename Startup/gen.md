@@ -14,6 +14,6 @@ The following sketch will demonstrate a simple use of the addStartupListener met
  
 Demo code: 
 
-.include "./src/main/java/com/ociweb/oe/foglight/Startup.java"
+.include "./src/main/java/com/ociweb/oe/foglight/api/Startup.java"
 
 When executed, the above code will send the string ```"Hello, this message will display once at start"``` as soon as the program begins running. 

@@ -1,15 +1,5 @@
 package com.ociweb.iot.grove.OLED;
 
-import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.BATCH_SIZE;
-import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.COMMAND_MODE;
-import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.DATA_MODE;
-import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.OLEDADDRESS;
-import static com.ociweb.iot.grove.OLED.OLED_96x96.Grove_OLED_96x96_Constants.ADDRESS;
-import static com.ociweb.iot.grove.OLED.OLED_96x96.Grove_OLED_96x96_Constants.BATCH_SIZE;
-import static com.ociweb.iot.grove.OLED.OLED_96x96.Grove_OLED_96x96_Constants.COMMAND_MODE;
-import static com.ociweb.iot.grove.OLED.OLED_96x96.Grove_OLED_96x96_Constants.DATA_MODE;
-
-import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -21,7 +11,7 @@ public abstract class OLED_DataAndCommandsSender {
 	protected final int i2c_address;
 	
 	private static final int BATCH_SIZE = 50;
-	public static final int COMMAND_MODE =0x80;
+	public static final int COMMAND_MODE = 0x80;
 	public static final int DATA_MODE = 0x40;
 	
 	protected OLED_DataAndCommandsSender(FogCommandChannel ch, int[] data_out, int[]cmd_out, int i2c_address){
@@ -74,7 +64,7 @@ public abstract class OLED_DataAndCommandsSender {
 	}
 	
 	private boolean sendData(int [] data, int start, int length, int finalTargetIndex){
-		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(ADDRESS);
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		i2cPayloadWriter.write(DATA_MODE);
 		int i;
 		for (i = start; i < Math.min(start + length, finalTargetIndex); i++){
@@ -93,7 +83,7 @@ public abstract class OLED_DataAndCommandsSender {
 		if (!ch.i2cIsReady()){
 			return false;
 		}
-		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(ADDRESS);
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		i2cPayloadWriter.write(COMMAND_MODE);
 		i2cPayloadWriter.write(b);
 		ch.i2cCommandClose();
@@ -115,7 +105,7 @@ public abstract class OLED_DataAndCommandsSender {
 			return false;
 		}
 
-		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(ADDRESS);
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		
 		assert(length*2 <= BATCH_SIZE);
 		for (int i = start; i < start + length; i++){

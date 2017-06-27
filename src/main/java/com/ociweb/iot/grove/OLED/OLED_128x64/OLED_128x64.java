@@ -18,7 +18,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
  *
  */
 public class OLED_128x64 extends OLED_DataAndCommandsSender{
-	
+	FogCommandChannel ch; //TODO: THIS IS A HACK FOR THE REFLECTION. IDEALLY, WE WOULD JUST LEAVE IT IN THE BASE ABSTRACT CLASS
 	/**
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
 	 * @param ch
@@ -26,6 +26,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	
 	public OLED_128x64(FogCommandChannel ch){
 		super(ch, new int[1024], new int[32], OLEDADDRESS);
+		this.ch = ch;
 		//the most amount of data we can ever send at once as this is one entire frame worth of data
 		//the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
 	}
@@ -273,22 +274,22 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		cmd_out[1] = offset & 0x3F;
 		return sendCommands( 0,2);
 	}
-/*
-	public static boolean setUpRightContinuousHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage, int[] output){
-		return setUpContinuousHorizontalScroll(ch, speed, startPage, endPage, Right, output);
+
+	public boolean setUpRightContinuousHorizontalScroll(ScrollSpeed speed, int startPage, int endPage){
+		return setUpContinuousHorizontalScroll( speed, startPage, endPage, Right);
 	}
-	public static boolean setUpLeftContinuousHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, int endPage, int[] output){
-		return setUpContinuousHorizontalScroll(ch, speed, startPage, endPage, Left, output);
+	public boolean setUpLeftContinuousHorizontalScroll(ScrollSpeed speed, int startPage, int endPage){
+		return setUpContinuousHorizontalScroll( speed, startPage, endPage, Left);
 	}
 
-	public static boolean setUpRightContinuousVerticalHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, 
-			int endPage, int offset,  int[] output){
-		return setUpContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, Vertical_Right, output);
+	public boolean setUpRightContinuousVerticalHorizontalScroll(ScrollSpeed speed, int startPage, 
+			int endPage, int offset){
+		return setUpContinuousVerticalHorizontalScroll( speed, startPage, endPage, offset, Vertical_Right);
 	}
 
-	public static boolean setUpLeftContinuousVerticalHorizontalScroll(FogCommandChannel ch, ScrollSpeed speed, int startPage, 
-			int endPage, int offset,  int[] output){
-		return setUpContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, Vertical_Left, output);
+	public boolean setUpLeftContinuousVerticalHorizontalScroll(ScrollSpeed speed, int startPage, 
+			int endPage, int offset){
+		return setUpContinuousVerticalHorizontalScroll(speed, startPage, endPage, offset, Vertical_Left);
 	}
 
 	
@@ -335,14 +336,14 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	 * @return true if the i2c commands were succesfully sent, false otherwise
 	 */
 	
-	/*
+	
 	public boolean drawBitmapInHorizontalMode(int[] map){
 		if (!setHorizontalMode()){
 			return false;
 		}
-		return sendData(ch,map);
+		return sendData(map);
 	}
-*/
+
 	@Override
 	public boolean drawBitmap(int[] map){
 		return drawBitmapInPageMode( map);
@@ -378,8 +379,6 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 	public boolean cleanClear(){
 		return Grove_OLED_128x64.cleanClear(this.ch, cmd_output);
 	}
-	
-
 	*/
 	public boolean displayImage(int[][] raw_image){
 		int counter = 0;
@@ -401,26 +400,7 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		}
 		return ret;
 	}
-	/*
-	public boolean setUpRightContinuousHorizontalScroll(ScrollSpeed speed, int startPage, int endPage){
-		return Grove_OLED_128x64.setUpRightContinuousHorizontalScroll(this.ch,speed,startPage,endPage, cmd_output);
-		
-	}
-	public boolean setUpLeftContinuousHorizontalScroll(ScrollSpeed speed, int startPage, int endPage){
-		return Grove_OLED_128x64.setUpLeftContinuousHorizontalScroll(this.ch,speed,startPage,endPage, cmd_output);		
-	}
 	
-	public boolean setUpRightContinuousVerticalHorizontalScroll(ScrollSpeed speed, int startPage, 
-			int endPage, int offset){
-		return Grove_OLED_128x64.setUpRightContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, cmd_output);
-	}
-	
-	public boolean setUpLeftContinuousVerticalHorizontalScroll(ScrollSpeed speed, int startPage, 
-			int endPage, int offset){
-		return Grove_OLED_128x64.setUpLeftContinuousVerticalHorizontalScroll(ch, speed, startPage, endPage, offset, cmd_output);
-	}
-	*/
-
 	@Override
 	public boolean displayOn() {
 		// TODO Auto-generated method stub

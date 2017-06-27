@@ -4,10 +4,10 @@ package com.ociweb.iot.track1;
 import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
 import static com.ociweb.iot.grove.GroveTwig.LightSensor;
 
-import com.ociweb.iot.grove.Grove_LCD_RGB;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.grove.LCD_RGB.Grove_LCD_RGB;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.iot.maker.Port.*;

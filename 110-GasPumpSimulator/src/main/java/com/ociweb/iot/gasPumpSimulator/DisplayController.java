@@ -7,7 +7,7 @@ import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
-import com.ociweb.iot.grove.Grove_LCD_RGB;
+import com.ociweb.iot.grove.LCD_RGB.Grove_LCD_RGB;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.StateChangeListener;

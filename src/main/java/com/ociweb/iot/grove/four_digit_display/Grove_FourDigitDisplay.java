@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.util;
+package com.ociweb.iot.grove.four_digit_display;
 
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -6,7 +6,6 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 import static com.ociweb.iot.maker.Port.*;
 
-import com.ociweb.iot.grove.obj.FourDigitDisplay;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -82,16 +81,9 @@ public class Grove_FourDigitDisplay implements IODevice{
 				0x3f,0x06,0x5b,0x4f, 0x66,0x6d,0x7d,0x07, 0x7f
 		};
 
-	private static Grove_FourDigitDisplay instance;
+	public static final Grove_FourDigitDisplay instance = new Grove_FourDigitDisplay();
 
 	private Grove_FourDigitDisplay(){
-	}
-	
-	public static Grove_FourDigitDisplay getInstance(){
-		if (instance == null){
-			instance = new Grove_FourDigitDisplay();
-		}
-		return instance;
 	}
 	
 	public static FourDigitDisplay newObj(FogCommandChannel ch, Port p){

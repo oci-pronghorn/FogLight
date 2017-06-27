@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.util;
+package com.ociweb.iot.grove.OLED;
 
 public enum ScrollSpeed{
 	Scroll_2Frames(0x07),
@@ -10,9 +10,9 @@ public enum ScrollSpeed{
 	Scroll_128Frames(0x02),
 	Scroll_256Frames(0x03);
 
-	final int command;
+	public final int COMMAND;
 	private ScrollSpeed(int command){ 
-		this.command = command;
+		this.COMMAND = command;
 	};
 
 };

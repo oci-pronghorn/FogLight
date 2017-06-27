@@ -3,7 +3,7 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.util;
+package com.ociweb.iot.grove.accelerometer;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
@@ -19,7 +19,7 @@ import java.util.Arrays;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
-import static com.ociweb.iot.grove.util.Grove_Acc_Constants.*;
+import static com.ociweb.iot.grove.accelerometer.Grove_Acc_Constants.*;
 
 /**
  *

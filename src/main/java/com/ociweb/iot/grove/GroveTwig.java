@@ -1,8 +1,5 @@
 package com.ociweb.iot.grove;
 
-import static com.ociweb.iot.grove.util.Grove_Acc_Constants.ADXL345_DATAX0;
-import static com.ociweb.iot.grove.util.Grove_Acc_Constants.ADXL345_DEVICE;
-import static com.ociweb.iot.grove.util.Grove_Acc_Constants.ADXL345_POWER_CTL;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.Hardware;

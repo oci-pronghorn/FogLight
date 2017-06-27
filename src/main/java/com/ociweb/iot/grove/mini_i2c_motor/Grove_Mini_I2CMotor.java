@@ -21,6 +21,11 @@ import com.ociweb.pronghorn.pipe.DataInputBlobReader;
  */
 public class Grove_Mini_I2CMotor implements IODevice {
     
+    public static final Grove_Mini_I2CMotor instance = new Grove_Mini_I2CMotor();
+    
+    private Grove_Mini_I2CMotor(){
+        
+    }
     public static void driveMotor1(FogCommandChannel target, int speed)
     {        
         // Before we do anything, we'll want to
@@ -74,7 +79,7 @@ public class Grove_Mini_I2CMotor implements IODevice {
     public static void stopMotor1(FogCommandChannel target)
     {        
 
-        writeSingleByteToRegister(target,CH1_ADD,CTL_REG,0);
+        writeSingleByteToRegister(target,CH1_ADD,CTL_REG,STOP);
         target.i2cFlushBatch();
         
     }
@@ -82,7 +87,7 @@ public class Grove_Mini_I2CMotor implements IODevice {
     public static void stopMotor2(FogCommandChannel target)
     {        
 
-        writeSingleByteToRegister(target,CH2_ADD,CTL_REG,0);
+        writeSingleByteToRegister(target,CH2_ADD,CTL_REG,STOP);
         target.i2cFlushBatch();
         
     }
@@ -90,7 +95,7 @@ public class Grove_Mini_I2CMotor implements IODevice {
     public static void brakeMotor1(FogCommandChannel target)
     {        
 
-        writeSingleByteToRegister(target,CH1_ADD,CTL_REG,0x03);
+        writeSingleByteToRegister(target,CH1_ADD,CTL_REG,BRAKE);
         target.i2cFlushBatch();
         
     }
@@ -98,7 +103,7 @@ public class Grove_Mini_I2CMotor implements IODevice {
     public static void brakeMotor2(FogCommandChannel target)
     {        
 
-        writeSingleByteToRegister(target,CH2_ADD,CTL_REG,0x03);
+        writeSingleByteToRegister(target,CH2_ADD,CTL_REG,BRAKE);
         target.i2cFlushBatch();
         
     }
@@ -139,7 +144,7 @@ public class Grove_Mini_I2CMotor implements IODevice {
     @Override
     public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
         byte[] MOTOR_READCMD = {FAULT_REG};
-        byte[] MOTOR_SETUP = {FAULT_REG,CLEAR};
+        byte[] MOTOR_SETUP = {};
         byte MOTOR_ADDR = CH1_ADD;
         byte MOTOR_BYTESTOREAD = 1;
         byte MOTOR_REGISTER = FAULT_REG;
@@ -166,4 +171,3 @@ public class Grove_Mini_I2CMotor implements IODevice {
         return 0;    
     }
 }
-

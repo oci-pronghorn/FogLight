@@ -10,8 +10,10 @@ package com.ociweb.iot.grove.accelerometer;
  * @author huydo
  */
 public class Grove_Acc_Constants {
-    public static final int ADXL345_POWER_CTL = 0x2D;
     public static final int ADXL345_DEVICE    = 0x53;
+    
+    public static final int ADXL345_POWER_CTL = 0x2D;
+    public static final int ADXL345_DATA_FORMAT = 0x31; 
     public static final int ADXL345_DATAX0    = 0x32;    
 
     public static final double X_GAIN = 0.00376390;

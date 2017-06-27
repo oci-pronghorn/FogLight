@@ -160,11 +160,8 @@ public enum GroveTwig implements IODevice {
         public boolean isOutput() {
             return true;
         }
-        @Override
-        public boolean isI2C() {
-        return true;
-    }
     },
+
     UltrasonicRanger() {
         @Override
         public boolean isInput() {

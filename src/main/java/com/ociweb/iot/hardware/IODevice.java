@@ -1,5 +1,8 @@
 package com.ociweb.iot.hardware;
 
+import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.FogCommandChannel;
+
 /**
  * Interface for all Input and Output devices.
  */
@@ -43,4 +46,5 @@ public interface IODevice {
       */
      public int           pinsUsed();//count of contiguous pins used, eg almost always 1 but would be 2 for the grove rotary encoder
      
+     public <F extends Facade> F newFacade(FogCommandChannel... ch);
 }

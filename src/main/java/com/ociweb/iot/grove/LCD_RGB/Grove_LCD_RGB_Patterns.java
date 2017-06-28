@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.LCD_RGB;
 
 /**
  * Various static byte arrays for common shapes that can be displayed

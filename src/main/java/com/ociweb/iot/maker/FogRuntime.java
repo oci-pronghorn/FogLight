@@ -3,7 +3,9 @@ package com.ociweb.iot.maker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.ListenerConfig;
 import com.ociweb.gl.api.MsgRuntime;
+import com.ociweb.gl.api.RestListener;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
@@ -18,10 +20,12 @@ import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
@@ -224,9 +228,21 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         return registerListenerImpl(listener);
     }
 
-    private ListenerFilterIoT registerListenerImpl(Object listener, int ... optionalInts) {
+    private ListenerFilterIoT registerListenerImpl(Object listener) {//, int ... optionalInts) {
 
-    	extractPipeData(listener, optionalInts);
+    	outputPipes = new Pipe<?>[0];
+		
+		if (listener instanceof RestListener) {
+			
+			final int p = ListenerConfig.computeParallel(builder, parallelInstanceUnderActiveConstruction);
+			httpRequestPipes = ListenerConfig.newHTTPRequestPipes(builder, p);
+
+		} else {
+			httpRequestPipes = (Pipe<HTTPRequestSchema>[]) new Pipe<?>[0];     	
+		}
+		
+		//extract pipes used by listener
+		visitCommandChannelsUsedByListener(listener, 0, gatherPipesVisitor);//populates  httpRequestPipes and outputPipes
 
     	/////////
     	//pre-count how many pipes will be needed so the array can be built to the right size
@@ -266,7 +282,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         //TimeListener, time rate signals are sent from the stages its self and therefore does not need a pipe to consume.
         /////////////////////
 
-        ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, inputPipes, outputPipes);
+        ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, 
+        		                                                                   inputPipes, outputPipes, parallelInstanceUnderActiveConstruction);
 		configureStageRate(listener,reactiveListener);
 
 		//////////

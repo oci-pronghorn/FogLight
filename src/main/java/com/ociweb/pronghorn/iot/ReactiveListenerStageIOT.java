@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.HTTPResponseListener;
 import com.ociweb.gl.api.RestListener;
+import com.ociweb.gl.api.ShutdownListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
@@ -69,10 +70,12 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     /////////////////////
     private Number stageRate;
     
-    public ReactiveListenerStageIOT(GraphManager graphManager, Object listener, Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, HardwareImpl hardware) {
+    public ReactiveListenerStageIOT(GraphManager graphManager, Object listener, 
+    		                        Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, 
+    		                        HardwareImpl hardware, int parallelInstance) {
 
         
-        super(graphManager, listener, inputPipes, outputPipes, hardware);
+        super(graphManager, listener, inputPipes, outputPipes, hardware, parallelInstance);
       
         this.builder = hardware;
                    
@@ -189,6 +192,35 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     @Override
     public void run() {
         
+    	if (shutdownRequsted.get()) {
+    		if (!shutdownCompleted) {
+    			
+    			if (listener instanceof ShutdownListener) {    				
+    				if (((ShutdownListener)listener).acceptShutdown()) {
+    					int remaining = liveShutdownListeners.decrementAndGet();
+    					assert(remaining>=0);
+    					requestShutdown();
+    					return;
+    				}
+    				//else continue with normal run processing
+    				
+    			} else {
+    				//this one is not a listener so we must wait for all the listeners to close first
+    				
+    				if (0 == liveShutdownListeners.get()) {    					
+    					requestShutdown();
+    					return;
+    				}
+    				//else continue with normal run processing.
+    				
+    			}
+    		} else {
+    			assert(shutdownCompleted);
+    			assert(false) : "run should not have been called if this stage was shut down.";
+    			return;
+    		}
+    	}
+    	
         if (timeEvents) {         	
 			processTimeEvents((TimeListener)listener, timeTrigger);            
 		}

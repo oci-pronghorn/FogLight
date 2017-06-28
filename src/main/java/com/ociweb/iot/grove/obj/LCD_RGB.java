@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.display;
+package com.ociweb.iot.grove.obj;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 

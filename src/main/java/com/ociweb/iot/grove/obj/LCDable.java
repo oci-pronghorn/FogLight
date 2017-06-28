@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.display;
+package com.ociweb.iot.grove.obj;
 
 public interface LCDable extends Seven_Segmentable {
 	public void switchPixel(boolean on, int row, int col);

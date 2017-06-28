@@ -18,7 +18,7 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 public class ObjectPassingTest {
 	 
 	
-	 @Ignore
+	 @Test
 	    public void testApp()
 	    { 		 
 		 

@@ -2,6 +2,8 @@ package com.ociweb.iot.grove;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
+import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
 
 /**
@@ -26,6 +28,8 @@ public enum GroveTwig implements IODevice {
         public int response() {
             return 30;
         }
+
+		
     },
     LightSensor() {
         @Override
@@ -343,4 +347,9 @@ public enum GroveTwig implements IODevice {
     public int pinsUsed() {
         return 1;
     }
+    
+
+	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+		return null;
+	}
 }

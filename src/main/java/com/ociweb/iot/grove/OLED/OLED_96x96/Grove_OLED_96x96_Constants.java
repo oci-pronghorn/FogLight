@@ -18,13 +18,20 @@ public class Grove_OLED_96x96_Constants {
 	
 	public static final int REMAP = 0xA0;
 	public static final int HORIZONTAL = 0x42;
+	public static final int VERTICAL = 0x46;
 	
 	public static final int SET_ROW_ADDRESS = 0x75;
 	public static final int SET_COL_ADDRESS = 0x15;
 	
 	public static final int BATCH_SIZE = 50;
 	
+	public static final int MCU = 0xFD;
+	public static final int UNLOCK_CMD_ENTERING = 0x12;
 	
+	
+	//Each row corresponds to an ASCII character startign at ASCII 32.
+	//Each byte corresponds to 8-pixels. When communicating with the chip on the display, a nible corressponds to
+	//to a pixel, not a bit. Hence, we need to convert this bit array to an "nibble" array in the OLED_96x96 object layer.
 	
 	public static final int[][] FONT = {
 				  {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},

@@ -10,6 +10,7 @@ import com.ociweb.iot.grove.OLED.OLED_DataAndCommandsSender;
 import com.ociweb.iot.grove.OLED.ScrollSpeed;
 import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.Direction;
 import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.Orientation;
+import com.ociweb.iot.maker.Facade;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**
@@ -17,16 +18,14 @@ import com.ociweb.iot.maker.FogCommandChannel;
  * @author Ray Lo, Nathan Tippy
  *
  */
-public class OLED_128x64 extends OLED_DataAndCommandsSender{
-	FogCommandChannel ch; //TODO: THIS IS A HACK FOR THE REFLECTION. IDEALLY, WE WOULD JUST LEAVE IT IN THE BASE ABSTRACT CLASS
+public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements Facade{
 	/**
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
 	 * @param ch FogCommandChannel used for the i2c write.
 	 */
 	
-	public OLED_128x64(FogCommandChannel ch){
+	public OLED_128x64_Facade(FogCommandChannel ch){
 		super(ch, new int[1024], new int[32], OLEDADDRESS);
-		this.ch = ch;
 		//the most amount of data we can ever send at once as this is one entire frame worth of data
 		//the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
 	}
@@ -169,18 +168,17 @@ public class OLED_128x64 extends OLED_DataAndCommandsSender{
 		}
 		int counter = 0;
 		for (int i = start; i < start + 8; i++){
-			data_out[i] = BASIC_FONT[c-32][counter];
-			counter ++;
+			data_out[i] = BASIC_FONT[c-32][counter++];
 		}
 		return true;
 	}
 
 	public boolean encodeCharSequence(CharSequence s){
-		return encodeCharSequence(s, 0, s.length());
+		return encodeCharSequence(s, 0);
 	}
 
-	public boolean encodeCharSequence(CharSequence s, int start, int CharSequence_length){
-		for (int i = start; i < start + CharSequence_length; i++){
+	public boolean encodeCharSequence(CharSequence s, int start){
+		for (int i = start; i < start + s.length(); i++){
 			if (encodeChar(s.charAt(i), i*8)){	
 			} else {
 				return false;

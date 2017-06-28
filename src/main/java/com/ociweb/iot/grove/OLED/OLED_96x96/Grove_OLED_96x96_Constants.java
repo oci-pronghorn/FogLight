@@ -28,6 +28,19 @@ public class Grove_OLED_96x96_Constants {
 	public static final int MCU = 0xFD;
 	public static final int UNLOCK_CMD_ENTERING = 0x12;
 	
+	public static final int SET_MULTIPLEX_RATIO = 0xA8;
+	
+	public static final int SET_DISPLAY_START_LINE = 0xA1;
+	public static final int SET_DISPLAY_OFFSET = 0xA2;
+	
+	public static final int SET_VDD_INTERNAL = 0xAB;
+	public static final int SET_PHASE_LENGTH = 0x81;
+	public static final int SET_CLOCK_DIV_RATIO = 0xB3;
+	public static final int SET_PRECHARGE_VOLTAGE_AND_VCOMH =0xBC;
+	public static final int SET_VCOMH = 0xBE;
+	public static final int SET_SECOND_PRECHARGE_PERIOD = 0xB6;
+	public static final int ENABLE_SECOND_PRECHARGE_AND_INTERNAL_VSL = 0x62;
+	
 	
 	//Each row corresponds to an ASCII character startign at ASCII 32.
 	//Each byte corresponds to 8-pixels. When communicating with the chip on the display, a nible corressponds to

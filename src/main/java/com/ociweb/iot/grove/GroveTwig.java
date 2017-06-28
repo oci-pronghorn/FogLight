@@ -1,6 +1,7 @@
 package com.ociweb.iot.grove;
 
 import com.ociweb.iot.grove.OLED.OLED_128x64.OLED_128x64_Facade;
+import com.ociweb.iot.grove.OLED.OLED_96x96.OLED_96x96_Facade;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.Facade;
@@ -234,10 +235,23 @@ public enum GroveTwig implements IODevice {
     	public boolean isOutput(){
     		return true;
     	}
-    	@Override
+    	@SuppressWarnings("unchecked")
+		@Override
 		public <F extends Facade> F newFacade(FogCommandChannel... ch) {
 			return (F) new OLED_128x64_Facade(ch[0]);
 		}
+    },
+    
+    OLED_96x96(){
+    	@Override
+    	public boolean isOutput(){
+    		return true;
+    	}
+    	@SuppressWarnings("unchecked")
+		@Override
+    	public <F extends Facade> F newFacade(FogCommandChannel...ch){
+    		return (F) new OLED_96x96_Facade(ch[0]);
+    	}
     },
     
     WaterSensor(){

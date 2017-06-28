@@ -1,13 +1,17 @@
 package com.ociweb.iot.valveManifold;
 
 import com.ociweb.iot.valveManifold.schema.ValveSchema;
+import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
+import com.ociweb.pronghorn.pipe.token.TypeMask;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 import java.util.Objects;
+
+import javax.swing.text.MaskFormatter;
 
 import static com.ociweb.iot.valveManifold.schema.ValveSchema.*;
 
@@ -25,6 +29,17 @@ class FilterStage extends PronghornStage {
 		super(graphManager, input, output);
 		this.input=input;
 		this.output=output;
+		
+//		int type = FieldReferenceOffsetManager.extractTypeFromLoc(MSG_LIFECYCLECOUNT_312_FIELD_STATION_1);
+//		TypeMask.toString(type);
+//		TypeMask.isInt(type);
+//		switch(type) {
+//		case TypeMask.IntegerUnsigned:
+//			break;
+//		case TypeMask.TextUTF8:
+//			break;
+//		}
+		
 	}
 
 	@Override

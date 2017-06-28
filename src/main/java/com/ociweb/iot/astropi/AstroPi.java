@@ -2,6 +2,8 @@ package com.ociweb.iot.astropi;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
+import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.FogCommandChannel;
 
 
 //https://www.raspberrypi.org/blog/astro-pi-tech-specs/
@@ -60,6 +62,12 @@ public class AstroPi implements IODevice {
 	public int pinsUsed() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

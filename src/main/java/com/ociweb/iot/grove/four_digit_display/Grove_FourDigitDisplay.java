@@ -8,6 +8,7 @@ import static com.ociweb.iot.maker.Port.*;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
+import com.ociweb.iot.maker.Facade;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 
@@ -364,6 +365,12 @@ public class Grove_FourDigitDisplay implements IODevice{
 	@Override
 	public int pinsUsed() {
 		return 2;
+	}
+
+	@Override
+	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

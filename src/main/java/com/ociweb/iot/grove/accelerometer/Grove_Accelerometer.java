@@ -7,18 +7,11 @@ package com.ociweb.iot.grove.accelerometer;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
+import com.ociweb.iot.maker.Facade;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Arrays;
-
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
-import com.ociweb.pronghorn.pipe.DataInputBlobReader;
-import com.ociweb.pronghorn.pipe.Pipe;
 import static com.ociweb.iot.grove.accelerometer.Grove_Acc_Constants.*;
 
 /**
@@ -29,14 +22,14 @@ public class Grove_Accelerometer implements IODevice{
     
     public static final Grove_Accelerometer instance = new Grove_Accelerometer();
     
+    public static int pollingRate = 0;
+    
     private Grove_Accelerometer(){
         
     }
     
     public static boolean begin(FogCommandChannel target) {
-        writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_DATA_FORMAT,0x01);
         
-        target.i2cFlushBatch();
         
         writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_POWER_CTL,0);
         
@@ -50,17 +43,22 @@ public class Grove_Accelerometer implements IODevice{
         
         target.i2cFlushBatch();
         
+        writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_DATA_FORMAT,0x00);
+        
+        target.i2cFlushBatch();
+        
         return true;
     }
     
-    public static int[] intepretData(byte[] backing, int position, int length, int mask){
+    public static short[] intepretData(byte[] backing, int position, int length, int mask){
         assert(length==6) : "Non-Accelerometer data passed into the NunchuckTwig class";
-        int[] temp = {0,0,0};
+        short[] temp = {0,0,0};
+        //format the data from the circular buffer backing[]
         
-        temp[0] = (((( int)backing[position+1]) << 8) | backing[position]);
-        temp[1] = (((( int)backing[position+3]) << 8) | backing[position+2]);
-        temp[2] = (((( int)backing[position+5]) << 8) | backing[position+4]);
-       
+        temp[0] = (short)(((backing[(position+1)&mask]) << 8) | (backing[position&mask]&0xFF));
+        temp[1] = (short)(((backing[(position+3)&mask]) << 8) | (backing[(position+2)&mask]&0xFF));
+        temp[2] = (short)(((backing[(position+5)&mask]) << 8) | (backing[(position+4)&mask]&0xFF));
+
         return temp;
     }
     
@@ -103,9 +101,14 @@ public class Grove_Accelerometer implements IODevice{
         return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
     }
     
+    
     @Override
     public int response() {
+        if(pollingRate != 0){
+            return pollingRate;
+        }else{
         return 1000;
+        }
     }
     
     @Override
@@ -122,17 +125,12 @@ public class Grove_Accelerometer implements IODevice{
     public int scanDelay() {
         return 0;
     }
-    
-//    private static void readXYZ(FogCommandChannel target, double x,double y,double z){
-//        byte[] _buff = new byte[6];
-//        readFrom(target,Grove_Acc_Constants.ADXL345_DEVICE,Grove_Acc_Constants.ADXL345_DATAX0,_buff);
-//        x = (short)(((( short)_buff[1]) << 8) | _buff[0])*Grove_Acc_Constants.X_GAIN;
-//        y = (short)(((( short)_buff[3]) << 8) | _buff[2])*Grove_Acc_Constants.Y_GAIN;
-//        z = (short)(((( short)_buff[5]) << 8) | _buff[4])*Grove_Acc_Constants.Z_GAIN;
-//
-//
-//    }
-//
+
+	@Override
+	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+		// TODO Auto-generated method stub
+		return null;
+	}
     
     
 }

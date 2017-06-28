@@ -11,7 +11,6 @@ public class IoTApp implements FogApp
 
     @Override
     public void declareConnections(Hardware c) {
-              
         c.connect(Button, BUTTON_PORT); 
         c.connect(LED, LED_PORT);        
         c.useI2C();

@@ -1,7 +1,5 @@
 package com.ociweb;
 
-
-import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
@@ -12,7 +10,6 @@ public class IoTApp implements FogApp
 {
 	@Override
 	public void declareConnections(Hardware c) {
-		c.connect(Grove_FourDigitDisplay.instance, D5);
 		c.setTriggerRate(1);
 	}
 	
@@ -25,12 +22,10 @@ public class IoTApp implements FogApp
 		final FogCommandChannel ch = runtime.newCommandChannel();
 		FourDigitDisplay display = Grove_FourDigitDisplay.newObj(ch, D5);
 		runtime.addStartupListener(()->{
-			System.out.println("Port byte: " + D5.port);
-			
+			System.out.println("Port byte: " + D5.port);	
 			display.init();
 			display.setBrightness(7);
 			display.displayOn();
-			display.printFourDigitsWithColon(12, 34);
 		});
 		runtime.addTimeListener((time, iteration)->{
 			display.printFourDigitsWithColon((iteration/100)%100, iteration % 100);

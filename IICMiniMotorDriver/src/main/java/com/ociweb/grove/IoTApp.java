@@ -9,8 +9,6 @@ import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.Port;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp

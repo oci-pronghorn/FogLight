@@ -1,10 +1,16 @@
 package com.ociweb.oe.foglight.api;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.GroveTwig.Button;
+import static com.ociweb.iot.grove.GroveTwig.LED;
+import static com.ociweb.iot.maker.Port.D2;
+import static com.ociweb.iot.maker.Port.D3;
 
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 
 public class Shutdown implements FogApp
 {	
@@ -12,10 +18,10 @@ public class Shutdown implements FogApp
 	private static final Port BUTTON_PORT = D3;
 	private static boolean statusOfLED = false;
 	
-	/*public static void main(String[] args){
+	public static void main(String[] args){
 		FogRuntime.run(new Shutdown());
 	}
-	*/
+	
 	
     @Override
     public void declareConnections(Hardware c) {

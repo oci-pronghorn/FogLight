@@ -2,6 +2,7 @@ package com.ociweb.iot.grove.LCD_RGB;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
+import com.ociweb.iot.maker.Facade;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -615,4 +616,10 @@ public class Grove_LCD_RGB implements IODevice {
     public int pinsUsed() {
         return 1;
     }
+
+	@Override
+	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

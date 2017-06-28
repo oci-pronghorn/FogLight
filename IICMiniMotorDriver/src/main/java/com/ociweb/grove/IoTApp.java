@@ -4,7 +4,7 @@ package com.ociweb.grove;
 import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.grove.mini_i2c_motor.Grove_Mini_I2CMotor;
 
-
+import com.ociweb.iot.grove.mini_i2c_motor.Mini_I2C_Motor;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -16,7 +16,6 @@ public class IoTApp implements FogApp
     public static void main( String[] args) {
         FogRuntime.run(new IoTApp());
     }
-    
     ///////////////////////
     //Connection constants
     ///////////////////////
@@ -35,7 +34,7 @@ public class IoTApp implements FogApp
         //c.connect(Button,D2);
         //c.connectI2C(I2C);
         c.connect(Button,D3);
-        c.connectI2C(Grove_Mini_I2CMotor.instance);
+        c.connectI2C(Grove_Mini_I2CMotor.instance); //don't like this
 //        c.connect(AngleSensor,ANGLE_SENSOR);
 
 
@@ -45,15 +44,19 @@ public class IoTApp implements FogApp
     public void declareBehavior(FogRuntime g) {
         final FogCommandChannel c = g.newCommandChannel();
         
+        Mini_I2C_Motor motorControl2 = Grove_Mini_I2CMotor.newObj(c);
+        
+        Mini_I2C_Motor motorControl = new Mini_I2C_Motor(c);
+        
         g.addDigitalListener((port, connection, time, value)->{
             if(value==1){
                 System.out.println("starting Motor 1");
-                Grove_Mini_I2CMotor.driveMotor1(c,50);
+                motorControl.driveMotor1(50);
                 System.out.println("starting Motor 2");
-                Grove_Mini_I2CMotor.driveMotor2(c,50);
+                motorControl.driveMotor2(50);
             }else{
-                Grove_Mini_I2CMotor.stopMotor1(c);
-                Grove_Mini_I2CMotor.stopMotor2(c);
+                motorControl.stopMotor1();
+                motorControl.stopMotor2();
             }
         });
 //        

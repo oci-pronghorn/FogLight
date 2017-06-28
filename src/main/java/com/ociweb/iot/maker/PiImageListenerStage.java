@@ -15,6 +15,27 @@ import java.nio.file.Files;
 /**
  * Time-based image listener backing for Raspberry Pi hardware.
  *
+ * TODO: For total integration
+ * - Build a new schema.
+ *  - Build XML, define fields
+ *  - Run unit test against XML with MyNewSchema extends MessageSchema
+ *  - Use other unit tests as an example for the schema.
+ *  - Get complaints etc; copy text.
+ *  - Get complaints etc; add missing functions and constants.
+ *  - Schema done.
+ * - As user declares things, the system builds dangling pipes.
+ *  - The other end of the pipe is not defined yet.
+ *  - When you make the stage, the graph will register it.
+ *  - If you run the graph, it'll complain because the stage has dangling pipes.
+ *  - BuildGraph asks the graph for the dangling pipes by schema.
+ *  - Those dangling pipes are then tied into something.
+ *  - This design means we need a unique schema for each kind of special resource.
+ * - ImageListener registration creates an instance of the reactor stage.
+ *  - That stage needs attached to it an image listener pipe.
+ *  - When the graph is built, we track all of the listeners and attach the pipe.
+ *  - Use the replicator stage to take one pipe (from picture taker stage) and feed it to the listeners if there
+ *    are more than one listener.
+ *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class PiImageListenerStage extends PronghornStage {

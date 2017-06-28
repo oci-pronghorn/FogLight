@@ -7,6 +7,7 @@ import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -171,9 +172,15 @@ public class PiCommandChannel extends FogCommandChannel{
 	
 	public boolean setValue(Port port, int value) {
 
+		IODevice connectedDevice = builder.getConnectedDevice(port);
+		
+		//TODO: is this device the 7 segment display
+		//      if so call Static method to post value on display
+		
+		
 		int mask = port.isAnalog()? ANALOG_BIT:0;
 		
-		boolean isPWM = builder.getConnectedDevice(port).isPWM();
+		boolean isPWM = connectedDevice.isPWM();
 		
 		byte[] template = port.isAnalog() | isPWM ? analogMessageTemplate : digitalMessageTemplate;
 		

@@ -11,8 +11,6 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 import java.util.Objects;
 
-import javax.swing.text.MaskFormatter;
-
 import static com.ociweb.iot.valveManifold.schema.ValveSchema.*;
 
 class FilterStage extends PronghornStage {

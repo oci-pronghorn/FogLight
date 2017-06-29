@@ -1,7 +1,7 @@
 package com.ociweb.iot.maker;
 
+import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import org.slf4j.Logger;
@@ -15,14 +15,12 @@ import java.nio.file.Files;
 /**
  * Time-based image listener backing for Raspberry Pi hardware.
  *
+ * TODO: Does this stage take pictures and pass a file path
+ *       or does it actually convert the pictures to bytes and pass
+ *       them on the pipe?
+ *
  * TODO: For total integration
- * - Build a new schema.
- *  - Build XML, define fields
- *  - Run unit test against XML with MyNewSchema extends MessageSchema
- *  - Use other unit tests as an example for the schema.
- *  - Get complaints etc; copy text.
- *  - Get complaints etc; add missing functions and constants.
- *  - Schema done.
+ * - Build a new schema. --Done
  * - As user declares things, the system builds dangling pipes.
  *  - The other end of the pipe is not defined yet.
  *  - When you make the stage, the graph will register it.
@@ -43,7 +41,7 @@ public class PiImageListenerStage extends PronghornStage {
     private static final Logger logger = LoggerFactory.getLogger(PiImageListenerStage.class);
 
     // Output pipe for image data.
-    private final Pipe<RawDataSchema> output;
+    private final Pipe<ImageSchema> output;
 
     // Image buffer information; we only process one image at a time.
     private byte[] fileBytes = null;
@@ -73,7 +71,7 @@ public class PiImageListenerStage extends PronghornStage {
         return new File(fileName + ".jpg"); //TODO: rewrite to be GC free
     }
 
-    public PiImageListenerStage(GraphManager graphManager, Pipe<RawDataSchema> output, int triggerRateMilliseconds) {
+    public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
         super(graphManager, NONE, output);
 
         // Attach to our output pipe.
@@ -132,7 +130,7 @@ public class PiImageListenerStage extends PronghornStage {
             }
 
             // Publish our changes.
-            final int size = Pipe.addMsgIdx(output, RawDataSchema.MSG_CHUNKEDSTREAM_1);
+            final int size = Pipe.addMsgIdx(output, ImageSchema.MSG_CHUNKEDSTREAM_1);
             Pipe.moveBlobPointerAndRecordPosAndLength(maximumToWrite, output);
             Pipe.confirmLowLevelWrite(output, size);
             Pipe.publishWrites(output);

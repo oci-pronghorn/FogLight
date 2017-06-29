@@ -210,18 +210,21 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
     public ListenerFilterIoT addImageListener(ImageListener listener) {
     	//NOTE: this is an odd approach, this level of configuration is normally hidden on this layer.
     	//      TODO: images should have their own internal time and not hijack the application level timer.
-        if (builder.getTriggerRate() < 1250) {
-            throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
-        }
+		// TODO: FIXME:
+//        if (builder.getTriggerRate() < 1250) {
+//            throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
+//        }
+//
+//        switch (builder.getPlatformType()) {
+//            case GROVE_PI:
+//                return registerListener(new PiImageListenerStage(listener));
+//            default:
+//                throw new UnsupportedOperationException("Image listeners are not supported for [" +
+//                		builder.getPlatformType() +
+//                                                        "] hardware");
+//        }
 
-        switch (builder.getPlatformType()) {
-            case GROVE_PI:
-                return registerListener(new PiImageListenerStage(listener));
-            default:
-                throw new UnsupportedOperationException("Image listeners are not supported for [" +
-                		builder.getPlatformType() +
-                                                        "] hardware");
-        }
+		throw new UnsupportedOperationException("Image listeners aren't the same now...");
     }
 
     public ListenerFilterIoT addI2CListener(I2CListener listener) {

@@ -227,6 +227,10 @@ public enum GroveTwig implements IODevice {
     	public int pinsUsed(){
     		return 2;
     	}
+    	@Override
+    	public boolean isI2C(){
+    		return true;
+    	}
     	
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
@@ -269,107 +273,15 @@ public enum GroveTwig implements IODevice {
     },
     
     OLED_96x96(){
-        @Override
-        public boolean isOutput(){
-            return true;
-        }
-        @SuppressWarnings("unchecked")
-        @Override
-        public <F extends IODeviceFacade> F newFacade(FogCommandChannel...ch){
-            return (F) new OLED_96x96_Facade(ch[0]);
-        }
-    },
-    ThreeAxis_Accelerometer_16G(){
-        @Override
-        public boolean isInput() {
-            return true;
-        }
-        
-        @Override
-        public boolean isOutput() {
-            return true;
-        }
-        
-        @Override
-        public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {Grove_Acc_Constants.ADXL345_DATAX0};
-            //byte[] ACC_SETUP = {ADXL345_POWER_CTL,0x08};
-            byte[] ACC_SETUP = {};
-            byte ACC_ADDR = Grove_Acc_Constants.ADXL345_DEVICE;
-            byte ACC_BYTESTOREAD = 6;
-            byte ACC_REGISTER = 0x07; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
-        }
-        
-        
-        @Override
-        public int response() {
-            return 1000;
-        }
-        @SuppressWarnings("unchecked")
-        @Override
-        public <F extends IODeviceFacade> F newFacade(FogCommandChannel...ch){
-            return (F) new Accelerometer_16g(ch[0]);
-        }
-        
-    },
-    RTC(){
-        @Override
-        public boolean isInput() {
-            return true;
-        }
-        
-        @Override
-        public boolean isOutput() {
-            return true;
-        }
-        @Override
-        public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {Grove_RTC_Constants.TIME_REG};
-            //byte[] ACC_SETUP = {ADXL345_POWER_CTL,0x08};
-            byte[] ACC_SETUP = {};
-            byte ACC_ADDR = Grove_RTC_Constants.DS1307_I2C_ADDRESS;
-            byte ACC_BYTESTOREAD = 7;
-            byte ACC_REGISTER = 0x07; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
-        }
-        
-        
-        @Override
-        public int response() {
-            return 1000;
-            
-        }
-//    @SuppressWarnings("unchecked")
-//        @Override
-//        public <F extends IODeviceFacade> F newFacade(FogCommandChannel...ch){
-//            return (F) new RTC(ch[0]);
-//        }
-    },
-    Mini_I2C_Motor(){
-        @Override
-        public boolean isInput() {
-            return true;
-        }
-        
-        @Override
-        public boolean isOutput() {
-            return true;
-        }
-        @Override
-        public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] MOTOR_READCMD = {FAULT_REG};
-            byte[] MOTOR_SETUP = {};
-            byte MOTOR_ADDR = CH1_ADD;
-            byte MOTOR_BYTESTOREAD = 1;
-            byte MOTOR_REGISTER = 0x23;  //register identifier
-            return new I2CConnection(this, MOTOR_ADDR, MOTOR_READCMD, MOTOR_BYTESTOREAD, MOTOR_REGISTER, MOTOR_SETUP);
-        }
-        
-        @Override
-        public int response() {
-            return 1000;
-        }
+    	@Override
+    	public boolean isOutput(){
+    		return true;
+    	}
+    	@SuppressWarnings("unchecked")
+		@Override
+    	public <F extends IODeviceFacade> F newFacade(FogCommandChannel...ch){
+    		return (F) new OLED_96x96_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+    	}
     },
     
     WaterSensor(){

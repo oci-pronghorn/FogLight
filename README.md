@@ -70,6 +70,9 @@ Of course, this is just a simple example; for more interesting examples that dem
 - Four Digit Display
   - [wiki](http://wiki.seeed.cc/Grove-4-Digit_Display/)
   - demo - Coming Soon!
+- GPS
+  - [wiki](http://wiki.seeed.cc/Grove-GPS/)
+  - demo - Coming Soon!
 - I2C Mini Motor Driver
   - [wiki](http://wiki.seeed.cc/Grove-Mini_I2C_Motor_Driver_v1.0/)
   - demo - Coming Soon!
@@ -106,6 +109,12 @@ Of course, this is just a simple example; for more interesting examples that dem
 - Relay
   - [wiki](http://wiki.seeed.cc/Grove-Relay/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Relay/Relay.md)
+- Sense Hat
+  - [wiki](https://pinout.xyz/pinout/sense_hat)
+  - demo - Coming Soon!
+- Serial Bluetooth
+  - [wiki](http://wiki.seeed.cc/Grove-Serial_Bluetooth_v3.0/)
+  - demo - Coming Soon!
 - Temperature Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Temperature_Sensor/)
   - demo - Coming Soon!

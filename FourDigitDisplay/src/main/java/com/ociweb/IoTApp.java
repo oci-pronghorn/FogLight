@@ -1,39 +1,35 @@
 package com.ociweb;
 
-
-import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
-import com.ociweb.iot.grove.Grove_FourDigitDisplay;
-import static com.ociweb.iot.grove.Grove_FourDigitDisplay.*;
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.iot.grove.four_digit_display.FourDigitDisplay;
+import com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay;
 
 public class IoTApp implements FogApp
 {
-	//private static final Port CLOCK = D5;
-	//private static final Port DATA = D6;
-
 	@Override
 	public void declareConnections(Hardware c) {
-		c.connect(FourDigitDisplay, CLOCK);
-		c.connect(FourDigitDisplay, DATA);
-		c.connect(Button, D2,50,false);
+		c.setTriggerRate(1);
+	}
 	
-
+	public static void main(String[] args){
+		FogRuntime.run(new IoTApp());
 	}
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-
-		final FogCommandChannel ch = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING,300);
-		runtime.addDigitalListener((port, a,b, val)->{	
-			if (val !=0){
-				System.out.println("Pressed");
-				//Grove_FourDigitDisplay.printDigitAt(ch, 0, 0, true);
-				Grove_FourDigitDisplay.printDigitAt(ch, 2, 0);
-			}
-		}).includePorts(D2);
-
+		final FogCommandChannel ch = runtime.newCommandChannel();
+		FourDigitDisplay display = Grove_FourDigitDisplay.newObj(ch, D5);
+		runtime.addStartupListener(()->{
+			System.out.println("Port byte: " + D5.port);	
+			display.init();
+			display.setBrightness(7);
+			display.displayOn();
+		});
+		runtime.addTimeListener((time, iteration)->{
+			display.printFourDigitsWithColon((iteration/100)%100, iteration % 100);
+		});
+		
 	}
 }

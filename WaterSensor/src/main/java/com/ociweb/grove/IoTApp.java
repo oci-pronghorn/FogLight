@@ -26,7 +26,7 @@ public class IoTApp implements FogApp
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
 		//TODO: Need to update error handling so that if user forgets to include webroute, it's obvious
-		runtime.addRestListener(new RestfulWaterSensorBehavior(runtime), webRoute).includePorts(WATER_SENSOR_PORT);
+		runtime.addListener(new RestfulWaterSensorBehavior(runtime)).includePorts(WATER_SENSOR_PORT);
 	}
 
 }

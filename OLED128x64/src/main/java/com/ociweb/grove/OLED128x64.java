@@ -1,18 +1,9 @@
 package com.ociweb.grove;
-
-
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.grove.Grove_OLED_128x64;
-import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 import com.ociweb.iot.maker.*;
 
 
 public class OLED128x64 implements FogApp
 {
-
-
-
 	@Override
 	public void declareConnections(Hardware c) {
 		c.useI2C();
@@ -27,11 +18,8 @@ public class OLED128x64 implements FogApp
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		final FogCommandChannel ch = runtime.newCommandChannel(0,20000);
+		final FogCommandChannel ch = runtime.newCommandChannel(DYNAMIC_MESSAGING,20000);
 		GameOfLife game = new GameOfLife(ch);
 		runtime.addListener(game);
 	}
-
-
-
 }

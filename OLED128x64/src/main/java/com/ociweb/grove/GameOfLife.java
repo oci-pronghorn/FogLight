@@ -1,19 +1,18 @@
 package com.ociweb.grove;
 
+import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.*;
+
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
-import com.ociweb.iot.grove.Grove_OLED_128x64;
-import com.ociweb.iot.grove.display.OLED_128x64;
+import static com.ociweb.iot.grove.GroveTwig.*;
+import com.ociweb.iot.grove.OLED.OLED_128x64.OLED_128x64_Facade;
 import com.ociweb.iot.maker.FogCommandChannel;
-
-import static com.ociweb.iot.grove.Grove_OLED_128x64_Constants.*;
 
 public class GameOfLife implements StartupListener, TimeListener {
 	private int[][] cur_state = new int[row_count][col_count];
 	private int[][] next_state = new int[row_count][col_count];
 	private final boolean enableMonitoring = false;
-	private final OLED_128x64 display;
-
+	private final OLED_128x64_Facade display;
 	
 	public GameOfLife(FogCommandChannel ch){
 		this(ch, def_start);
@@ -29,7 +28,7 @@ public class GameOfLife implements StartupListener, TimeListener {
 	}
 	public GameOfLife(FogCommandChannel ch, int[][] start_state){
 		cur_state = start_state;
-		display = new OLED_128x64(ch);
+		display = OLED_128x64.newFacade(ch);
 	}
 	
 	@Override
@@ -41,14 +40,14 @@ public class GameOfLife implements StartupListener, TimeListener {
 		display.printCharSequence("Conway's");
 		
 		//maker may also set textRowCOl and printString in the same aggergate function
-		display.printCharSequenceAt("Game of Life", 4,2);
+		display.printCharSequenceAt("Game of Life", 4, 2);
 	}
 
 	@Override
 	public void timeEvent(long time, int iteration) {
-		if (iteration > 10){
+		if (iteration > 20){
 			ageUniverse();
-			System.out.println("Iteration: " + iteration + ", Time: " + time);
+			//System.out.println("Iteration: " + iteration + ", Time: " + time);
 			
 			display.displayImage(cur_state);
 
@@ -56,6 +55,7 @@ public class GameOfLife implements StartupListener, TimeListener {
 				monitorInConsole();
 			}
 		}
+
 	}
 
 	private void randomizeCurrentState(){

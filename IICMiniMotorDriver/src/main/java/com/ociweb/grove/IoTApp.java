@@ -2,66 +2,98 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.iot.grove.GroveTwig.*;
+import com.ociweb.iot.grove.mini_i2c_motor.Grove_Mini_I2CMotor;
 
+import com.ociweb.iot.grove.mini_i2c_motor.Mini_I2C_Motor;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.CommandChannel;
-import com.ociweb.iot.maker.DeviceRuntime;
-import com.ociweb.iot.maker.IoTSetup;
 import static com.ociweb.iot.maker.Port.*;
 
-public class IoTApp implements IoTSetup
+public class IoTApp implements FogApp
 {
+    public static void main( String[] args) {
+        FogRuntime.run(new IoTApp());
+    }
     ///////////////////////
-    //Connection constants 
+    //Connection constants
     ///////////////////////
     // // by using constants such as these you can easily use the right value to reference where the sensor was plugged in
-      
+    
     //private static final Port BUTTON_PORT = D3;
-	//private static final Port LED_PORT    = D4;
+    //private static final Port LED_PORT    = D4;
     //private static final Port RELAY_PORT  = D7;
     //private static final Port LIGHT_SENSOR_PORT= A2;
-
+//    private static final Port ANGLE_SENSOR = A0;
+    
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-        
-        // // specify each of the connections on the harware, eg which component is plugged into which connection.        
-              
-        //c.connect(Button, BUTTON_PORT); 
-        //c.connect(Relay, RELAY_PORT);         
-        //c.connect(LightSensor, LIGHT_SENSOR_PORT); 
-        //c.connect(LED, LED_PORT);        
-        //c.useI2C();
-        
+        c.useI2C();
+        //c.setTriggerRate(5000);
+        //c.connect(Button,D2);
+        //c.connectI2C(I2C);
+        c.connect(Button,D3);
+        c.connectI2C(Grove_Mini_I2CMotor.instance); //don't like this
+//        c.connect(AngleSensor,ANGLE_SENSOR);
+
+
     }
-
-
+    
     @Override
-    public void declareBehavior(DeviceRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
+    public void declareBehavior(FogRuntime g) {
+        final FogCommandChannel c = g.newCommandChannel();
         
-        //  //Use lambdas or classes and add listeners to the runtime object
-        //  //CommandChannels are created to send outgoing events to the hardware
-        //  //CommandChannels must never be shared between two lambdas or classes.
-        //  //A single lambda or class can use mulitiple CommandChannels for cuoncurrent behavior
+        Mini_I2C_Motor motorControl2 = Grove_Mini_I2CMotor.newObj(c);
         
+        Mini_I2C_Motor motorControl = new Mini_I2C_Motor(c);
         
-        //        final CommandChannel channel1 = runtime.newCommandChannel();
-        //        //this digital listener will get all the button press and un-press events 
-        //        runtime.addDigitalListener((connection, time, value)->{ 
-        //            
-        //            //connection could be checked but unnecessary since we only have 1 digital source
-        //            
-        //            if (channel1.digitalSetValue(RELAY_PORT, value)) {
-        //                //keep the relay on or off for 1 second before doing next command
-        //                channel1.digitalBlock(RELAY_PORT, 1000); 
-        //            }
-        //        });
+        g.addDigitalListener((port, connection, time, value)->{
+            if(value==1){
+                System.out.println("starting Motor 1");
+                motorControl.driveMotor1(50);
+                System.out.println("starting Motor 2");
+                motorControl.driveMotor2(50);
+            }else{
+                motorControl.stopMotor1();
+                motorControl.stopMotor2();
+            }
+        });
+//        
+//        g.addAnalogListener((port, time, durationMillis, average, value)->{
+//            System.out.println("value: "+value);
+//            int speed = (value-512)/8;
+//            Grove_LCD_RGB.commandForColor(c, 200, 200, 180);
+//            Grove_LCD_RGB.commandForText(c,Integer.toString(speed));
+//            
+//            Grove_Mini_I2CMotor.driveMotor1(c,speed);
+//            Grove_Mini_I2CMotor.driveMotor2(c,speed);
+//            
+//        }).includePorts(ANGLE_SENSOR);
+        g.addI2CListener((int addr, int register, long time, byte[] backing, int position, int length, int mask)->{
+            System.out.println("addr: "+addr);
+            System.out.println("reg: "+register);
+            System.out.println("backing: "+Integer.toHexString(backing[position]));
+            System.out.println("position: "+position);
+            System.out.println("length: "+length);
+                    
+        }).excludeI2CConnections(4);
+        
+//        g.addStartupListener(()->{
+//            Grove_LCD_RGB.commandForColor(c, 200, 200, 180);
+//            Grove_LCD_RGB.commandForText(c,Integer.toString(123));
+//            
+//            Grove_Mini_I2CMotor.driveMotor1(c,50);
+//        });
+        
+//        g.addTimeListener((time,instance)-> {
+//            System.out.println("starting Motor 1");
+//            Grove_Mini_I2CMotor.driveMotor1(c,50);
+//            System.out.println("starting Motor 2");
+//            Grove_Mini_I2CMotor.driveMotor2(c,-50);
+//
+//        });
     }
-        
-  
+    
+    
 }

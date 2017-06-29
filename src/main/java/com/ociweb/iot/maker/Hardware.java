@@ -73,8 +73,6 @@ public interface Hardware extends Builder {
     /**
      * 
      * @param device {@link IODevice} to connect.
-     * @param reg Name of the register to read data from
-     * @param numBytes
      * @param customRateMS Optional rate in milliseconds to read data from that register.
      * @return A reference to this hardware instance.
      */

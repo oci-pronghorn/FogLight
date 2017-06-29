@@ -16,12 +16,8 @@ public class I2CConnection extends HardwareConnection {
 
 	private final static int GROVE_PI_MIN_SCAN_DELAY = 80_000;
 
-	public I2CConnection(I2CConnection original, byte[] readCmd,int readBytes){ // for connectI2C(device,reg,numbytes)
-		this(original.twig, original.address, readCmd, readBytes, readCmd[0], original.setup, original.responseMS, -1, original.sendEveryValue);
-	}
-	
-	public I2CConnection(I2CConnection original ,byte[] readCmd,int readBytes, int responseMS){// for connectI2C(device,reg,numbytes,response_time)
-		this(original.twig, original.address, readCmd, readBytes, readCmd[0], original.setup, responseMS, -1, original.sendEveryValue);
+	public I2CConnection(I2CConnection original ,int responseMS){// for connectI2C(device,reg,numbytes,response_time)
+		this(original.twig, original.address, original.readCmd, original.readBytes, original.register, original.setup, responseMS, -1, original.sendEveryValue);
 	}
 
 	public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup) {

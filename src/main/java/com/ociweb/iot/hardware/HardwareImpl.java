@@ -219,7 +219,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
 			assert(!t.isOutput());
-			i2cInputs = growI2CConnections(i2cInputs, t.getI2CConnection());
+			i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t.getI2CConnection(),customRateMS));
 		}else if(t.isOutput()){
 			assert(!t.isInput());
 			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());

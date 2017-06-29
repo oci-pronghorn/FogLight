@@ -6,10 +6,10 @@ import com.ociweb.iot.grove.OLED.OLED_DataAndCommandsSender;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.IODeviceFacade;
 
 
-public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements Facade{
+public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IODeviceFacade{
 
 	private int lowPixelLevel = 0;
 	private int highPixelLevel = 15;

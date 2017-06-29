@@ -4,7 +4,7 @@ import com.ociweb.iot.grove.OLED.OLED_128x64.OLED_128x64_Facade;
 import com.ociweb.iot.grove.OLED.OLED_96x96.OLED_96x96_Facade;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
 
@@ -237,7 +237,7 @@ public enum GroveTwig implements IODevice {
     	}
     	@SuppressWarnings("unchecked")
 		@Override
-		public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+		public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
 			return (F) new OLED_128x64_Facade(ch[0]);
 		}
     },
@@ -249,7 +249,7 @@ public enum GroveTwig implements IODevice {
     	}
     	@SuppressWarnings("unchecked")
 		@Override
-    	public <F extends Facade> F newFacade(FogCommandChannel...ch){
+    	public <F extends IODeviceFacade> F newFacade(FogCommandChannel...ch){
     		return (F) new OLED_96x96_Facade(ch[0]);
     	}
     },
@@ -368,7 +368,7 @@ public enum GroveTwig implements IODevice {
     }
     
 
-	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
 		return null;
 	}
 }

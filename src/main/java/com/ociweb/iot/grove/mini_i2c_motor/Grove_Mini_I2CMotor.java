@@ -9,7 +9,7 @@ import static com.ociweb.iot.grove.mini_i2c_motor.Grove_Mini_I2CMotor_Constants.
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -79,7 +79,7 @@ public class Grove_Mini_I2CMotor implements IODevice {
         return 0;    
     }
 	@Override
-	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -7,7 +7,7 @@ package com.ociweb.iot.grove.accelerometer;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -127,7 +127,7 @@ public class Grove_Accelerometer implements IODevice{
     }
 
 	@Override
-	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

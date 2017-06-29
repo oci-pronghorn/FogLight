@@ -10,7 +10,7 @@ import com.ociweb.iot.grove.OLED.OLED_DataAndCommandsSender;
 import com.ociweb.iot.grove.OLED.ScrollSpeed;
 import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.Direction;
 import com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.Orientation;
-import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**
@@ -18,7 +18,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
  * @author Ray Lo, Nathan Tippy
  *
  */
-public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements Facade{
+public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IODeviceFacade{
 	/**
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
 	 * @param ch FogCommandChannel used for the i2c write.

@@ -6,5 +6,5 @@ package com.ociweb.iot.maker;
  * @author Nathan Tippy, Ray Lo
  *
  */
-public interface Facade {
+public interface IODeviceFacade {
 }

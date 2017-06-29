@@ -1,16 +1,12 @@
 package com.ociweb.oe.foglight.api;
 
 
-import static com.ociweb.iot.grove.GroveTwig.Button;
-import static com.ociweb.iot.grove.GroveTwig.LED;
-import static com.ociweb.iot.maker.Port.D2;
-import static com.ociweb.iot.maker.Port.D3;
+import static com.ociweb.iot.grove.GroveTwig.*;
 
-import com.ociweb.iot.maker.FogApp;
-import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.Port;
+import com.ociweb.iot.maker.*;
+import static com.ociweb.iot.maker.Port.*;
+
+import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 
 public class Shutdown implements FogApp
 {	
@@ -18,10 +14,10 @@ public class Shutdown implements FogApp
 	private static final Port BUTTON_PORT = D3;
 	private static boolean statusOfLED = false;
 	
-	public static void main(String[] args){
+	/*public static void main(String[] args){
 		FogRuntime.run(new Shutdown());
 	}
-	
+	*/
 	
     @Override
     public void declareConnections(Hardware c) {
@@ -50,34 +46,35 @@ public class Shutdown implements FogApp
     	runtime.addDigitalListener((port, connection, time, value)-> {
     		if(value == 1){
     			System.out.println("Starting the shutdown process");
-    			channel2.block(100);
-    			channel2.publishTopic("Shutdown", writable->{});
+    			//1
+    			requestShutdown();
+    			
+    			//2
+    			ReactiveListenerStage.requestSystemShutdown(new Runnable(){
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+					}
+    			});
+    			
+    			//3
+    			ReactiveListenerStage.requestSystemShutdown(shutdownRunnable);
+    			
+    			//4
+    			runtime.requestSystemShutdown(shutdownRunnable);
     		}
     	});    	
     	
     	
-    	runtime.addPubSubListener((topic, payload)->{
-			if(statusOfLED){
-				System.out.println("The light is still on, it must be turned off before shutdown");
-				channel3.block(100);
-				channel3.publishTopic("LED", writable->{});
-			}
-			else{
-				System.out.println("Shutting down now");
-				runtime.shutdownRuntime();
-			}
-			return true;
-    	}).addSubscription("Shutdown");
-
-    	    	
-    	runtime.addPubSubListener((topic, payload)->{
-    		System.out.println("Turning off the light");
-    		channel4.setValue(LED_PORT, false);
-    		statusOfLED = false;
-    		channel4.block(100);
-    		channel4.publishTopic("Shutdown", writable->{});
+    	runtime.ShutdownListener(()->{
+    		//check if light is on, if it is, return false and turn it off, if not, return true
     		return true;
-    	}).addSubscription("LED");
+    	});
+    	
+    	runtime.addPubSubListener((topic, payload)->{
+    		return true;
+    	});
+    	
     }
           
 }

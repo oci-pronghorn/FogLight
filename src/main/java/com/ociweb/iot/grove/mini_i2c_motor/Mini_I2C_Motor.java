@@ -22,8 +22,11 @@ public class Mini_I2C_Motor {
 	}
     
     
-    
-    public void driveMotor1(int speed)
+    /**
+     * Drive the motor on channel 1
+     * @param velocity velocity of the motor, from -63 to 63
+     */
+    public void driveMotor1(int velocity)
     {        
         // Before we do anything, we'll want to
         //  clear the fault status. To do that
@@ -32,12 +35,12 @@ public class Mini_I2C_Motor {
         
         writeSingleByteToRegister(target,CH1_ADD,FAULT_REG,CLEAR); // Clear the fault status.
         
-        byte regValue = (byte)Math.abs(speed);      // Find the byte-ish abs value of the input
+        byte regValue = (byte)Math.abs(velocity);      // Find the byte-ish abs value of the input
         if (regValue > 63) {
             regValue = 63;
         } // Cap the value at 63.
         regValue = (byte) (regValue<<2);           // Left shift to make room for bits 1:0
-        if (speed < 0) {
+        if (velocity < 0) {
             regValue |= 0x02;
         }  // Set bits 1:0 based on sign of input.
         else{
@@ -47,8 +50,11 @@ public class Mini_I2C_Motor {
         target.i2cFlushBatch();
         
     }
-    
-    public void driveMotor2(int speed)
+    /**
+     * Drive the motor on channel 2
+     * @param velocity velocity of the motor, from -63 to 63
+     */
+    public void driveMotor2(int velocity)
     {        
         // Before we do anything, we'll want to
         //  clear the fault status. To do that
@@ -57,12 +63,12 @@ public class Mini_I2C_Motor {
         
         writeSingleByteToRegister(target,CH2_ADD,FAULT_REG,CLEAR); // Clear the fault status.
         
-        byte regValue = (byte)Math.abs(speed);      // Find the byte-ish abs value of the input
+        byte regValue = (byte)Math.abs(velocity);      // Find the byte-ish abs value of the input
         if (regValue > 63) {
             regValue = 63;
         } // Cap the value at 63.
         regValue = (byte) (regValue<<2);           // Left shift to make room for bits 1:0
-        if (speed < 0) {
+        if (velocity < 0) {
             regValue |= 0x02;
         }  // Set bits 1:0 based on sign of input.
         else{
@@ -72,7 +78,9 @@ public class Mini_I2C_Motor {
         target.i2cFlushBatch();
         
     }
-    
+    /**
+     * stop the Motor on channel 1
+     */
     public void stopMotor1()
     {        
 
@@ -80,7 +88,9 @@ public class Mini_I2C_Motor {
         target.i2cFlushBatch();
         
     }
-    
+    /**
+     * stop the Motor on channel 2
+     */
     public void stopMotor2()
     {        
 
@@ -88,7 +98,9 @@ public class Mini_I2C_Motor {
         target.i2cFlushBatch();
         
     }
-    
+    /**
+     * brake the Motor on channel 1
+     */
     public void brakeMotor1()
     {        
 
@@ -96,7 +108,9 @@ public class Mini_I2C_Motor {
         target.i2cFlushBatch();
         
     }
-    
+    /**
+     * brake the Motor on channel 2
+     */
     public void brakeMotor2()
     {        
 

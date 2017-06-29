@@ -36,5 +36,7 @@
     <module>SenseHat</module>
     <module>GPS</module>
     <module>SerialBluetooth</module>
+    <module>SixAxisAccelerometer</module>
+    <module>MP3Player</module>
   </modules>
 </project>

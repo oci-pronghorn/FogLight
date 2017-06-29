@@ -165,8 +165,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	@Override
 	public Hardware connect(IODevice t, Port port) {
-		if (t == GroveTwig.FourDigitDisplay){
-			
+		System.out.println("GrovePiHardware.connect");
+		if (t == GroveTwig.FourDigitDisplay){	
+			deviceOnPort[port.ordinal()] = t; 
 			return connectGroveFirmwareDevice(t,port);
 		}
 		else {
@@ -183,9 +184,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	 */
 	private Hardware connectGroveFirmwareDevice(IODevice t, Port... p){
 		if (t == GroveTwig.FourDigitDisplay){
+			System.out.println("connectGroveFirmwareDevice");
 			byte[] tailored_setup = GroveTwig.FourDigitDisplay.I2COutSetup();
-			//tailored_setup[1] = p[0].port;
-			tailored_setup[1] = 0b0111_0111;
+			tailored_setup[1] = p[0].port;
 			i2cOutputs = growI2CConnections(i2cOutputs,  new I2CConnection(t.getI2CConnection(), tailored_setup));
 			return this;
 		}

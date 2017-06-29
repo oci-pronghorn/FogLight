@@ -7,27 +7,45 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceFacade;
+import static com.ociweb.iot.grove.OLED.OLED_96x96.OLED_96x96_DriverChip.*;
+
+
 
 
 public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IODeviceFacade{
 
+
+
 	private int lowPixelLevel = 0;
 	private int highPixelLevel = 15;
-	
+
+	private OLED_96x96_DriverChip chip;
+
 	public OLED_96x96_Facade(FogCommandChannel ch){
 		//A nibble determines pixel. A byte is therefore two horizontally adjascent pixels.
 		//96x96 divided 2. Since each pixel takes a nibble to send
 		super(ch, new int[4608], new int[32], ADDRESS);
+		this.chip = SH1107G;
 	}
-
+	
+	//TODO: FIGURE OUT WHAT CHIP
+	private OLED_96x96_DriverChip determineChip(){
+		return SS1107G;
+	}
 	public boolean setRowColInHorizontalMode(int row, int col){
-		cmd_out[0] = REMAP;
-		cmd_out[1] = HORIZONTAL;
-		cmd_out[2] = SET_ROW_ADDRESS;
-		cmd_out[3] = row;
-		cmd_out[4] = SET_COL_ADDRESS;
-		cmd_out[5] = col + 8; //the 8th column on the chip corresponds to the 0th column on the actual screen
-		cmd_out[6] = col + 47 + 8;//end at col + 47th column, again offset by 8.
+		switch (chip){
+		case SSD1327:
+			cmd_out[0] = REMAP;
+			cmd_out[1] = HORIZONTAL;
+			cmd_out[2] = SET_ROW_ADDRESS;
+			cmd_out[3] = row;
+			cmd_out[4] = SET_COL_ADDRESS;
+			cmd_out[5] = col + 8; //the 8th column on the chip corresponds to the 0th column on the actual screen
+			cmd_out[6] = col + 47 + 8;//end at col + 47th column, again offset by 8.
+			break;
+		case SH1107G:
+			break;
+		}
 		return sendCommands(0,7);
 	}
 
@@ -64,7 +82,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		generateInitCommands();
 		return sendCommands(0,31);
 	}
-	
+
 	private void generateInitCommands(){
 		cmd_out[0] =MCU;
 		cmd_out[1] =UNLOCK_CMD_ENTERING;
@@ -120,13 +138,13 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		//TODO: decide if display needs to be in vertical mode
 		return setVerticalMode() && sendData(0, s.length()* 32);
 	}
-	
+
 	@Override
 	public boolean printCharSequenceAt(CharSequence s, int row, int col) {
 		return setTextRowCol(0,0) && printCharSequence(s);
 	}
 
-	
+
 	/**
 	 * Encodes charSequence as the proper bytes to be send into the data_out array. With no index supplied, the method
 	 * starts filling up the bytes at index 0 of the data_out array.
@@ -158,7 +176,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		}
 
 	}
-	
+
 	private boolean sendCommandsInQuickSuccession(int start, int length){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -169,15 +187,15 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		i2cPayloadWriter.write(MCU);
 		i2cPayloadWriter.write(UNLOCK_CMD_ENTERING);
 		for (int i = start; i < start + length; i ++){
-			
+
 			i2cPayloadWriter.write(cmd_out[i]);
 		}
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();
-		
+
 		return true;
 	}
-	
+
 	private boolean highBitAt(int b, int pos){
 		return ((b >> pos) & 0x01) == 0x01;
 	}

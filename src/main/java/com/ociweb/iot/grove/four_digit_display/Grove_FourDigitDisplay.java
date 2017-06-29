@@ -135,8 +135,10 @@ public class Grove_FourDigitDisplay implements IODevice{
 	
 	public static boolean printFourDigitsWithColon(FogCommandChannel ch, Port p, int leftPair, int rightPair){
 		if (!ch.i2cIsReady()){
+			System.out.println("Why though");
 			return false;
 		}
+		System.out.println("Writing I2C");
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
 		i2cPayloadWriter.writeByte(GROVE_TM1637_SET_SCOREBOARD);
 		i2cPayloadWriter.writeByte(p.port);

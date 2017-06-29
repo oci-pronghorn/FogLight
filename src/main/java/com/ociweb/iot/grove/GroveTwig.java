@@ -221,6 +221,10 @@ public enum GroveTwig implements IODevice {
     	public int pinsUsed(){
     		return 2;
     	}
+    	@Override
+    	public boolean isI2C(){
+    		return true;
+    	}
     	
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
@@ -270,7 +274,7 @@ public enum GroveTwig implements IODevice {
     	@SuppressWarnings("unchecked")
 		@Override
     	public <F extends IODeviceFacade> F newFacade(FogCommandChannel...ch){
-    		return (F) new OLED_96x96_Facade(ch[0]);
+    		return (F) new OLED_96x96_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
     	}
     },
     

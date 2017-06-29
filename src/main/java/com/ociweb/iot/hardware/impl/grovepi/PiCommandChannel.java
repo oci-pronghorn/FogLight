@@ -176,13 +176,12 @@ public class PiCommandChannel extends FogCommandChannel{
 
 		IODevice connectedDevice = builder.getConnectedDevice(port);
 		
-		//TODO: is this device the 7 segment display
-		//      if so call Static method to post value on display
-		
 		if (connectedDevice == GroveTwig.FourDigitDisplay){
+			System.out.println("SetValue for FDD");
 			Grove_FourDigitDisplay.printFourDigitsWithColon(this, port, value / 100, value % 100);
 			return true;
 		}
+
 		
 		int mask = port.isAnalog()? ANALOG_BIT:0;
 		

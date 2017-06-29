@@ -17,5 +17,11 @@
     <module>CustomDevice</module>
     <module>PubSubStructured</module>
     <module>Shutdown</module>
+    <module>DeclareConnections</module>
+    <module>DigitalListener</module>
+    <module>AnalogListener</module>
+    <module>I2CListener</module>
+    <module>SerialListener</module>
+    <module>ImageListener</module>
   </modules>
 </project>

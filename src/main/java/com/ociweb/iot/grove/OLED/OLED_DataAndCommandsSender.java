@@ -66,7 +66,7 @@ public abstract class OLED_DataAndCommandsSender {
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		i2cPayloadWriter.write(DATA_MODE);
 		int i;
-		for (i = start; i < Math.min(start + length, finalTargetIndex); i++){
+		for (i = start; i < Math.min(start + length - 1, finalTargetIndex); i++){
 			i2cPayloadWriter.write(data[i]);
 		}
 		ch.i2cCommandClose();
@@ -103,7 +103,7 @@ public abstract class OLED_DataAndCommandsSender {
 		if (!ch.i2cIsReady()){
 			return false;
 		}
-
+		/*
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		
 		assert(length*2 <= BATCH_SIZE);
@@ -116,6 +116,32 @@ public abstract class OLED_DataAndCommandsSender {
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();
 		return true;
+		*/
+		return sendCommands(cmd_out,start,length);
+	}
+	
+	protected boolean sendCommands(int[] cmd, int start, int length){
+		if (!ch.i2cIsReady()){
+			return false;
+		}
+		//call the helper method to recursively send batches
+		return sendCommands(cmd, start,BATCH_SIZE, start+length);
+	}
+	
+	private boolean sendCommands(int [] cmd, int start, int length, int finalTargetIndex){
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
+		length = length / 2; //we need to send two bytes for each command
+		int i;
+		for (i = start; i < Math.min(start + length, finalTargetIndex); i++){
+			i2cPayloadWriter.write(COMMAND_MODE);
+			i2cPayloadWriter.write(cmd[i]);
+		}
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();
+		if (i == finalTargetIndex){
+			return true;
+		}
+		return sendData(cmd, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 	
 	public abstract boolean init();

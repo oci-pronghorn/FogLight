@@ -61,26 +61,57 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements Fac
 
 	@Override
 	public boolean init() {
-		// TODO Auto-generated method stub
-		return false;
+		generateInitCommands();
+		return sendCommands(0,31);
+	}
+	
+	private void generateInitCommands(){
+		cmd_out[0] =MCU;
+		cmd_out[1] =UNLOCK_CMD_ENTERING;
+		cmd_out[2] = DISPLAY_OFF;
+		cmd_out[3] = SET_MULTIPLEX_RATIO;
+		cmd_out[4] = 96;
+		cmd_out[5] = SET_DISPLAY_START_LINE;
+		cmd_out[6] = 0x00;
+		cmd_out[7] = SET_DISPLAY_OFFSET;
+		cmd_out[8] = 0x60;
+		cmd_out[9] = REMAP;
+		cmd_out[10] = VERTICAL;
+		cmd_out[11] = SET_VDD_INTERNAL;
+		cmd_out[12] = 0x01;
+		cmd_out[13] = SET_CONTRAST_LEVEL_CMD;
+		cmd_out[14] = 0x53;
+		cmd_out[15] = SET_PHASE_LENGTH;
+		cmd_out[16] = 0x51;
+		cmd_out[17] = SET_CLOCK_DIV_RATIO;
+		cmd_out[18] = 0x01;
+		cmd_out[19] = 0xB9;
+		cmd_out[20] = SET_PRECHARGE_VOLTAGE_AND_VCOMH;
+		cmd_out[21] = 0x08;
+		cmd_out[22] = SET_VCOMH;
+		cmd_out[23] = 0x07;
+		cmd_out[24] = SET_SECOND_PRECHARGE_PERIOD;
+		cmd_out[25] = 0x01;
+		cmd_out[26] = ENABLE_SECOND_PRECHARGE_AND_INTERNAL_VSL;
+		cmd_out[27] = 0x62;
+		cmd_out[28] = NORMAL_DISPLAY;
+		cmd_out[29] = DEACTIVATE_SCROLL_CMD;
+		cmd_out[30] = DISPLAY_ON;
 	}
 
 	@Override
 	public boolean cleanClear() {
-		// TODO Auto-generated method stub
-		return false;
+		return displayOff() && clear() && displayOn();
 	}
 
 	@Override
 	public boolean displayOn() {
-		// TODO Auto-generated method stub
-		return false;
+		return sendCommand(DISPLAY_ON);
 	}
 
 	@Override
 	public boolean displayOff() {
-		// TODO Auto-generated method stub
-		return false;
+		return sendCommand(DISPLAY_OFF);
 	}
 
 	@Override
@@ -92,7 +123,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements Fac
 	
 	@Override
 	public boolean printCharSequenceAt(CharSequence s, int row, int col) {
-		return false;
+		return setTextRowCol(0,0) && printCharSequence(s);
 	}
 
 	
@@ -128,7 +159,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements Fac
 
 	}
 	
-	private boolean sendCommanndsInQuickSuccession(int start, int length){
+	private boolean sendCommandsInQuickSuccession(int start, int length){
 		if (!ch.i2cIsReady()){
 			return false;
 		}

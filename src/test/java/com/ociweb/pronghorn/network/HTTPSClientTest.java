@@ -409,7 +409,7 @@ public class HTTPSClientTest {
 		
 		
 
-		GraphManager.exportGraphDotFile(gm, "httpClientPipeline");
+		GraphManager.exportGraphDotFile(gm, "httpClientPipeline", true);
 		
 		//MonitorConsoleStage.attach(gm);
 		//GraphManager.enableBatching(gm);

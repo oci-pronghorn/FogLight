@@ -30,7 +30,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 	
 	//TODO: FIGURE OUT WHAT CHIP
 	private OLED_96x96_DriverChip determineChip(){
-		return SS1107G;
+		return SSD1327;
 	}
 	public boolean setRowColInHorizontalMode(int row, int col){
 		switch (chip){

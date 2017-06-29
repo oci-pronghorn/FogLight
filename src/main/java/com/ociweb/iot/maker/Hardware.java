@@ -27,9 +27,38 @@ public interface Hardware extends Builder {
      * @return A reference to this hardware instance.
      */
     Hardware connect(IODevice device, Port port, int customRateMS, int customAvgWinMS, boolean everyValue);
+    /**
+     * 
+     * @param device {@link IODevice} to connect.
+     * @param port {@link Port} to connect the device to.
+     * @param customRateMS Optional rate in milliseconds to update the device data.
+     * @param customAvgWinMS Optional rate in milliseconds to sample device data.
+     * @return  A reference to this hardware instance.
+     */
     Hardware connect(IODevice device, Port port, int customRateMS, int customAvgWinMS);
+    /**
+     * 
+     * @param device {@link IODevice} to connect.
+     * @param port {@link Port} to connect the device to.
+     * @param customRateMS Optional rate in milliseconds to update the device data.
+     * @return A reference to this hardware instance.
+     */
     Hardware connect(IODevice device, Port port, int customRateMS);
+    /**
+     * 
+     * @param device {@link IODevice} to connect.
+     * @param port {@link Port} to connect the device to.
+     * @param customRateMS Optional rate in milliseconds to update the device data.
+     * @param everyValue Optional; if set to true, will cause the device to trigger events on every update.
+     * @return A reference to this hardware instance.
+     */
     Hardware connect(IODevice device, Port port, int customRateMS, boolean everyValue);
+    /**
+     * 
+     * @param device {@link IODevice} to connect.
+     * @param port {@link Port} to connect the device to.
+     * @return A reference to this hardware instance.
+     */
     Hardware connect(IODevice device, Port port);
 
     /**
@@ -40,8 +69,17 @@ public interface Hardware extends Builder {
      * @return A reference to this hardware instance.
      */
     Hardware connectI2C(IODevice device);
-
-   
+    
+    /**
+     * 
+     * @param device {@link IODevice} to connect.
+     * @param reg Name of the register to read data from
+     * @param numBytes
+     * @param customRateMS Optional rate in milliseconds to read data from that register.
+     * @return A reference to this hardware instance.
+     */
+    Hardware connectI2C(IODevice device, int customRateMS);
+    
     /**
      * Asks this hardware instance to enable I2C communications on the default I2C bus.
      *

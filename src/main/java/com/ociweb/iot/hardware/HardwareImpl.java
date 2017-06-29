@@ -202,7 +202,20 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}  
 
+	@Override
 	public Hardware connectI2C(IODevice t){ 
+		logger.debug("Connecting I2C Device "+t.getClass());
+		if(t.isInput()){
+			assert(!t.isOutput());
+			i2cInputs = growI2CConnections(i2cInputs, t.getI2CConnection());
+		}else if(t.isOutput()){
+			assert(!t.isInput());
+			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
+		}
+		return this;
+	}
+	@Override
+	public Hardware connectI2C(IODevice t, int customRateMS){ 
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
 			assert(!t.isOutput());
@@ -215,32 +228,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 	
 	
-	   public Hardware connectI2C(IODevice t,byte reg,int numBytes){ 
-           logger.debug("Connecting I2C Device "+t.getClass());
-           byte[] regToRead = {reg};
-           if(t.isInput()){
-                   assert(!t.isOutput());
-                   i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t.getI2CConnection(),regToRead,numBytes));
-           }else if(t.isOutput()){
-                   assert(!t.isInput());
-                   i2cOutputs = growI2CConnections(i2cOutputs,new I2CConnection(t.getI2CConnection(),regToRead,numBytes));
-           }
-           return this;
-   }
-
-   public Hardware connectI2C(IODevice t,byte reg,int numBytes,int customRateMS){ 
-           logger.debug("Connecting I2C Device "+t.getClass());
-           byte[] regToRead = {reg};
-           if(t.isInput()){
-                   assert(!t.isOutput());
-                   i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t.getI2CConnection(),regToRead,numBytes,customRateMS));
-           }else if(t.isOutput()){
-                   assert(!t.isInput());
-                   i2cOutputs = growI2CConnections(i2cOutputs,new I2CConnection(t.getI2CConnection(),regToRead,numBytes,customRateMS));
-           }
-           return this;
-   }        
-
 	public Hardware useSerial(Baud baud) {
 		this.rs232ClientBaud = baud;
 		return this;

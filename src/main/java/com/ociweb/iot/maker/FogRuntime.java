@@ -10,6 +10,7 @@ import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
@@ -314,6 +315,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
     }
 
 
+    
     public static FogRuntime test(FogApp app) {
         FogRuntime runtime = new FogRuntime();
         //force hardware to TestHardware regardless of where or what platform its run on.

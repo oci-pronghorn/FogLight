@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
+import com.ociweb.iot.grove.GroveTwig;
+import com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -177,6 +179,10 @@ public class PiCommandChannel extends FogCommandChannel{
 		//TODO: is this device the 7 segment display
 		//      if so call Static method to post value on display
 		
+		if (connectedDevice == GroveTwig.FourDigitDisplay){
+			Grove_FourDigitDisplay.printFourDigitsWithColon(this, port, value / 100, value % 100);
+			return true;
+		}
 		
 		int mask = port.isAnalog()? ANALOG_BIT:0;
 		

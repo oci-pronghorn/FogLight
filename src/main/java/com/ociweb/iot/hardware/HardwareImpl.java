@@ -247,7 +247,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 
 	public void coldSetup(){
-		//TODO: I2C Setup methods
+		System.out.println("");
 	}
 
 	protected HardwareConnection[] buildUsedLines() {
@@ -475,7 +475,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		return this;
 	}
-
+	
 	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS) {
 		
 		deviceOnPort[port.ordinal()] = t;

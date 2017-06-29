@@ -1,5 +1,8 @@
 package com.ociweb.iot.grove;
 
+import static com.ociweb.iot.grove.accelerometer.Grove_Acc_Constants.ADXL345_DATAX0;
+import static com.ociweb.iot.grove.accelerometer.Grove_Acc_Constants.ADXL345_DEVICE;
+
 import com.ociweb.iot.grove.OLED.OLED_128x64.OLED_128x64_Facade;
 import com.ociweb.iot.grove.OLED.OLED_96x96.OLED_96x96_Facade;
 import com.ociweb.iot.hardware.I2CConnection;
@@ -7,6 +10,7 @@ import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
+import static com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay.*;
 
 /**
  * Holds information for all standard Analog and Digital I/O twigs in the Grove starter kit.
@@ -217,6 +221,22 @@ public enum GroveTwig implements IODevice {
     	public int pinsUsed(){
     		return 2;
     	}
+    	
+        @Override
+        public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
+            byte[] read_cmd = {};
+            byte[] set_up = {GROVE_TM1637_INIT, 5, 0x00,0x00}; //default to digit output 5
+            byte address = 0x4;
+            byte bytes_to_read = 0;
+            byte reg = 0;
+            return new I2CConnection(this, address, read_cmd, bytes_to_read, reg, set_up);
+        }
+     
+        @Override
+        public byte[] I2COutSetup() {
+        	byte [] set_up = {GROVE_TM1637_INIT, 5, 0x00,0x00};
+            return set_up;
+        }
     },
     
     VibrationSensor(){

@@ -8,7 +8,7 @@ import static com.ociweb.iot.maker.Port.*;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.Facade;
+import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 
@@ -135,8 +135,10 @@ public class Grove_FourDigitDisplay implements IODevice{
 	
 	public static boolean printFourDigitsWithColon(FogCommandChannel ch, Port p, int leftPair, int rightPair){
 		if (!ch.i2cIsReady()){
+			System.out.println("Why though");
 			return false;
 		}
+		System.out.println("Writing I2C");
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(GROVE_TM1637_ADDRESS);
 		i2cPayloadWriter.writeByte(GROVE_TM1637_SET_SCOREBOARD);
 		i2cPayloadWriter.writeByte(p.port);
@@ -368,7 +370,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 	}
 
 	@Override
-	public <F extends Facade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

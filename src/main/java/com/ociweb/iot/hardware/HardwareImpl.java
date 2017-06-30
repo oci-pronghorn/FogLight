@@ -166,7 +166,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	protected I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
-
+		System.out.println("Grow I2C Connections");
 		if (null==original) {
 			return new I2CConnection[] {toAdd};
 		} else {
@@ -202,6 +202,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}  
 
+	@Override
 	public Hardware connectI2C(IODevice t){ 
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
@@ -213,7 +214,20 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 		return this;
 	}
-
+	@Override
+	public Hardware connectI2C(IODevice t, int customRateMS){ 
+		logger.debug("Connecting I2C Device "+t.getClass());
+		if(t.isInput()){
+			assert(!t.isOutput());
+			i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t.getI2CConnection(),customRateMS));
+		}else if(t.isOutput()){
+			assert(!t.isInput());
+			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
+		}
+		return this;
+	}
+	
+	
 	public Hardware useSerial(Baud baud) {
 		this.rs232ClientBaud = baud;
 		return this;
@@ -247,7 +261,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 
 	public void coldSetup(){
-		//TODO: I2C Setup methods
+		System.out.println("");
 	}
 
 	protected HardwareConnection[] buildUsedLines() {
@@ -475,7 +489,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		return this;
 	}
-
+	
 	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS) {
 		
 		deviceOnPort[port.ordinal()] = t;

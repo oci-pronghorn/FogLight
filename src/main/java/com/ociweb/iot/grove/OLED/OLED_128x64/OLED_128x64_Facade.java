@@ -23,13 +23,13 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
 	 * @param ch FogCommandChannel used for the i2c write.
 	 */
-	
+
 	public OLED_128x64_Facade(FogCommandChannel ch){
 		super(ch, new int[1024], new int[32], OLEDADDRESS);
 		//the most amount of data we can ever send at once as this is one entire frame worth of data
 		//the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
 	}
-	
+
 	/**
 	 * Flashes the display screen off and then on and ensures that the inverse_display and scrolling functions
 	 *  are turned off. The display is left in the Page mode afterwards.
@@ -125,7 +125,7 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 	 * NOTE: One of the four set-up methods ({setUpRightContinuousVerticalHorizontalScroll(ScrollSpeed, int, int, int)},
 	 * {setUpLeftContinuousVerticalHorizontalScroll(ScrollSpeed, int, int, int)}, {setUpRightContinuousHorizontalScroll(ScrollSpeed, int, int)},
 	 * and {setUpLeftContinuousVerticalHorizontalScroll(ScrollSpeed, int, int, int)}) needs to be invoked first.
-	
+
 	 * @return true if all two necessary bytes were sent, false otherwise.
 	 * @see <a href = "https://github.com/SeeedDocument/Grove_OLED_Display_0.96/raw/master/resource/SSD1308_1.0.pdf">SSD1308.pdf</a>
 	 * for information on scrolling.
@@ -145,23 +145,48 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 	public boolean deactivateScroll(){
 		return sendCommand(DEACTIVATE_SCROLL);
 	}
-	
+
+	/**
+	 * Prints CharSequence at the specified row and column
+	 * @param s the CharSequence to be printed
+	 * @param row the row
+	 * @param col the column
+	 * @return true if the commands were sent, false otherwise.
+	 */
 	@Override
 	public boolean printCharSequenceAt(CharSequence s,int row, int col){
 		return setTextRowCol(row,col) && printCharSequence(s);
 	}
 
+
+	/**
+	 * Prints CharSequence at the specified row and column
+	 * @param s the CharSequence to be printed
+	 * @return true if the commands were sent, false otherwise.
+	 */
 	@Override
 	public boolean printCharSequence(CharSequence s){
 		encodeCharSequence(s);
 		return sendData(0, s.length()*8);
 	}
-	
-	public boolean encodeChar(char c){
+
+	public boolean printCharSequence(CharSequence s, int[][] customFonts, int offset){
+		encodeCharSequence(s, 0,customFonts,offset);
+		return sendData(0, s.length()*8);
+
+	}
+
+	private boolean encodeChar(char c){
 		return encodeChar(c, 0);
 	}
 
-	public boolean encodeChar(char c, int start){
+	/**
+	 * Modifies the data_out array to have necessary raw bytes to print a char
+	 * @param c the char to be encoded
+	 * @param start is the starting index within data_out where the char should be encoded (8 bytes, since the chars are 8x8)
+	 * @return true if the user's char input was valid (a.k.a has pre-determined mapping)
+	 */
+	private boolean encodeChar(char c, int start){
 		if (c > 127 || c < 32){
 			//'c' has no defined font for Grove_OLED_128x64");
 			return false;
@@ -173,11 +198,53 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return true;
 	}
 
-	public boolean encodeCharSequence(CharSequence s){
+
+	private boolean encodeChar(char c, int[][] customFontArray){
+		return encodeChar(c,0,customFontArray,0);
+	}
+
+	private boolean encodeChar(char c, int[][] customFontArray, int charOffset){
+		return encodeChar(c,0,customFontArray, charOffset);
+	}
+
+	private boolean encodeChar(char c, int start, int[][] customFontArray, int charOffset){
+		if (c > charOffset + customFontArray.length || c < charOffset){
+			//'c' has no defined font in the custom array supplied.
+		}
+		int counter = 0;
+		for (int i = start; i < start + 8; i++){
+			data_out[i] = customFontArray[c-charOffset][counter++];
+		}
+		return true;
+
+	}
+
+	private boolean encodeCharSequence(CharSequence s, int start, int[][] customFontArray, int offset){
+		for (int i = start; i < start + s.length(); i++){
+			if (encodeChar(s.charAt(i), i*8, customFontArray, offset)){	
+			} else {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Modifies the data_out array to have necessary raw bytes to print a char, starting at index 0.
+	 * @param s the char to be encoded
+	 * @return true if all of the chars given have valid fonts.
+	 */
+	private boolean encodeCharSequence(CharSequence s){
 		return encodeCharSequence(s, 0);
 	}
 
-	public boolean encodeCharSequence(CharSequence s, int start){
+	/**
+	 * Modifies the data_out array to have necessary raw bytes to print a char
+	 * @param s the char to be encoded
+	 * @param start is the starting index within data_out where the CharSequence should be encoded.
+	 * @return true if all of the chars given have valid fonts.
+	 */
+	private boolean encodeCharSequence(CharSequence s, int start){
 		for (int i = start; i < start + s.length(); i++){
 			if (encodeChar(s.charAt(i), i*8)){	
 			} else {
@@ -187,7 +254,7 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return true;
 	}
 
-	
+
 
 
 	@Override
@@ -197,7 +264,7 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		cmd_out[0] = ROW_START_ADDRESS_PAGE_MODE + (row & 0x07);
 		cmd_out[1] = LOWER_COL_START_ADDRESS_PAGE_MODE + (8*col & 0x0F);
 		cmd_out[2] = HIGHER_COL_START_ADDRESS_PAGE_MODE + ((8*col >> 4) & 0x0F);
-		
+
 
 		return sendCommands(0, 3);
 	}
@@ -221,7 +288,7 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return sendCommand(remap_cmd);
 	}
 
-	
+
 	/**
 	 * Switches the display to page mode to print spaces all across the screen.
 	 * @return true if the commands were sent, false otherwise.
@@ -292,13 +359,13 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return setUpContinuousVerticalHorizontalScroll(speed, startPage, endPage, offset, Vertical_Left);
 	}
 
-	
+
 	private boolean setUpContinuousHorizontalScroll(ScrollSpeed speed, int startPage, int endPage, 
 			Direction dir){	
 		generateHorizontalScrollComamnds(speed,startPage,endPage,dir);
 		return sendCommands(0,7);
 	}
-	
+
 	private void generateHorizontalScrollComamnds(ScrollSpeed speed, int startPage, int endPage, 
 			Direction dir){
 
@@ -310,7 +377,7 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		cmd_out[5] = 0xFF; // dummy byte as required
 		cmd_out[6] = 0x00; // dummy byte as required		
 	}
-	
+
 	private boolean setUpContinuousVerticalHorizontalScroll(ScrollSpeed speed, int startPage, int endPage,
 			int offset, Orientation dir){
 		generateVerticalHorizontalScrollComamnds(speed,startPage,endPage,offset,dir);
@@ -320,7 +387,7 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 
 	private void generateVerticalHorizontalScrollComamnds(ScrollSpeed speed, int startPage, int endPage, 
 			int offset, Orientation ori){
-		
+
 		cmd_out[0] = ori == Vertical_Right? SET_VER_AND_RIGHT_HOR_SCROLL:SET_VER_AND_LEFT_HOR_SCROLL;
 		cmd_out[1] = 0x00; //dummy byte as required
 		cmd_out[2] = startPage & 0x07;
@@ -328,15 +395,15 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		cmd_out[4] =endPage & 0x07;
 		cmd_out[5] = offset & 0x1F;
 	}
-	
+
 	/**
 	 * NOTE: this method leaves the display in horizontal mode
 
 	 * @param map
 	 * @return true if the i2c commands were succesfully sent, false otherwise
 	 */
-	
-	
+
+
 	public boolean drawBitmapInHorizontalMode(int[] map){
 		if (!setHorizontalMode()){
 			return false;
@@ -356,7 +423,7 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 	 * both drawing and CharSequence printing.
 	 * @return true
 	 */
-	
+
 	public  boolean drawBitmapInPageMode (int[] map){
 		for (int page = 0; page <8; page++){
 			if (! setTextRowCol(page,0)){
@@ -372,15 +439,15 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return true;
 	}
 
-	
 
-	
+
+
 	/*
 	public boolean cleanClear(){
 		return Grove_OLED_128x64.cleanClear(this.ch, cmd_output);
 	}
-	*/
-	
+	 */
+
 	@Override
 	public boolean displayImage(int[][] raw_image){
 		int counter = 0;
@@ -402,7 +469,7 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		}
 		return ret;
 	}
-	
+
 	@Override
 	public boolean displayOn() {	
 		return sendCommand(WAKE_DISPLAY);
@@ -418,5 +485,5 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+
 }

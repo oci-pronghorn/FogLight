@@ -25,8 +25,7 @@ public class Accelerometer_16g {
     
     
     public void begin() {
-        
-        
+    	
         writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_POWER_CTL,0);
         
         target.i2cFlushBatch();

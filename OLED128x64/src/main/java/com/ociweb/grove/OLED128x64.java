@@ -18,8 +18,7 @@ public class OLED128x64 implements FogApp
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		final FogCommandChannel ch = runtime.newCommandChannel(DYNAMIC_MESSAGING,20000);
-		GameOfLife game = new GameOfLife(ch);
+		GameOfLife game = new GameOfLife(runtime);
 		runtime.addListener(game);
 	}
 }

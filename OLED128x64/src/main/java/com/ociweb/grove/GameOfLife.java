@@ -7,6 +7,7 @@ import com.ociweb.gl.api.TimeListener;
 import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.grove.OLED.OLED_128x64.OLED_128x64_Facade;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 
 public class GameOfLife implements StartupListener, TimeListener {
 	private int[][] cur_state = new int[row_count][col_count];
@@ -14,21 +15,21 @@ public class GameOfLife implements StartupListener, TimeListener {
 	private final boolean enableMonitoring = false;
 	private final OLED_128x64_Facade display;
 	
-	public GameOfLife(FogCommandChannel ch){
-		this(ch, def_start);
+	public GameOfLife(FogRuntime rt){
+		this(rt, def_start);
 	}
 
-	public GameOfLife(FogCommandChannel ch, boolean randomStart){
-		this(ch, def_start);
+	public GameOfLife(FogRuntime rt, boolean randomStart){
+		this(rt, def_start);
 		if (randomStart){
 			randomizeCurrentState();
 		}
 
 
 	}
-	public GameOfLife(FogCommandChannel ch, int[][] start_state){
+	public GameOfLife(FogRuntime rt, int[][] start_state){
 		cur_state = start_state;
-		display = OLED_128x64.newFacade(ch);
+		display = OLED_128x64.newFacade(rt.newCommandChannel(0,20000));
 	}
 	
 	@Override

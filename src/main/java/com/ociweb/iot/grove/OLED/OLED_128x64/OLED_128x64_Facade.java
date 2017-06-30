@@ -14,7 +14,8 @@ import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**
- * IODevice object that holds on to the FogCommandChannel, data_output array, and cmd_output array needed for the static Grove_OLED_128x64 utility class.
+ * IODeviceFacade object that holds on to the FogCommandChannel, data_output array, and cmd_output array.
+ * This class also contains all of the methods that can communicate with the OLED 128x64 display.
  * @author Ray Lo, Nathan Tippy
  *
  */
@@ -170,6 +171,15 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return sendData(0, s.length()*8);
 	}
 
+	/**
+	 * Pritns the charSequence with custom fonts.
+	 * @param s
+	 * @param customFonts must be an n by 8 array, where fonts for n characters are defined. Each row of the array defines a character.
+	 * @param offset can be supplied depending on which fonts are defined. i.e. if the customFonts array's first row defines the [space] character,
+	 * it wold be useful to set offset to be 32, which is the decimal ASCII value of [space]. That way, callers of this function can supply the chars directly without
+	 * handling the offset themselves.
+	 * @return true if the data was sent; false otherwise.
+	 */
 	public boolean printCharSequence(CharSequence s, int[][] customFonts, int offset){
 		encodeCharSequence(s, 0,customFonts,offset);
 		return sendData(0, s.length()*8);
@@ -256,7 +266,13 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 
 
 
-
+	/**
+	 * Sets the display's row and col in terms of a grid of 8x8 characters.
+	 * NOTE: this method requires that the display be in Page mode.
+	 * @param row
+	 * @param col
+	 * @return true if the data was sent, false otherwise.
+	 */
 	@Override
 	public boolean setTextRowCol( int row, int col){ //only works in Page Mode
 		//bit-mask because x and y can only be within a certain range (0-7)
@@ -269,6 +285,14 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return sendCommands(0, 3);
 	}
 
+
+	/**
+	 * Set the display in page mode and then sets the display's row and col in terms of a grid of 8x8 characters.
+	 * NOTE: this method requires that the display be in Page mode.
+	 * @param row
+	 * @param col
+	 * @return true if the commands and data were sent, false otherwise.
+	 */
 	public boolean setPageModeAndTextRowCol(int row, int col){
 		return setPageMode() && setTextRowCol(row,col);
 
@@ -311,6 +335,12 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		}
 		return true;
 	}
+	
+	
+	 /**
+	  * Turns the display off before clearing. Turns the display back on after clearing.
+	  * @return true if the commands were sent; false otherwise.
+	  */
 	@Override
 	public  boolean cleanClear(){
 		if (sendCommand(PUT_DISPLAY_TO_SLEEP)

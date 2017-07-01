@@ -1,4 +1,4 @@
-package com.ociweb.oe.foglight.api;
+package com.ociweb.oe.floglight.api;
 
 
 import static com.ociweb.iot.grove.GroveTwig.*;
@@ -6,7 +6,7 @@ import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
-public class PubSubStructured implements FogApp
+public class MQTTClient implements FogApp
 {
     ///////////////////////
     //Connection constants 
@@ -19,7 +19,7 @@ public class PubSubStructured implements FogApp
         //Connection specifications
         ///////////////////////////
 
-        c.limitThreads();
+        
     }
 
 

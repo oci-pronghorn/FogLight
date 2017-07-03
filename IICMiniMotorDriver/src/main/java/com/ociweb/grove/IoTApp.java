@@ -2,6 +2,7 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.I2CGroveTwig.*;
 import com.ociweb.iot.grove.mini_i2c_motor.*;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -26,7 +27,7 @@ public class IoTApp implements FogApp
     @Override
     public void declareConnections(Hardware c) {
         c.useI2C();
-        c.connectI2C(Mini_I2C_Motor);
+        c.connect(Mini_I2C_Motor);
         c.connect(AngleSensor,ANGLE_SENSOR);
         
         

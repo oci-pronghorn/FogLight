@@ -2,8 +2,8 @@ package com.ociweb.iot.grove.OLED.OLED_128x64;
 
 public class Grove_OLED_128x64_Constants {
 
-	public static int row_count = 64;
-	public static int col_count = 128;
+	public static int rowCount = 64;
+	public static int colCount = 128;
 
 	public static int BATCH_SIZE = 50;
 

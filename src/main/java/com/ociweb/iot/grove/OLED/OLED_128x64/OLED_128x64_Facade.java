@@ -264,8 +264,6 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return true;
 	}
 
-
-
 	/**
 	 * Sets the display's row and col in terms of a grid of 8x8 characters.
 	 * NOTE: this method requires that the display be in Page mode.
@@ -481,9 +479,9 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 	@Override
 	public boolean displayImage(int[][] raw_image){
 		int counter = 0;
-		int pageLimit = row_count >> 3;
+		int pageLimit = rowCount >> 3;
 		for (int page = 0; page < pageLimit; page++){
-			for (int seg = 0; seg < col_count; seg++){
+			for (int seg = 0; seg < colCount; seg++){
 				data_out[counter] = parseColByte(raw_image, page*8, seg);
 				counter++;
 			}
@@ -517,3 +515,5 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 	}
 
 }
+
+

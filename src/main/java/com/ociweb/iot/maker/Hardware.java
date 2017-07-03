@@ -1,6 +1,8 @@
 package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.Builder;
+import com.ociweb.iot.hardware.AnalogDigitalIODevice;
+import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;
 
 /**
@@ -26,7 +28,7 @@ public interface Hardware extends Builder {
      *
      * @return A reference to this hardware instance.
      */
-    Hardware connect(IODevice device, Port port, int customRateMS, int customAvgWinMS, boolean everyValue);
+    Hardware connect(AnalogDigitalIODevice device, Port port, int customRateMS, int customAvgWinMS, boolean everyValue);
     /**
      * 
      * @param device {@link IODevice} to connect.
@@ -35,7 +37,7 @@ public interface Hardware extends Builder {
      * @param customAvgWinMS Optional rate in milliseconds to sample device data.
      * @return  A reference to this hardware instance.
      */
-    Hardware connect(IODevice device, Port port, int customRateMS, int customAvgWinMS);
+    Hardware connect(AnalogDigitalIODevice device, Port port, int customRateMS, int customAvgWinMS);
     /**
      * 
      * @param device {@link IODevice} to connect.
@@ -43,7 +45,7 @@ public interface Hardware extends Builder {
      * @param customRateMS Optional rate in milliseconds to update the device data.
      * @return A reference to this hardware instance.
      */
-    Hardware connect(IODevice device, Port port, int customRateMS);
+    Hardware connect(AnalogDigitalIODevice device, Port port, int customRateMS);
     /**
      * 
      * @param device {@link IODevice} to connect.
@@ -52,15 +54,30 @@ public interface Hardware extends Builder {
      * @param everyValue Optional; if set to true, will cause the device to trigger events on every update.
      * @return A reference to this hardware instance.
      */
-    Hardware connect(IODevice device, Port port, int customRateMS, boolean everyValue);
+    Hardware connect(AnalogDigitalIODevice device, Port port, int customRateMS, boolean everyValue);
     /**
      * 
      * @param device {@link IODevice} to connect.
      * @param port {@link Port} to connect the device to.
      * @return A reference to this hardware instance.
      */
-    Hardware connect(IODevice device, Port port);
+    Hardware connect(AnalogDigitalIODevice device, Port port);
 
+    /**
+     * calls connectI2C to connect the I2C IODevice
+     * @param device
+     * @return A reference to this hardware instance
+     */
+    Hardware connect(I2CIODevice device);
+    
+    /**
+     * calls connectI2C to connect the I2C IODevice
+     * @param device
+     * @param customRateMS
+     * @return A reference to this hardware instance
+     */
+    
+    Hardware connect(I2CIODevice device, int customRateMS);
     /**
      * Connects a new I2C {@link IODevice} to this hardware.
      *
@@ -68,7 +85,7 @@ public interface Hardware extends Builder {
      *
      * @return A reference to this hardware instance.
      */
-    Hardware connectI2C(IODevice device);
+    Hardware connectI2C(I2CIODevice device);
     
     /**
      * 
@@ -76,7 +93,7 @@ public interface Hardware extends Builder {
      * @param customRateMS Optional rate in milliseconds to read data from that register.
      * @return A reference to this hardware instance.
      */
-    Hardware connectI2C(IODevice device, int customRateMS);
+    Hardware connectI2C(I2CIODevice device, int customRateMS);
     
     /**
      * Asks this hardware instance to enable I2C communications on the default I2C bus.

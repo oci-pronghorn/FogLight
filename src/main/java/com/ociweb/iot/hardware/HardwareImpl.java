@@ -15,6 +15,7 @@ import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.MessagePubSubStage;
 import com.ociweb.gl.impl.stage.TrafficCopStage;
+import com.ociweb.iot.grove.I2CGroveTwig;
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
@@ -200,10 +201,19 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			digitalOutputs = growHardwareConnections(digitalOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
 		}
 		return this;
-	}  
-
+	}
+	
 	@Override
-	public Hardware connectI2C(IODevice t){ 
+	public Hardware connect(I2CIODevice t){
+		return connectI2C(t);
+	}
+	@Override
+	public Hardware connect(I2CIODevice t, int customRateMS){
+		return connectI2C(t, customRateMS);
+	}
+	
+	@Override
+	public Hardware connectI2C(I2CIODevice t){ 
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
 			assert(!t.isOutput());
@@ -215,7 +225,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 	@Override
-	public Hardware connectI2C(IODevice t, int customRateMS){ 
+	public Hardware connectI2C(I2CIODevice t, int customRateMS){ 
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
 			assert(!t.isOutput());
@@ -474,8 +484,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return connection;
 	}
 			
-
-	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
+	@Override
+	public Hardware connect(AnalogDigitalIODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -490,7 +500,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 	
-	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS) {
+	@Override
+	public Hardware connect(AnalogDigitalIODevice t, Port port, int customRateMS, int customAvgWindowMS) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -505,7 +516,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 
-	public Hardware connect(IODevice t, Port port, int customRateMS) {
+	@Override
+	public Hardware connect(AnalogDigitalIODevice t, Port port, int customRateMS) {
 		
 		deviceOnPort[port.ordinal()] = t;
 				
@@ -517,7 +529,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 	}
 	
-	public Hardware connect(IODevice t, Port port, int customRateMS, boolean everyValue) {
+	@Override
+	public Hardware connect(AnalogDigitalIODevice t, Port port, int customRateMS, boolean everyValue) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -529,7 +542,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 	}
 	
-	public Hardware connect(IODevice t, Port port) {
+	@Override
+	public Hardware connect(AnalogDigitalIODevice t, Port port) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		

@@ -87,8 +87,8 @@ public class Grove_FourDigitDisplay implements IODevice{
 	private Grove_FourDigitDisplay(){
 	}
 	
-	public static FourDigitDisplay newObj(FogCommandChannel ch, Port p){
-		return new FourDigitDisplay(ch, p);
+	public static FourDigitDisplayFacade newFacade(FogCommandChannel ch, Port p){
+		return new FourDigitDisplayFacade(ch, p);
 	}
 	
 	public static boolean init(FogCommandChannel ch, Port p){

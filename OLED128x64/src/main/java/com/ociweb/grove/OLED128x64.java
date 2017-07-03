@@ -18,7 +18,6 @@ public class OLED128x64 implements FogApp
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		GameOfLife game = new GameOfLife(runtime);
-		runtime.addListener(game);
+		runtime.addListener(new GameOfLifeBehavior(runtime));
 	}
 }

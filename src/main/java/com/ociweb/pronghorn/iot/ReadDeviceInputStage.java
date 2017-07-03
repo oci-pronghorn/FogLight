@@ -98,8 +98,8 @@ public class ReadDeviceInputStage extends PronghornStage {
 		//for devices that must poll frequently
 		frequentScriptConn = new int[activeSize];
 		
-		//TODO: what to do with this? 
-		frequentScriptTwig = new I2CGroveTwig[activeSize];
+		//TODO: what to do with this? Used to be GroveTwig[] 
+		frequentScriptTwig = new IODevice[activeSize];
 		frequentScriptLastPublished = new int[activeSize];
 
 		//before we setup the pins they must start in a known state

@@ -205,15 +205,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	
 	@Override
 	public Hardware connect(I2CIODevice t){
-		return connectI2C(t);
-	}
-	@Override
-	public Hardware connect(I2CIODevice t, int customRateMS){
-		return connectI2C(t, customRateMS);
-	}
-	
-	@Override
-	public Hardware connectI2C(I2CIODevice t){ 
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
 			assert(!t.isOutput());
@@ -225,7 +216,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 	@Override
-	public Hardware connectI2C(I2CIODevice t, int customRateMS){ 
+	public Hardware connect(I2CIODevice t, int customRateMS){
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
 			assert(!t.isOutput());
@@ -236,8 +227,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 		return this;
 	}
-	
-	
+
+		
 	public Hardware useSerial(Baud baud) {
 		this.rs232ClientBaud = baud;
 		return this;

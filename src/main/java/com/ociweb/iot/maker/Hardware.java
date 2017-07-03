@@ -78,22 +78,8 @@ public interface Hardware extends Builder {
      */
     
     Hardware connect(I2CIODevice device, int customRateMS);
-    /**
-     * Connects a new I2C {@link IODevice} to this hardware.
-     *
-     * @param device {@link IODevice} to connect.
-     *
-     * @return A reference to this hardware instance.
-     */
-    Hardware connectI2C(I2CIODevice device);
-    
-    /**
-     * 
-     * @param device {@link IODevice} to connect.
-     * @param customRateMS Optional rate in milliseconds to read data from that register.
-     * @return A reference to this hardware instance.
-     */
-    Hardware connectI2C(I2CIODevice device, int customRateMS);
+  
+ 
     
     /**
      * Asks this hardware instance to enable I2C communications on the default I2C bus.

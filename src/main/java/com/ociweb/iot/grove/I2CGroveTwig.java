@@ -7,7 +7,6 @@ import com.ociweb.iot.grove.accelerometer.Grove_Acc_Constants;
 import com.ociweb.iot.grove.mini_i2c_motor.Grove_Mini_I2CMotor_Constants;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
-import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
 

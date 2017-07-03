@@ -1,9 +1,6 @@
 package com.ociweb.iot.grove;
 
-import com.ociweb.iot.grove.RTC.Grove_RTC_Constants;
-import com.ociweb.iot.grove.accelerometer.Accelerometer_16g;
-import com.ociweb.iot.grove.accelerometer.Grove_Acc_Constants;
-import com.ociweb.iot.grove.mini_i2c_motor.Grove_Mini_I2CMotor_Constants;
+
 import com.ociweb.iot.hardware.AnalogDigitalIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.maker.IODeviceFacade;

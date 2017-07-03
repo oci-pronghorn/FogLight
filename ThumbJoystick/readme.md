@@ -14,7 +14,7 @@ The following sketch reads and prints the X and Y values of the Joystick. In add
  
 Demo code: 
 ```java
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 import com.ociweb.gl.api.GreenCommandChannel;

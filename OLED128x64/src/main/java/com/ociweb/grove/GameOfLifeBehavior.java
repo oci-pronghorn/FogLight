@@ -4,9 +4,8 @@ import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.
 
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.I2CGroveTwig.*;
 import com.ociweb.iot.grove.OLED.OLED_128x64.OLED_128x64_Facade;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 
 public class GameOfLifeBehavior implements StartupListener, TimeListener {

@@ -13,7 +13,7 @@
 The project turns the Raspberry Pi into a server and serves up readings from the Water Sensor Grove Twig on  <Pi's IP Address>/Water_Sensor.
 
 ```java
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
 import com.ociweb.iot.maker.*;
 
 public class IoTApp implements IoTSetup

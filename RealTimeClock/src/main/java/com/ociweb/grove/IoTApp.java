@@ -1,6 +1,6 @@
 package com.ociweb.grove;
 
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.I2CGroveTwig.*;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.grove.RTC.*;

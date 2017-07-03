@@ -15,7 +15,7 @@ Demo code (copy and paste this to a FogLighter project):
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
 
 import com.ociweb.iot.maker.*;
 

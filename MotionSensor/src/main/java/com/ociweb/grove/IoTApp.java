@@ -1,8 +1,8 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.GroveTwig.MotionSensor;
-import static com.ociweb.iot.grove.GroveTwig.LED;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.MotionSensor;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.LED;
 
 import com.ociweb.iot.maker.*;
 

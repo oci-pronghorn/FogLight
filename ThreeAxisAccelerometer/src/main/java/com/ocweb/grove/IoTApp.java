@@ -1,7 +1,7 @@
 package com.ocweb.grove;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.I2CGroveTwig.*;
 import com.ociweb.iot.grove.accelerometer.*;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;

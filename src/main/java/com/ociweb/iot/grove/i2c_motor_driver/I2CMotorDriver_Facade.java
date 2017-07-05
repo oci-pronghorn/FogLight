@@ -31,9 +31,9 @@ public class I2CMotorDriver_Facade implements IODeviceFacade{
     private void direction(int _direction){
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
         
-        i2cPayloadWriter.writeByte(DirectionSet);
+        i2cPayloadWriter.writeByte(DIR_REG);
         i2cPayloadWriter.writeByte(_direction);
-        i2cPayloadWriter.writeByte(Nothing);
+        i2cPayloadWriter.writeByte(DUMMY_BYTE);
         
         target.i2cCommandClose();
         target.i2cFlushBatch();
@@ -46,20 +46,20 @@ public class I2CMotorDriver_Facade implements IODeviceFacade{
      */
     public void setVelocity(int motor1Vel,int motor2Vel){
         if(motor1Vel >= 0 && motor2Vel >= 0){
-            direction(BothClockWise);
+            direction(M1CW_M2CW);
         }else if(motor1Vel < 0 && motor2Vel<0){
-            direction(BothAntiClockWise);
+            direction(M1ACW_M2ACW);
         }else if(motor1Vel >= 0 && motor2Vel < 0){
-            direction(M1CWM2ACW);
+            direction(M1CW_M2ACW);
         }else if(motor1Vel < 0 && motor2Vel >= 0){
-            direction(M1ACWM2CW);
+            direction(M1ACW_M2CW);
         }
         motor1Vel = (Math.abs(motor1Vel)>255)?255:Math.abs(motor1Vel);
         motor2Vel = (Math.abs(motor2Vel)>255)?255:Math.abs(motor2Vel);
         
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
         
-        i2cPayloadWriter.writeByte(MotorSpeedSet);
+        i2cPayloadWriter.writeByte(SPEED_REG);
         i2cPayloadWriter.writeByte(motor1Vel);
         i2cPayloadWriter.writeByte(motor2Vel);
         
@@ -90,9 +90,9 @@ public class I2CMotorDriver_Facade implements IODeviceFacade{
         }
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
         
-        i2cPayloadWriter.writeByte(PWMFrequenceSet);
+        i2cPayloadWriter.writeByte(PWM_FREQ_REG);
         i2cPayloadWriter.writeByte(_s);
-        i2cPayloadWriter.writeByte(Nothing);
+        i2cPayloadWriter.writeByte(DUMMY_BYTE);
         
         target.i2cCommandClose();
         target.i2cFlushBatch();
@@ -121,7 +121,7 @@ public class I2CMotorDriver_Facade implements IODeviceFacade{
         
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
         
-        i2cPayloadWriter.writeByte(MotorSpeedSet);
+        i2cPayloadWriter.writeByte(SPEED_REG);
         i2cPayloadWriter.writeByte(255);
         i2cPayloadWriter.writeByte(255);
         

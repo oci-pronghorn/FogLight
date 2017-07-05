@@ -16,7 +16,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 
 	private int lowPixelLevel = 0;
 	private int highPixelLevel = 15;
-
+	private int iteration = 0;
 	private OLED_96x96_DriverChip chip;
 
 	public OLED_96x96_Facade(FogCommandChannel ch){
@@ -25,14 +25,33 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);
 		this.chip = SSD1327;
 	}
-
+	@Deprecated
+	public void setIteration(int iteration){
+		this.iteration = iteration;
+	}
+	
+	
 	//TODO: FIGURE OUT WHAT CHIP
 	private OLED_96x96_DriverChip determineChip(){
-		chip = SH1107G;
+		if(iteration % 2 ==0){
+			chip = SH1107G;
+		}
+		else {
+			chip = SSD1327;
+		}
+		System.out.println(chip);
 		return SH1107G;
 	}
+	public void setChip(int i){
+		if (i == 0){
+			chip = SH1107G;
+		}
+		else {
+			chip = SSD1327;
+		}
+	}
 	public boolean setRowColInHorizontalMode(int row, int col){
-		determineChip();
+	
 		switch (chip){
 		case SSD1327:
 			cmd_out[0] = SSD1327_Consts.REMAP;
@@ -119,6 +138,8 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 
 	@Override
 	public boolean init() {
+		//determineChip();
+		System.out.println("Artificially chose: " + chip);
 		int length = generateInitCommands(); //could have done this in the return line but this is clearer.
 		return sendCommands(0,length);
 	}
@@ -248,8 +269,8 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 				for(char j=0;j<8;j++)
 				{
 					//"Character is constructed two pixel at a time using vertical mode from the default 8x8 font"-Seeed C++ l API
-					c |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i],j))? highPixelLevel:lowPixelLevel;
-					c |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i+1],j))? highPixelLevel:lowPixelLevel;
+					c |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i],j))? highPixelLevel:0x00;
+					c |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i+1],j))? lowPixelLevel:0x00;
 					data_out[startingIndex++] = c;
 				}
 			}
@@ -288,7 +309,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 	private boolean highBitAt(int b, int pos){
 		return ((b >> pos) & 0x01) == 0x01;
 	}
-
+	
 
 	@Override
 	public boolean drawBitmap(int[] bitmap) {
@@ -367,12 +388,12 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 
 	@Override
 	public boolean inverseOn() {
-		return sendCommand(SSD1327_Consts.INVERSE_DISPLAY);
+		return sendCommand(SSD1327_Consts.INVERSE_DISPLAY); //the two chips share the same command byte
 	}
 
 	@Override
 	public boolean inverseOff() {
-		return sendCommand(SSD1327_Consts.NORMAL_DISPLAY);
+		return sendCommand(SSD1327_Consts.NORMAL_DISPLAY); //the two chips share the same command byte
 	}
 
 	@Override

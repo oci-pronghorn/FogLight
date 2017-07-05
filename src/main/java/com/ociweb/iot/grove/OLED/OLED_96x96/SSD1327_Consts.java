@@ -21,7 +21,7 @@ public class SSD1327_Consts {
 	public static final int SET_ROW_ADDRESS = 0x75;
 	public static final int SET_COL_ADDRESS = 0x15;
 	
-	public static final int BATCH_SIZE = 50;
+
 	
 	public static final int MCU = 0xFD;
 	public static final int UNLOCK_CMD_ENTERING = 0x12;

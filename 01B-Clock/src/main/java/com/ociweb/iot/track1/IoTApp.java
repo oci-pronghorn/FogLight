@@ -1,8 +1,8 @@
 package com.ociweb.iot.track1;
 
 
-import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
-import static com.ociweb.iot.grove.GroveTwig.LightSensor;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.AngleSensor;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.LightSensor;
 import static com.ociweb.iot.maker.Port.A1;
 import static com.ociweb.iot.maker.Port.A2;
 

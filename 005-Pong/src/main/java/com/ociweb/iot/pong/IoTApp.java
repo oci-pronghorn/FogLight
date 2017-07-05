@@ -1,7 +1,7 @@
 package com.ociweb.iot.pong;
 
-import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
-import static com.ociweb.iot.grove.GroveTwig.Button;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.AngleSensor;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.Button;
 
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;

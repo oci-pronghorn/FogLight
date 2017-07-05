@@ -1,8 +1,8 @@
 package com.ociweb.iot.project.tankLevelMonitor;
 
 
-import static com.ociweb.iot.grove.GroveTwig.Button;
-import static com.ociweb.iot.grove.GroveTwig.UltrasonicRanger;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.Button;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.UltrasonicRanger;
 import static com.ociweb.iot.maker.Port.A0;
 import static com.ociweb.iot.maker.Port.D2;
 

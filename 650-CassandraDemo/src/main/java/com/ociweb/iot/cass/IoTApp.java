@@ -1,7 +1,7 @@
 package com.ociweb.iot.cass;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
 
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogCommandChannel;

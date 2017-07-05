@@ -1,6 +1,6 @@
 package com.ociweb.iot.project.lightblink;
 
-import static com.ociweb.iot.grove.GroveTwig.LED;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.LED;
 import static com.ociweb.iot.maker.Port.*;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;

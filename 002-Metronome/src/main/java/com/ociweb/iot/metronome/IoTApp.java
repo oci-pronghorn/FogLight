@@ -1,8 +1,8 @@
 package com.ociweb.iot.metronome;
 
 
-import static com.ociweb.iot.grove.GroveTwig.AngleSensor;
-import static com.ociweb.iot.grove.GroveTwig.Buzzer;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.AngleSensor;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.Buzzer;
 
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;

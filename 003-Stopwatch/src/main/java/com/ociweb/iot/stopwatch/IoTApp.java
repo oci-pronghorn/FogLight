@@ -1,7 +1,7 @@
 package com.ociweb.iot.stopwatch;
 
 
-import static com.ociweb.iot.grove.GroveTwig.Button;
+import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.Button;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

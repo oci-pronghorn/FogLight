@@ -26,11 +26,7 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        final FogCommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING); 
-        runtime.addDigitalListener((port,time,durationMillis, value)->{
-                ledChannel.setValue(LED_PORT,value==1);
-                System.out.println("Stop moving!");                    	        	
-        });
+        runtime.addListener(new MotionSensorBehavior(runtime));
               
     }
     

@@ -4,7 +4,6 @@ package com.ociweb.grove;
 import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
 
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
@@ -28,16 +27,7 @@ public class IoTApp implements FogApp
     
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        final FogCommandChannel led1Channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        final FogCommandChannel led2Channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         
-        runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-            if(value>512){
-                led2Channel.setValue(LED2_PORT,true);
-            }else{
-                led2Channel.setValue(LED2_PORT,false);
-            }
-            led1Channel.setValue(LED1_PORT,value/4);
-        }).includePorts(ANGLE_SENSOR);   
+        runtime.addListener(new AngleSensorBehavior(runtime));
     }
 }

@@ -23,14 +23,8 @@ public class IoTApp implements FogApp {
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-
-		final FogCommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-
-		runtime.addTimeListener((time,iteration)->{
-				lightIntensity = (int) (127* Math.sin(time/(Math.PI * 500)) + 127);
-				System.out.println(lightIntensity);
-				ledChannel.setValue(LED_PORT, lightIntensity);
-		});            
+            runtime.addListener(new VariableColorLEDBehavior(runtime));
+		         
 	}
 }
 

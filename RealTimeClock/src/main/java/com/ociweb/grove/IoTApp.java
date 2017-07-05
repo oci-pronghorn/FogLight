@@ -1,9 +1,10 @@
 package com.ociweb.grove;
 
-import static com.ociweb.iot.grove.I2CGroveTwig.*;
+import static com.ociweb.iot.grove.RTC.*;
+import com.ociweb.iot.grove.RealTimeClock.*;
+
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.grove.RTC.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
 
@@ -35,10 +36,8 @@ public class IoTApp implements FogApp
         //////////////////////////////
         final FogCommandChannel c = runtime.newCommandChannel();      
         
-        RTC clock = new RTC(c);
+        RTC_Facade clock = RTC.newFacade(c);
         
-        
-        //RTC_Facade clock2 = RTC.newFacade(c);
         runtime.addStartupListener(()->{
 //            clock.startClock();
 //            clock.setTime(0, 50, 13, 3, 28, 6, 17);

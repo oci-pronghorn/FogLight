@@ -24,7 +24,6 @@ public enum Accelerometer_16G implements I2CIODevice {
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
             byte[] ACC_READCMD = {Accelerometer_16G_Constants.ADXL345_DATAX0};
-            //byte[] ACC_SETUP = {ADXL345_POWER_CTL,0x08};
             byte[] ACC_SETUP = {};
             byte ACC_ADDR = Accelerometer_16G_Constants.ADXL345_DEVICE;
             byte ACC_BYTESTOREAD = 6;
@@ -36,11 +35,21 @@ public enum Accelerometer_16G implements I2CIODevice {
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
             byte[] ACC_READCMD = {Accelerometer_16G_Constants.ADXL345_ACT_TAP_STATUS};
-            //byte[] ACC_SETUP = {ADXL345_POWER_CTL,0x08};
             byte[] ACC_SETUP = {};
             byte ACC_ADDR = Accelerometer_16G_Constants.ADXL345_DEVICE;
             byte ACC_BYTESTOREAD = 1;
             byte ACC_REGISTER = Accelerometer_16G_Constants.ADXL345_ACT_TAP_STATUS; //just an identifier
+            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+        }
+    },
+    Accelerometer_GetInterrupt(){
+        @Override
+        public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
+            byte[] ACC_READCMD = {Accelerometer_16G_Constants.ADXL345_INT_SOURCE};
+            byte[] ACC_SETUP = {};
+            byte ACC_ADDR = Accelerometer_16G_Constants.ADXL345_DEVICE;
+            byte ACC_BYTESTOREAD = 1;
+            byte ACC_REGISTER = Accelerometer_16G_Constants.ADXL345_INT_SOURCE; //just an identifier
             return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
         }
     };

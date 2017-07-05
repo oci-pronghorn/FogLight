@@ -2,6 +2,8 @@ package com.ociweb.iot.maker;
 
 import java.io.File;
 
+import com.ociweb.gl.api.Behavior;
+
 /**
  * Listener for responding to image-receive events on a hardware system
  * equipped with a camera or other image-generating systems.
@@ -9,7 +11,7 @@ import java.io.File;
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 @FunctionalInterface
-public interface ImageListener {
+public interface ImageListener extends Behavior {
 
     /**
      * Invoked when a new image is received from the hardware.

@@ -179,8 +179,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 	}
 
-
-
 	protected Hardware internalConnectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
 		if (t.isInput()) {
 			assert(!t.isOutput());

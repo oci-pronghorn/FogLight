@@ -467,15 +467,6 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		return true;
 	}
 
-
-
-
-	/*
-	public boolean cleanClear(){
-		return Grove_OLED_128x64.cleanClear(this.ch, cmd_output);
-	}
-	 */
-
 	@Override
 	public boolean displayImage(int[][] raw_image){
 		int counter = 0;

@@ -3,9 +3,14 @@ package com.ociweb;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
 public class IoTApp implements FogApp
 {
+	private static final Logger logger = LoggerFactory.getLogger(IoTApp.class);
+
 	private final Port display_port = D5;
 	@Override
 	public void declareConnections(Hardware c) {
@@ -21,6 +26,5 @@ public class IoTApp implements FogApp
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
 		runtime.addListener(new FourDigitDisplayBehavior(runtime, display_port));
-		
 	}
 }

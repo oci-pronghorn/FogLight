@@ -28,7 +28,7 @@ public class I2CMotorControlMini_Facade implements IODeviceFacade {
      * @param channel which channel (1 or 2) to set the power to, 
      * @param velocity velocity of the motor, from -63 to 63
      */
-    public void setPower(int channel, int velocity)
+    public void setVelocity(int channel, int velocity)
     {        
         // Before we do anything, we'll want to
         //  clear the fault status. To do that

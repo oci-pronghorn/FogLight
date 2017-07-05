@@ -31,6 +31,12 @@ public enum I2CGroveTwig implements I2CIODevice {
 			return new OLED_96x96_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
 		}
 	},
+        I2CMotorDriver(){
+          @Override
+          public boolean isOutput(){
+              return true;
+          }
+        },
 	I2C() {
 		@Override
 		public boolean isInput() {

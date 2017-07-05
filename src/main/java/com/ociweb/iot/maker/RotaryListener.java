@@ -1,5 +1,7 @@
 package com.ociweb.iot.maker;
 
+import com.ociweb.gl.api.Behavior;
+
 /**
  * Functional interface for a listener that receives rotary events from
  * encoders registered with a {@link FogRuntime}.
@@ -7,7 +9,7 @@ package com.ociweb.iot.maker;
  * @author Nathan Tippy
  */
 @FunctionalInterface
-public interface RotaryListener {
+public interface RotaryListener extends Behavior {
 
     /**
      * Invoked when the {@link FogRuntime} detects a change in the state

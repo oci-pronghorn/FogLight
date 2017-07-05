@@ -23,7 +23,8 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
  */
 public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl> {
 
-    protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
+    public static final int SIZE_OF_I2C_COMMAND = Pipe.sizeOf(I2CCommandSchema.instance, I2CCommandSchema.MSG_COMMAND_7);
+	protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
     protected final Pipe<GroveRequestSchema> pinOutput; //TODO: find a way to not create if not used like http or message pup/sub
 
     protected final Pipe<SerialOutputSchema> serialOutput;
@@ -33,20 +34,14 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
      
     protected int runningI2CCommandCount;
     
-    //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
-    protected final int maxCommands = 50;
+   protected final int maxCommands;
 
     public static final int I2C_WRITER      = 1<<29;
     public static final int PIN_WRITER      = 1<<28;
     public static final int SERIAL_WRITER   = 1<<27;
     public static final int BT_WRITER       = 1<<26;
 
-    
-	private final int MAX_COMMAND_FRAGMENTS_SIZE;
-        
-
-	
-	
+   	
     protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int parallelInstanceId, PipeConfigManager pcm) {
     	    	
        super(gm, hardware, features, parallelInstanceId, pcm);
@@ -76,14 +71,12 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
 		    	   this.pinOutput,
 		    	   this.i2cOutput = new Pipe<I2CCommandSchema>(pcm.getConfig(I2CCommandSchema.class))
 	    	   };
-	                             
-	       if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
-	           throw new UnsupportedOperationException("maxCommands too large or pipe is too small, pipe size must be at least "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
-	       }
-	       MAX_COMMAND_FRAGMENTS_SIZE = Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands;
+	    	   
+	       maxCommands = i2cOutput.sizeOfSlabRing/SIZE_OF_I2C_COMMAND;   
+
        } else {
     	   i2cOutput=null;
-    	   MAX_COMMAND_FRAGMENTS_SIZE = 0;
+    	   maxCommands = 0;
     	   
     	   //non i2c usage (TODO: THIS IS NEW CODE UNDER TEST)
 	       optionalOutputPipes = new Pipe<?>[]{
@@ -325,11 +318,14 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
         
     }
 
+    public boolean i2cIsReady() {
+    	return i2cIsReady(1);
+    }
     /**
      * @return True if the I2C bus is ready for communication, and false otherwise.
      */
-    public boolean i2cIsReady() {
-        return goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, MAX_COMMAND_FRAGMENTS_SIZE);
+    public boolean i2cIsReady(int requestedCommandCount) {
+        return goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, SIZE_OF_I2C_COMMAND*requestedCommandCount);
        
     }
 

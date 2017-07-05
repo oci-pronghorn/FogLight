@@ -204,7 +204,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         return registerListener(listener);
     }
     
-    public ListenerFilterIoT registerListener(Object listener) {
+    public ListenerFilterIoT registerListener(Object listener) { //TODO: rename Object to Behavior
     	return registerListenerImpl(listener);
     }
     

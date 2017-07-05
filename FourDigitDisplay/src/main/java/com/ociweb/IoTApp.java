@@ -20,12 +20,7 @@ public class IoTApp implements FogApp
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		final FogCommandChannel ch = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-
-		runtime.addTimeListener((time, iteration)->{
-			ch.setValue(display_port,iteration % 1000);
-		});
-		
+		runtime.addListener(new FourDigitDisplayBehavior(runtime, display_port));
 		
 	}
 }

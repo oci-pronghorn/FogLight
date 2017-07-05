@@ -3,32 +3,31 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.RTC;
+package com.ociweb.iot.grove.RealTimeClock;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import static com.ociweb.iot.grove.RTC.Grove_RTC_Constants.*;
+import static com.ociweb.iot.grove.RealTimeClock.RTC_Constants.*;
+import com.ociweb.iot.maker.IODeviceFacade;
 /**
  *
  * @author huydo
  */
-public class RTC {
+public class RTC_Facade implements IODeviceFacade {
     FogCommandChannel target;
-    
-    public RTC(FogCommandChannel ch){
+
+    public RTC_Facade(FogCommandChannel ch){
         this.target = ch;
     }
     public void startClock(){
         
-        writeSingleByteToRegister(target,DS1307_I2C_ADDRESS,TIME_REG,0x00);
-        target.i2cFlushBatch();
+        writeSingleByteToRegister(TIME_REG,0x00);
         
     }
     public void stopClock(){
         
-        writeSingleByteToRegister(target,DS1307_I2C_ADDRESS,TIME_REG,0x80);
-        target.i2cFlushBatch();
+        writeSingleByteToRegister(TIME_REG,0x80);
         
     }
     
@@ -42,8 +41,7 @@ public class RTC {
         time[5] = decToBcd(month);
         time[6] = decToBcd(year);
         
-        writeMultipleBytesToRegister(target,DS1307_I2C_ADDRESS,TIME_REG,time);
-        target.i2cFlushBatch();
+        writeMultipleBytesToRegister(TIME_REG,time);
         
     }
     
@@ -120,27 +118,25 @@ public class RTC {
     
     
     
-    private boolean writeSingleByteToRegister(FogCommandChannel ch,int address, int register, int value) {
-        if (!ch.i2cIsReady()) {
-            return false;
-        }
-        
-        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(address);
+    public void writeSingleByteToRegister(int register, int value) {
+ 
+        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DS1307_I2C_ADDRESS);
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        ch.i2cCommandClose();
-        return true;
+        target.i2cCommandClose();
+        target.i2cFlushBatch();
     }
     
-    private static void writeMultipleBytesToRegister(FogCommandChannel ch, int address, int register, int[] values) {
-        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(address);
+    public void writeMultipleBytesToRegister(int register, int[] values) {
+        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DS1307_I2C_ADDRESS);
         
         i2cPayloadWriter.writeByte(register);
         for (int i = 0; i < values.length; i++) {
             i2cPayloadWriter.writeByte(values[i]);
         }
         
-        ch.i2cCommandClose();
+        target.i2cCommandClose();
+        target.i2cFlushBatch();
     }
 }

@@ -8,37 +8,29 @@ package com.ociweb.iot.grove.accelerometer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import static com.ociweb.iot.grove.accelerometer.Grove_Acc_Constants.*;
+import static com.ociweb.iot.grove.accelerometer.Accelerometer_16G_Constants.*;
 import com.ociweb.iot.maker.IODeviceFacade;
 
 /**
  *
  * @author huydo
  */
-public class Accelerometer_16g {
+public class Accelerometer_16G_Facade implements IODeviceFacade {
     FogCommandChannel target;
-    
-    public Accelerometer_16g(FogCommandChannel ch){
+    public static final int ADXL345_DEVICE    = 0x53;
+
+    public Accelerometer_16G_Facade(FogCommandChannel ch){
         this.target = ch;
     }
-    
-    
-    
+         
     public void begin() {
-    	
-        writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_POWER_CTL,0);
         
-        target.i2cFlushBatch();
-        
-        writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_POWER_CTL,16);
-        
-        target.i2cFlushBatch();
-        
-        writeSingleByteToRegister(target, Grove_Acc_Constants.ADXL345_DEVICE, Grove_Acc_Constants.ADXL345_POWER_CTL,8);
-        
-        target.i2cFlushBatch();
-        
-        
+        writeSingleByteToRegister(Accelerometer_16G_Constants.ADXL345_POWER_CTL,0);
+              
+        writeSingleByteToRegister(Accelerometer_16G_Constants.ADXL345_POWER_CTL,16);
+                
+        writeSingleByteToRegister(Accelerometer_16G_Constants.ADXL345_POWER_CTL,8);
+                        
     }
     
     public void setRange(int range){
@@ -59,10 +51,8 @@ public class Accelerometer_16g {
             default:
                 _s = 0b00001011;
         }
-        writeSingleByteToRegister(target, ADXL345_DEVICE, ADXL345_DATA_FORMAT,_s);
-        
-        target.i2cFlushBatch();
-        
+        writeSingleByteToRegister(ADXL345_DATA_FORMAT,_s);
+                
     }
     
     // Sets the OFSX, OFSY and OFSZ bytes
@@ -71,14 +61,11 @@ public class Accelerometer_16g {
 // OFSX, OFSY and OFSZ should be comprised between
     public void setAxisOffset(int x, int y, int z) {
         
-        writeSingleByteToRegister(target, ADXL345_DEVICE,ADXL345_OFSX,(byte) x);
-        target.i2cFlushBatch();
+        writeSingleByteToRegister(ADXL345_OFSX,(byte) x);
         
-        writeSingleByteToRegister(target, ADXL345_DEVICE,ADXL345_OFSY,(byte) y);
-        target.i2cFlushBatch();
+        writeSingleByteToRegister(ADXL345_OFSY,(byte) y);
         
-        writeSingleByteToRegister(target, ADXL345_DEVICE,ADXL345_OFSZ,(byte) z);
-        target.i2cFlushBatch();
+        writeSingleByteToRegister(ADXL345_OFSZ,(byte) z);
     }
     
     public void setRate(int rate){
@@ -117,9 +104,8 @@ public class Accelerometer_16g {
             default:
                 _s = ADXL345_RATE_400;
         }
-        writeSingleByteToRegister(target, ADXL345_DEVICE, ADXL345_DATA_FORMAT,_s);
+        writeSingleByteToRegister(ADXL345_DATA_FORMAT,_s);
         
-        target.i2cFlushBatch();
         
     }
     
@@ -136,12 +122,13 @@ public class Accelerometer_16g {
         return temp;
     }
     
-    private void writeSingleByteToRegister(FogCommandChannel ch, int address, int register, int value) {
-        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(address);
+    public void writeSingleByteToRegister(int register, int value) {
+        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(ADXL345_DEVICE);
         
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        ch.i2cCommandClose();
+        target.i2cCommandClose();
+        target.i2cFlushBatch();
     }
 }

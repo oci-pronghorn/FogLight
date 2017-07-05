@@ -14,8 +14,8 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 
 
 
-	private int lowPixelLevel = 0;
-	private int highPixelLevel = 15;
+	private int lowPixelLevel = 15 & 0x0F;
+	private int highPixelLevel = (15 << 4) * 0xF0;
 	private int iteration = 0;
 	private OLED_96x96_DriverChip chip;
 
@@ -234,7 +234,16 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 			//setVerticalMode would only execute if the chip is SSD1327
 			return false;
 		}
-		return sendData(0, s.length()* 32);
+		int charSpace = 0;
+		switch(chip){
+		case SSD1327:
+			charSpace = 32;
+			break;
+		case SH1107G:
+			charSpace = 8;
+			break;
+		}
+		return sendData(0, s.length()* charSpace);
 	}
 
 	@Override
@@ -254,8 +263,18 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 	}
 	private void encodeCharSequence(CharSequence s, int startingIndex){
 		int charIndex = 0;
+		int charSpace = 0;
+		
+		switch(chip){
+		case SSD1327:
+			charSpace = 32;
+			break;
+		case SH1107G:
+			charSpace = 8;
+			break;
+		}
 		for (int i = startingIndex; i < startingIndex + s.length(); i++){
-			encodeChar(s.charAt(charIndex++), startingIndex * 32);
+			encodeChar(s.charAt(charIndex++), (i * charSpace));
 			//each char printed takes up 32 bytes of transmission  (8x8 chars) where each pixel take up a nibble.
 		}
 	}
@@ -263,15 +282,19 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		if(c < 32 || c > 127){
 			c=' '; 
 		}
+		
 		switch(chip){
 		case SSD1327:
 			for (int i =0; i < 8; i += 2){
 				for(char j=0;j<8;j++)
 				{
+					char newC = 0x00;
 					//"Character is constructed two pixel at a time using vertical mode from the default 8x8 font"-Seeed C++ l API
-					c |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i],j))? highPixelLevel:0x00;
-					c |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i+1],j))? lowPixelLevel:0x00;
-					data_out[startingIndex++] = c;
+					newC |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i],j))? highPixelLevel:0x00;
+					newC |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i+1],j))? lowPixelLevel:0x00;
+					
+					
+					data_out[startingIndex++] = newC;
 				}
 			}
 			return;

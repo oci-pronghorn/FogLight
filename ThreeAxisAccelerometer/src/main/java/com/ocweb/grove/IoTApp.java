@@ -1,7 +1,7 @@
 package com.ocweb.grove;
 
 
-import static com.ociweb.iot.grove.I2CGroveTwig.*;
+import static com.ociweb.iot.grove.Accelerometer_16G.*;
 import com.ociweb.iot.grove.accelerometer.*;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -18,7 +18,7 @@ public class IoTApp implements FogApp
     public void declareConnections(Hardware c) {
         c.useI2C();
         //c.connect(Button,D4);
-        c.connect(ThreeAxis_Accelerometer_16G);
+        c.connect(Accelerometer_GetXYZ);
         
     }
     
@@ -29,26 +29,6 @@ public class IoTApp implements FogApp
         //Specify the desired behavior
         //////////////////////////////
         
-        final FogCommandChannel c = runtime.newCommandChannel();
-        Accelerometer_16g accSensor = new Accelerometer_16g(c);
-        runtime.addStartupListener(()->{
-            accSensor.begin();
-            accSensor.setRange(4);
-        });
-
-        runtime.addI2CListener((int addr, int register, long time, byte[] backing, int position, int length, int mask)->{
-            System.out.println("backing0: "+(backing[position]));
-            System.out.println("backing1: "+(backing[position+1]));
-            System.out.println("backing2: "+(backing[position+2]));
-            System.out.println("backing3: "+(backing[position+3]));
-            System.out.println("backing4: "+(backing[position+4]));
-            System.out.println("backing5: "+(backing[position+5]));
-
-            
-            short[] values = accSensor.intepretData(backing, position, length, mask);
-            System.out.println("x= "+values[0]);
-            System.out.println("y= "+values[1]);
-            System.out.println("z= "+values[2]);
-        });
+        runtime.addListener(new AccelerometerBehavior(runtime));
     }
 }

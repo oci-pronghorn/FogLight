@@ -2,7 +2,7 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
-import static com.ociweb.iot.grove.I2CGroveTwig.*;
+import static com.ociweb.iot.grove.I2CMotorControlMini.*;
 import com.ociweb.iot.grove.mini_i2c_motor.*;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -27,7 +27,7 @@ public class IoTApp implements FogApp
     @Override
     public void declareConnections(Hardware c) {
         c.useI2C();
-        c.connect(Mini_I2C_Motor);
+        c.connect(I2CMotorControlMini);
         c.connect(AngleSensor,ANGLE_SENSOR);
         
         
@@ -37,15 +37,15 @@ public class IoTApp implements FogApp
     public void declareBehavior(FogRuntime g) {
         final FogCommandChannel c = g.newCommandChannel();
         
-        Mini_I2C_Motor motorController = new Mini_I2C_Motor(c);
+        I2CMotorControlMini_Facade motorController = I2CMotorControlMini.newFacade(c);
         
         g.addAnalogListener((port, time, durationMillis, average, value)->{
             //if(!motorFailed){
                 System.out.println("value: "+value);
                 int speed = (value-512)/8;
                 
-                motorController.driveMotor1(speed);
-                motorController.driveMotor2(speed);
+                motorController.setPower(1, speed);
+                motorController.setPower(2, speed);
             //}
         }).includePorts(ANGLE_SENSOR);
         
@@ -53,8 +53,8 @@ public class IoTApp implements FogApp
             if(backing[position]>0){
                 //motorFailed = true;
                 System.out.println("Motor failure.");
-                motorController.stopMotor1();
-                motorController.stopMotor2();
+                motorController.stop(1);
+                motorController.stop(2);
             }
             
         }).excludeI2CConnections(4);

@@ -26,15 +26,7 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        final FogCommandChannel ledChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        runtime.addDigitalListener((port,time,durationMillis, value)->{
-            ledChannel.setValue(LED_PORT,value==1);
-            if(value == 1){
-                System.out.println("Door just close. Time the door remained opened: "+durationMillis);
-            }else{
-                System.out.println("Door just open. Time the door remained closed: "+durationMillis);
-            }
-        });
+        runtime.addListener(new LineFinderBehavior(runtime));
         
     }
     

@@ -276,7 +276,7 @@ public class Accelerometer_16G_Facade implements IODeviceFacade {
      * @param position
      * @param length
      * @param mask
-     * @return
+     * @return array of 3 containing the X,Y,Z acceleration measurements
      */
     public short[] intepretData(byte[] backing, int position, int length, int mask){
         assert(length==6) : "Non-Accelerometer data passed into the NunchuckTwig class";

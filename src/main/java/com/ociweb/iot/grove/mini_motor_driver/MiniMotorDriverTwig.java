@@ -3,7 +3,7 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.mini_i2c_motor;
+package com.ociweb.iot.grove.mini_motor_driver;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
@@ -14,9 +14,9 @@ import com.ociweb.iot.maker.IODeviceFacade;
  *
  * @author huydo
  */
-public enum I2CMotorControlMini implements I2CIODevice{
+public enum MiniMotorDriverTwig implements I2CIODevice{
     
-    I2CMotorControlMini(){
+    ReadFault(){
         @Override
         public boolean isInput() {
             return true;
@@ -28,11 +28,11 @@ public enum I2CMotorControlMini implements I2CIODevice{
         }
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] MOTOR_READCMD = {I2CMotorControlMini_Constants.FAULT_REG};
+            byte[] MOTOR_READCMD = {MiniMotorDriver_Constants.FAULT_REG};
             byte[] MOTOR_SETUP = {};
-            byte MOTOR_ADDR = I2CMotorControlMini_Constants.CH1_ADD;
+            byte MOTOR_ADDR = MiniMotorDriver_Constants.CH1_ADD;
             byte MOTOR_BYTESTOREAD = 1;
-            byte MOTOR_REGISTER = I2CMotorControlMini_Constants.FAULT_REG;  //register identifier
+            byte MOTOR_REGISTER = MiniMotorDriver_Constants.FAULT_REG;  //register identifier
             return new I2CConnection(this, MOTOR_ADDR, MOTOR_READCMD, MOTOR_BYTESTOREAD, MOTOR_REGISTER, MOTOR_SETUP);
         }
         
@@ -43,8 +43,8 @@ public enum I2CMotorControlMini implements I2CIODevice{
         
         @SuppressWarnings("unchecked")
         @Override
-        public I2CMotorControlMini_Facade newFacade(FogCommandChannel...ch){
-            return new I2CMotorControlMini_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+        public MiniMotorDriver_Facade newFacade(FogCommandChannel...ch){
+            return new MiniMotorDriver_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
         }
         
         

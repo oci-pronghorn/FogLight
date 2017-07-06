@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ociweb.iot.grove.mini_i2c_motor;
+package com.ociweb.iot.grove.mini_motor_driver;
 
-import static com.ociweb.iot.grove.mini_i2c_motor.I2CMotorControlMini_Constants.*;
+import static com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -15,10 +15,10 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class I2CMotorControlMini_Facade implements IODeviceFacade {
+public class MiniMotorDriver_Facade implements IODeviceFacade {
     FogCommandChannel target;
     
-    public I2CMotorControlMini_Facade(FogCommandChannel ch){
+    public MiniMotorDriver_Facade(FogCommandChannel ch){
 		this.target = ch;		
 	}
     

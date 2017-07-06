@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ociweb.iot.grove.mini_i2c_motor;
+package com.ociweb.iot.grove.mini_motor_driver;
 
 /**
  *
  * @author huydo
  */
-public class I2CMotorControlMini_Constants {
+public class MiniMotorDriver_Constants {
     public static final int CH1_ADD =  0xC4>>>1;
     public static final int CH2_ADD =  0xC0>>>1;
     

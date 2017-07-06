@@ -3,9 +3,8 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.I2C_ADC;
 
-import com.ociweb.iot.grove.I2C_ADC.I2C_ADC_Constants;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;

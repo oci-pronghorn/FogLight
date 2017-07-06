@@ -3,10 +3,8 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.RealTimeClock;
 
-import com.ociweb.iot.grove.mini_i2c_motor.I2CMotorControlMini_Constants;
-import com.ociweb.iot.grove.mini_i2c_motor.I2CMotorControlMini_Facade;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -16,9 +14,8 @@ import com.ociweb.iot.maker.IODeviceFacade;
  *
  * @author huydo
  */
-public enum I2CMotorControlMini implements I2CIODevice{
-    
-    I2CMotorControlMini(){
+public enum RTC implements I2CIODevice {
+    RTC(){
         @Override
         public boolean isInput() {
             return true;
@@ -30,26 +27,26 @@ public enum I2CMotorControlMini implements I2CIODevice{
         }
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] MOTOR_READCMD = {I2CMotorControlMini_Constants.FAULT_REG};
-            byte[] MOTOR_SETUP = {};
-            byte MOTOR_ADDR = I2CMotorControlMini_Constants.CH1_ADD;
-            byte MOTOR_BYTESTOREAD = 1;
-            byte MOTOR_REGISTER = I2CMotorControlMini_Constants.FAULT_REG;  //register identifier
-            return new I2CConnection(this, MOTOR_ADDR, MOTOR_READCMD, MOTOR_BYTESTOREAD, MOTOR_REGISTER, MOTOR_SETUP);
+            byte[] ACC_READCMD = {RTC_Constants.TIME_REG};
+            //byte[] ACC_SETUP = {ADXL345_POWER_CTL,0x08};
+            byte[] ACC_SETUP = {};
+            byte ACC_ADDR = RTC_Constants.DS1307_I2C_ADDRESS;
+            byte ACC_BYTESTOREAD = 7;
+            byte ACC_REGISTER = RTC_Constants.TIME_REG; //just an identifier
+            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
         }
+        
         
         @Override
         public int response() {
             return 1000;
+            
         }
-        
         @SuppressWarnings("unchecked")
         @Override
-        public I2CMotorControlMini_Facade newFacade(FogCommandChannel...ch){
-            return new I2CMotorControlMini_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+        public RTC_Facade newFacade(FogCommandChannel...ch){
+            return new RTC_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
         }
-        
-        
         /**
          * @return Delay, in milliseconds, for scan. TODO: What's scan?
          */
@@ -71,6 +68,7 @@ public enum I2CMotorControlMini implements I2CIODevice{
         public boolean isI2C() {
             return false;
         }
+        
         
         
         /**
@@ -106,8 +104,6 @@ public enum I2CMotorControlMini implements I2CIODevice{
          */
         public int pinsUsed() {
             return 1;
-        }
-        
-        
+        }        
     };
 }

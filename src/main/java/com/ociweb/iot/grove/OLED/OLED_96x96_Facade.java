@@ -1,11 +1,11 @@
-package com.ociweb.iot.grove.OLED.OLED_96x96;
+package com.ociweb.iot.grove.OLED;
 
-import com.ociweb.iot.grove.OLED.OLED_DataAndCommandsSender;
+import static com.ociweb.iot.grove.OLED.OLED_96x96_DriverChip.*;
+
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceFacade;
-import static com.ociweb.iot.grove.OLED.OLED_96x96.OLED_96x96_DriverChip.*;
 
 
 

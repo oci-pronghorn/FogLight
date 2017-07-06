@@ -6,8 +6,7 @@
 package com.ocweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
-import static com.ociweb.iot.grove.Accelerometer_16G.Accelerometer_GetXYZ;
-import com.ociweb.iot.grove.accelerometer.Accelerometer_16G_Facade;
+import com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16g_Facade;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.I2CListener;
@@ -20,11 +19,11 @@ public class AccelerometerBehavior implements I2CListener,StartupListener {
     
     //private static final Logger logger = LoggerFactory.getLogger(AccelerometerBehavior.class);
     private final FogCommandChannel c;
-    private final Accelerometer_16G_Facade accSensor;
+    private final ThreeAxisAccelerometer_16g_Facade accSensor;
     
     public AccelerometerBehavior(FogRuntime runtime){
         this.c = runtime.newCommandChannel();
-        accSensor = Accelerometer_GetXYZ.newFacade(c);
+        accSensor = new ThreeAxisAccelerometer_16g_Facade(c);
     }
     
     @Override

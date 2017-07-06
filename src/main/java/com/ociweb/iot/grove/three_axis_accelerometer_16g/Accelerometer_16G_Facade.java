@@ -3,12 +3,12 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.accelerometer;
+package com.ociweb.iot.grove.three_axis_accelerometer_16g;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import static com.ociweb.iot.grove.accelerometer.Accelerometer_16G_Constants.*;
+import static com.ociweb.iot.grove.three_axis_accelerometer_16g.Accelerometer_16G_Constants.*;
 import com.ociweb.iot.maker.IODeviceFacade;
 
 /**

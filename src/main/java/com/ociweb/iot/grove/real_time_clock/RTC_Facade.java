@@ -3,12 +3,12 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.RealTimeClock;
+package com.ociweb.iot.grove.real_time_clock;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import static com.ociweb.iot.grove.RealTimeClock.RTC_Constants.*;
+import static com.ociweb.iot.grove.real_time_clock.RTC_Constants.*;
 import com.ociweb.iot.maker.IODeviceFacade;
 /**
  *

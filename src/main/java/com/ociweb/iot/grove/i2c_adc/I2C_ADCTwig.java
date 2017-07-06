@@ -3,10 +3,8 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.I2C_ADC;
+package com.ociweb.iot.grove.i2c_adc;
 
-import com.ociweb.iot.grove.I2C_ADC.I2C_ADC_Constants;
-import com.ociweb.iot.grove.I2C_ADC.I2C_ADC_Facade;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -16,7 +14,7 @@ import com.ociweb.iot.maker.IODeviceFacade;
  *
  * @author huydo
  */
-public enum Grove_I2C_ADC implements I2CIODevice{
+public enum I2C_ADCTwig implements I2CIODevice{
     ReadConversionResult(){
         @Override
         public I2CConnection getI2CConnection() {

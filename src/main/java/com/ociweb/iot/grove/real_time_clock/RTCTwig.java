@@ -3,7 +3,7 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.RealTimeClock;
+package com.ociweb.iot.grove.real_time_clock;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
@@ -14,8 +14,8 @@ import com.ociweb.iot.maker.IODeviceFacade;
  *
  * @author huydo
  */
-public enum RTC implements I2CIODevice {
-    RTC(){
+public enum RTCTwig implements I2CIODevice {
+    ReadTime(){
         @Override
         public boolean isInput() {
             return true;

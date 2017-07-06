@@ -279,13 +279,13 @@ public class Accelerometer_16G_Facade implements IODeviceFacade {
      * @return array of 3 containing the X,Y,Z acceleration measurements
      */
     public short[] intepretData(byte[] backing, int position, int length, int mask){
-        assert(length==6) : "Non-Accelerometer data passed into the NunchuckTwig class";
+        assert(length==6) : "Non-Accelerometer data passed into the class";
         short[] temp = {0,0,0};
         //format the data from the circular buffer backing[]
         
-        temp[0] = (short)(((backing[(position+1)&mask]) << 8) | (backing[position&mask]&0xFF));
-        temp[1] = (short)(((backing[(position+3)&mask]) << 8) | (backing[(position+2)&mask]&0xFF));
-        temp[2] = (short)(((backing[(position+5)&mask]) << 8) | (backing[(position+4)&mask]&0xFF));
+        temp[0] = (short)(((backing[(position+1)&mask]&0xFF) << 8) | (backing[position&mask]&0xFF));
+        temp[1] = (short)(((backing[(position+3)&mask]&0xFF) << 8) | (backing[(position+2)&mask]&0xFF));
+        temp[2] = (short)(((backing[(position+5)&mask]&0xFF) << 8) | (backing[(position+4)&mask]&0xFF));
         
         return temp;
     }

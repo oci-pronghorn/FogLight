@@ -23,8 +23,6 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-            System.out.println(value);
-        });   
+    	runtime.addAnalogListener(new MoistureSensorBehavior(runtime));   
     }
 }

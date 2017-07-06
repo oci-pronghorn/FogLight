@@ -19,10 +19,8 @@ public class IoTApp implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
      
-    	final FogCommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
         //this digital listener will get all the button press and un-press events 
-        runtime.addDigitalListener((port, connection, time, value)->{
-        	channel1.setValueAndBlock(LED_PORT, value == 1, 200); 
-        });
+    	runtime.addDigitalListener(new LEDBehavior(runtime));
+    	
     }
 }

@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.OLED.OLED_96x96;
+package com.ociweb.iot.grove.OLED;
 
 public class SH1107G_Consts {
 	public static final int DISPLAY_OFF =  0xAE;

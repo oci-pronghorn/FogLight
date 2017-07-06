@@ -3,10 +3,8 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.accelerometer;
 
-import com.ociweb.iot.grove.accelerometer.Accelerometer_16G_Facade;
-import com.ociweb.iot.grove.accelerometer.Accelerometer_16G_Constants;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;

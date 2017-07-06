@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.OLED.OLED_128x64;
+package com.ociweb.iot.grove.OLED;
 
 public class Grove_OLED_128x64_Constants {
 

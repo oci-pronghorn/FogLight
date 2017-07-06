@@ -1,6 +1,6 @@
 package com.ociweb.iot.grove;
-import com.ociweb.iot.grove.OLED.OLED_128x64.OLED_128x64_Facade;
-import com.ociweb.iot.grove.OLED.OLED_96x96.OLED_96x96_Facade;
+import com.ociweb.iot.grove.OLED.OLED_128x64_Facade;
+import com.ociweb.iot.grove.OLED.OLED_96x96_Facade;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;

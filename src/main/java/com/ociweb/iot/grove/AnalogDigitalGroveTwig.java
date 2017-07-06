@@ -200,7 +200,6 @@ public enum AnalogDigitalGroveTwig implements AnalogDigitalIODevice {
 		}
 	},
 	FourDigitDisplay(){
-		public static final int init = -1;
 		;
 		@Override
 		public boolean isOutput(){

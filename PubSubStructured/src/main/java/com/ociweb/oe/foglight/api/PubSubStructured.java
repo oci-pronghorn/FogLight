@@ -1,25 +1,18 @@
 package com.ociweb.oe.foglight.api;
 
-
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
 
 public class PubSubStructured implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
+    public static int COUNT_DOWN_FIELD = 1;
+    public static int SENDER_FIELD = 2;
 
 
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
 
-        c.limitThreads();
     }
 
 
@@ -28,6 +21,10 @@ public class PubSubStructured implements FogApp
         //////////////////////////////
         //Specify the desired behavior
         //////////////////////////////
+    	
+    	runtime.addStartupListener(new KickoffBehavior(runtime));
+    	runtime.addPubSubListener(new ThingBehavior(runtime,"topicOne")).addSubscription("topicTwo");
+    	runtime.addPubSubListener(new ThingBehavior(runtime,"topicTwo")).addSubscription("topicOne");
 
     }
           

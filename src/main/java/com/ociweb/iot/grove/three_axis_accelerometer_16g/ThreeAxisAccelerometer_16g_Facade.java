@@ -8,18 +8,18 @@ package com.ociweb.iot.grove.three_axis_accelerometer_16g;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import static com.ociweb.iot.grove.three_axis_accelerometer_16g.Accelerometer_16G_Constants.*;
+import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16g_Constants.*;
 import com.ociweb.iot.maker.IODeviceFacade;
 
 /**
  *
  * @author huydo
  */
-public class Accelerometer_16G_Facade implements IODeviceFacade {
+public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade {
     FogCommandChannel target;
     public static final int ADXL345_DEVICE    = 0x53;
     
-    public Accelerometer_16G_Facade(FogCommandChannel ch){
+    public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch){
         this.target = ch;
     }
     /**
@@ -27,11 +27,11 @@ public class Accelerometer_16G_Facade implements IODeviceFacade {
      */
     public void begin() {
         
-        writeSingleByteToRegister(Accelerometer_16G_Constants.ADXL345_POWER_CTL,0);
+        writeSingleByteToRegister(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,0);
         
-        writeSingleByteToRegister(Accelerometer_16G_Constants.ADXL345_POWER_CTL,16);
+        writeSingleByteToRegister(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,16);
         
-        writeSingleByteToRegister(Accelerometer_16G_Constants.ADXL345_POWER_CTL,8);
+        writeSingleByteToRegister(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,8);
         
     }
     /**

@@ -10,7 +10,6 @@ import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
@@ -26,8 +25,8 @@ import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
-import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
  
@@ -48,20 +47,15 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
     public static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
 
-    public final String[] args;
     
     public FogRuntime() {
        this(null);
     }
     
     public FogRuntime(String[] args) {
-        super();
-        this.args = args;
+        super(args);
      }
 
-    public String[] args() {
-    	return args;
-    }
     
     public Hardware getHardware(){
     	if(this.builder==null){
@@ -340,7 +334,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				   }
 			   //exportGraphDotFile();
 
-			   runtime.scheduler = runtime.builder.createScheduler(runtime);
+			   runtime.scheduler  = new NonThreadScheduler(runtime.gm);
+			                  //= runtime.builder.createScheduler(runtime);
             //for test we do not call startup and wait instead for this to be done by test.
         } catch (Throwable t) {
             t.printStackTrace();

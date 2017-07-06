@@ -1,13 +1,10 @@
-package com.ociweb.iot.grove;
-import com.ociweb.iot.grove.oled.OLED_128x64_Facade;
-import com.ociweb.iot.grove.oled.OLED_96x96_Facade;
+package com.ociweb.iot.grove.oled;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
-
-
-public enum I2CGroveTwig implements I2CIODevice {
+public enum OLEDTwig implements I2CIODevice {
+	
 	OLED_128x64(){
 		@Override
 		public boolean isOutput(){
@@ -19,7 +16,7 @@ public enum I2CGroveTwig implements I2CIODevice {
 			return new OLED_128x64_Facade(ch[0]);
 		}
 	},
-
+	
 	OLED_96x96(){
 		@Override
 		public boolean isOutput(){
@@ -29,27 +26,10 @@ public enum I2CGroveTwig implements I2CIODevice {
 		@Override
 		public OLED_96x96_Facade newFacade(FogCommandChannel...ch){
 			return new OLED_96x96_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
-		}
-	},
-        I2CMotorDriver(){
-          @Override
-          public boolean isOutput(){
-              return true;
-          }
-        },
-	I2C() {
-		@Override
-		public boolean isInput() {
-			return true;
-		}
+		}	
+	}
+	;
 
-		@Override
-		public boolean isOutput() {
-			return true;
-		}
-	};
-	
-	
 	@Override
 	public int response() {
 		// TODO Auto-generated method stub
@@ -109,5 +89,5 @@ public enum I2CGroveTwig implements I2CIODevice {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
 }

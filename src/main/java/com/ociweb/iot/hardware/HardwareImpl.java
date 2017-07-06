@@ -15,7 +15,6 @@ import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.MessagePubSubStage;
 import com.ociweb.gl.impl.stage.TrafficCopStage;
-import com.ociweb.iot.grove.I2CGroveTwig;
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
@@ -473,7 +472,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 			
 	@Override
-	public Hardware connect(AnalogDigitalIODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
+	public Hardware connect(ADIODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -489,7 +488,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 	
 	@Override
-	public Hardware connect(AnalogDigitalIODevice t, Port port, int customRateMS, int customAvgWindowMS) {
+	public Hardware connect(ADIODevice t, Port port, int customRateMS, int customAvgWindowMS) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -505,7 +504,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	@Override
-	public Hardware connect(AnalogDigitalIODevice t, Port port, int customRateMS) {
+	public Hardware connect(ADIODevice t, Port port, int customRateMS) {
 		
 		deviceOnPort[port.ordinal()] = t;
 				
@@ -518,7 +517,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 	
 	@Override
-	public Hardware connect(AnalogDigitalIODevice t, Port port, int customRateMS, boolean everyValue) {
+	public Hardware connect(ADIODevice t, Port port, int customRateMS, boolean everyValue) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -531,7 +530,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 	
 	@Override
-	public Hardware connect(AnalogDigitalIODevice t, Port port) {
+	public Hardware connect(ADIODevice t, Port port) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		

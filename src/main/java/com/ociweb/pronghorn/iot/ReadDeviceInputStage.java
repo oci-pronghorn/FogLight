@@ -2,7 +2,7 @@ package com.ociweb.pronghorn.iot;
 
 import java.util.Arrays;
 
-import com.ociweb.iot.grove.AnalogDigitalGroveTwig;
+import com.ociweb.iot.grove.AnalogDigitalTwig;
 import com.ociweb.iot.grove.I2CGroveTwig;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -124,11 +124,11 @@ public class ReadDeviceInputStage extends PronghornStage {
 			
 				IODevice twig = hardware.getDigitalInputs()[i].twig;
 
-				if (twig == AnalogDigitalGroveTwig.RotaryEncoder) {
+				if (twig == AnalogDigitalTwig.RotaryEncoder) {
 					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register; //just the low address
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
-				} else if (twig == AnalogDigitalGroveTwig.Button) {                    
+				} else if (twig == AnalogDigitalTwig.Button) {                    
 					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register;
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
@@ -176,7 +176,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 				int connector = hc.register;
 				
 				
-				if (AnalogDigitalGroveTwig.RotaryEncoder == hc.twig) {
+				if (AnalogDigitalTwig.RotaryEncoder == hc.twig) {
 					assert (hc.twig.pinsUsed()==2);
 					//rotary encoder
 					//low level write

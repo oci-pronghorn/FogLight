@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
-import com.ociweb.iot.grove.AnalogDigitalGroveTwig;
-import com.ociweb.iot.hardware.AnalogDigitalIODevice;
+import com.ociweb.iot.grove.AnalogDigitalTwig;
+import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.I2CConnection;
@@ -115,7 +115,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 				int register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection+i]; 
 
 				//NOTE: may need to add additional "special cases" here
-				byte groveOperation = AnalogDigitalGroveTwig.UltrasonicRanger == t ?
+				byte groveOperation = AnalogDigitalTwig.UltrasonicRanger == t ?
 						GrovePiConstants.ULTRASONIC_RANGER : 
 							GrovePiConstants.ANALOG_READ;
 
@@ -165,9 +165,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	}
 
 	@Override
-	public Hardware connect(AnalogDigitalIODevice t, Port port) {
+	public Hardware connect(ADIODevice t, Port port) {
 		System.out.println("GrovePiHardware.connect");
-		if (t == AnalogDigitalGroveTwig.FourDigitDisplay){	
+		if (t == AnalogDigitalTwig.FourDigitDisplay){	
 			deviceOnPort[port.ordinal()] = t; 
 			return connectGroveFirmwareDevice(t,port);
 		}
@@ -184,9 +184,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	 * @return the GrovePiHardware once the proper connections are made
 	 */
 	private Hardware connectGroveFirmwareDevice(IODevice t, Port... p){
-		if (t == AnalogDigitalGroveTwig.FourDigitDisplay){
+		if (t == AnalogDigitalTwig.FourDigitDisplay){
 			System.out.println("connectGroveFirmwareDevice");
-			byte[] tailored_setup = AnalogDigitalGroveTwig.FourDigitDisplay.I2COutSetup();
+			byte[] tailored_setup = AnalogDigitalTwig.FourDigitDisplay.I2COutSetup();
 			tailored_setup[1] = p[0].port;
 			i2cOutputs = growI2CConnections(i2cOutputs,  new I2CConnection(t.getI2CConnection(), tailored_setup));
 			return this;

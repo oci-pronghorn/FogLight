@@ -1,6 +1,6 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
-import com.ociweb.iot.grove.AnalogDigitalGroveTwig;
+import com.ociweb.iot.grove.AnalogDigitalTwig;
 import com.ociweb.iot.grove.I2CGroveTwig;
 import com.ociweb.iot.hardware.HardwareConnection;
 

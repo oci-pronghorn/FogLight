@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
-import com.ociweb.iot.grove.AnalogDigitalGroveTwig;
+import com.ociweb.iot.grove.AnalogDigitalTwig;
 import com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay;
 import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayCommand;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -202,7 +202,7 @@ public class PiCommandChannel extends FogCommandChannel{
 
 		IODevice connectedDevice = builder.getConnectedDevice(port);
 
-		if (connectedDevice == AnalogDigitalGroveTwig.FourDigitDisplay){
+		if (connectedDevice == AnalogDigitalTwig.FourDigitDisplay){
 			return setFourDigitDisplayValue(port, value);
 		}
 

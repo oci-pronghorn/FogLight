@@ -1,7 +1,7 @@
 package com.ociweb.iot.grove;
 
 
-import com.ociweb.iot.hardware.AnalogDigitalIODevice;
+import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -20,7 +20,7 @@ import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayFacade;
  */
 
 
-public enum AnalogDigitalGroveTwig implements AnalogDigitalIODevice {
+public enum AnalogDigitalTwig implements ADIODevice {
 	
 	UVSensor() {
 		@Override

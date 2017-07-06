@@ -11,8 +11,8 @@ package com.ociweb.iot.grove.I2C_ADC;
  */
 public class I2C_ADC_Constants {
     
-    public static final int ADDR_ADC121     =        0x55;
-    public static final int V_REF			=		 3;
+    public static final int ADDR_ADC121     =        0x50;
+
     public static final int REG_ADDR_RESULT =        0x00;
     public static final int REG_ADDR_ALERT  =        0x01;
     public static final int REG_ADDR_CONFIG =        0x02;

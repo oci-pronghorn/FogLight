@@ -6,6 +6,7 @@
 package com.ociweb.iot.grove;
 
 import com.ociweb.iot.grove.I2C_ADC.I2C_ADC_Constants;
+import com.ociweb.iot.grove.I2C_ADC.I2C_ADC_Facade;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -16,7 +17,28 @@ import com.ociweb.iot.maker.IODeviceFacade;
  * @author huydo
  */
 public enum Grove_I2C_ADC implements I2CIODevice{
-    I2C_ADC(){
+    ReadConversionResult(){
+        @Override
+        public I2CConnection getI2CConnection() {
+            byte[] ACC_READCMD = {I2C_ADC_Constants.REG_ADDR_RESULT};
+            byte[] ACC_SETUP = {};
+            byte ACC_ADDR = I2C_ADC_Constants.ADDR_ADC121;
+            byte ACC_BYTESTOREAD = 2;
+            byte ACC_REGISTER = I2C_ADC_Constants.REG_ADDR_RESULT; //just an identifier
+            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+        }
+    },
+    ReadAlertStatus(){
+      @Override
+        public I2CConnection getI2CConnection() {
+            byte[] ACC_READCMD = {I2C_ADC_Constants.REG_ADDR_ALERT};
+            byte[] ACC_SETUP = {};
+            byte ACC_ADDR = I2C_ADC_Constants.ADDR_ADC121;
+            byte ACC_BYTESTOREAD = 1;
+            byte ACC_REGISTER = I2C_ADC_Constants.REG_ADDR_ALERT; //just an identifier
+            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+        }  
+    };            
         @Override
         public int response() {
             return 1000;
@@ -46,17 +68,6 @@ public enum Grove_I2C_ADC implements I2CIODevice{
         public int range() {
             return 256;
         }
-        
-        @Override
-        public I2CConnection getI2CConnection() {
-            byte[] ACC_READCMD = {I2C_ADC_Constants.REG_ADDR_RESULT};
-            byte[] ACC_SETUP = {I2C_ADC_Constants.REG_ADDR_CONFIG,0x20};
-            byte ACC_ADDR = I2C_ADC_Constants.ADDR_ADC121;
-            byte ACC_BYTESTOREAD = 2;
-            byte ACC_REGISTER = I2C_ADC_Constants.REG_ADDR_RESULT; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
-        }
-        
         @Override
         public boolean isValid(byte[] backing, int position, int length, int mask) {
             return true;
@@ -67,10 +78,10 @@ public enum Grove_I2C_ADC implements I2CIODevice{
             return 1;
         }
         
+         @SuppressWarnings("unchecked")
         @Override
-        public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public I2C_ADC_Facade newFacade(FogCommandChannel...ch){
+            return new I2C_ADC_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
         }
     };
-    
-}
+

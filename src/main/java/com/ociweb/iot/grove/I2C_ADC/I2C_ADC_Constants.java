@@ -4,7 +4,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ociweb.iot.grove.I2C_ADC;
+package com.ociweb.iot.grove.i2c_adc;
 
 /**
  *

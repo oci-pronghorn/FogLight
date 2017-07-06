@@ -3,10 +3,10 @@ package com.ociweb.pronghorn.iot;
 import java.util.Arrays;
 
 import com.ociweb.iot.grove.AnalogDigitalTwig;
-import com.ociweb.iot.grove.I2CGroveTwig;
+
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.I2CConnection;
+
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.Util;
 import com.ociweb.iot.maker.Port;

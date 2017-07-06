@@ -1,7 +1,7 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
 import com.ociweb.iot.grove.AnalogDigitalTwig;
-import com.ociweb.iot.grove.I2CGroveTwig;
+import com.ociweb.iot.grove.i2c.I2CTwig;
 import com.ociweb.iot.hardware.HardwareConnection;
 
 /**
@@ -158,8 +158,8 @@ public class GrovePiConstants {
     };
     
     public static final HardwareConnection[] i2cPins = new HardwareConnection[] {
-    new HardwareConnection(I2CGroveTwig.I2C,0),
-    new HardwareConnection(I2CGroveTwig.I2C,1)
+    new HardwareConnection(I2CTwig.I2C,0),
+    new HardwareConnection(I2CTwig.I2C,1)
     };
     
     public final static int DATA_RAW_VOLTAGE = 0;

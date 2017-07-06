@@ -11,10 +11,10 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.StateChangeListener;
+import com.ociweb.gl.api.StateChangeListener;
 import com.ociweb.pronghorn.util.Appendables;
 
-public class PongBehavior implements StartupListener, TimeListener, AnalogListener, StateChangeListener, DigitalListener {
+public class PongBehavior implements StartupListener, TimeListener, AnalogListener, DigitalListener {
 
 	private FogCommandChannel pongChannel;
 
@@ -270,11 +270,6 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 		}
 	}
 
-	@Override
-	public void stateChange(Enum oldState, Enum newState) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	
 

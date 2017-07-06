@@ -10,7 +10,7 @@ import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.LCD_RGB.Grove_LCD_RGB;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.StateChangeListener;
+import com.ociweb.gl.api.StateChangeListener;
 import com.ociweb.pronghorn.util.Appendables;
 
 public class DisplayController implements PubSubListener, StateChangeListener<PumpState> {
@@ -85,10 +85,11 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 	}
 
 	@Override
-	public void stateChange(PumpState oldState, PumpState newState) {
+	public boolean stateChange(PumpState oldState, PumpState newState) {
 		activeState = newState;
 		
 		repaint();
+		return true;
 	}
 	
 	private void repaint() {

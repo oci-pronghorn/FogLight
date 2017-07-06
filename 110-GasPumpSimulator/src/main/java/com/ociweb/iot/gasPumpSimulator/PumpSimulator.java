@@ -2,13 +2,11 @@ package com.ociweb.iot.gasPumpSimulator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.StateChangeListener;
+import com.ociweb.gl.api.*;
 
 public class PumpSimulator implements DigitalListener, StateChangeListener<PumpState> {
 
@@ -57,7 +55,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 
 
 	@Override
-	public void stateChange(PumpState oldState, PumpState newState) {
+	public boolean stateChange(PumpState oldState, PumpState newState) {
 
 		//exit pump mode
 		if (oldState == PumpState.Pump) {
@@ -80,6 +78,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 			isActive = true;
 
 		}
+		return true;
 
 	}
 

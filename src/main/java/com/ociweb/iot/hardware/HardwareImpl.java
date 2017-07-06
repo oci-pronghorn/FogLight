@@ -167,7 +167,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	protected I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
-		System.out.println("Grow I2C Connections");
 		if (null==original) {
 			return new I2CConnection[] {toAdd};
 		} else {

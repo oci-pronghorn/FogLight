@@ -6,6 +6,9 @@ import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
 import static com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay.*;
+import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayFacade;
+
+import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayFacade;
 
 /**
  * Holds information for all standard Analog and Digital I/O twigs in the Grove starter kit.
@@ -18,7 +21,7 @@ import static com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay.*;
 
 
 public enum AnalogDigitalGroveTwig implements AnalogDigitalIODevice {
-
+	
 	UVSensor() {
 		@Override
 		public boolean isInput() {
@@ -197,6 +200,8 @@ public enum AnalogDigitalGroveTwig implements AnalogDigitalIODevice {
 		}
 	},
 	FourDigitDisplay(){
+		public static final int init = -1;
+		;
 		@Override
 		public boolean isOutput(){
 			return true;
@@ -226,6 +231,7 @@ public enum AnalogDigitalGroveTwig implements AnalogDigitalIODevice {
 			byte [] set_up = {GROVE_TM1637_INIT, 5, 0x00,0x00};
 			return set_up;
 		}
+		
 	},
 
 	VibrationSensor(){

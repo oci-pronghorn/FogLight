@@ -17,9 +17,7 @@ public class IoTApp implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
   
-        final FogCommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        runtime.addDigitalListener((port, connection, time, value)->{ 
-    	    channel1.setValueAndBlock(BUZZER_PORT, value == 1, 500);
-    	});
+        runtime.addDigitalListener(new BuzzerBehavior(runtime));
+       
     }
 }

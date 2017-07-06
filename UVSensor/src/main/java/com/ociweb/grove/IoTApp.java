@@ -24,9 +24,7 @@ public class IoTApp implements FogApp
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-
-        runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-            System.out.println("The Illumination intensity is : "+(value/1023*307)+"mW/m^2");
-        });   
+      
+        runtime.addAnalogListener(new UVSensorBehavior(runtime));
     }
 }

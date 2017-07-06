@@ -44,8 +44,8 @@ public class IoTApp implements FogApp
                 System.out.println("value: "+value);
                 int speed = (value-512)/8;
                 
-                motorController.setPower(1, speed);
-                motorController.setPower(2, speed);
+                motorController.setVelocity(1, speed);
+                motorController.setVelocity(2, speed);
             //}
         }).includePorts(ANGLE_SENSOR);
         
@@ -59,17 +59,7 @@ public class IoTApp implements FogApp
             
         }).excludeI2CConnections(4);
         
-//      g.addDigitalListener((port, connection, time, value)->{
-//            if(value==1){
-//                System.out.println("starting Motor 1");
-//                motorController.driveMotor1(50);
-//                System.out.println("starting Motor 2");
-//                motorController.driveMotor2(50);
-//            }else{
-//                motorController.stopMotor1();
-//                motorController.stopMotor2();
-//            }
-//        });
+
 
     }
 }

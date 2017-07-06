@@ -29,6 +29,6 @@ public class IoTApp implements FogApp
         //Specify the desired behavior
         //////////////////////////////
         
-        runtime.addListener(new AccelerometerBehavior(runtime));
+        runtime.registerListener(new AccelerometerBehavior(runtime));
     }
 }

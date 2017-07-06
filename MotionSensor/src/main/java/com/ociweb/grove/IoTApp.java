@@ -26,7 +26,7 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        runtime.addListener(new MotionSensorBehavior(runtime));
+        runtime.registerListener(new MotionSensorBehavior(runtime));
               
     }
     

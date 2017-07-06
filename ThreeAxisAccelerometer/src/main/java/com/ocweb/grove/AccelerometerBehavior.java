@@ -31,23 +31,16 @@ public class AccelerometerBehavior implements I2CListener,StartupListener {
     public void startup() {
         accSensor.begin();
         accSensor.setRange(4);
+        
     }
     
     @Override
     public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
-        System.out.println("backing0: "+(backing[position]));
-        System.out.println("backing1: "+(backing[position+1]));
-        System.out.println("backing2: "+(backing[position+2]));
-        System.out.println("backing3: "+(backing[position+3]));
-        System.out.println("backing4: "+(backing[position+4]));
-        System.out.println("backing5: "+(backing[position+5]));
-        
         
         short[] values = accSensor.intepretData(backing, position, length, mask);
         System.out.println("x= "+values[0]);
         System.out.println("y= "+values[1]);
         System.out.println("z= "+values[2]);
-        
     }
     
     

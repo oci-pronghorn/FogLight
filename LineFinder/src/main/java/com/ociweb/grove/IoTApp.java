@@ -26,7 +26,7 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        runtime.addListener(new LineFinderBehavior(runtime));
+        runtime.registerListener(new LineFinderBehavior(runtime));
         
     }
     

@@ -28,6 +28,6 @@ public class IoTApp implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        runtime.addListener(new AngleSensorBehavior(runtime));
+        runtime.registerListener(new AngleSensorBehavior(runtime));
     }
 }

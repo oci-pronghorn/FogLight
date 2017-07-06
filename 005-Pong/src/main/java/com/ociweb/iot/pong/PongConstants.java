@@ -3,7 +3,7 @@ package com.ociweb.iot.pong;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.iot.maker.Port.*;
 
-import com.ociweb.iot.grove.LCD_RGB.Grove_LCD_RGB_Patterns;
+import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB_Patterns;
 
 public class PongConstants {
 

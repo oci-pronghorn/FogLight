@@ -13,7 +13,7 @@
 
 package com.ociweb.iot.project.lightblink;
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.LED;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.LED;
 import static com.ociweb.iot.maker.Port.D5;
 
 import com.ociweb.gl.api.GreenCommandChannel;

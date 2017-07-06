@@ -1,9 +1,9 @@
 package com.ociweb.iot.gasPumpSimulator;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.AngleSensor;
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.Button;
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.UltrasonicRanger;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.AngleSensor;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.Button;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.UltrasonicRanger;
 import static com.ociweb.iot.maker.Port.A0;
 import static com.ociweb.iot.maker.Port.A2;
 import static com.ociweb.iot.maker.Port.D7;

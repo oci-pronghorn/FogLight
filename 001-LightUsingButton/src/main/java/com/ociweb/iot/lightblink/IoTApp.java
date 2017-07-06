@@ -1,7 +1,7 @@
 package com.ociweb.iot.lightblink;
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.Button;
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.LED;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.Button;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.LED;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;

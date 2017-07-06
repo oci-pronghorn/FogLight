@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.OLED;
+package com.ociweb.iot.grove.oled;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;

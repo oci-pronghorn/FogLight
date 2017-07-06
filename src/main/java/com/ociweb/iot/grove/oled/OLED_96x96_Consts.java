@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.OLED;
+package com.ociweb.iot.grove.oled;
 
 public class OLED_96x96_Consts {
 	public static final int ROW_COUNT = 96;

@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.OLED;
+package com.ociweb.iot.grove.oled;
 
 public class SSD1327_Consts {
 

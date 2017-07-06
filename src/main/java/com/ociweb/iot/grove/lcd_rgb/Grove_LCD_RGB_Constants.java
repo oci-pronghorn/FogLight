@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.LCD_RGB;
+package com.ociweb.iot.grove.lcd_rgb;
 
 /*
  * Static constants for use with a Grove LCD RGB display.

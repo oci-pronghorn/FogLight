@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove.OLED;
+package com.ociweb.iot.grove.oled;
 
 public enum ScrollSpeed{
 	Scroll_2Frames(0x07),

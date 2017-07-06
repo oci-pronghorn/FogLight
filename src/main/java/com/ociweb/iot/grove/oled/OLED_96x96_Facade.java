@@ -1,6 +1,6 @@
-package com.ociweb.iot.grove.OLED;
+package com.ociweb.iot.grove.oled;
 
-import static com.ociweb.iot.grove.OLED.OLED_96x96_DriverChip.*;
+import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;

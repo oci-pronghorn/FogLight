@@ -1,15 +1,15 @@
-package com.ociweb.iot.grove.OLED;
+package com.ociweb.iot.grove.oled;
 
 import com.ociweb.iot.maker.IODeviceFacade;
 
-import static com.ociweb.iot.grove.OLED.Grove_OLED_128x64_Constants.*;
-import static com.ociweb.iot.grove.OLED.Grove_OLED_128x64_Constants.Direction.Left;
-import static com.ociweb.iot.grove.OLED.Grove_OLED_128x64_Constants.Direction.Right;
-import static com.ociweb.iot.grove.OLED.Grove_OLED_128x64_Constants.Orientation.Vertical_Left;
-import static com.ociweb.iot.grove.OLED.Grove_OLED_128x64_Constants.Orientation.Vertical_Right;
+import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.*;
+import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction.Left;
+import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction.Right;
+import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation.Vertical_Left;
+import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation.Vertical_Right;
 
-import com.ociweb.iot.grove.OLED.Grove_OLED_128x64_Constants.Direction;
-import com.ociweb.iot.grove.OLED.Grove_OLED_128x64_Constants.Orientation;
+import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction;
+import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**

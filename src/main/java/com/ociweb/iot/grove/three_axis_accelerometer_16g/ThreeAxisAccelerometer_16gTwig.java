@@ -15,39 +15,39 @@ import com.ociweb.iot.maker.IODeviceFacade;
  *
  * @author huydo
  */
-public enum Accelerometer_16G implements I2CIODevice {
+public enum ThreeAxisAccelerometer_16gTwig implements I2CIODevice {
     
-    Accelerometer_GetXYZ(){
+    GetXYZ(){
         
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {Accelerometer_16G_Constants.ADXL345_DATAX0};
+            byte[] ACC_READCMD = {ThreeAxisAccelerometer_16g_Constants.ADXL345_DATAX0};
             byte[] ACC_SETUP = {};
-            byte ACC_ADDR = Accelerometer_16G_Constants.ADXL345_DEVICE;
+            byte ACC_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
             byte ACC_BYTESTOREAD = 6;
-            byte ACC_REGISTER = Accelerometer_16G_Constants.ADXL345_DATAX0; //just an identifier
+            byte ACC_REGISTER = ThreeAxisAccelerometer_16g_Constants.ADXL345_DATAX0; //just an identifier
             return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
         }
     },
-    Accelerometer_Get_TapAct(){
+    GetTapAct(){
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {Accelerometer_16G_Constants.ADXL345_ACT_TAP_STATUS};
+            byte[] ACC_READCMD = {ThreeAxisAccelerometer_16g_Constants.ADXL345_ACT_TAP_STATUS};
             byte[] ACC_SETUP = {};
-            byte ACC_ADDR = Accelerometer_16G_Constants.ADXL345_DEVICE;
+            byte ACC_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
             byte ACC_BYTESTOREAD = 1;
-            byte ACC_REGISTER = Accelerometer_16G_Constants.ADXL345_ACT_TAP_STATUS; //just an identifier
+            byte ACC_REGISTER = ThreeAxisAccelerometer_16g_Constants.ADXL345_ACT_TAP_STATUS; //just an identifier
             return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
         }
     },
-    Accelerometer_GetInterrupt(){
+    GetInterrupt(){
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {Accelerometer_16G_Constants.ADXL345_INT_SOURCE};
+            byte[] ACC_READCMD = {ThreeAxisAccelerometer_16g_Constants.ADXL345_INT_SOURCE};
             byte[] ACC_SETUP = {};
-            byte ACC_ADDR = Accelerometer_16G_Constants.ADXL345_DEVICE;
+            byte ACC_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
             byte ACC_BYTESTOREAD = 1;
-            byte ACC_REGISTER = Accelerometer_16G_Constants.ADXL345_INT_SOURCE; //just an identifier
+            byte ACC_REGISTER = ThreeAxisAccelerometer_16g_Constants.ADXL345_INT_SOURCE; //just an identifier
             return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
         }
     };
@@ -67,8 +67,8 @@ public enum Accelerometer_16G implements I2CIODevice {
     
     @SuppressWarnings("unchecked")
         @Override
-        public Accelerometer_16G_Facade newFacade(FogCommandChannel...ch){
-            return new Accelerometer_16G_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+        public ThreeAxisAccelerometer_16g_Facade newFacade(FogCommandChannel...ch){
+            return new ThreeAxisAccelerometer_16g_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
         }
     /**
      *

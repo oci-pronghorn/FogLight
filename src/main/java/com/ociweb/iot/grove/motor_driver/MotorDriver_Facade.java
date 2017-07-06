@@ -3,9 +3,9 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.i2c_motor_driver;
+package com.ociweb.iot.grove.motor_driver;
 
-import static com.ociweb.iot.grove.i2c_motor_driver.I2CMotorDriver_Constants.*;
+import static com.ociweb.iot.grove.motor_driver.MotorDriver_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -15,15 +15,15 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class I2CMotorDriver_Facade implements IODeviceFacade{
+public class MotorDriver_Facade implements IODeviceFacade{
     FogCommandChannel target;
     public int DRIVER_I2C_ADD = 0x0f; //default address of the driver
     
-    public I2CMotorDriver_Facade(FogCommandChannel ch){
+    public MotorDriver_Facade(FogCommandChannel ch){
         this.target = ch;
     }
     
-    public I2CMotorDriver_Facade(FogCommandChannel ch,int i2cAddress){
+    public MotorDriver_Facade(FogCommandChannel ch,int i2cAddress){
         this.target = ch;
         this.DRIVER_I2C_ADD = i2cAddress;
     }

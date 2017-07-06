@@ -9,7 +9,7 @@ package com.ociweb.iot.grove.three_axis_accelerometer_16g;
  *
  * @author huydo
  */
-public class Accelerometer_16G_Constants {
+public class ThreeAxisAccelerometer_16g_Constants {
     public static final int ADXL345_DEVICE    = 0x53;
     
     public static final int ADXL345_POWER_CTL = 0x2D;

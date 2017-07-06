@@ -3,13 +3,13 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.i2c_motor_driver;
+package com.ociweb.iot.grove.motor_driver;
 
 /**
  *
  * @author huydo
  */
-public class I2CMotorDriver_Constants {
+public class MotorDriver_Constants {
     public static final int SPEED_REG               =0x82;
     public static final int PWM_FREQ_REG            =0x84;
     public static final int DIR_REG                 =0xaa;

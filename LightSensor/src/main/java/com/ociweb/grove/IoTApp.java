@@ -1,5 +1,5 @@
 package com.ociweb.grove;
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 

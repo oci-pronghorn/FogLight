@@ -14,7 +14,7 @@ Demo code (copy and paste this to a FogLighter project):
 ```java
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 
 import com.ociweb.iot.maker.*;
 

@@ -18,22 +18,29 @@ public class IngressBehavior implements PubSubListener {
 
 
 	public boolean message(CharSequence topic, MessageReader payload) {
-		
+
+		// this received when mosquitto_pub is invoked - see MQTTClient
 		System.out.print("\ningress body: ");
+
+		// Read the message payload and output it to System.out
 		payload.readUTFOfLength(payload.available(), System.out);
 		System.out.println();
-		
-		PubSubWritable writable = new PubSubWritable() {
+
+		// Create the on-demand mqtt payload writer
+		PubSubWritable mqttPayload = new PubSubWritable() {
 
 			@Override
 			public void write(PubSubWriter writer) {
-				
+
 				writer.writeUTF("second step test message");
 			}
-			
+
 		};
-		cmd.publishTopic("localtest", writable);
-		
+
+		// On the 'localtest' topic publish the mqtt payload
+		cmd.publishTopic("localtest", mqttPayload);
+
+		// We consumed the message
 		return true;
 	}
 

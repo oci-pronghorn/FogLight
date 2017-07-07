@@ -18,6 +18,8 @@ public class TimeBehavior implements TimeListener {
 
 	@Override
 	public void timeEvent(long time, int iteration) {
+
+		// On the timer event create a payload with a string encoded timestamp
 		PubSubWritable writable = new PubSubWritable() {
 			@Override
 			public void write(PubSubWriter writer) {	
@@ -28,6 +30,7 @@ public class TimeBehavior implements TimeListener {
 				
 			}
 		};
+		// Send out the payload with thre MQTT topic "topic/egress"
 		cmdChnl.publishTopic("topic/egress", writable);
 	}
 

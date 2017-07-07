@@ -6,7 +6,7 @@
 package com.ocweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
-import com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16g_Facade;
+import com.ociweb.iot.grove.three_axis_accelerometer_16g.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.I2CListener;

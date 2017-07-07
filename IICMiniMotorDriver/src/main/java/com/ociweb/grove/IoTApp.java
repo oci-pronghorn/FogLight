@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
 
-import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriverTwig;
+import static com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriverTwig.*;
 import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Facade;
 import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 import com.ociweb.iot.maker.FogApp;
@@ -27,7 +27,7 @@ public class IoTApp implements FogApp
     @Override
     public void declareConnections(Hardware c) {
         c.useI2C();
-        c.connect(MiniMotorDriverTwig.ReadFault);
+        c.connect(MiniMotorDriver.ReadFault);
         c.connect(AngleSensor,ANGLE_SENSOR);
         
         

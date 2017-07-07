@@ -6,8 +6,7 @@
 package com.ociweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
-import com.ociweb.iot.grove.I2C_ADC.*;
-import com.ociweb.iot.grove.I2C_ADC.I2C_ADC_Facade;
+import com.ociweb.iot.grove.adc.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.I2CListener;
@@ -18,11 +17,11 @@ import com.ociweb.iot.maker.I2CListener;
  */
 public class AnalogToIICBehavior implements I2CListener,StartupListener{
     private final FogCommandChannel ch;
-    private final I2C_ADC_Facade sensor;
+    private final ADC_Facade sensor;
     
     public AnalogToIICBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel();
-        sensor = new I2C_ADC_Facade(ch);
+        sensor = new ADC_Facade(ch);
     }
     @Override
     public void startup() {

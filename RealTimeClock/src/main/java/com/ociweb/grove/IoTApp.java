@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
+import static com.ociweb.iot.grove.real_time_clock.RTCTwig.*;
 import com.ociweb.iot.grove.real_time_clock.*;
-
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -24,7 +24,7 @@ public class IoTApp implements FogApp
         
         // // specify each of the connections on the harware, eg which component is plugged into which connection.
         c.useI2C();
-        c.connect(RTCTwig.ReadTime);
+        c.connect(RTC.ReadTime);
     }
     
     

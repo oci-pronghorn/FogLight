@@ -14,7 +14,9 @@ import com.ociweb.iot.maker.IODeviceFacade;
  *
  * @author huydo
  */
-public enum ADCTwig implements I2CIODevice{
+public enum ADCTwig {
+    ;
+    public enum ADC implements I2CIODevice {
     ReadConversionResult(){
         @Override
         public I2CConnection getI2CConnection() {
@@ -81,5 +83,6 @@ public enum ADCTwig implements I2CIODevice{
         public ADC_Facade newFacade(FogCommandChannel...ch){
             return new ADC_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
         }
+}
     };
 

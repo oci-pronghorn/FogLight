@@ -28,12 +28,12 @@ public enum MiniMotorDriverTwig implements I2CIODevice{
         }
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] MOTOR_READCMD = {MiniMotorDriver_Constants.FAULT_REG};
-            byte[] MOTOR_SETUP = {};
-            byte MOTOR_ADDR = MiniMotorDriver_Constants.CH1_ADD;
-            byte MOTOR_BYTESTOREAD = 1;
-            byte MOTOR_REGISTER = MiniMotorDriver_Constants.FAULT_REG;  //register identifier
-            return new I2CConnection(this, MOTOR_ADDR, MOTOR_READCMD, MOTOR_BYTESTOREAD, MOTOR_REGISTER, MOTOR_SETUP);
+            byte[] REG_ADDR = {MiniMotorDriver_Constants.FAULT_REG};
+            byte[] SETUP = {};
+            byte I2C_ADDR = MiniMotorDriver_Constants.CH1_ADD;
+            byte BYTESTOREAD = 1;
+            byte REG_ID = MiniMotorDriver_Constants.FAULT_REG;  //register identifier
+            return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
         }
         
         @Override

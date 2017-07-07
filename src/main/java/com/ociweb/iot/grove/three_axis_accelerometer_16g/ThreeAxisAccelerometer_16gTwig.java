@@ -21,34 +21,34 @@ public enum ThreeAxisAccelerometer_16gTwig implements I2CIODevice {
         
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {ThreeAxisAccelerometer_16g_Constants.ADXL345_DATAX0};
-            byte[] ACC_SETUP = {};
-            byte ACC_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
-            byte ACC_BYTESTOREAD = 6;
-            byte ACC_REGISTER = ThreeAxisAccelerometer_16g_Constants.ADXL345_DATAX0; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+            byte[] REG_ADDR = {ThreeAxisAccelerometer_16g_Constants.ADXL345_DATAX0};
+            byte[] SETUP = {};
+            byte I2C_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
+            byte BYTESTOREAD = 6;
+            byte REG_ID = ThreeAxisAccelerometer_16g_Constants.ADXL345_DATAX0; //just an identifier
+            return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
         }
     },
     GetTapAct(){
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {ThreeAxisAccelerometer_16g_Constants.ADXL345_ACT_TAP_STATUS};
-            byte[] ACC_SETUP = {};
-            byte ACC_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
-            byte ACC_BYTESTOREAD = 1;
-            byte ACC_REGISTER = ThreeAxisAccelerometer_16g_Constants.ADXL345_ACT_TAP_STATUS; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+            byte[] REG_ADDR = {ThreeAxisAccelerometer_16g_Constants.ADXL345_ACT_TAP_STATUS};
+            byte[] SETUP = {};
+            byte I2C_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
+            byte BYTESTOREAD = 1;
+            byte REG_ID = ThreeAxisAccelerometer_16g_Constants.ADXL345_ACT_TAP_STATUS; //just an identifier
+            return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
         }
     },
     GetInterrupt(){
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {ThreeAxisAccelerometer_16g_Constants.ADXL345_INT_SOURCE};
-            byte[] ACC_SETUP = {};
-            byte ACC_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
-            byte ACC_BYTESTOREAD = 1;
-            byte ACC_REGISTER = ThreeAxisAccelerometer_16g_Constants.ADXL345_INT_SOURCE; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+            byte[] REG_ADDR = {ThreeAxisAccelerometer_16g_Constants.ADXL345_INT_SOURCE};
+            byte[] SETUP = {};
+            byte I2C_ADDR = ThreeAxisAccelerometer_16g_Constants.ADXL345_DEVICE;
+            byte BYTESTOREAD = 1;
+            byte REG_ID = ThreeAxisAccelerometer_16g_Constants.ADXL345_INT_SOURCE; //just an identifier
+            return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
         }
     };
     @Override

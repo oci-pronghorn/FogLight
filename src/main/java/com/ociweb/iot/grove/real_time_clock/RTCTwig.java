@@ -27,13 +27,13 @@ public enum RTCTwig implements I2CIODevice {
         }
         @Override
         public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            byte[] ACC_READCMD = {RTC_Constants.TIME_REG};
+            byte[] REG_ADDR = {RTC_Constants.TIME_REG};
             //byte[] ACC_SETUP = {ADXL345_POWER_CTL,0x08};
-            byte[] ACC_SETUP = {};
-            byte ACC_ADDR = RTC_Constants.DS1307_I2C_ADDRESS;
-            byte ACC_BYTESTOREAD = 7;
-            byte ACC_REGISTER = RTC_Constants.TIME_REG; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+            byte[] SETUP = {};
+            byte I2C_ADDR = RTC_Constants.DS1307_I2C_ADDRESS;
+            byte BYTESTOREAD = 7;
+            byte REG_ID = RTC_Constants.TIME_REG; //just an identifier
+            return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
         }
         
         

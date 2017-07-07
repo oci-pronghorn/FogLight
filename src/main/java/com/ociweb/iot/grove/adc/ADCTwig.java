@@ -18,23 +18,23 @@ public enum ADCTwig implements I2CIODevice{
     ReadConversionResult(){
         @Override
         public I2CConnection getI2CConnection() {
-            byte[] ACC_READCMD = {ADC_Constants.REG_ADDR_RESULT};
-            byte[] ACC_SETUP = {};
-            byte ACC_ADDR = ADC_Constants.ADDR_ADC121;
-            byte ACC_BYTESTOREAD = 2;
-            byte ACC_REGISTER = ADC_Constants.REG_ADDR_RESULT; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+            byte[] REG_ADDR = {ADC_Constants.REG_ADDR_RESULT};
+            byte[] SETUP = {};
+            byte I2C_ADDR = ADC_Constants.ADDR_ADC121;
+            byte BYTESTOREAD = 2;
+            byte REG_ID = ADC_Constants.REG_ADDR_RESULT; //just an identifier
+            return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
         }
     },
     ReadAlertStatus(){
       @Override
         public I2CConnection getI2CConnection() {
-            byte[] ACC_READCMD = {ADC_Constants.REG_ADDR_ALERT};
-            byte[] ACC_SETUP = {};
-            byte ACC_ADDR = ADC_Constants.ADDR_ADC121;
-            byte ACC_BYTESTOREAD = 1;
-            byte ACC_REGISTER = ADC_Constants.REG_ADDR_ALERT; //just an identifier
-            return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
+            byte[] REG_ADDR = {ADC_Constants.REG_ADDR_ALERT};
+            byte[] SETUP = {};
+            byte I2C_ADDR = ADC_Constants.ADDR_ADC121;
+            byte BYTESTOREAD = 1;
+            byte REG_ID = ADC_Constants.REG_ADDR_ALERT; //just an identifier
+            return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
         }  
     };            
         @Override

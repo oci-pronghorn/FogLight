@@ -6,7 +6,7 @@ import static com.ociweb.iot.maker.Port.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 public class IoTApp implements FogApp
 {
 	private static final Logger logger = LoggerFactory.getLogger(IoTApp.class);

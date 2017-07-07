@@ -1,11 +1,11 @@
 package com.ociweb.grove;
 
-import static com.ociweb.iot.grove.OLED.OLED_128x64.Grove_OLED_128x64_Constants.*;
+import static com.ociweb.iot.grove.oled.OLEDTwig.*;
 
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
-import static com.ociweb.iot.grove.oled.OLEDTwig.*;
-import com.ociweb.iot.grove.OLED.OLED_128x64.OLED_128x64_Facade;
+import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.*;
+import com.ociweb.iot.grove.oled.OLED_128x64_Facade;
 import com.ociweb.iot.maker.FogRuntime;
 
 public class GameOfLifeBehavior implements StartupListener, TimeListener {

@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.Button;
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.UltrasonicRanger;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.Button;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.UltrasonicRanger;
 import static com.ociweb.iot.maker.Port.A0;
 import static com.ociweb.iot.maker.Port.D2;
 

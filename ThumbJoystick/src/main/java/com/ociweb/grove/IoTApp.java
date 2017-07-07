@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 import com.ociweb.gl.api.GreenCommandChannel;
@@ -27,7 +27,7 @@ public class IoTApp implements FogApp
 		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
 			if ( port == THUMBJOYSTICK_PORT_X){
 				//the X value should be roughly between 200 to 800 unless pressed
-				if (!ThumbJoystick.isPressed(value)){
+				if (value != 1023){
 					System.out.println("X: "+value);
 				}
 				else {

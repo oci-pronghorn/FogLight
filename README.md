@@ -24,7 +24,7 @@ The terminal now asks for:
 
 ```groupID```: type in  *com.ociweb* then press Enter
 
-```ArtifactID```: type in name of your project then press Enter
+```ArtifactID```: type in name of your project (with no spaces) then press Enter
 
 ```version: 1.0-SNAPSHOT ```: Ignore, Press Enter
 
@@ -37,16 +37,6 @@ This will create a folder named after your project, which includes all the proje
 If you’re working from Terminal, open up the file  “ProjectXYZ”/src/main/java/com/ociweb/IoTApp.java . You can start implementing the project code from here. 
 
 If you’re using an IDE, open up the created Maven project - *ProjectXYZ* and start working from IoTApp.java
-
-Once you’re done with the implementation, open your project folder in terminal and type 
-```
-mvn install
-```
-.. to build the project. This will create a .jar file named ProjectXYZ.jar in the **/target** folder (note that there are other .jar files  in **/target**, but we don’t have to worry about those). This jar is executable and contains all its needed dependencies. Transfer this .jar file to your device and use the command 
-```
-java -jar ProjectXYZ.jar 
-```
-.. to execute it.
  
 ### Importing the Maven project in Eclipse
 Select File -> Import
@@ -77,4 +67,19 @@ file.
 Click "OK".
 
 The import will be performed automatically.
+
+### Building the project
+Open your project folder in the terminal of your choosing and type
+```
+mvn install
+```
+.. to build the project. This will create a .jar file named ProjectXYZ.jar in the **/target** folder (note that there are other .jar files  in **/target**, but we don’t have to worry about those). This jar is executable and contains all its needed dependencies.
+
+Transfer this .jar file to your device.
+
+Use the command on your device..
+```
+java -jar ProjectXYZ.jar
+```
+.. to execute it.
 

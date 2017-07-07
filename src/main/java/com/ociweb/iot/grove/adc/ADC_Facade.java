@@ -3,9 +3,10 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.i2c_adc;
+package com.ociweb.iot.grove.adc;
 
-import static com.ociweb.iot.grove.i2c_adc.I2C_ADC_Constants.*;
+import static com.ociweb.iot.grove.adc.ADC_Constants.*;
+
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -15,10 +16,10 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class I2C_ADC_Facade implements IODeviceFacade{
+public class ADC_Facade implements IODeviceFacade{
     FogCommandChannel target;
     
-    public I2C_ADC_Facade(FogCommandChannel ch){
+    public ADC_Facade(FogCommandChannel ch){
         this.target = ch;
     }
     public void begin(){

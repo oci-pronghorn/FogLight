@@ -4,13 +4,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ociweb.iot.grove.i2c_adc;
+package com.ociweb.iot.grove.adc;
 
 /**
  *
  * @author huydo
  */
-public class I2C_ADC_Constants {
+public class ADC_Constants {
 
 	public static final int ADDR_ADC121     =        0x50;
 	public static final int REG_ADDR_RESULT =        0x00;

@@ -2,7 +2,9 @@
 package com.ociweb.iot.grove;
 
 
+import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
+import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -26,7 +28,7 @@ import com.ociweb.iot.grove.oled.OLED_96x96_Facade;
 
 
 @Deprecated
-public enum GroveTwig implements IODevice {
+public enum GroveTwig implements IODevice, ADIODevice, I2CIODevice {
 
 	UVSensor() {
 		@Override

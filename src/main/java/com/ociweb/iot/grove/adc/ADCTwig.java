@@ -3,7 +3,7 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.i2c_adc;
+package com.ociweb.iot.grove.adc;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
@@ -14,26 +14,26 @@ import com.ociweb.iot.maker.IODeviceFacade;
  *
  * @author huydo
  */
-public enum I2C_ADCTwig implements I2CIODevice{
+public enum ADCTwig implements I2CIODevice{
     ReadConversionResult(){
         @Override
         public I2CConnection getI2CConnection() {
-            byte[] ACC_READCMD = {I2C_ADC_Constants.REG_ADDR_RESULT};
+            byte[] ACC_READCMD = {ADC_Constants.REG_ADDR_RESULT};
             byte[] ACC_SETUP = {};
-            byte ACC_ADDR = I2C_ADC_Constants.ADDR_ADC121;
+            byte ACC_ADDR = ADC_Constants.ADDR_ADC121;
             byte ACC_BYTESTOREAD = 2;
-            byte ACC_REGISTER = I2C_ADC_Constants.REG_ADDR_RESULT; //just an identifier
+            byte ACC_REGISTER = ADC_Constants.REG_ADDR_RESULT; //just an identifier
             return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
         }
     },
     ReadAlertStatus(){
       @Override
         public I2CConnection getI2CConnection() {
-            byte[] ACC_READCMD = {I2C_ADC_Constants.REG_ADDR_ALERT};
+            byte[] ACC_READCMD = {ADC_Constants.REG_ADDR_ALERT};
             byte[] ACC_SETUP = {};
-            byte ACC_ADDR = I2C_ADC_Constants.ADDR_ADC121;
+            byte ACC_ADDR = ADC_Constants.ADDR_ADC121;
             byte ACC_BYTESTOREAD = 1;
-            byte ACC_REGISTER = I2C_ADC_Constants.REG_ADDR_ALERT; //just an identifier
+            byte ACC_REGISTER = ADC_Constants.REG_ADDR_ALERT; //just an identifier
             return new I2CConnection(this, ACC_ADDR, ACC_READCMD, ACC_BYTESTOREAD, ACC_REGISTER, ACC_SETUP);
         }  
     };            
@@ -78,8 +78,8 @@ public enum I2C_ADCTwig implements I2CIODevice{
         
          @SuppressWarnings("unchecked")
         @Override
-        public I2C_ADC_Facade newFacade(FogCommandChannel...ch){
-            return new I2C_ADC_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+        public ADC_Facade newFacade(FogCommandChannel...ch){
+            return new ADC_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
         }
     };
 

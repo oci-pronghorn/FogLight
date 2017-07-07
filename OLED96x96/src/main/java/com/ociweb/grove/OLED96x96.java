@@ -1,7 +1,5 @@
 package com.ociweb.grove;
 
-
-
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
@@ -17,7 +15,6 @@ public class OLED96x96 implements FogApp
 	public void declareConnections(Hardware c) {
 		c.setTriggerRate(1000);
 		c.useI2C();
-
 	}
 	@Override
 	public void declareBehavior(FogRuntime runtime) {

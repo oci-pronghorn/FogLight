@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
+import static com.ociweb.iot.grove.adc.ADCTwig.*;
 import com.ociweb.iot.grove.adc
 
 import com.ociweb.iot.maker.*;
@@ -20,7 +20,7 @@ public class AnalogToIIC implements FogApp
         //Connection specifications
         ///////////////////////////
         c.useI2C();
-        c.connect(I2C_ADCTwig.ReadConversionResult,500);
+        c.connect(ADC.ReadConversionResult,500);
         
     }
 

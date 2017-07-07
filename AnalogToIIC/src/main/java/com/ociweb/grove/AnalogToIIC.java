@@ -1,8 +1,13 @@
 package com.ociweb.grove;
 
 
+<<<<<<< HEAD
 import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 import static com.ociweb.iot.grove.adc.ADCTwig.*;
+=======
+import static com.ociweb.iot.grove.adc.ADCTwig.*;
+import com.ociweb.iot.grove.adc
+>>>>>>> 70e8c19b179528fd77857fb2d2396072441c2f8b
 
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;

@@ -2,10 +2,10 @@ package com.ociweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
-import com.ociweb.iot.grove.OLED.OLED_96x96.OLED_96x96_Facade;
+import static com.ociweb.iot.grove.oled.OLEDTwig.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import static com.ociweb.iot.grove.I2CGroveTwig.*;
+import com.ociweb.iot.grove.oled.OLED_96x96_Facade;
 
 public class OLED_96x96Behavior implements StartupListener, TimeListener{
 	private final OLED_96x96_Facade display;

@@ -1,4 +1,4 @@
-package com.ociweb.iot.grove;
+package com.ociweb.iot.grove.temp_and_humid;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

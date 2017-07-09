@@ -46,7 +46,14 @@ public class ThingBehavior implements PubSubListener {
     
 	@Override
 	public boolean message(CharSequence topic, MessageReader payload) {
-						
+					
+		//
+		////NOTE: this one line will copy messages from payload if consumer returns true
+		////      when the message is copied its topic is changed to the first argument string
+		//
+		//cmd.copyStructuredTopic("outgoing topic", payload, consumer);
+		//
+		
 		if (consumer.process(payload)) {
 			if (lastValue>0) {
 				System.out.println(lastValue);

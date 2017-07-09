@@ -1,8 +1,5 @@
 package com.coiweb.oe.foglight.api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -22,15 +19,14 @@ public class AppTest {
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
+	    	//TODO: set the TestSerial impl to check the values sent that match [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] 
+	    	
 	    	scheduler.startup();
 	    	
-	    	int iterations = 10;
-			while (--iterations >= 0) {
-				    		
+	    	final long testStop = System.currentTimeMillis()+1200;
+	    	
+			while (System.currentTimeMillis()<testStop) {				    		
 					scheduler.run();
-					
-					//test application here
-					
 			}
 			
 			scheduler.shutdown();

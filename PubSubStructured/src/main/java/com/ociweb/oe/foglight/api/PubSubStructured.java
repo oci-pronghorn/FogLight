@@ -6,8 +6,8 @@ import com.ociweb.iot.maker.Hardware;
 
 public class PubSubStructured implements FogApp
 {
-    public static int COUNT_DOWN_FIELD = 1;
-    public static int SENDER_FIELD = 2;
+    static int COUNT_DOWN_FIELD = 1;
+    static int SENDER_FIELD = 2;
 
     @Override
     public void declareConnections(Hardware c) {

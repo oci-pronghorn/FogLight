@@ -2,22 +2,18 @@ package com.ociweb.oe.foglight.api;
 
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
-import com.ociweb.gl.api.PubSubStructuredWritable;
-import com.ociweb.gl.api.PubSubStructuredWriter;
-import com.ociweb.gl.impl.pubField.IntegerFieldProcessor;
 import com.ociweb.gl.impl.pubField.MessageConsumer;
-import com.ociweb.gl.impl.pubField.UTF8FieldProcessor;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 
 public class DecrementValueBehavior implements PubSubListener {
-
 	private final FogCommandChannel channel;
     private final MessageConsumer consumer;
-    private long lastValue;
     private final CharSequence publishTopic;
     private final FogRuntime runtime;
     private final long decrementBy;
+
+	private long lastValue;
 		
     DecrementValueBehavior(FogRuntime runtime, CharSequence publishTopic, long decrementBy) {
     	this.channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
@@ -33,14 +29,6 @@ public class DecrementValueBehavior implements PubSubListener {
 		this.runtime = runtime;
 		this.decrementBy = decrementBy;
 	}
-    
-    private final PubSubStructuredWritable writable = new PubSubStructuredWritable() {
-    	@Override
-    	public void write(PubSubStructuredWriter writer) {
-    		writer.writeLong(PubSubStructured.COUNT_DOWN_FIELD, lastValue-decrementBy);
-    		writer.writeUTF8(PubSubStructured.SENDER_FIELD, "from thing one behavior");
-    	}			
-    };
 
 	@Override
 	public boolean message(CharSequence topic, MessageReader payload) {
@@ -53,16 +41,19 @@ public class DecrementValueBehavior implements PubSubListener {
 		// consumer.process returns the process chain return value
 		if (consumer.process(payload)) {
 			if (lastValue>0) {
+				// If not zero, republish the message
 				System.out.println(lastValue);
-				return channel.publishStructuredTopic(publishTopic, writable);
+				return channel.publishStructuredTopic(publishTopic, writer -> {
+					writer.writeLong(PubSubStructured.COUNT_DOWN_FIELD, lastValue-decrementBy);
+					writer.writeUTF8(PubSubStructured.SENDER_FIELD, "from thing one behavior");
+				});
 			} else {
+				// When zero, shutdown the system
 				runtime.shutdownRuntime();
 				return true;
 			} 
 		} else {
 			return false;
 		}
-		
 	}
-
 }

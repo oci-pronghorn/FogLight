@@ -3,7 +3,7 @@ package com.ociweb.iot.gasPumpSimulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -23,7 +23,7 @@ public class TankMonitor implements AnalogListener {
 
 	public TankMonitor(FogRuntime runtime, String topic, int fullTank, String fuelName) {
 
-		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		this.commandChannel = runtime.newCommandChannel(MsgCommandChannel.DYNAMIC_MESSAGING);
 		this.topic = topic;
 		this.fuelName = fuelName;
 		this.fullTank = fullTank;

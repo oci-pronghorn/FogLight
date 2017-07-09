@@ -9,7 +9,7 @@ import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -27,7 +27,7 @@ public class AlertTrigger implements TimeListener, StartupListener{
 	
 	public AlertTrigger(FogRuntime runtime, Port alertPort, String displayTopic) {
 	
-		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		this.commandChannel = runtime.newCommandChannel(MsgCommandChannel.DYNAMIC_MESSAGING);
 		this.port = alertPort;
 		this.displayTopic = displayTopic;
 		

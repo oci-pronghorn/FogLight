@@ -8,7 +8,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.IdGenerator;
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -30,7 +30,7 @@ public class PhysicalWatcher implements AnalogListener, DigitalListener, Startup
 	
 	public PhysicalWatcher(FogRuntime runtime, String displayTopic) {
 		this.displayTopic = displayTopic;
-		this.commandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		this.commandChannel = runtime.newCommandChannel(MsgCommandChannel.DYNAMIC_MESSAGING);
 	}
 
 	@Override

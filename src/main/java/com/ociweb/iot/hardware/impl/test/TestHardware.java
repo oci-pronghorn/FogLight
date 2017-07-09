@@ -45,28 +45,7 @@ public class TestHardware extends HardwareImpl {
     
     private long lastProvidedTime;
     
-    private RS232Clientable fakeRS232 = new RS232Clientable() {
-
-		@Override
-		public int readInto(byte[] array, int position, int remaining, byte[] array2, int position2, int remaining2) {
-			System.out.println("reading from serial device");
-			return 0;
-		}
-
-		@Override
-		public int writeFrom(byte[] backing, int pos, int length) {
-			/////////////
-			///Appendables.appendArray(System.out, '[',backing,pos,Integer.MAX_VALUE,']',length);
-			/////////////
-			return length; //must be length to indicate all consumed
-		}
-
-		@Override
-		public int write(byte[] data) {
-			return data.length;
-		}
-    	
-    };
+    private RS232Clientable testSerial = new TestSerial();
     
     public TestHardware(GraphManager gm) {
         super(gm, new TestI2CBacking().configure((byte) 1));
@@ -82,9 +61,7 @@ public class TestHardware extends HardwareImpl {
     
     
     protected RS232Clientable buildSerialClient() {
-    	System.err.println("baud select: "+this.rs232ClientBaud);
-    	
-    	return fakeRS232;
+     	return testSerial;
     }
     
     public void setI2CValueToRead(byte address, byte[] data, int length) {
@@ -168,13 +145,15 @@ public class TestHardware extends HardwareImpl {
 
     
     @Override
-    public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {    
-       return new DefaultCommandChannel(gm, this, features, instance, pcm);       
+    public FogCommandChannel newCommandChannel(int features, int instance,
+    		                                   PipeConfigManager pcm, CharSequence ... supportedTopics) {    
+       return new DefaultCommandChannel(gm, this, features, instance, pcm, supportedTopics);       
     }
     
     @Override
-    public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {    
-       return new DefaultCommandChannel(gm, this, 0, instance, pcm);     
+    public FogCommandChannel newCommandChannel(int instance, 
+    		                                     PipeConfigManager pcm, CharSequence ... supportedTopics) {    
+       return new DefaultCommandChannel(gm, this, 0, instance, pcm, supportedTopics);     
     }
     
     @Override
@@ -201,7 +180,8 @@ public class TestHardware extends HardwareImpl {
     }
     
     public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Object listener, 
-    		                                                 Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, int parallelInstance) {
+    		                                                 Pipe<?>[] inputPipes, Pipe<?>[] outputPipes,
+    		                                                 int parallelInstance) {
         return (R)new ReactiveListenerStageIOT(gm, listener,
         		                               inputPipes, outputPipes, 
         		                               this, parallelInstance);

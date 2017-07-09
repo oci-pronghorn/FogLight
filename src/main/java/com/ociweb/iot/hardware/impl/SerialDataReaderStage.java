@@ -37,16 +37,12 @@ public class SerialDataReaderStage extends PronghornStage{
 	@Override
 	public void run() {
 		
-		//logger.info("enter run");
 	    while (Pipe.hasRoomForWrite(output)) {
 		
-	    	//logger.info("has room for write");
-	    	
 	    	int readCount = copy(Pipe.wrappedWritingBuffers(output));			
 	    	
 	    	//logger.info("found bytes on UART of count {} on iteration{}  ",readCount, iteration);
-	    	
-	    	
+	    		    	
 	    	if (readCount<=0) {
 	    		 
 	    		//cancel this write

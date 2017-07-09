@@ -30,6 +30,12 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
  
+
+    public static final int I2C_WRITER      = FogCommandChannel.I2C_WRITER;
+    public static final int PIN_WRITER      = FogCommandChannel.PIN_WRITER;
+    public static final int SERIAL_WRITER   = FogCommandChannel.SERIAL_WRITER;
+    public static final int BT_WRITER       = FogCommandChannel.BT_WRITER;
+    
     private static final Logger logger = LoggerFactory.getLogger(FogRuntime.class);
 
     private final int i2cDefaultLength = 300;
@@ -45,7 +51,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
     private static final byte piI2C = 1;
     private static final byte edI2C = 6;
 
-    public static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
+    static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
 
     
     public FogRuntime() {
@@ -150,13 +156,13 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
     }
     
-    public FogCommandChannel newCommandChannel(int features) {
+    public FogCommandChannel newCommandChannel(int features, CharSequence ... supportedTopics) {
 
     	int instance = -1;
 
     	PipeConfigManager pcm = buildPipeManager();
 
-    	return this.builder.newCommandChannel(features, instance, pcm);
+    	return this.builder.newCommandChannel(features, instance, pcm, supportedTopics);
 
     }
 
@@ -168,7 +174,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return pcm;
 	}
 
-    public FogCommandChannel newCommandChannel(int features, int customChannelLength) {
+    public FogCommandChannel newCommandChannel(int features, int customChannelLength, CharSequence ... supportedTopics) {
 
     	int instance = -1;
 
@@ -178,7 +184,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
     	pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload, MessagePubSub.class );
     	pcm.addConfig(customChannelLength,0,TrafficOrderSchema.class);
 	
-        return this.builder.newCommandChannel(features, instance, pcm);
+        return this.builder.newCommandChannel(features, instance, pcm, supportedTopics);
         
     }
 
@@ -250,7 +256,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         	pipesCount++;
         }
 
-    	if (this.builder.isListeningToSerial(listener) && this.builder.hasSerialInputs()) {
+    	if (this.builder.isListeningToSerial(listener)) {
     		pipesCount++;      
         }
 
@@ -265,7 +271,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
         	inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(responsePinsConfig);
         }
-        if (this.builder.isListeningToSerial(listener) && this.builder.hasSerialInputs()) {
+        if (this.builder.isListeningToSerial(listener) ) {
+        	logger.info("input serial pipe created");
         	inputPipes[--pipesCount] = newSerialInputPipe(serialInputConfig);        
         }
 
@@ -278,7 +285,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         /////////////////////
 
         ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, 
-        		                                                                   inputPipes, outputPipes, parallelInstanceUnderActiveConstruction);
+        		                                                                   inputPipes, outputPipes, 
+        		                                                                   parallelInstanceUnderActiveConstruction);
 		configureStageRate(listener,reactiveListener);
 
 		//////////

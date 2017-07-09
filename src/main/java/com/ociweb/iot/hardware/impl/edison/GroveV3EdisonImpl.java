@@ -37,13 +37,13 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	}
 
 	@Override
-	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
-		return new DefaultCommandChannel(gm, this, features, instance, pcm);
+	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm, CharSequence ... supportedTopics) {
+		return new DefaultCommandChannel(gm, this, features, instance, pcm, supportedTopics);
 	}
 
 	@Override
-	public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
-		return new DefaultCommandChannel(gm, this, 0, instance, pcm);
+	public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm, CharSequence ... supportedTopics) {
+		return new DefaultCommandChannel(gm, this, 0, instance, pcm, supportedTopics);
 	}
 	
 	@Override

@@ -4,6 +4,7 @@ import com.ociweb.gl.api.Behavior;
 
 public interface SerialListener extends Behavior {
 
-	public boolean message(SerialReader reader);
+	//returns the number of bytes consumed
+	public int message(SerialReader reader);
 	
 }

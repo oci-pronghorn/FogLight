@@ -3,7 +3,7 @@ package com.ociweb.iot.hardware.impl.grovepi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.iot.grove.AnalogDigitalTwig;
@@ -30,8 +30,10 @@ public class PiCommandChannel extends FogCommandChannel{
 
 
 
-	public PiCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int instance, PipeConfigManager pcm, byte commandIndex) { 
-		super(gm, hardware, features, instance, pcm); 
+	public PiCommandChannel(GraphManager gm, HardwareImpl hardware, int features, 
+			               int instance, PipeConfigManager pcm, 
+			               byte commandIndex, CharSequence ... supportedTopics) { 
+		super(gm, hardware, features, instance, pcm, supportedTopics); 
 	}
 
 	@Override
@@ -52,7 +54,7 @@ public class PiCommandChannel extends FogCommandChannel{
 
 				PipeWriter.publishWrites(i2cOutput);
 
-				GreenCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
+				MsgCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
 				return true;
 			} else {			  
 				return false; 
@@ -77,7 +79,7 @@ public class PiCommandChannel extends FogCommandChannel{
 
 				PipeWriter.publishWrites(i2cOutput);
 
-				GreenCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
+				MsgCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
 				return true;
 			} else {              
 				return false; 
@@ -150,7 +152,7 @@ public class PiCommandChannel extends FogCommandChannel{
 
 				PipeWriter.publishWrites(i2cOutput);                    
 
-				GreenCommandChannel.publishGo(msgCount,HardwareImpl.i2cIndex(builder),this);
+				MsgCommandChannel.publishGo(msgCount,HardwareImpl.i2cIndex(builder),this);
 
 				return true;
 			}else{
@@ -228,7 +230,7 @@ public class PiCommandChannel extends FogCommandChannel{
 				logger.debug("CommandChannel sends analogWrite i2c message");
 				PipeWriter.publishWrites(i2cOutput);
 
-				GreenCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);				
+				MsgCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);				
 				return true;
 			}else{
 				return false;
@@ -281,7 +283,7 @@ public class PiCommandChannel extends FogCommandChannel{
 				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
 				PipeWriter.publishWrites(i2cOutput);
 
-				GreenCommandChannel.publishGo(2,HardwareImpl.i2cIndex(builder),this);
+				MsgCommandChannel.publishGo(2,HardwareImpl.i2cIndex(builder),this);
 
 				return true;
 			}else{
@@ -304,7 +306,7 @@ public class PiCommandChannel extends FogCommandChannel{
 				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
 				PipeWriter.publishWrites(i2cOutput);
 
-				GreenCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
+				MsgCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
 				return true;
 			} else {              
 				return false; 

@@ -28,15 +28,15 @@ public class RS232Client implements RS232Clientable {
 
     private int failCount = 25;
     /**
-     * @param port Port identifier to open.
+     * @param device Port identifier to open.
      * @param baud Baud rate to use.
      */
-    public RS232Client(String port, Baud baud) {
+    public RS232Client(String device, Baud baud) {
         try {
-        	logger.info("connecting to serial {} {}",port,baud);
+        	logger.info("connecting to serial {} {}",device,baud);
         	
             backing = new RS232NativeLinuxBacking();
-            fd = backing.open(port, baud.code());
+            fd = backing.open(device, baud.code());
 
             if (fd != -1) {
                 connected = true;

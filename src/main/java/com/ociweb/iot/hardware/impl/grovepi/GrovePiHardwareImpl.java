@@ -52,15 +52,15 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 
 	@Override
-	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
+	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm, CharSequence ... supportedTopics) {
 		this.commandIndex++;
-		return new PiCommandChannel(gm, this, features, instance, pcm, commandIndex);	
+		return new PiCommandChannel(gm, this, features, instance, pcm, commandIndex, supportedTopics);	
 	}
 
 	@Override
-	public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
+	public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm, CharSequence ... supportedTopics) {
 		this.commandIndex++;
-		return new PiCommandChannel(gm, this, 0, instance, pcm, commandIndex);	
+		return new PiCommandChannel(gm, this, 0, instance, pcm, commandIndex, supportedTopics);	
 	}
 
 	@Override

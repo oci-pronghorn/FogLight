@@ -7,24 +7,25 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 
 public class KickoffBehavior implements StartupListener {
-
 	private final FogCommandChannel cmd;
+	private final CharSequence publishTopic;
+	private final long countDownFrom;
 
-	public KickoffBehavior(FogRuntime runtime) {
+	public KickoffBehavior(FogRuntime runtime, CharSequence publishTopic, long countDownFrom) {
 		cmd = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+		this.publishTopic = publishTopic;
+		this.countDownFrom = countDownFrom;
 	}
 
 	@Override
 	public void startup() {
-				
 		PubSubStructuredWritable writable = new PubSubStructuredWritable() {
 			@Override
 			public void write(PubSubStructuredWriter writer) {
 				writer.writeUTF8(PubSubStructured.SENDER_FIELD, "from kickoff behavior");
-				writer.writeLong(PubSubStructured.COUNT_DOWN_FIELD, 100);
+				writer.writeLong(PubSubStructured.COUNT_DOWN_FIELD, countDownFrom);
 			}			
 		};
-		cmd.presumePublishStructuredTopic("topicOne", writable);
+		cmd.presumePublishStructuredTopic(publishTopic, writable);
 	}
-
 }

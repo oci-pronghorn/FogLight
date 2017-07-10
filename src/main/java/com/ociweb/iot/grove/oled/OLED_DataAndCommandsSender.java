@@ -138,10 +138,11 @@ public abstract class OLED_DataAndCommandsSender {
 		}
 		ch.i2cCommandClose();
 		ch.i2cFlushBatch();
+		
 		if (i == finalTargetIndex){
 			return true;
 		}
-		return sendData(cmd, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
+		return sendCommands(cmd, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 	
 	public abstract boolean init();

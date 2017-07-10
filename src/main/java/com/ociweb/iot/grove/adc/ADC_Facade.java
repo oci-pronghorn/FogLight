@@ -38,14 +38,6 @@ public class ADC_Facade implements IODeviceFacade{
     public void setCONFIG_REG(int _b){
         writeSingleByteToRegister(REG_ADDR_CONFIG,_b);
     }
-    /**
-     * Convert the 2 bytes I2C read to the correct representation of the digital value
-     * @param backing circular buffer containing data from I2C read
-     * @param position index of the first byte
-     * @param length length of the array
-     * @param mask 
-     * @return The converted digital value. 
-     */
     
     public void setLowerLimit(int _b){
         int[] value = {0,0};
@@ -67,7 +59,14 @@ public class ADC_Facade implements IODeviceFacade{
         value[1] = _b & 0xff;
         writeTwoBytesToRegister(REG_ADDR_HYST,value);
     }
-    
+        /**
+     * Convert the 2 bytes I2C read to the correct representation of the digital value
+     * @param backing circular buffer containing data from I2C read
+     * @param position index of the first byte
+     * @param length length of the array
+     * @param mask 
+     * @return The converted digital value. 
+     */
     public short interpretData(byte[] backing, int position, int length, int mask){
         //format the data from the circular buffer backing[]
         

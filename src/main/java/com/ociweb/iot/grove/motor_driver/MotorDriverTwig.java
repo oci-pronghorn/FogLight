@@ -62,7 +62,7 @@ public enum MotorDriverTwig implements I2CIODevice {
          * @return True if this twig is an I2C device, and false otherwise.
          */
         public boolean isI2C() {
-            return false;
+            return true;
         }
         
         

@@ -10,7 +10,7 @@ public class RestfulWaterSensorBehavior implements AnalogListener, RestListener 
 	private FogCommandChannel ch;
 	
 	public RestfulWaterSensorBehavior(FogRuntime runtime) {
-		this.ch = runtime.newCommandChannel(GreenCommandChannel.NET_RESPONDER | GreenCommandChannel.DYNAMIC_MESSAGING); 
+		this.ch = runtime.newCommandChannel(MsgCommandChannel.NET_RESPONDER | MsgCommandChannel.DYNAMIC_MESSAGING); 
 	}	
 
 	@Override

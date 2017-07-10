@@ -20,7 +20,7 @@ public class AnalogToIIC implements FogApp
         ///////////////////////////
         c.useI2C();
         c.connect(ADC.ReadConversionResult,500);
-        
+        c.connect(ADC.ReadAlertStatus,1000);
     }
 
 

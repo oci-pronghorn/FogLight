@@ -15,3 +15,4 @@ buildNumber.properties
 # Ignore user created project files
 .idea/
 *.iml
+.DS_Store

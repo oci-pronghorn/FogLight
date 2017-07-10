@@ -10,3 +10,8 @@ buildNumber.properties
 /.settings/
 /.classpath
 /.project
+
+# Ignore user created project files
+.idea/
+*.iml
+.DS_Store

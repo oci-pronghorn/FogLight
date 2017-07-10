@@ -6,11 +6,7 @@
 package com.ociweb.grove;
 
 
-<<<<<<< HEAD
-import com.ociweb.gl.api.MsgCommandChannel;
-=======
 import com.ociweb.gl.api.GreenCommandChannel;
->>>>>>> branch 'master' of https://github.com/oci-pronghorn/FogLight-Grove.git
 import com.ociweb.iot.grove.lcd_rgb.*;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -26,7 +22,7 @@ public class IoTBehavior implements AnalogListener{
     
     public IoTBehavior(FogRuntime runtime) {
         
-        channel = runtime.newCommandChannel(MsgCommandChannel.DYNAMIC_MESSAGING);
+        channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
         
     }
     

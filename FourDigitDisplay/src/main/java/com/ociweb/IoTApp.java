@@ -25,6 +25,6 @@ public class IoTApp implements FogApp
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		runtime.addListener(new FourDigitDisplayBehavior(runtime, display_port));
+		runtime.registerListener(new FourDigitDisplayBehavior(runtime, display_port));
 	}
 }

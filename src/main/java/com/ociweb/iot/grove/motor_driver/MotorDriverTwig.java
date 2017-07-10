@@ -18,7 +18,7 @@ public enum MotorDriverTwig implements I2CIODevice {
     MotorDriver(){
         @Override
         public boolean isInput() {
-            return true;
+            return false;
         }
         
         @Override

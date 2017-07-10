@@ -18,6 +18,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		//96x96 divided 2. Since each pixel takes a nibble to send
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);
 		this.chip = SSD1327;
+		
 	}
 	@Deprecated
 	public void setIteration(int iteration){

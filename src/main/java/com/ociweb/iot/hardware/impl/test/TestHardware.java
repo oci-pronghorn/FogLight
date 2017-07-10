@@ -47,8 +47,8 @@ public class TestHardware extends HardwareImpl {
     
     private RS232Clientable testSerial = new TestSerial();
     
-    public TestHardware(GraphManager gm) {
-        super(gm, new TestI2CBacking().configure((byte) 1));
+    public TestHardware(GraphManager gm, String[] args) {
+        super(gm, args, new TestI2CBacking().configure((byte) 1));
         //logger.trace("You are running on the test hardware.");
     }
     

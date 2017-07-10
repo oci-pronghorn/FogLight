@@ -102,7 +102,7 @@ public class HTTPSClientTest {
 				
 		
 		GraphManager gm = new GraphManager();		
-		HardwareImpl hardware = new TestHardware(gm);
+		HardwareImpl hardware = new TestHardware(gm, null);
 		
 		int inputsCount = 2;
 		int base2SimultaniousConnections = 3;
@@ -337,7 +337,7 @@ public class HTTPSClientTest {
 		//only build minimum for the pipeline
 		
 		GraphManager gm = new GraphManager();
-		HardwareImpl hardware = new TestHardware(gm);
+		HardwareImpl hardware = new TestHardware(gm, null);
 		
 		final int inputsCount = 2;
 		

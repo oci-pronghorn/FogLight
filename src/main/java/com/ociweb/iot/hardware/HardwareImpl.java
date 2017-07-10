@@ -116,14 +116,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     	return deviceOnPort[p.ordinal()];
     }
 
-	public HardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
-		this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+	public HardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking) {
+		this(gm, args, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
 	}
 
-	protected HardwareImpl(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
+	protected HardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
 			HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
 
-		super(gm);
+		super(gm, args);
 		
 		this.i2cBacking = i2cBacking;
 

@@ -107,16 +107,16 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
     	    i2cBacking = HardwareImpl.getI2CBacking(edI2C);
 	        if (null != i2cBacking) {
-	            this.builder = new GroveV3EdisonImpl(gm, i2cBacking);
+	            this.builder = new GroveV3EdisonImpl(gm, args, i2cBacking);
 	            logger.trace("Detected running on Edison");
 	        } else {
 	        	i2cBacking = HardwareImpl.getI2CBacking(piI2C);
 	    	    if (null != i2cBacking) {
-	    	        this.builder = new GrovePiHardwareImpl(gm, i2cBacking);
+	    	        this.builder = new GrovePiHardwareImpl(gm, args, i2cBacking);
 	    	        logger.trace("Detected running on Pi");
 	    	    }
     	        else {
-    	            this.builder = new TestHardware(gm);
+    	            this.builder = new TestHardware(gm, args);
     	            logger.trace("Unrecognized hardware, test mock hardware will be used");
     	        }
     	    }
@@ -322,7 +322,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         FogRuntime runtime = new FogRuntime();
         //force hardware to TestHardware regardless of where or what platform its run on.
         //this is done because this is the test() method and must behave the same everywhere.
-        runtime.builder = new TestHardware(runtime.gm);
+        runtime.builder = new TestHardware(runtime.gm, runtime.args);
         TestHardware hardware = (TestHardware)runtime.getHardware();
         hardware.isInUnitTest = true;
         try {

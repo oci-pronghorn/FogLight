@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogRuntime;
@@ -24,9 +24,7 @@ public class IoTApp implements FogApp
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-
-        runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-            System.out.println("The Illumination intensity is : "+(value/1023*307)+"mW/m^2");
-        });   
+      
+        runtime.addAnalogListener(new UVSensorBehavior(runtime));
     }
 }

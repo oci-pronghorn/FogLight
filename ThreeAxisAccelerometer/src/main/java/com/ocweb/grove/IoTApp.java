@@ -1,10 +1,8 @@
 package com.ocweb.grove;
 
 
-import static com.ociweb.iot.grove.Accelerometer_16G.*;
-import com.ociweb.iot.grove.accelerometer.*;
+import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16gTwig.*;
 import com.ociweb.iot.maker.FogApp;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 
@@ -18,7 +16,7 @@ public class IoTApp implements FogApp
     public void declareConnections(Hardware c) {
         c.useI2C();
         //c.connect(Button,D4);
-        c.connect(Accelerometer_GetXYZ);
+        c.connect(ThreeAxisAccelerometer_16g.GetXYZ);
         
     }
     
@@ -29,6 +27,6 @@ public class IoTApp implements FogApp
         //Specify the desired behavior
         //////////////////////////////
         
-        runtime.addListener(new AccelerometerBehavior(runtime));
+        runtime.registerListener(new AccelerometerBehavior(runtime));
     }
 }

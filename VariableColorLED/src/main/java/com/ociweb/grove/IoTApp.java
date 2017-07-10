@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 
 import com.ociweb.iot.maker.*;
 
@@ -23,7 +23,7 @@ public class IoTApp implements FogApp {
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-            runtime.addListener(new VariableColorLEDBehavior(runtime));
+            runtime.registerListener(new VariableColorLEDBehavior(runtime));
 		         
 	}
 }

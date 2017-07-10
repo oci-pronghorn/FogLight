@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 
 import com.ociweb.iot.maker.*;
 
@@ -23,8 +23,6 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-            System.out.println(value);
-        });   
+    	runtime.addAnalogListener(new MoistureSensorBehavior(runtime));   
     }
 }

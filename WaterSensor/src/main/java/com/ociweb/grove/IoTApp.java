@@ -1,7 +1,7 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 import static com.ociweb.grove.RestfulWaterSensorConstants.*;
 import com.ociweb.iot.maker.*;
 

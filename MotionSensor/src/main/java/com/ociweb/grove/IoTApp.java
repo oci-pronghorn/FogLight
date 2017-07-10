@@ -1,8 +1,8 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.MotionSensor;
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.LED;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.MotionSensor;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.LED;
 
 import com.ociweb.iot.maker.*;
 
@@ -26,7 +26,7 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        runtime.addListener(new MotionSensorBehavior(runtime));
+        runtime.registerListener(new MotionSensorBehavior(runtime));
               
     }
     

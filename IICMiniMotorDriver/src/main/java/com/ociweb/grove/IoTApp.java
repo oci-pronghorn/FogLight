@@ -1,9 +1,9 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalGroveTwig.*;
-import static com.ociweb.iot.grove.I2CMotorControlMini.*;
-import com.ociweb.iot.grove.mini_i2c_motor.*;
+import static com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriverTwig.*;
+import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Facade;
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -27,7 +27,7 @@ public class IoTApp implements FogApp
     @Override
     public void declareConnections(Hardware c) {
         c.useI2C();
-        c.connect(I2CMotorControlMini);
+        c.connect(MiniMotorDriver.ReadFault);
         c.connect(AngleSensor,ANGLE_SENSOR);
         
         
@@ -37,15 +37,15 @@ public class IoTApp implements FogApp
     public void declareBehavior(FogRuntime g) {
         final FogCommandChannel c = g.newCommandChannel();
         
-        I2CMotorControlMini_Facade motorController = I2CMotorControlMini.newFacade(c);
+        MiniMotorDriver_Facade motorController = new MiniMotorDriver_Facade(c);
         
         g.addAnalogListener((port, time, durationMillis, average, value)->{
             //if(!motorFailed){
                 System.out.println("value: "+value);
                 int speed = (value-512)/8;
                 
-                motorController.setPower(1, speed);
-                motorController.setPower(2, speed);
+                motorController.setVelocity(1, speed);
+                motorController.setVelocity(2, speed);
             //}
         }).includePorts(ANGLE_SENSOR);
         
@@ -59,17 +59,7 @@ public class IoTApp implements FogApp
             
         }).excludeI2CConnections(4);
         
-//      g.addDigitalListener((port, connection, time, value)->{
-//            if(value==1){
-//                System.out.println("starting Motor 1");
-//                motorController.driveMotor1(50);
-//                System.out.println("starting Motor 2");
-//                motorController.driveMotor2(50);
-//            }else{
-//                motorController.stopMotor1();
-//                motorController.stopMotor2();
-//            }
-//        });
+
 
     }
 }

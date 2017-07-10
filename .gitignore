@@ -12,4 +12,8 @@ buildNumber.properties
 !/.mvn/wrapper/maven-wrapper.jar
 /.settings/
 /.project
-/.DS_Store
+
+# Ignore user created project files
+.idea/
+*.iml
+.DS_Store

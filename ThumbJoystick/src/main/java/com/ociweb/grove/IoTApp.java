@@ -4,7 +4,7 @@ package com.ociweb.grove;
 import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MsgCommandChannel;
 
 public class IoTApp implements FogApp
 {

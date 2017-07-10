@@ -16,23 +16,31 @@ import com.ociweb.iot.maker.IODeviceFacade;
  */
 public class RTC_Facade implements IODeviceFacade {
     FogCommandChannel target;
-
+    
     public RTC_Facade(FogCommandChannel ch){
         this.target = ch;
     }
-    public void startClock(){
-        
-        writeSingleByteToRegister(TIME_REG,0x00);
-        
-    }
+    /**
+     * Stop the clock.
+     */
     public void stopClock(){
         
         writeSingleByteToRegister(TIME_REG,0x80);
         
     }
-    
+    /**
+     * Set the time of the clock.
+     * @param second
+     * @param minute
+     * @param hour
+     * @param dayOfWeek Monday = 1, Tuesday = 2,.. Sunday = 7
+     * @param dayOfMonth
+     * @param month
+     * @param year 
+     */
     public void setTime(int second,int minute,int hour,int dayOfWeek,int dayOfMonth,int month,int year){
-        int[] time = {0,0,0,0,0,0,0};;
+        int[] time = {0,0,0,0,0,0,0};
+        year = year - 2000;
         time[0] = decToBcd(second);
         time[1] = decToBcd(minute);
         time[2] = decToBcd(hour);
@@ -44,27 +52,30 @@ public class RTC_Facade implements IODeviceFacade {
         writeMultipleBytesToRegister(TIME_REG,time);
         
     }
-    
+    /**
+     * Print the time interpreted from the backing[] array.
+     * @param temp 
+     */
     public void printTime(int[] temp){
         StringBuilder indicator = new StringBuilder();
-            
-            indicator.append("The current time is:  ");  
-            indicator.append(parseWeekday(temp[3]));
-            indicator.append(", ");
-            indicator.append(temp[5]);
-            indicator.append("/");
-            indicator.append(temp[4]);
-            indicator.append("/");
-            indicator.append(2000+temp[6]);
-            
-            indicator.append("  ");
-            indicator.append(temp[2]);
-            indicator.append(":");
-            indicator.append(temp[1]);
-            indicator.append(":");
-            indicator.append(temp[0]);
-            
-            System.out.println(indicator);
+        
+        indicator.append("The current time is:  ");
+        indicator.append(parseWeekday(temp[3]));
+        indicator.append(", ");
+        indicator.append(temp[5]);
+        indicator.append("/");
+        indicator.append(temp[4]);
+        indicator.append("/");
+        indicator.append(2000+temp[6]);
+        
+        indicator.append("  ");
+        indicator.append(temp[2]);
+        indicator.append(":");
+        indicator.append(temp[1]);
+        indicator.append(":");
+        indicator.append(temp[0]);
+        
+        System.out.println(indicator);
     }
     
     private String parseWeekday(int day){
@@ -88,11 +99,19 @@ public class RTC_Facade implements IODeviceFacade {
                 
         }
     }
+    /**
+     * Format the data from the circular buffer backing[].
+     * @param backing circular buffer containing data from I2C read
+     * @param position index of the first byte
+     * @param length
+     * @param mask
+     * @return array of 7 time parameters, following this order:
+     * second, minute, hour, dayofWeek, dateofMonth, month, year
+     */
     
-    public int[] intepretData(byte[] backing, int position, int length, int mask){
+    public int[] interpretData(byte[] backing, int position, int length, int mask){
         assert(length==7) : "Non-Accelerometer data passed into the NunchuckTwig class";
         int[] temp = {0,0,0,0,0,0,0};
-        //format the data from the circular buffer backing[]
         
         temp[0] = bcdToDec(backing[position&mask] & 0x7F); //second
         temp[1] = bcdToDec(backing[(position+1)&mask] & 0x7F);
@@ -119,7 +138,7 @@ public class RTC_Facade implements IODeviceFacade {
     
     
     public void writeSingleByteToRegister(int register, int value) {
- 
+        
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DS1307_I2C_ADDRESS);
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);

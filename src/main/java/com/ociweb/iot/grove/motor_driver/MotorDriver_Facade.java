@@ -102,7 +102,7 @@ public class MotorDriver_Facade implements IODeviceFacade{
 
     /**
      *      Drive a stepper motor 
-     * _step: -1024~1024, when _step>0, stepper motor runs clockwise; when _step < 0, 
+     * _step: -1024~1024, when _step>0, stepper motor runs clockwise; when _step is less than 0, 
      * stepper motor runs anticlockwise; when _step is 512, the stepper motor will 
      * run a complete turn; if step is 1024, the stepper motor will run 2 turns.
      * @param _step 

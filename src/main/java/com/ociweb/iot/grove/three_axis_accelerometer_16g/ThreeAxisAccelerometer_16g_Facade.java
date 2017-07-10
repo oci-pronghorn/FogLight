@@ -270,15 +270,15 @@ public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade {
     public void setFIFO_CTL_Reg(int _b){
         writeSingleByteToRegister(ADXL345_FIFO_CTL,_b);
     }
-    /**
-     *
-     * @param backing
-     * @param position
-     * @param length
+/**
+     * Convert the 6 bytes from I2C read to the correct two's complement representation of X,Y,Z
+     * @param backing circular buffer containing data from I2C read
+     * @param position index of the first byte
+     * @param length length of the array
      * @param mask
-     * @return array of 3 containing the X,Y,Z acceleration measurements
+     * @return array of 3 X,Y,Z values ,where array[0] = X, array[1] = Y
      */
-    public short[] intepretData(byte[] backing, int position, int length, int mask){
+    public short[] interpretData(byte[] backing, int position, int length, int mask){
         assert(length==6) : "Non-Accelerometer data passed into the class";
         short[] temp = {0,0,0};
         //format the data from the circular buffer backing[]

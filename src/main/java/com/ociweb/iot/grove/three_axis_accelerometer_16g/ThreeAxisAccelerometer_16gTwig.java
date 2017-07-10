@@ -78,6 +78,7 @@ public enum ThreeAxisAccelerometer_16gTwig {
              * /**
              * @return Delay, in milliseconds, for scan. TODO: What's scan?
              */
+            @Override
             public int scanDelay() {
                 return 0;
             }
@@ -86,6 +87,7 @@ public enum ThreeAxisAccelerometer_16gTwig {
              * @return True if this twig is Pulse Width Modulated (PWM) device, and
              *         false otherwise.
              */
+            @Override
             public boolean isPWM() {
                 return false;
             }
@@ -94,7 +96,7 @@ public enum ThreeAxisAccelerometer_16gTwig {
              * @return True if this twig is an I2C device, and false otherwise.
              */
             public boolean isI2C() {
-                return false;
+                return true;
             }
             
             
@@ -102,6 +104,7 @@ public enum ThreeAxisAccelerometer_16gTwig {
             /**
              * @return The possible value range for reads from this device (from zero).
              */
+            @Override
             public int range() {
                 return 256;
             }
@@ -123,6 +126,7 @@ public enum ThreeAxisAccelerometer_16gTwig {
              *
              * @return false if the bytes returned from the device were not some valid response
              */
+            @Override
             public boolean isValid(byte[] backing, int position, int length, int mask) {
                 return true;
             }
@@ -130,6 +134,7 @@ public enum ThreeAxisAccelerometer_16gTwig {
             /**
              * @return The number of hardware pins that this twig uses.
              */
+            @Override
             public int pinsUsed() {
                 return 1;
             }

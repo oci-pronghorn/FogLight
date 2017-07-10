@@ -3,10 +3,11 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ociweb.iot.grove.motor_driver;
+package com.ociweb.iot.grove.six_axis_accelerometer;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
 
@@ -14,8 +15,33 @@ import com.ociweb.iot.maker.IODeviceFacade;
  *
  * @author huydo
  */
-public enum MotorDriverTwig implements I2CIODevice {
-    MotorDriver(){
+public class SixAxisAccelerometerTwig {
+    
+    public enum SixAxisAccelerometer implements I2CIODevice {
+        
+        getAccel(){
+            
+            @Override
+            public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
+                byte[] REG_ADDR = {SixAxisAccelerometer_Constants.OUT_X_L_A};
+                byte[] SETUP = {};
+                byte I2C_ADDR = SixAxisAccelerometer_Constants.LSM303D_ADDR;
+                byte BYTESTOREAD = 6;
+                byte REG_ID = SixAxisAccelerometer_Constants.OUT_X_L_A; //just an identifier
+                return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+            }
+        },
+        getMag(){
+            @Override
+            public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
+                byte[] REG_ADDR = {SixAxisAccelerometer_Constants.OUT_X_L_M};
+                byte[] SETUP = {};
+                byte I2C_ADDR = SixAxisAccelerometer_Constants.LSM303D_ADDR;
+                byte BYTESTOREAD = 6;
+                byte REG_ID = SixAxisAccelerometer_Constants.OUT_X_L_M; //just an identifier
+                return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+            }
+        };
         @Override
         public boolean isInput() {
             return true;
@@ -26,22 +52,19 @@ public enum MotorDriverTwig implements I2CIODevice {
             return true;
         }
         @Override
-        public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-            return null;
-        }
-        
-        
-        @Override
         public int response() {
             return 1000;
-            
         }
+        
         @SuppressWarnings("unchecked")
         @Override
-        public MotorDriver_Facade newFacade(FogCommandChannel...ch){
-            return new MotorDriver_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+        public SixAxisAccelerometer_Facade newFacade(FogCommandChannel...ch){
+            return new SixAxisAccelerometer_Facade(ch[0]);
         }
         /**
+         *
+         *
+         * /**
          * @return Delay, in milliseconds, for scan. TODO: What's scan?
          */
         @Override
@@ -62,7 +85,7 @@ public enum MotorDriverTwig implements I2CIODevice {
          * @return True if this twig is an I2C device, and false otherwise.
          */
         public boolean isI2C() {
-            return false;
+            return true;
         }
         
         
@@ -103,6 +126,6 @@ public enum MotorDriverTwig implements I2CIODevice {
         @Override
         public int pinsUsed() {
             return 1;
-        }        
-    };
+        }
+    }
 }

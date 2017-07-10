@@ -74,7 +74,11 @@ public class MiniMotorDriver_Facade implements IODeviceFacade {
         writeSingleByteToRegister(address,CTL_REG,BRAKE);
         
     }
-    
+    /**
+     * write a byte to a register
+     * @param register register to write to
+     * @param value byte to write
+     */
     public void writeSingleByteToRegister(int address, int register, int value) {
 
 

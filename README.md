@@ -22,18 +22,32 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 ## Starting Your Maven Project
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 ## Information and Demos 
+- AnalogListener
+  - demo - Coming Soon!
 - CommandChannel
   - demo - Coming Soon!
 - CustomDevice
+  - demo - Coming Soon!
+- DeclareConnections
+  - demo - Coming Soon!
+- DigitalListener
   - demo - Coming Soon!
 - HTTPClient
   - demo - Coming Soon!
 - HTTPServer
   - demo - Coming Soon!
+- I2CListener
+  - demo - Coming Soon!
+- ImageListener
+  - demo - Coming Soon!
+- MQTTClient
+  - demo - Coming Soon!
 - PubSub
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/PubSub/PubSub.md)
 - PubSubStructured
   - demo - Coming Soon!
+- SerialListener
+  - Demo - Coming Soon!
 - Shutdown
   - demo - Coming Soon!
 - Startup

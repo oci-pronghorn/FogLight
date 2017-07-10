@@ -7,7 +7,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceFacade;
 
 public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IODeviceFacade{
-	
+
 	private int lowPixelLevel = 0x0F;
 	private int highPixelLevel = 0xF0;
 	private int iteration = 0;
@@ -23,19 +23,20 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 	public void setIteration(int iteration){
 		this.iteration = iteration;
 	}
-	
-	
+
+
 	//TODO: FIGURE OUT WHAT CHIP
 	private OLED_96x96_DriverChip determineChip(){
 		if(iteration % 2 ==0){
-			chip = SH1107G;
-		}
-		else {
 			chip = SSD1327;
+		}
+		else {	
+			chip = SH1107G;
 		}
 		System.out.println(chip);
 		return SH1107G;
 	}
+	@Deprecated
 	public void setChip(int i){
 		if (i == 0){
 			chip = SH1107G;
@@ -45,7 +46,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		}
 	}
 	public boolean setRowColInHorizontalMode(int row, int col){
-	
+
 		switch (chip){
 		case SSD1327:
 			cmd_out[0] = SSD1327_Consts.REMAP;
@@ -78,11 +79,12 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		switch (chip){
 		case SSD1327:
 			cmd_out[0] = SSD1327_Consts.SET_COL_ADDRESS;
-			cmd_out[1] = 8 + (col*4);
-			cmd_out[2] = SSD1327_Consts.SET_ROW_ADDRESS;
-			cmd_out[3] = row * 8;
-			cmd_out[4] = 7 + (row * 8);	
-			return sendCommands(0,5);
+			cmd_out[1] = 0x08 + (col*4);
+			cmd_out[2] = 0x37; //end column
+			cmd_out[3] = SSD1327_Consts.SET_ROW_ADDRESS;
+			cmd_out[4] = 0x00 + (row * 8);
+			cmd_out[5] = 0x07 + (row * 8);	
+			return sendCommands(0,6);
 
 		case SH1107G:
 			int lowCol = (col % 2  ==0) ? 0x08: 0x00;
@@ -101,14 +103,24 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		int index = 0;
 		switch (chip){
 		case SSD1327:
-
+			/*
 			for (int row = 0; row < OLED_96x96_Consts.ROW_COUNT >> 1; row ++){
 				for (int col = 0; col < OLED_96x96_Consts.COL_COUNT; col++){
 					data_out[index++] = 0x00;
 				}
 			}	
-			return sendData(0, 4608); //we send the entire array of data of 0s
-
+			System.out.println("Final Index: "+ index);
+			return sendData(0, index); //we send the entire array of data of 0s
+			*/
+			setVerticalMode();
+			for (int row = 0; row < OLED_96x96_Consts.ROW_COUNT / 8; row++ ){
+				setTextRowCol(row,0);
+				 if  (!printCharSequence("            ")){ //12 spaces is one empty row
+					 return false;
+				 }
+			}
+			return true;
+			
 		case SH1107G:
 
 			for(int i=0; i<16;i++){
@@ -135,7 +147,6 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		//determineChip();
 		System.out.println("Artificially chose: " + chip);
 		int length = generateInitCommands(); //could have done this in the return line but this is clearer.
-		System.out.println(length);
 		return sendCommands(0,length);
 	}
 
@@ -146,7 +157,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 			cmd_out[1] =SSD1327_Consts.UNLOCK_CMD_ENTERING;
 			cmd_out[2] = SSD1327_Consts.DISPLAY_OFF;
 			cmd_out[3] = SSD1327_Consts.SET_MULTIPLEX_RATIO;
-			cmd_out[4] = 96;
+			cmd_out[4] = 0x5F;
 			cmd_out[5] = SSD1327_Consts.SET_DISPLAY_START_LINE;
 			cmd_out[6] = 0x00;
 			cmd_out[7] = SSD1327_Consts.SET_DISPLAY_OFFSET;
@@ -259,7 +270,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 	private void encodeCharSequence(CharSequence s, int startingIndex){
 		int charIndex = 0;
 		int charSpace = 0;
-		
+
 		switch(chip){
 		case SSD1327:
 			charSpace = 32;
@@ -277,7 +288,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		if(c < 32 || c > 127){
 			c=' '; 
 		}
-		
+
 		switch(chip){
 		case SSD1327:
 			for (int i =0; i < 8; i += 2){
@@ -287,8 +298,8 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 					//"Character is constructed two pixel at a time using vertical mode from the default 8x8 font"-Seeed C++ l API
 					newC |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i],j))? highPixelLevel:0x00;
 					newC |= (highBitAt(OLED_96x96_Consts.FONT[c-32][i+1],j))? lowPixelLevel:0x00;
-					
-					
+
+
 					data_out[startingIndex++] = newC;
 				}
 			}
@@ -327,7 +338,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 	private boolean highBitAt(int b, int pos){
 		return ((b >> pos) & 0x01) == 0x01;
 	}
-	
+
 
 	@Override
 	public boolean drawBitmap(int[] bitmap) {
@@ -367,7 +378,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 				for (int j = 0; j < 8; j++){
 					tmp |= ((curByte >> (7 - j)) & 0x01) << j;
 				}
-				
+
 				data_out[i] = tmp;
 				row++;
 				lowCol ++;
@@ -377,7 +388,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 				}
 			}
 			return sendData(0, bitmap.length);
-			
+
 		default:
 			return false;
 
@@ -441,12 +452,13 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 	public boolean setVerticalMode() {
 		switch(chip){
 		case SSD1327:
-			data_out[0] = SSD1327_Consts.REMAP;
-			data_out[1] = SSD1327_Consts.VERTICAL;
+			cmd_out[0] = SSD1327_Consts.REMAP;
+			cmd_out[1] = SSD1327_Consts.VERTICAL;
+			
 			break;
 		case SH1107G:
-			data_out[0] = SH1107G_Consts.REMAP_SGMT;
-			data_out[1] = SH1107G_Consts.SET_VERTICAL;
+			cmd_out[0] = SH1107G_Consts.REMAP_SGMT;
+			cmd_out[1] = SH1107G_Consts.SET_VERTICAL;
 			break;
 		default:
 			return false;
@@ -454,14 +466,16 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 
 		return sendCommands(0,2);
 	}
-	
+	/*
 	/**
+	 * Overrides the base implementation and sends a "DATA_MODE" identifier byte before every single data byte.
 	 * @param data
 	 * @param start
 	 * @param length
 	 * @param finalTargetIndex
 	 * @return true if the data is sent; false otherwise.
 	 */
+	/*
 	@Override
 	protected boolean sendData(int [] data, int start, int length, int finalTargetIndex){
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
@@ -478,4 +492,5 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		}
 		return sendData(data, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
+	 */
 }

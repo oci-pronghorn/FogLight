@@ -6,6 +6,7 @@ import com.ociweb.gl.api.PubSubWritable;
 import com.ociweb.gl.api.PubSubWriter;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.BlobWriter;
 
 public class IngressBehavior implements PubSubListener {
 
@@ -30,7 +31,7 @@ public class IngressBehavior implements PubSubListener {
 		PubSubWritable mqttPayload = new PubSubWritable() {
 
 			@Override
-			public void write(PubSubWriter writer) {
+			public void write(BlobWriter writer) {
 
 				writer.writeUTF("second step test message");
 			}

@@ -1,12 +1,17 @@
 package com.ociweb.oe.foglight.api;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.grove.GroveTwig.Button;
+import static com.ociweb.iot.grove.GroveTwig.LED;
+import static com.ociweb.iot.maker.Port.D2;
+import static com.ociweb.iot.maker.Port.D3;
 
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 
 public class Shutdown implements FogApp
 {	
@@ -29,7 +34,7 @@ public class Shutdown implements FogApp
 
 
     @Override
-    public void declareBehavior(FogRuntime runtime) {
+    public void declareBehavior(final FogRuntime runtime) {
         
     	final FogCommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
     	final FogCommandChannel channel2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
@@ -47,7 +52,7 @@ public class Shutdown implements FogApp
     		if(value == 1){
     			System.out.println("Starting the shutdown process");
     			//1
-    			requestShutdown();
+    			runtime.shutdownRuntime();
     			
     			//2
     			ReactiveListenerStage.requestSystemShutdown(new Runnable(){
@@ -66,7 +71,7 @@ public class Shutdown implements FogApp
     	});    	
     	
     	
-    	runtime.ShutdownListener(()->{
+    	runtime.addShutdownListener(()->{
     		//check if light is on, if it is, return false and turn it off, if not, return true
     		return true;
     	});

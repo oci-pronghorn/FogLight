@@ -1,34 +1,25 @@
 package com.ociweb.oe.floglight.api;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
 
 public class HTTPClient implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
-
 
     @Override
-    public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-
-        
+    public void declareConnections(Hardware c) {       
     }
 
 
     @Override
-    public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
-
+    public void declareBehavior(FogRuntime runtime) {       
+    	
+    	int responseId = runtime.addResponseListener(new HTTPResponse()).getId();
+    	
+    	runtime.addStartupListener(new HTTPGetBehavior(runtime, responseId));
+    	
     }
           
 }

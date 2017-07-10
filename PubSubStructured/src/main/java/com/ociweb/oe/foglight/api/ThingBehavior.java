@@ -3,12 +3,12 @@ package com.ociweb.oe.foglight.api;
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.PubSubStructuredWritable;
-import com.ociweb.gl.api.PubSubStructuredWriter;
-import com.ociweb.gl.impl.pubField.IntegerFieldProcessor;
-import com.ociweb.gl.impl.pubField.MessageConsumer;
-import com.ociweb.gl.impl.pubField.UTF8FieldProcessor;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.util.field.IntegerFieldProcessor;
+import com.ociweb.pronghorn.util.field.MessageConsumer;
+import com.ociweb.pronghorn.util.field.StructuredBlobWriter;
+import com.ociweb.pronghorn.util.field.UTF8FieldProcessor;
 
 public class ThingBehavior implements PubSubListener {
 
@@ -30,7 +30,7 @@ public class ThingBehavior implements PubSubListener {
     
     private final PubSubStructuredWritable writable = new PubSubStructuredWritable() {
     	@Override
-    	public void write(PubSubStructuredWriter writer) {
+    	public void write(StructuredBlobWriter writer) {
     		writer.writeLong(PubSubStructured.COUNT_DOWN_FIELD, lastValue-1);
     		writer.writeUTF8(PubSubStructured.SENDER_FIELD, "from thing one behavior");
     	}			

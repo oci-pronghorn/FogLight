@@ -15,7 +15,7 @@ import com.ociweb.iot.maker.IODeviceFacade;
  * @author huydo
  */
 public enum MiniMotorDriverTwig {
-    ;
+	;
         public enum MiniMotorDriver implements I2CIODevice{
             
             ReadFault(){

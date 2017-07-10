@@ -5,7 +5,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.impl.BuilderImpl;
 import com.ociweb.gl.impl.schema.IngressMessages;
 import com.ociweb.gl.impl.schema.MessagePubSub;
@@ -74,7 +74,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	protected I2CConnection[] i2cInputs;
 	protected I2CConnection[] i2cOutputs;
-	
 
 	private static final int DEFAULT_LENGTH = 16;
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
@@ -227,6 +226,20 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 	public Hardware useSerial(Baud baud) {
 		this.rs232ClientBaud = baud;
+		return this;
+	}
+	
+	/**
+     *             
+	 * @param baud
+	 * @param device Name of the port. On UNIX systems this will typically
+     *             be of the form /dev/ttyX, where X is a port number. On
+     *             Windows systems this will typically of the form COMX,
+     *             where X is again a port number.
+	 */
+	public Hardware useSerial(Baud baud, String device) {
+		this.rs232ClientBaud = baud;
+		this.rs232ClientDevice = device;
 		return this;
 	}
 
@@ -387,13 +400,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return tempPipeOfStartupSubscriptions;
 	}
 
-
-	public boolean hasSerialInputs() {
-		if (true ) {
-			throw new UnsupportedOperationException("not yet implemented");
-		}
-		return true; 
-	}
 	
 	public boolean hasI2CInputs() {
 		return this.i2cInputs!=null && this.i2cInputs.length>0;
@@ -549,17 +555,17 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return useNetClient;
 	}
 
-	public void releasePinOutTraffic(int count, GreenCommandChannel<?> gcc) {		
-		GreenCommandChannel.publishGo(count, IDX_PIN, gcc);		
+	public void releasePinOutTraffic(int count, MsgCommandChannel<?> gcc) {		
+		MsgCommandChannel.publishGo(count, IDX_PIN, gcc);		
 	}
 
-	public void releaseI2CTraffic(int count, GreenCommandChannel<?> gcc) {
-		GreenCommandChannel.publishGo(count, IDX_I2C, gcc);
+	public void releaseI2CTraffic(int count, MsgCommandChannel<?> gcc) {
+		MsgCommandChannel.publishGo(count, IDX_I2C, gcc);
 	}
 	
 	@Override
-	public void releasePubSubTraffic(int count, GreenCommandChannel<?> gcc) {
-		GreenCommandChannel.publishGo(count, IDX_MSG, gcc);
+	public void releasePubSubTraffic(int count, MsgCommandChannel<?> gcc) {
+		MsgCommandChannel.publishGo(count, IDX_MSG, gcc);
 	}
 
 	public void buildStages(IntHashTable subscriptionPipeLookup2, IntHashTable netPipeLookup2, GraphManager gm2) {
@@ -577,6 +583,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfType(gm2, MessageSubscription.instance);
 		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfType(gm2, MessagePubSub.instance);
 		Pipe<IngressMessages>[] ingressMessagePipes = GraphManager.allPipesOfType(gm2, IngressMessages.instance);
+		
+		//TODO: must pull out those pubSub Pipes for direct connections
+		//TODO: new MessageSchema for direct messages from point to point
+		//      create the pipe instead of pub sub and attach?
+		//TODO: declare up front once in connections, direct connect topics
+		//      upon seeing these we build a new pipe
+		
 		
 		int commandChannelCount = orderPipes.length;
 
@@ -656,7 +669,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 		
 		if (IDX_MSG <0) {
-				logger.info("saved some resources by not starting up the unused pub sub service.");
+				logger.trace("saved some resources by not starting up the unused pub sub service.");
 		} else {
 			 	createMessagePubSubStage(subscriptionPipeLookup2, ingressMessagePipes, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
 		}

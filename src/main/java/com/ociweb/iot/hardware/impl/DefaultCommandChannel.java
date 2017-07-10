@@ -12,7 +12,8 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 public class DefaultCommandChannel extends FogCommandChannel{
 
 
-	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int instance, PipeConfigManager pcm) {
+	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, int features, 
+			                    int instance, PipeConfigManager pcm) {
 			super(gm, hardware, features, instance, pcm);
 	}
 	

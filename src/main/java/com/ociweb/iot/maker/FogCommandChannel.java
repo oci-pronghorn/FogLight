@@ -1,6 +1,9 @@
 package com.ociweb.iot.maker;
 
-import com.ociweb.gl.api.GreenCommandChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.PubSubWriter;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -21,8 +24,9 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
  * or resource on an IoT system.
  * 
  */
-public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl> {
+public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> {
 
+	private static final Logger logger = LoggerFactory.getLogger(FogCommandChannel.class);
     public static final int SIZE_OF_I2C_COMMAND = Pipe.sizeOf(I2CCommandSchema.instance, I2CCommandSchema.MSG_COMMAND_7);
 	protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
     protected final Pipe<GroveRequestSchema> pinOutput; //TODO: find a way to not create if not used like http or message pup/sub
@@ -34,7 +38,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
      
     protected int runningI2CCommandCount;
     
-   protected final int maxCommands;
+    protected final int maxCommands;
 
     public static final int I2C_WRITER      = 1<<29;
     public static final int PIN_WRITER      = 1<<28;
@@ -42,10 +46,13 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
     public static final int BT_WRITER       = 1<<26;
 
    	
-    protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int parallelInstanceId, PipeConfigManager pcm) {
+    protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, 
+    		                    int features, int parallelInstanceId,
+    		                    PipeConfigManager pcm) {
     	    	
        super(gm, hardware, features, parallelInstanceId, pcm);
 
+       logger.trace("created new FogCommandChannel {}",features);
        boolean setupPins = hardware.hasDigitalOrAnalogOutputs();
        if (setupPins) {
     	   this.pinOutput = new Pipe<GroveRequestSchema>(pcm.getConfig(GroveRequestSchema.class));
@@ -53,8 +60,10 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
     	   this.pinOutput = null;
        }
        
+       
        boolean setupSerial = (0 != (features & SERIAL_WRITER));//if feature bit is on then set for write...
        if (setupSerial) {
+    	   logger.trace("created pipes for serial write");
     	   serialOutput = newSerialOutputPipe(pcm.getConfig(SerialOutputSchema.class), hardware);
        } else {
     	   serialOutput = null;
@@ -250,7 +259,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
             
             PipeWriter.publishWrites(serialOutput);     
            
-            GreenCommandChannel.publishGo(1, HardwareImpl.serialIndex(builder), this);
+            MsgCommandChannel.publishGo(1, HardwareImpl.serialIndex(builder), this);
             
             return true;
             

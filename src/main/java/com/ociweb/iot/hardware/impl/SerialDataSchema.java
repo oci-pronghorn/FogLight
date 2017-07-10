@@ -1,7 +1,6 @@
 package com.ociweb.iot.hardware.impl;
 
-import java.nio.ByteBuffer;
-
+import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.MessageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -26,8 +25,8 @@ public class SerialDataSchema<T extends SerialDataSchema<T>> extends MessageSche
 
 		public static final SerialDataSchema instance = new SerialDataSchema();
 		
-		public static final int MSG_CHUNKEDSTREAM_1 = 0x00000000;
-		public static final int MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2 = 0x01c00001;
+		public static final int MSG_CHUNKEDSTREAM_1 = 0x00000000; //Group/OpenTempl/2
+		public static final int MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2 = 0x01c00001; //ByteVector/None/0
 
 
 		public static <T extends SerialDataSchema<T>> void consume(Pipe<T> input) {
@@ -46,17 +45,14 @@ public class SerialDataSchema<T extends SerialDataSchema<T>> extends MessageSche
 		}
 
 		public static <T extends SerialDataSchema<T>> void consumeChunkedStream(Pipe<T> input) {
-		    ByteBuffer fieldByteArray = PipeReader.readBytes(input,MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2,ByteBuffer.allocate(PipeReader.readBytesLength(input,MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2)));
+		    DataInputBlobReader<T> fieldByteArray = PipeReader.inputStream(input, MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 		}
 
-		public static <T extends SerialDataSchema<T>> boolean publishChunkedStream(Pipe<T> output, byte[] fieldByteArrayBacking, int fieldByteArrayPosition, int fieldByteArrayLength) {
-		    boolean result = false;
-		    if (PipeWriter.tryWriteFragment(output, MSG_CHUNKEDSTREAM_1)) {
+		public static <T extends SerialDataSchema<T>> void publishChunkedStream(Pipe<T> output, byte[] fieldByteArrayBacking, int fieldByteArrayPosition, int fieldByteArrayLength) {
+		        PipeWriter.presumeWriteFragment(output, MSG_CHUNKEDSTREAM_1);
 		        PipeWriter.writeBytes(output,MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2, fieldByteArrayBacking, fieldByteArrayPosition, fieldByteArrayLength);
 		        PipeWriter.publishWrites(output);
-		        result = true;
-		    }
-		    return result;
 		}
+
 		
 }

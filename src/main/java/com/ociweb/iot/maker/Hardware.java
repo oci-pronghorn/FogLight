@@ -97,6 +97,17 @@ public interface Hardware extends Builder {
      */
     Hardware useI2C(int bus);
     
+    Hardware useSerial(Baud baud);
+    
+	/**
+     *             
+	 * @param baud
+	 * @param device Name of the port. On UNIX systems this will typically
+     *             be of the form /dev/ttyX, where X is a port number. On
+     *             Windows systems this will typically of the form COMX,
+     *             where X is again a port number.
+	 */
+    Hardware useSerial(Baud baud, String device);
    
    
 }

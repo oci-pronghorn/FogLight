@@ -70,13 +70,16 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     /////////////////////
     private Number stageRate;
     
+    private SerialReader serialStremReader; //must be held as we accumulate serial data.
+    
     public ReactiveListenerStageIOT(GraphManager graphManager, Object listener, 
-    		                        Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, 
+    		                        Pipe<?>[] inputPipes, 
+    		                        Pipe<?>[] outputPipes, 
     		                        HardwareImpl hardware, int parallelInstance) {
 
         
         super(graphManager, listener, inputPipes, outputPipes, hardware, parallelInstance);
-      
+
         this.builder = hardware;
                    
         //allow for shutdown upon shutdownRequest we have new content
@@ -173,7 +176,6 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         }
         
         
-        
         lastDigitalTimes = new long[MAX_PORTS];
         lastAnalogTimes = new long[MAX_PORTS];
                     
@@ -228,12 +230,15 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         
         int p = inputPipes.length;
-        
+        //logger.trace("input pipes "+p);
         while (--p >= 0) {
             //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
 
+        	//logger.trace(inputPipes[p].schemaName(inputPipes[p]));
+        	
             if (Pipe.isForSchema((Pipe<SerialInputSchema>)inputPipes[p], SerialInputSchema.class)) {
-            	consumeSerialMessage(listener, (Pipe<SerialInputSchema>) inputPipes[p]);
+            	//logger.trace("checking for  consumeSerialMessage");
+            	consumeSerialMessage((SerialListener)listener, (Pipe<SerialInputSchema>) inputPipes[p]);
             } else if (Pipe.isForSchema((Pipe<GroveResponseSchema>)inputPipes[p], GroveResponseSchema.class)) {
                 consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) inputPipes[p]);
             } else if (Pipe.isForSchema((Pipe<I2CResponseSchema>)inputPipes[p], I2CResponseSchema.class)) {
@@ -297,27 +302,39 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 	}
 
 
-	private void consumeSerialMessage(Object listener, Pipe<SerialInputSchema> p) {
-		
-		SerialListener serial = (SerialListener)p;
 	
-		do {
-						
-			if (PipeReader.peekMsg(p, SerialDataSchema.MSG_CHUNKEDSTREAM_1)) {
-				
-				SerialReader stream = (SerialReader)PipeReader.peekInputStream(p,SerialInputSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-				boolean msg = serial.message(stream);
-				if (msg) {
-					PipeReader.tryReadFragment(p);
-					PipeReader.releaseReadLock(p);
-				} else {
-					break; //could not consume do later
-				}
-			} else {
-				break; //nothing to peek.
-			}
-		
-		} while (true);
+	private void consumeSerialMessage(SerialListener serial, Pipe<SerialInputSchema> p) {
+
+		while (PipeReader.tryReadFragment(p)) {
+		    int msgIdx = PipeReader.getMsgIdx(p);
+		    int consumed = 0;
+		    switch(msgIdx) {
+		        case SerialInputSchema.MSG_CHUNKEDSTREAM_1:
+		        	if (null==serialStremReader) {
+		        		serialStremReader = (SerialReader)PipeReader.inputStream(p, SerialInputSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+		        	} else {
+		        		serialStremReader.accumHighLevelAPIField(SerialInputSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+		        	}		 
+		        	//let the behavior consume some or all of the serial data
+		        	int originalPosition = serialStremReader.absolutePosition();
+		        	
+		        	//System.err.println("reading from position "+originalPosition);
+		        	consumed = serial.message(serialStremReader);
+		        	//System.err.println("reading total size "+consumed+" now pos "+serialStremReader.absolutePosition());
+		        	
+		        	//set position for the next call to ensure we are aligned after the consumed bytes
+		        	//the behavior could read past consumed and choose not to consume it yet.
+		        	serialStremReader.absolutePosition(originalPosition+consumed);
+		        	assert(consumed>=0) : "can not consume negative value";
+		        	
+		        break;
+		        case -1:
+		            requestShutdown();
+		        break;
+		    }
+		    PipeReader.readNextWithoutReleasingReadLock(p);
+		    PipeReader.releaseAllPendingReadLock(p, consumed);
+		}
 		
 	}
 

@@ -35,7 +35,7 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage {
 		this.fromCommandChannels = ccToAdOut;
 		this.rs232Client = rs232Client;
 		
-		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 1000_000_000, this);
+		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 10_000, this);
 	}
 
 	

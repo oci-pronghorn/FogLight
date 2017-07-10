@@ -11,11 +11,18 @@ public class OLED_96x96Behavior implements StartupListener, TimeListener{
 	private final OLED_96x96_Facade display;
 	public OLED_96x96Behavior(FogRuntime rt){
 		display = OLED_96x96.newFacade(rt.newCommandChannel(0,20000)); 
+		
 	}
 	@Override
 	public void timeEvent(long time, int iteration) {
-		display.setTextRowCol(iteration % 12, 0);
-		display.printCharSequence("hello world");
+		if ((iteration + 1) %12 != 0){
+			display.setTextRowCol(iteration % 12, 0);
+			display.printCharSequence("hello world");
+		}
+		else {
+			display.cleanClear();
+		}
+		
 	}
 
 	@Override

@@ -156,13 +156,13 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
     }
     
-    public FogCommandChannel newCommandChannel(int features, CharSequence ... supportedTopics) {
+    public FogCommandChannel newCommandChannel(int features) {
 
     	int instance = -1;
 
     	PipeConfigManager pcm = buildPipeManager();
 
-    	return this.builder.newCommandChannel(features, instance, pcm, supportedTopics);
+    	return this.builder.newCommandChannel(features, instance, pcm);
 
     }
 
@@ -174,7 +174,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return pcm;
 	}
 
-    public FogCommandChannel newCommandChannel(int features, int customChannelLength, CharSequence ... supportedTopics) {
+    public FogCommandChannel newCommandChannel(int features, int customChannelLength) {
 
     	int instance = -1;
 
@@ -184,7 +184,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
     	pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload, MessagePubSub.class );
     	pcm.addConfig(customChannelLength,0,TrafficOrderSchema.class);
 	
-        return this.builder.newCommandChannel(features, instance, pcm, supportedTopics);
+        return this.builder.newCommandChannel(features, instance, pcm);
         
     }
 

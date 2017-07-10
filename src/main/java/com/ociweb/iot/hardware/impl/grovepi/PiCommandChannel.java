@@ -32,8 +32,8 @@ public class PiCommandChannel extends FogCommandChannel{
 
 	public PiCommandChannel(GraphManager gm, HardwareImpl hardware, int features, 
 			               int instance, PipeConfigManager pcm, 
-			               byte commandIndex, CharSequence ... supportedTopics) { 
-		super(gm, hardware, features, instance, pcm, supportedTopics); 
+			               byte commandIndex) { 
+		super(gm, hardware, features, instance, pcm); 
 	}
 
 	@Override

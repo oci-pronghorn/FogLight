@@ -146,14 +146,14 @@ public class TestHardware extends HardwareImpl {
     
     @Override
     public FogCommandChannel newCommandChannel(int features, int instance,
-    		                                   PipeConfigManager pcm, CharSequence ... supportedTopics) {    
-       return new DefaultCommandChannel(gm, this, features, instance, pcm, supportedTopics);       
+    		                                   PipeConfigManager pcm) {    
+       return new DefaultCommandChannel(gm, this, features, instance, pcm);       
     }
     
     @Override
     public FogCommandChannel newCommandChannel(int instance, 
-    		                                     PipeConfigManager pcm, CharSequence ... supportedTopics) {    
-       return new DefaultCommandChannel(gm, this, 0, instance, pcm, supportedTopics);     
+    		                                     PipeConfigManager pcm) {    
+       return new DefaultCommandChannel(gm, this, 0, instance, pcm);     
     }
     
     @Override

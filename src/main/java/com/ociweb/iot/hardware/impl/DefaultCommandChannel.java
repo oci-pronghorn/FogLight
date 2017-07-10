@@ -13,8 +13,8 @@ public class DefaultCommandChannel extends FogCommandChannel{
 
 
 	public DefaultCommandChannel(GraphManager gm, HardwareImpl hardware, int features, 
-			                    int instance, PipeConfigManager pcm, CharSequence ... supportedTopics) {
-			super(gm, hardware, features, instance, pcm, supportedTopics);
+			                    int instance, PipeConfigManager pcm) {
+			super(gm, hardware, features, instance, pcm);
 	}
 	
 

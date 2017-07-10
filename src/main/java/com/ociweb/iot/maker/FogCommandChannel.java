@@ -48,9 +48,9 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
    	
     protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, 
     		                    int features, int parallelInstanceId,
-    		                    PipeConfigManager pcm, CharSequence ... supportedTopics) {
+    		                    PipeConfigManager pcm) {
     	    	
-       super(gm, hardware, features, parallelInstanceId, pcm, supportedTopics);
+       super(gm, hardware, features, parallelInstanceId, pcm);
 
        logger.trace("created new FogCommandChannel {}",features);
        boolean setupPins = hardware.hasDigitalOrAnalogOutputs();

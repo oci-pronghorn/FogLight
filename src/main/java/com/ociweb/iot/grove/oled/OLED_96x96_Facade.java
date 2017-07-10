@@ -107,7 +107,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 					data_out[index++] = 0x00;
 				}
 			}	
-			return sendData(); //we send the entire array of data of 0s
+			return sendData(0, 4608); //we send the entire array of data of 0s
 
 		case SH1107G:
 
@@ -453,5 +453,29 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		}
 
 		return sendCommands(0,2);
+	}
+	
+	/**
+	 * @param data
+	 * @param start
+	 * @param length
+	 * @param finalTargetIndex
+	 * @return true if the data is sent; false otherwise.
+	 */
+	@Override
+	protected boolean sendData(int [] data, int start, int length, int finalTargetIndex){
+		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
+		length = length / 2; //we need to send two bytes for each command
+		int i;
+		for (i = start; i < Math.min(start + length, finalTargetIndex); i++){
+			i2cPayloadWriter.write(DATA_MODE);
+			i2cPayloadWriter.write(data[i]);
+		}
+		ch.i2cCommandClose();
+		ch.i2cFlushBatch();
+		if (i == finalTargetIndex){
+			return true;
+		}
+		return sendData(data, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 }

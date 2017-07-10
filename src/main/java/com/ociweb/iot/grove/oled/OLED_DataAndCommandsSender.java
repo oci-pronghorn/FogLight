@@ -10,7 +10,7 @@ public abstract class OLED_DataAndCommandsSender {
 	protected final int[] cmd_out;
 	protected final int i2c_address;
 	
-	private static final int BATCH_SIZE = 50;
+	protected static final int BATCH_SIZE = 50;
 	public static final int COMMAND_MODE = 0x80;
 	public static final int DATA_MODE = 0x40;
 	
@@ -62,7 +62,7 @@ public abstract class OLED_DataAndCommandsSender {
 		return sendData(data, start,BATCH_SIZE, start+length);
 	}
 	
-	private boolean sendData(int [] data, int start, int length, int finalTargetIndex){
+	protected boolean sendData(int [] data, int start, int length, int finalTargetIndex){
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		i2cPayloadWriter.write(DATA_MODE);
 		int i;

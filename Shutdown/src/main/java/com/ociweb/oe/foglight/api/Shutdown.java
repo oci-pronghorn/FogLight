@@ -18,18 +18,13 @@ public class Shutdown implements FogApp
 	private static final Port LED_PORT = D2;
 	private static final Port BUTTON_PORT = D3;
 	private static boolean statusOfLED = false;
-	
-	/*public static void main(String[] args){
-		FogRuntime.run(new Shutdown());
-	}
-	*/
-	
+
     @Override
     public void declareConnections(Hardware c) {
         
     	c.connect(LED, D2);
     	c.connect(Button, D3);
-    	c.enableTelemetry(false);
+
     }
 
 
@@ -62,11 +57,11 @@ public class Shutdown implements FogApp
 					}
     			});
     			
-    			//3
-    			ReactiveListenerStage.requestSystemShutdown(shutdownRunnable);
-    			
-    			//4
-    			runtime.requestSystemShutdown(shutdownRunnable);
+//    			//3
+//    			ReactiveListenerStage.requestSystemShutdown(shutdownRunnable);
+//    			
+//    			//4
+//    			runtime.requestSystemShutdown(shutdownRunnable);
     		}
     	});    	
     	

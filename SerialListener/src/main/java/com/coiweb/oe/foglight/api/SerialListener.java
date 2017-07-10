@@ -12,7 +12,7 @@ public class SerialListener implements FogApp
     @Override
     public void declareConnections(Hardware c) {
         c.useSerial(Baud.B_____9600); //optional device can be set as the second argument       
-        c.setTriggerRate(50);
+        c.setTimerPulseRate(50);
         c.limitThreads();//pics optimal threads based on core detection
     }
 
@@ -22,7 +22,7 @@ public class SerialListener implements FogApp
     	
     	runtime.addSerialListener(new SerialListenerBehavior(runtime));
 
-        runtime.addTimeListener(new SerialWriterBehavior(runtime));
+        runtime.addTimePulseListener(new SerialWriterBehavior(runtime));
         
     }
           

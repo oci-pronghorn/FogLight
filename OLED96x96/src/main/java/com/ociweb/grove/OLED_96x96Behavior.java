@@ -14,16 +14,16 @@ public class OLED_96x96Behavior implements StartupListener, TimeListener{
 	}
 	@Override
 	public void timeEvent(long time, int iteration) {
+		display.setTextRowCol(iteration % 12, 0);
 		display.printCharSequence("hello world");
 	}
 
 	@Override
 	public void startup() {
-		display.setChip(0);
 		display.init();
-		display.clear();
-		display.inverseOff();
+		display.cleanClear();
 		display.setVerticalMode();
+		
 	}
 
 }

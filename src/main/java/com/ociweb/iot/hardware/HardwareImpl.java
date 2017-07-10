@@ -208,6 +208,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			assert(!t.isInput());
 			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
 		}
+		this.useI2C();
 		return this;
 	}
 	@Override
@@ -220,6 +221,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			assert(!t.isInput());
 			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
 		}
+		this.useI2C();
 		return this;
 	}
 

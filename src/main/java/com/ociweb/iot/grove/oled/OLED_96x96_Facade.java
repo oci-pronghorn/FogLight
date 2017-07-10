@@ -1,21 +1,15 @@
 package com.ociweb.iot.grove.oled;
 
 import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
-
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceFacade;
 
-
-
-
 public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IODeviceFacade{
-
-
-
-	private int lowPixelLevel = 15 & 0x0F;
-	private int highPixelLevel = (15 << 4) * 0xF0;
+	
+	private int lowPixelLevel = 0x0F;
+	private int highPixelLevel = 0xF0;
 	private int iteration = 0;
 	private OLED_96x96_DriverChip chip;
 
@@ -141,6 +135,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		//determineChip();
 		System.out.println("Artificially chose: " + chip);
 		int length = generateInitCommands(); //could have done this in the return line but this is clearer.
+		System.out.println(length);
 		return sendCommands(0,length);
 	}
 

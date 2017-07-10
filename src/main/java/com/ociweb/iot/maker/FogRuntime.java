@@ -3,6 +3,7 @@ package com.ociweb.iot.maker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.ListenerConfig;
 import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.api.RestListener;
@@ -203,7 +204,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
     public ListenerFilterIoT addSerialListener(SerialListener listener) {
         return registerListener(listener);
     }
-    
+ 
     public ListenerFilterIoT registerListener(Object listener) { //TODO: rename Object to Behavior
     	return registerListenerImpl(listener);
     }

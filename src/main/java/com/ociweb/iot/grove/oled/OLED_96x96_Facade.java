@@ -426,6 +426,9 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 	public boolean displayImage(int[][] raw_image, int pixelDepth){
 		switch (chip){
 		case SSD1327:
+			if (!setHorizontalMode()){
+				return false;
+			}
 			int index = 0;
 			int mask = (1 << pixelDepth) - 1;
 			for (int i = 0; i < OLED_96x96_Consts.ROW_COUNT; i ++){

@@ -73,7 +73,7 @@ public class OLED_128x64_Facade extends BinaryOLED implements IODeviceFacade{
 	}
 
 	/**
-	 * Sets the display in horizontal mode, necessary for {@link #drawBitmap(int[])} and {@link #displayImage(int[][])}
+	 * Sets the display in horizontal mode, necessary for  {@link #displayImage(int[][])}
 	 * Note that both {drawBitmap(FogCommandChannel, int[], int[])} and {displayImage(int[][])} already automatically set the display in
 	 * horizontal mode.
 	 * @return true if all three bytes needed were sent, false otherwise.
@@ -431,14 +431,14 @@ public class OLED_128x64_Facade extends BinaryOLED implements IODeviceFacade{
 	 */
 
 
-	public boolean drawBitmapInHorizontalMode(int[] map){
+	private boolean drawBitmapInHorizontalMode(int[] map){
 		if (!setHorizontalMode()){
 			return false;
 		}
 		return sendData(map);
 	}
-	@Override
-	public boolean drawBitmap(int[] map){
+	
+	private boolean drawBitmap(int[] map){
 		return drawBitmapInPageMode(map);
 	}
 	
@@ -469,22 +469,27 @@ public class OLED_128x64_Facade extends BinaryOLED implements IODeviceFacade{
 
 	@Override
 	public boolean displayImage(int[][] raw_image){
+		return displayImage(raw_image,1);
+	}
+
+	@Override
+	public boolean displayImage(int[][] raw_image, int pixelDepth) {
 		int counter = 0;
 		int pageLimit = rowCount >> 3;
 		for (int page = 0; page < pageLimit; page++){
 			for (int seg = 0; seg < colCount; seg++){
-				data_out[counter] = parseColByte(raw_image, page*8, seg);
+				data_out[counter] = parseColByte(raw_image, page*8, seg, 1);
 				counter++;
 			}
 		}
 		return drawBitmap(data_out);
+	
 	}
 
-
-	private static int parseColByte(int[][]raw_image, int row, int col){
+	private static int parseColByte(int[][]raw_image, int row, int col, int pixelDepth){
 		int ret = 0;
 		for (int i = 0; i < 8; i ++){
-			ret = ret | (raw_image[row+i][col] & 0x01) << i;
+			ret = ret | (raw_image[row+i][col] & (0x01 << pixelDepth - 1)) << i;
 		}
 		return ret;
 	}
@@ -504,6 +509,8 @@ public class OLED_128x64_Facade extends BinaryOLED implements IODeviceFacade{
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	
 
 
 

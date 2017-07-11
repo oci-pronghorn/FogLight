@@ -325,7 +325,13 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 		return true;
 	}
 	
-	@Override
+	/**
+	 * This function should be used over {@link #displayImage(int[][], int)} with the pixelDepth set to 1 if the
+	 * input data map is a one dimensional compact array where each bit corresponds to a pixel. If each int corresponds
+	 * to a pixel, {@link #displayImage(int[][], int)} should be the go-to method.
+	 * @param map
+	 * @return true
+	 */
 	public boolean drawBitmap(int[] map) {
 		switch(chip){
 		case SSD1327:
@@ -416,17 +422,28 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 		return displayImage(raw_image, 4);
 	}
 	
-	public boolean displayImage(int[][] raw_image, int inputGrayscaleBitRes){
-		int index = 0;
-		int mask = (1 << inputGrayscaleBitRes) - 1;
-		for (int i = 0; i < OLED_96x96_Consts.ROW_COUNT; i ++){
-			for (int j = 0; j < OLED_96x96_Consts.COL_COUNT; j ++){
-				data_out[index++] = 1;//TODO
-				//index++;
-				
+	@Override
+	public boolean displayImage(int[][] raw_image, int pixelDepth){
+		switch (chip){
+		case SSD1327:
+			int index = 0;
+			int mask = (1 << pixelDepth) - 1;
+			for (int i = 0; i < OLED_96x96_Consts.ROW_COUNT; i ++){
+				for (int j = 0; j < OLED_96x96_Consts.COL_COUNT; j = j + 2){
+					int b = (raw_image[i][j] & mask) << 4;
+					b |= raw_image[i][j+1] & mask;
+					data_out[index++] = b;
+				}
 			}
+			return sendData(0,index);
+		case SH1107G:
+			//TODO: implement function for SH1107G chip
+			return false;
+		default:
+			return false;
+		
 		}
-		return false;
+		
 	}
 	
 

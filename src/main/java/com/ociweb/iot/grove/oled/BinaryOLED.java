@@ -156,12 +156,11 @@ public abstract class BinaryOLED {
 	public abstract boolean setTextRowCol(int row, int col);
 	public abstract boolean printCharSequence(CharSequence s);
 	public abstract boolean printCharSequenceAt(CharSequence s, int row, int col);
-
-	public abstract boolean drawBitmap(int[] map);
 	public abstract boolean activateScroll();
 	public abstract boolean deactivateScroll();
 	public abstract boolean setUpScroll();
 	public abstract boolean displayImage(int[][] raw_image);
+	public abstract boolean displayImage(int[][] raw_image, int pixelDepth);
 	public abstract boolean setHorizontalMode();
 	public abstract boolean setVerticalMode();
 	

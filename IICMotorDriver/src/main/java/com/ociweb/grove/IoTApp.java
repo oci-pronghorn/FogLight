@@ -1,6 +1,7 @@
 package com.ociweb.grove;
 
 
+import static com.ociweb.iot.grove.motor_driver.MotorDriverTwig.MotorDriver;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 
@@ -19,9 +20,10 @@ public class IoTApp implements FogApp
     public void declareConnections(Hardware c) {
         ////////////////////////////
         //Connection specifications
-        ///////////////////////////
-        
+        ///////////////////////////        
         // // specify each of the connections on the harware, eg which component is plugged into which connection.
+        c.useI2C();
+        c.connect(MotorDriver);
     }
     
     
@@ -30,6 +32,6 @@ public class IoTApp implements FogApp
         //////////////////////////////
         //Specify the desired behavior
         //////////////////////////////
-        
+        runtime.registerListener(new MotorDriverBehavior(runtime));
     }
 }

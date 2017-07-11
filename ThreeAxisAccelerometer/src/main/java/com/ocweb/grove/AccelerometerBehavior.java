@@ -36,7 +36,7 @@ public class AccelerometerBehavior implements I2CListener,StartupListener {
     @Override
     public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
         
-        short[] values = accSensor.intepretData(backing, position, length, mask);
+        short[] values = accSensor.interpretData(backing, position, length, mask);
         System.out.println("x= "+values[0]);
         System.out.println("y= "+values[1]);
         System.out.println("z= "+values[2]);

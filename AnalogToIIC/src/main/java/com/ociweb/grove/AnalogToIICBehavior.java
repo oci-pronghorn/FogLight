@@ -26,12 +26,23 @@ public class AnalogToIICBehavior implements I2CListener,StartupListener{
     @Override
     public void startup() {
         sensor.begin();
+        sensor.setCONFIG_REG(0x28);
+        sensor.setHysteresis(100);
+        sensor.setUpperLimit(2000);
     }
     @Override
     public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
-        short value = sensor.intepretData(backing, position, length, mask);
+        if(register == ADC_Constants.REG_ADDR_RESULT){
+            short value = sensor.interpretData(backing, position, length, mask);
+            System.out.println("value: "+value);
+            
+            int alert = sensor.readAlertFlag(backing, position, length, mask);
+            System.out.println("alert: "+alert);
+        }
+        if(register == ADC_Constants.REG_ADDR_ALERT){
+            System.out.println("upper/lower: "+(backing[position]&0x03));
+        }
         
-        System.out.println(value);
     }
 
     

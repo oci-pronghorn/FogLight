@@ -116,8 +116,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
     private int IDX_PIN = -1;
     private int IDX_I2C = -1;
-    //private int IDX_MSG = -1; //do not redefine but use BuidlerImpl
-    //private int IDX_NET = -1; //do not redefine but use BuidlerImpl
     private int IDX_SER = -1;
 	
     public IODevice getConnectedDevice(Port p) {    	
@@ -611,25 +609,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
 		IDX_NET = useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
 		IDX_SER = serialOutputPipes.length>0 ? eventSchemas++ : -1;
-			
-		
-		logger.info("pin {} i2c {} msg {} net {} ser {} ",IDX_PIN, IDX_I2C, IDX_MSG, IDX_NET, IDX_SER);
-		
-		//we may have no subscribers yet have publisher, if so must build.
-		logger.info("subscriptions {} {} {} {}",
-				IntHashTable.isEmpty(subscriptionPipeLookup2),
-				subscriptionPipes.length,
-				messagePubSub.length, IDX_MSG ); 
-		
-		long timeout = 20_000; //20 seconds
 
+		long timeout = 20_000; //20 seconds
 		
 		//TODO: can we share this while with the parent BuilderImpl, I think so..
 		int maxGoPipeId = 0;
 					
 		int t = commandChannelCount;
-				
-				
+								
 		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][0];
 		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][0];
 		
@@ -807,36 +794,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 	}
 
-	private int populateGoAckPipes(int maxGoPipeId, Pipe<TrafficReleaseSchema>[][] masterGoOut,
-			Pipe<TrafficAckSchema>[][] masterAckIn, Pipe<TrafficReleaseSchema>[] goOut, Pipe<TrafficAckSchema>[] ackIn,
-			int p) {
-		addToLastNonNull(masterGoOut[p], goOut[p] = new Pipe<TrafficReleaseSchema>(releasePipesConfig));
-		
-		maxGoPipeId = Math.max(maxGoPipeId, goOut[p].id);				
-		
-		addToLastNonNull(masterAckIn[p], ackIn[p] = new Pipe<TrafficAckSchema>(ackPipesConfig));
-		return maxGoPipeId;
-	}
 
-	private <S extends MessageSchema<S>> void addToLastNonNull(Pipe<S>[] pipes, Pipe<S> pipe) {
-		int i = pipes.length;
-		while (--i>=0) {
-			if (null == pipes[i]) {
-				pipes[i] = pipe;
-				return;
-			}
-		}		
-	}
-
-
-	private int getFeatures(GraphManager gm2, Pipe<TrafficOrderSchema> orderPipe) {
-		PronghornStage producer = gm2.getRingProducer(gm,orderPipe.id);
-		assert(producer instanceof ReactiveListenerStage) : "TrafficOrderSchema must only come from Reactor stages but was "+producer.getClass().getSimpleName();
-		
-		ReactiveListenerStage reactor =  (ReactiveListenerStage)producer;			
-		int features = reactor.getFeatures(orderPipe);
-		return features;
-	}
 
 	protected void createSerialOutputStage(Pipe<SerialOutputSchema>[] serialOutputPipes,
 			Pipe<TrafficReleaseSchema>[] masterGoOut, Pipe<TrafficAckSchema>[] masterAckIn) {

@@ -72,7 +72,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
        
        
        //TODO: if features is I2C and if I2C is configured both, add assert check.
-       boolean setupI2C = true;//right now this must always be on expcially for pi, hardware.isUseI2C();	  
+       boolean setupI2C = hardware.isUseI2C();//right now this must always be on expcially for pi, hardware.isUseI2C();	  
        	   
        if (setupI2C) {
     	   //yes i2c usage
@@ -247,7 +247,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     public boolean publishSerial(SerialWritable writable) {
         assert(writable != null);
         assert((0 != (initFeatures & SERIAL_WRITER))) : "CommandChannel must be created with SERIAL_WRITER flag";
-        
+                
         if (goHasRoom() && 
         	PipeWriter.tryWriteFragment(serialOutput, SerialDataSchema.MSG_CHUNKEDSTREAM_1)) {
   	

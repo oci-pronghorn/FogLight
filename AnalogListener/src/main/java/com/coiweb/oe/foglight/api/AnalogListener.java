@@ -11,6 +11,7 @@ public class AnalogListener implements FogApp
     ///////////////////////
     //Connection constants 
     ///////////////////////
+	private static Port LIGHT_SENSOR_PORT = A2;
 
 
     @Override
@@ -18,6 +19,7 @@ public class AnalogListener implements FogApp
         ////////////////////////////
         //Connection specifications
         ///////////////////////////
+    	c.connect(LightSensor, LIGHT_SENSOR_PORT);
 
         
     }
@@ -28,7 +30,7 @@ public class AnalogListener implements FogApp
         //////////////////////////////
         //Specify the desired behavior
         //////////////////////////////
-
+    	runtime.addAnalogListener(new AnalogListenerBehavior(runtime)).includePorts(LIGHT_SENSOR_PORT).excludePorts(DIGITALS);
     }
           
 }

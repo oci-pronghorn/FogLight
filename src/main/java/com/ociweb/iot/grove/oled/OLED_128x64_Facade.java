@@ -18,7 +18,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
  * @author Ray Lo, Nathan Tippy
  *
  */
-public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IODeviceFacade{
+public class OLED_128x64_Facade extends BinaryOLED implements IODeviceFacade{
 	/**
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
 	 * @param ch FogCommandChannel used for the i2c write.
@@ -437,11 +437,12 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		}
 		return sendData(map);
 	}
-
 	@Override
 	public boolean drawBitmap(int[] map){
-		return drawBitmapInPageMode( map);
+		return drawBitmapInPageMode(map);
 	}
+	
+
 
 	/**
 	 * NOTE: drawing in page mode instead of horizontal mode sends 16 extra bytes per reflash compared to drawing
@@ -503,6 +504,8 @@ public class OLED_128x64_Facade extends OLED_DataAndCommandsSender implements IO
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+
 
 }
 

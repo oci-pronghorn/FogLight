@@ -29,15 +29,17 @@ public class MotorDriver_Facade implements IODeviceFacade{
     }
     
     private void direction(int _direction){
-        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
         
-        i2cPayloadWriter.writeByte(DIR_REG);
-        i2cPayloadWriter.writeByte(_direction);
-        i2cPayloadWriter.writeByte(DUMMY_BYTE);
-        
-        target.i2cCommandClose();
-        target.i2cFlushBatch();
-        target.i2cDelay(DRIVER_I2C_ADD, 4000000);
+            DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
+            
+            i2cPayloadWriter.writeByte(DIR_REG);
+            i2cPayloadWriter.writeByte(_direction);
+            i2cPayloadWriter.writeByte(DUMMY_BYTE);
+            
+            target.i2cCommandClose();
+            target.i2cFlushBatch();
+            target.i2cDelay(DRIVER_I2C_ADD, 4000000);
+  
     }
     /**
      * Set the velocity of both motors. The motor rotates clockwise if velocity > 0 and vice versa
@@ -97,15 +99,14 @@ public class MotorDriver_Facade implements IODeviceFacade{
         target.i2cCommandClose();
         target.i2cFlushBatch();
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);
-        
     }
-
+    
     /**
-     *      Drive a stepper motor 
-     * _step: -1024~1024, when _step>0, stepper motor runs clockwise; when _step is less than 0, 
-     * stepper motor runs anticlockwise; when _step is 512, the stepper motor will 
+     *      Drive a stepper motor
+     * _step: -1024~1024, when _step>0, stepper motor runs clockwise; when _step is less than 0,
+     * stepper motor runs anticlockwise; when _step is 512, the stepper motor will
      * run a complete turn; if step is 1024, the stepper motor will run 2 turns.
-     * @param _step 
+     * @param _step
      */
     public void StepperRun(int _step) {
         int _direction = 1;

@@ -4,7 +4,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
-public abstract class OLED_DataAndCommandsSender {
+public abstract class BinaryOLED {
 	protected final FogCommandChannel ch;
 	protected final int[] data_out;
 	protected final int[] cmd_out;
@@ -14,7 +14,7 @@ public abstract class OLED_DataAndCommandsSender {
 	public static final int COMMAND_MODE = 0x80;
 	public static final int DATA_MODE = 0x40;
 	
-	protected OLED_DataAndCommandsSender(FogCommandChannel ch, int[] data_out, int[]cmd_out, int i2c_address){
+	protected BinaryOLED(FogCommandChannel ch, int[] data_out, int[]cmd_out, int i2c_address){
 		this.ch = ch;
 		this.data_out = data_out;
 		this.cmd_out = cmd_out;
@@ -156,7 +156,8 @@ public abstract class OLED_DataAndCommandsSender {
 	public abstract boolean setTextRowCol(int row, int col);
 	public abstract boolean printCharSequence(CharSequence s);
 	public abstract boolean printCharSequenceAt(CharSequence s, int row, int col);
-	public abstract boolean drawBitmap(int[] bitmap);
+
+	public abstract boolean drawBitmap(int[] map);
 	public abstract boolean activateScroll();
 	public abstract boolean deactivateScroll();
 	public abstract boolean setUpScroll();

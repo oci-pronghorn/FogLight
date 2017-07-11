@@ -1,12 +1,13 @@
 package com.ociweb.iot.grove.oled;
 
 import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
+import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceFacade;
 
-public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IODeviceFacade{
+public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 
 	private int lowPixelLevel = 0x0F;
 	private int highPixelLevel = 0xF0;
@@ -45,27 +46,6 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 		else {
 			chip = SSD1327;
 		}
-	}
-	public boolean setRowColInHorizontalMode(int row, int col){
-
-		switch (chip){
-		case SSD1327:
-			cmd_out[0] = SSD1327_Consts.REMAP;
-			cmd_out[1] = SSD1327_Consts.HORIZONTAL;
-			cmd_out[2] = SSD1327_Consts.SET_ROW_ADDRESS;
-			cmd_out[3] = row;
-			cmd_out[4] = SSD1327_Consts.SET_COL_ADDRESS;
-			cmd_out[5] = col + 8; //the 8th column on the chip corresponds to the 0th column on the actual screen
-			cmd_out[6] = col + 47 + 8;//end at col + 47th column, again offset by 8.
-			return sendCommands(0,7);
-
-		default:
-		case SH1107G:
-			return false;
-		}
-
-
-
 	}
 
 	@Override
@@ -341,8 +321,12 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 	}
 
 
+	public boolean drawPixelMap(int[] map){
+		return true;
+	}
+	
 	@Override
-	public boolean drawBitmap(int[] bitmap) {
+	public boolean drawBitmap(int[] map) {
 		switch(chip){
 		case SSD1327:
 			int index = 0;
@@ -350,18 +334,19 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 				return false;
 			}
 
-			for (int i = 0; i < bitmap.length; i++){
+			for (int i = 0; i < map.length; i++){
 				for (int j = 0; j < 8; j = j+2){
 					int c = 0x00;
-					int b1 = (bitmap[i] << j) & 0x80;
-					int b2 = (bitmap[i] << (j+1)) & 0x80;
+					int b1 = (map[i] << j) & 0x80;
+					int b2 = (map[i] << (j+1)) & 0x80;
 
 					c |= (b1 > 0)? highPixelLevel:0x00;
 					c |= (b2 > 0)? lowPixelLevel:0x00;		
+				
 					data_out[index++] = c;	
 				}
 			}
-			sendData(0, bitmap.length*4);
+			return sendData(0, map.length*4);
 		case SH1107G:
 			int row = 0;
 			int lowCol = 0x00;
@@ -369,12 +354,12 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 			if (!setHorizontalMode()){
 				return false;
 			}
-			for (int i = 0; i < bitmap.length; i++){
+			for (int i = 0; i < map.length; i++){
 				cmd_out[0] = (SH1107G_Consts.SET_ROW_BASE_BYTE + row);
 				cmd_out[1] = lowCol;
 				cmd_out[2] = highCol;	
 				sendCommands(0,3);
-				int curByte = bitmap[i];
+				int curByte = map[i];
 				int tmp = 0x00;
 				for (int j = 0; j < 8; j++){
 					tmp |= ((curByte >> (7 - j)) & 0x01) << j;
@@ -388,7 +373,7 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 					highCol += 0x01;
 				}
 			}
-			return sendData(0, bitmap.length);
+			return sendData(0, map.length);
 
 		default:
 			return false;
@@ -428,15 +413,37 @@ public class OLED_96x96_Facade extends OLED_DataAndCommandsSender implements IOD
 
 	@Override
 	public boolean displayImage(int[][] raw_image) {
-		// TODO Auto-generated method stub
+		return displayImage(raw_image, 4);
+	}
+	
+	public boolean displayImage(int[][] raw_image, int inputGrayscaleBitRes){
+		int index = 0;
+		int mask = (1 << inputGrayscaleBitRes) - 1;
+		for (int i = 0; i < OLED_96x96_Consts.ROW_COUNT; i ++){
+			for (int j = 0; j < OLED_96x96_Consts.COL_COUNT; j ++){
+				data_out[index++] = 1;//TODO
+				//index++;
+				
+			}
+		}
 		return false;
 	}
+	
 
 	@Override
 	public boolean setHorizontalMode() {
 		switch(chip){
 		case SSD1327:
-			return setRowColInHorizontalMode(0,0);
+			cmd_out[0] = SSD1327_Consts.REMAP;
+			cmd_out[1] = SSD1327_Consts.HORIZONTAL;
+			cmd_out[2] = SSD1327_Consts.SET_ROW_ADDRESS;
+			cmd_out[3] = 0;
+			cmd_out[4] = 95;
+			cmd_out[5] = SSD1327_Consts.SET_COL_ADDRESS;
+			cmd_out[6] = 8; //the 8th column on the chip corresponds to the 0th column on the actual screen
+			cmd_out[7] = 47 + 8;//end at col + 47th column, again offset by 8.
+			return sendCommands(0,8);
+
 
 		case SH1107G:
 			cmd_out[0] = SH1107G_Consts.REMAP_SGMT;

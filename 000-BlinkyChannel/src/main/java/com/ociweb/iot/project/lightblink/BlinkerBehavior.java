@@ -12,7 +12,9 @@ public class BlinkerBehavior implements TimeListener {
     private static final int PAUSE = 500;
     
 	public BlinkerBehavior(FogRuntime runtime) {
-		commandChannel = runtime.newCommandChannel(MsgCommandChannel.DYNAMIC_MESSAGING);
+		commandChannel = runtime.newCommandChannel(
+				 FogRuntime.PIN_WRITER |
+				MsgCommandChannel.DYNAMIC_MESSAGING);
 	}
 	
 	@Override

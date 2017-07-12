@@ -42,7 +42,8 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        final FogCommandChannel blinkerChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING);        
+        final FogCommandChannel blinkerChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER |
+			    DYNAMIC_MESSAGING);        
         runtime.addPubSubListener((topic,payload)->{
 
 		    boolean value = payload.readBoolean();
@@ -54,7 +55,8 @@ public class IoTApp implements FogApp {
 		    
 		}).addSubscription(TOPIC); 
                 
-        final FogCommandChannel startupChannel = runtime.newCommandChannel(DYNAMIC_MESSAGING); 
+        final FogCommandChannel startupChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER |
+			    DYNAMIC_MESSAGING); 
         runtime.addStartupListener(
                 ()->{
                 	boolean ignored =  startupChannel.publishTopic(TOPIC, w->{

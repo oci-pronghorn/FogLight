@@ -32,7 +32,8 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	private FogCommandChannel blinkerChannel;
 	
 	public BlinkerBehavior(FogRuntime runtime) {
-		blinkerChannel = runtime.newCommandChannel(FogApp.DYNAMIC_MESSAGING); 
+		blinkerChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER |
+			    FogApp.DYNAMIC_MESSAGING); 
 	}	
 	
 	@Override

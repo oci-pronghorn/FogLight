@@ -20,7 +20,7 @@ public class IoTApp implements FogApp {
     @Override
     public void declareConnections(Hardware c) {
         c.connect(LED, LED_PORT);
-        c.setTriggerRate(100);
+        c.setTimerPulseRate(100);
 
         //ServerSocketReaderStage.showRequests = true;
         //HTTP1xRouterStage.showHeader = true;
@@ -32,7 +32,7 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-    	runtime.addTimeListener(new BlinkerBehavior(runtime));
+    	runtime.addTimePulseListener(new BlinkerBehavior(runtime));
     	        
     }  
 }

@@ -25,15 +25,15 @@ public class IoTApp implements FogApp {
     @Override
     public void declareConnections(Hardware c) {
         c.connect(LED, LED_PORT);
-        c.setTriggerRate(PAUSE*2);
+        c.setTimerPulseRate(PAUSE*2);
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        final FogCommandChannel blinkerChannel = runtime.newCommandChannel(); 
+        final FogCommandChannel blinkerChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER); 
         
-        runtime.addTimeListener((time,instance)->{
+        runtime.addTimePulseListener((time,instance)->{
         	
         	blinkerChannel.setValueAndBlock(LED_PORT, true, PAUSE);
         	blinkerChannel.setValue(LED_PORT, false);

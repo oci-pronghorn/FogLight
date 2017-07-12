@@ -27,7 +27,8 @@ public class IoTApp implements FogApp
     @Override
     public void declareConnections(Hardware c) {
         c.useI2C();
-        c.connect(MiniMotorDriver.ReadFault);
+        c.connect(MiniMotorDriver.checkFaultCH1);
+        c.connect(MiniMotorDriver.checkFaultCH2);
         c.connect(AngleSensor,ANGLE_SENSOR);
         
         
@@ -35,31 +36,6 @@ public class IoTApp implements FogApp
     
     @Override
     public void declareBehavior(FogRuntime g) {
-        final FogCommandChannel c = g.newCommandChannel();
-        
-        MiniMotorDriver_Facade motorController = new MiniMotorDriver_Facade(c);
-        
-        g.addAnalogListener((port, time, durationMillis, average, value)->{
-            //if(!motorFailed){
-                System.out.println("value: "+value);
-                int speed = (value-512)/8;
-                
-                motorController.setVelocity(1, speed);
-                motorController.setVelocity(2, speed);
-            //}
-        }).includePorts(ANGLE_SENSOR);
-        
-        g.addI2CListener((int addr, int register, long time, byte[] backing, int position, int length, int mask)->{
-            if(backing[position]>0){
-                //motorFailed = true;
-                System.out.println("Motor failure.");
-                motorController.stop(1);
-                motorController.stop(2);
-            }
-            
-        }).excludeI2CConnections(4);
-        
-
-
+        g.registerListener(new MiniMotorBehavior(g));
     }
 }

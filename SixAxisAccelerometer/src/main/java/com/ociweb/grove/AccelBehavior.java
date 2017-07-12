@@ -6,32 +6,43 @@
 package com.ociweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
-import com.ociweb.iot.grove.six_axis_accelerometer.SixAxisAccelerometer_Facade;
+import com.ociweb.iot.grove.six_axis_accelerometer.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.I2CListener;
+import static com.ociweb.iot.maker.FogRuntime.*;
 
 /**
  *
  * @author huydo
  */
-public class AccelBehavior implements I2CListener,StartupListener {
+public class AccelBehavior implements SixAxisAccelerometerListener,StartupListener { 
     FogCommandChannel ch;
+    
     SixAxisAccelerometer_Facade accSensor;
+    
     AccelBehavior(FogRuntime runtime){
-        this.ch = runtime.newCommandChannel();
-        accSensor = new SixAxisAccelerometer_Facade(ch);
+        this.ch = runtime.newCommandChannel(I2C_WRITER);     
+        accSensor = new SixAxisAccelerometer_Facade(ch,this);
+        runtime.registerListener(accSensor);
     }
+   
+    @Override
+    public void accelVals(int x,int y,int z){
+        System.out.println("x: "+x);
+        System.out.println("y: "+y);
+        System.out.println("z: "+z);
+     
+    }
+
+    @Override
+    public void magVals(int x, int y, int z) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     @Override
     public void startup() {
-        accSensor.begin();
+        
     }
-    @Override
-    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
-        short[] values = accSensor.interpretXYZ(backing, position, length, mask);
-        System.out.println("x: "+values[0]);
-        System.out.println("y: "+values[1]);
-        System.out.println("z: "+values[2]);
-    }
+
     
 }

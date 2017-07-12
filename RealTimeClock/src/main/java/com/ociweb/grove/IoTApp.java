@@ -33,23 +33,9 @@ public class IoTApp implements FogApp
         //////////////////////////////
         //Specify the desired behavior
         //////////////////////////////
-        final FogCommandChannel c = runtime.newCommandChannel();      
         
-        RTC_Facade clock = new RTC_Facade(c);
+        runtime.registerListener(new ClockBehavior(runtime));
         
-        runtime.addStartupListener(()->{
-//            clock.setTime(0, 50, 13, 3, 28, 6, 2017);
-            
-        });
-
-        runtime.addI2CListener((int addr, int register, long time, byte[] backing, int position, int length, int mask)->{
-            
-            int[] temp = clock.interpretData(backing, position, length, mask);
-            clock.printTime(temp);
-                    
-        });
-        
-
     }
     
 }

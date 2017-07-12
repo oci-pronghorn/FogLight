@@ -1,6 +1,5 @@
 package com.ociweb.iot.hardware;
 
-import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
@@ -8,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgCommandChannel;
-import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.BuilderImpl;
 import com.ociweb.gl.impl.schema.IngressMessages;
 import com.ociweb.gl.impl.schema.MessagePubSub;
@@ -16,17 +14,14 @@ import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficAckSchema;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
-import com.ociweb.gl.impl.stage.MessagePubSubStage;
-import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.gl.impl.stage.TrafficCopStage;
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
+import com.ociweb.iot.hardware.impl.SerialDataReaderStage;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
-import com.ociweb.iot.hardware.impl.SerialDataReaderStage;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
-
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.Baud;
 import com.ociweb.iot.maker.DigitalListener;
@@ -52,11 +47,9 @@ import com.ociweb.pronghorn.network.NetGraphBuilder;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
-import com.ociweb.pronghorn.pipe.MessageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
-import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
@@ -600,7 +593,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		
 		int commandChannelCount = orderPipes.length;
-		logger.info("total order pipes {} ",orderPipes.length);//this is too small TODO: this must be fixed.
+		logger.trace("total order pipes {} ",orderPipes.length);//this is too small TODO: this must be fixed.
 
 		int eventSchemas = 0;
 		
@@ -629,7 +622,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			masterAckIn[IDX_I2C] = new Pipe[i2cPipes.length];
 		}		
 		if (IDX_MSG >= 0) {
-			System.err.println("msg pipe counts "+messagePubSub.length);
 			masterGoOut[IDX_MSG] = new Pipe[messagePubSub.length];
 			masterAckIn[IDX_MSG] = new Pipe[messagePubSub.length];
 		}		

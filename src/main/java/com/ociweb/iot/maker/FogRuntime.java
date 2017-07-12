@@ -273,7 +273,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         	inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(responsePinsConfig);
         }
         if (this.builder.isListeningToSerial(listener) ) {
-        	logger.info("input serial pipe created");
         	inputPipes[--pipesCount] = newSerialInputPipe(serialInputConfig);        
         }
 

@@ -69,14 +69,12 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	   serialOutput = null;
        }
        
-       if ((I2C_WRITER & features) != 0) {
+       boolean setupI2C = (I2C_WRITER & features) != 0;
+       if (setupI2C) {
     	   hardware.useI2C();//critical for hardware to know that I2C is really really  in use.
        }
-       
-       //TODO: if features is I2C and if I2C is configured both, add assert check.
-       boolean setupI2C = hardware.isUseI2C();//right now this must always be on expcially for pi, hardware.isUseI2C();	  
        	   
-       if (setupI2C) {
+       if (setupI2C) { 
     	   //yes i2c usage
 	       optionalOutputPipes = new Pipe<?>[]{
 		    	   this.pinOutput,

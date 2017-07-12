@@ -77,12 +77,12 @@ public enum ADCTwig {
         public int pinsUsed() {
             return 1;
         }
-        
-         @SuppressWarnings("unchecked")
         @Override
-        public ADC_Facade newFacade(FogCommandChannel...ch){
-            return new ADC_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+        public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
+        
+
 }
     };
 

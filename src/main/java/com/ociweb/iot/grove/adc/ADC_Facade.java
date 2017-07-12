@@ -5,9 +5,11 @@
 */
 package com.ociweb.iot.grove.adc;
 
+import com.ociweb.gl.api.StartupListener;
 import static com.ociweb.iot.grove.adc.ADC_Constants.*;
 
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -16,11 +18,13 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class ADC_Facade implements IODeviceFacade{
-    FogCommandChannel target;
-    
-    public ADC_Facade(FogCommandChannel ch){
+public class ADC_Facade implements IODeviceFacade,I2CListener{
+    private final FogCommandChannel target;
+    private ADCListener listener;
+
+    public ADC_Facade(FogCommandChannel ch, ADCListener l){
         this.target = ch;
+        this.listener = l;
     }
     /**
      * Begin the ADC with the default configuration :
@@ -76,7 +80,7 @@ public class ADC_Facade implements IODeviceFacade{
     }
     public int readAlertFlag(byte[] backing, int position, int length, int mask){
         
-        return ((backing[(position)&mask]) >>> 7);
+        return ((backing[position]) & 0x03 )>0?1:0;
     }
     /**
      * write a byte to a register
@@ -103,4 +107,18 @@ public class ADC_Facade implements IODeviceFacade{
         target.i2cCommandClose();
         target.i2cFlushBatch();
 }
+
+
+    @Override
+    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
+        if(addr == ADDR_ADC121){
+            if(register == REG_ADDR_RESULT){
+                listener.conversionResult(this.interpretData(backing, position, length, mask));
+            }
+            if(register == REG_ADDR_ALERT){
+                listener.alertStatus(this.readAlertFlag(backing, position, length, mask));
+            }
+        }
+    }
+
 }

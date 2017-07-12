@@ -13,7 +13,7 @@ public class OLED96x96 implements FogApp
 	private static final Logger logger = LoggerFactory.getLogger(OLED96x96.class);
 	@Override
 	public void declareConnections(Hardware c) {
-		c.setTimerPulseRate(1000);
+		c.setTimerPulseRate(2500);
 	}
 	@Override
 	public void declareBehavior(FogRuntime runtime) {

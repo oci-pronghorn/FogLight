@@ -78,6 +78,8 @@ public class IoTApp implements FogApp
 
 	private void configureWebBasedColorChange(FogRuntime runtime) {
 		final FogCommandChannel channel = runtime.newCommandChannel(
+									    FogRuntime.PIN_WRITER |
+									    FogRuntime.I2C_WRITER |
 										GreenCommandChannel.DYNAMIC_MESSAGING | 
 										GreenCommandChannel.NET_RESPONDER);
 
@@ -104,6 +106,8 @@ public class IoTApp implements FogApp
 
 	protected void configureTimeBasedColorChange(FogRuntime runtime) {
 		final FogCommandChannel channel0 = runtime.newCommandChannel(
+				 									FogRuntime.PIN_WRITER |
+				 									FogRuntime.I2C_WRITER |
 				                                    GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addPubSubListener((topic, payload)-> {
 
@@ -114,6 +118,8 @@ public class IoTApp implements FogApp
 		}).addSubscription("RED");
 
 		final FogCommandChannel channel1 = runtime.newCommandChannel(
+														FogRuntime.PIN_WRITER |
+														FogRuntime.I2C_WRITER |
 				                                     GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addPubSubListener((topic, payload)-> {
 
@@ -125,6 +131,8 @@ public class IoTApp implements FogApp
 		}).addSubscription("GREEN");
 
 		final FogCommandChannel channel2 = runtime.newCommandChannel(
+													 FogRuntime.PIN_WRITER |
+													 FogRuntime.I2C_WRITER |
 				                                       GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addPubSubListener((topic, payload)-> {
 
@@ -136,6 +144,8 @@ public class IoTApp implements FogApp
     	}).addSubscription("YELLOW");
     	
        final FogCommandChannel channel4 = runtime.newCommandChannel(
+    		                                       FogRuntime.PIN_WRITER |
+    		                                       FogRuntime.I2C_WRITER |
     		                                       GreenCommandChannel.DYNAMIC_MESSAGING);
        runtime.addStartupListener(()->{channel4.publishTopic("RED",w->{});});
 

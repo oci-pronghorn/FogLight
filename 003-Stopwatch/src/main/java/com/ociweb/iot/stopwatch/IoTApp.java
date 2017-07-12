@@ -39,8 +39,7 @@ public class IoTApp implements FogApp
     @Override
     public void declareConnections(Hardware c) {
     	c.connect(Button, BUTTON_CONNECTION);
-    	c.useI2C();
-    	c.setTriggerRate(50);
+    	c.setTimerPulseRate(50);
     }
 
     //TODO: rewrite this a a class, can not be done as two lambddas and be responsvie.
@@ -48,7 +47,8 @@ public class IoTApp implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
     	
-    	FogCommandChannel channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	FogCommandChannel channel = runtime.newCommandChannel( 
+			    FogRuntime.I2C_WRITER | GreenCommandChannel.DYNAMIC_MESSAGING);
     	
     	runtime.addDigitalListener((connection, time, durationMillis, value)->{
     		    		
@@ -82,11 +82,10 @@ public class IoTApp implements FogApp
     		
     	});
     	
-    	final FogCommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-    	runtime.addTimeListener((time, instance)->{ 
-    		
-    		    
-    		
+    	final FogCommandChannel lcdTextChannel = runtime.newCommandChannel( 
+			    FogRuntime.I2C_WRITER |GreenCommandChannel.DYNAMIC_MESSAGING);
+    	runtime.addTimePulseListener((time, instance)->{ 
+    		    		        		
     		  long duration = 0==startTime? 0 :  stopTime==0 ? time-startTime :  stopTime-startTime;
     		
     		  LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(duration), zone);

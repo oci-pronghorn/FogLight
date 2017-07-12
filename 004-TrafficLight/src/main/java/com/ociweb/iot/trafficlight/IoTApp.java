@@ -52,15 +52,13 @@ public class IoTApp implements FogApp
 		c.connect(LED, LED1_PORT);
 		c.connect(LED, LED2_PORT);
 		c.connect(LED, LED3_PORT);
-		c.useI2C();
 
 		if (isWebControlled) {
-			c.enableServer(false, false, "127.0.0.1", 8088);			
+			c.enableServer(8088);			
 		//	c.enableTelemetry(true);			
 			webRoute = c.registerRoute("/trafficLight?color=${color}");
 
 		}
-
 
 	}
 
@@ -80,8 +78,8 @@ public class IoTApp implements FogApp
 
 	private void configureWebBasedColorChange(FogRuntime runtime) {
 		final FogCommandChannel channel = runtime.newCommandChannel(
-				GreenCommandChannel.DYNAMIC_MESSAGING | 
-				GreenCommandChannel.NET_RESPONDER);
+										GreenCommandChannel.DYNAMIC_MESSAGING | 
+										GreenCommandChannel.NET_RESPONDER);
 
 
 		runtime.addRestListener((reader)->{
@@ -105,7 +103,8 @@ public class IoTApp implements FogApp
 
 
 	protected void configureTimeBasedColorChange(FogRuntime runtime) {
-		final FogCommandChannel channel0 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		final FogCommandChannel channel0 = runtime.newCommandChannel(
+				                                    GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addPubSubListener((topic, payload)-> {
 
 			turnOnRed(channel0);
@@ -114,7 +113,8 @@ public class IoTApp implements FogApp
 			return true;
 		}).addSubscription("RED");
 
-		final FogCommandChannel channel1 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		final FogCommandChannel channel1 = runtime.newCommandChannel(
+				                                     GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addPubSubListener((topic, payload)-> {
 
 			turnOnGreen(channel1);
@@ -124,7 +124,8 @@ public class IoTApp implements FogApp
 			return true;
 		}).addSubscription("GREEN");
 
-		final FogCommandChannel channel2 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+		final FogCommandChannel channel2 = runtime.newCommandChannel(
+				                                       GreenCommandChannel.DYNAMIC_MESSAGING);
 		runtime.addPubSubListener((topic, payload)-> {
 
 			turnOnYellow(channel2);
@@ -134,7 +135,8 @@ public class IoTApp implements FogApp
 			return true;
     	}).addSubscription("YELLOW");
     	
-       final FogCommandChannel channel4 = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+       final FogCommandChannel channel4 = runtime.newCommandChannel(
+    		                                       GreenCommandChannel.DYNAMIC_MESSAGING);
        runtime.addStartupListener(()->{channel4.publishTopic("RED",w->{});});
 
 	}

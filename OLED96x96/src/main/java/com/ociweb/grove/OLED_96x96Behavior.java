@@ -45,10 +45,5 @@ public class OLED_96x96Behavior implements StartupListener, TimeListener{
 	public void startup() {
 		display.init();
 		display.cleanClear();
-		display.setHorizontalMode();
-		display.displayImage(OCI_LOGO);
-
-		
-
 	}
 }

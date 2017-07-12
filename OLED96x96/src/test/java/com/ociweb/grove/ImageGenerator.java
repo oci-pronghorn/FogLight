@@ -16,7 +16,6 @@ public class ImageGenerator {
 		fd.setFile("*.jpg");
 		fd.setVisible(true);
 		File[] f = fd.getFiles();
-		System.out.println(f[0].getPath());
 		return convertToGrayScale(f[0], 0,0, pixelDepth, rowCount, colCount);
 	}
 
@@ -34,13 +33,13 @@ public class ImageGenerator {
 			for (int j = startX; j < colCount + startX; j ++){
 				int combo = img.getRGB(j, i) ;
 				int R = combo >> 16 & 0xFF;
-				int G = combo >> 8 & 0xFF;
-				int B = combo &0xFF;
-				int b = (R + G + B) / 3;
-				ret[i][j] = b >> (8 - pixelDepth);
+			int G = combo >> 8 & 0xFF;
+			int B = combo &0xFF;
+			int b = (R + G + B) / 3;
+			ret[i][j] = b >> (8 - pixelDepth);
 			}
 		}
-
+		/*
 		for (int i = 0; i < ret.length; i ++){
 			System.out.print("{");
 			for (int j = 0; j < ret[0].length;j++){
@@ -51,6 +50,9 @@ public class ImageGenerator {
 			}
 			System.out.println("},");
 		}
+		 */
 		return ret;
+		 
 	}
+
 }

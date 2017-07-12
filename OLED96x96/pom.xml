@@ -85,9 +85,6 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.0</version>
           <configuration>
-          	<compilerArguments>
-			    <profile>compact1</profile>
-			</compilerArguments>
             <source>1.8</source>
             <target>1.8</target>
           </configuration>

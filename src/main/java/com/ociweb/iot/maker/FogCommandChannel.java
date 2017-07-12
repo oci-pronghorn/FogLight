@@ -69,7 +69,9 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	   serialOutput = null;
        }
        
-       
+       if ((I2C_WRITER & features) != 0) {
+    	   hardware.useI2C();//critical for hardware to know that I2C is really really  in use.
+       }
        
        //TODO: if features is I2C and if I2C is configured both, add assert check.
        boolean setupI2C = hardware.isUseI2C();//right now this must always be on expcially for pi, hardware.isUseI2C();	  
@@ -84,6 +86,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
 	       maxCommands = i2cOutput.sizeOfSlabRing/SIZE_OF_I2C_COMMAND;   
 
        } else {
+    	   logger.info("warning i2c was not set up");
     	   i2cOutput=null;
     	   maxCommands = 0;
     	   
@@ -334,8 +337,9 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      * @return True if the I2C bus is ready for communication, and false otherwise.
      */
     public boolean i2cIsReady(int requestedCommandCount) {
+    	assert(null!=i2cOutput) : "pipe must not be null";
+    	assert(Pipe.isInit(i2cOutput)) : "pipe must be initialized";    	
         return goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, SIZE_OF_I2C_COMMAND*requestedCommandCount);
-       
     }
 
     /**

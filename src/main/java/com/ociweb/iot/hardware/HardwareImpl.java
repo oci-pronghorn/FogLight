@@ -245,15 +245,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	public Hardware useI2C() {
-		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,
-		                       //TODO: when this is NOT on do not build the i2c pipes.
+		this.configI2C = true;
 		return this;
 	}
 	
 	@Deprecated //would be nice if we did not have to do this.
 	public Hardware useI2C(int bus) {
-		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,
-		                       //TODO: when this is NOT on do not build the i2c pipes.
+		this.configI2C = true;
 		this.i2cBus = bus;
 		return this;
 	}
@@ -596,6 +594,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		logger.trace("total order pipes {} ",orderPipes.length);//this is too small TODO: this must be fixed.
 
 		int eventSchemas = 0;
+		
+		logger.info("i2c pipe count {} uses i2c {} ",i2cPipes.length, isUseI2C());
 		
 		IDX_PIN = requestPipes.length>0 ? eventSchemas++ : -1;
 		IDX_I2C = i2cPipes.length>0 ? eventSchemas++ : -1;

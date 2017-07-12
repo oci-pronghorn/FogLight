@@ -43,7 +43,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		rs232ClientDevice = model.serialDevice();
 		rs232ClientBaud = Baud.B___921600;
 		bluetoothDevice = model.bluetoothDevice();
-
+		configI2C = true; 
 		System.out.println("You are running on the GrovePi hardware on the "+model);
 	}
 
@@ -52,13 +52,13 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 
 	@Override
-	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
+	public PiCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
 		this.commandIndex++;
 		return new PiCommandChannel(gm, this, features, instance, pcm, commandIndex);	
 	}
 
 	@Override
-	public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
+	public PiCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
 		this.commandIndex++;
 		return new PiCommandChannel(gm, this, 0, instance, pcm, commandIndex);	
 	}

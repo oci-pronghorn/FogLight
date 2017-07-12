@@ -51,7 +51,7 @@ public class TestHardware extends HardwareImpl {
         super(gm, args, new TestI2CBacking().configure((byte) 1));
         //logger.trace("You are running on the test hardware.");
     }
-    
+	
     public void enableTelemetry(boolean enable) {
     	if (!isInUnitTest) {
     		super.enableTelemetry(enable);
@@ -145,13 +145,13 @@ public class TestHardware extends HardwareImpl {
 
     
     @Override
-    public FogCommandChannel newCommandChannel(int features, int instance,
+    public DefaultCommandChannel newCommandChannel(int features, int instance,
     		                                   PipeConfigManager pcm) {    
        return new DefaultCommandChannel(gm, this, features, instance, pcm);       
     }
     
     @Override
-    public FogCommandChannel newCommandChannel(int instance, 
+    public DefaultCommandChannel newCommandChannel(int instance, 
     		                                     PipeConfigManager pcm) {    
        return new DefaultCommandChannel(gm, this, 0, instance, pcm);     
     }

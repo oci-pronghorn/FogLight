@@ -9,7 +9,7 @@ import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp {
 
-	private static final Port LED_PORT = D3;
+	public static final Port LED_PORT = D3;
 	private int lightIntensity = 0;
 	public static void main( String[] args) {
 		FogRuntime.run(new IoTApp());
@@ -18,7 +18,7 @@ public class IoTApp implements FogApp {
 	@Override
 	public void declareConnections(Hardware hardware) {
 		hardware.connect(LED, LED_PORT);
-		hardware.setTriggerRate(50);
+		hardware.setTimerPulseRate(50);
 	}
 
 	@Override

@@ -9,16 +9,14 @@ import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
-import static com.ociweb.iot.maker.Port.D4;
+import static com.ociweb.grove.IoTApp.*;
 
 /**
  *
  * @author huydo
  */
 public class LineFinderBehavior implements DigitalListener {
-    
-    private static final Port LED_PORT = D4;
-    
+        
     private final FogCommandChannel ledChannel;
     
     public LineFinderBehavior(FogRuntime runtime){

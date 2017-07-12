@@ -9,18 +9,15 @@ import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
-import static com.ociweb.iot.maker.Port.D3;
-import static com.ociweb.iot.maker.Port.D4;
+import static com.ociweb.grove.IoTApp.*;
+
 
 /**
  *
  * @author huydo
  */
 public class AngleSensorBehavior implements AnalogListener {
-    
-    private static final Port LED1_PORT = D3;
-    private static final Port LED2_PORT = D4;
-    
+
     private final FogCommandChannel led1Channel;
     private    final FogCommandChannel led2Channel;
     

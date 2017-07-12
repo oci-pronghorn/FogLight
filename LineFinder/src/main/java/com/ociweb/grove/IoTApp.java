@@ -10,8 +10,8 @@ import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp {
     
-    private static final Port LED_PORT = D4;
-    private static final Port LINEFINDER_PORT = D3;
+    public static final Port LED_PORT = D4;
+    public static final Port LINEFINDER_PORT = D3;
     
     public static void main( String[] args) {
         FogRuntime.run(new IoTApp());

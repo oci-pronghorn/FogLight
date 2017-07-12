@@ -25,6 +25,6 @@ public class IoTApp implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
       
-        runtime.addAnalogListener(new UVSensorBehavior(runtime));
+        runtime.registerListener(new UVSensorBehavior(runtime));
     }
 }

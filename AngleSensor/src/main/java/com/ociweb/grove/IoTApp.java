@@ -11,9 +11,9 @@ import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
 {
-    private static final Port LED1_PORT = D3;
-    private static final Port LED2_PORT = D4;
-    private static final Port ANGLE_SENSOR = A0;
+    public static final Port LED1_PORT = D3;
+    public static final Port LED2_PORT = D4;
+    public static final Port ANGLE_SENSOR = A0;
     
     @Override
     public void declareConnections(Hardware c) {

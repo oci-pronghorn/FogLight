@@ -8,8 +8,8 @@ package com.ociweb.grove;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.Port;
-import static com.ociweb.iot.maker.Port.D3;
+
+import static com.ociweb.grove.IoTApp.*;
 
 /**
  *
@@ -17,7 +17,6 @@ import static com.ociweb.iot.maker.Port.D3;
  */
 public class VariableColorLEDBehavior implements TimeListener {
     
-    private static final Port LED_PORT = D3;
     private int lightIntensity = 0;
     
     private final FogCommandChannel ledChannel;

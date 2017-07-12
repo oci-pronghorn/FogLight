@@ -1,3 +1,4 @@
+
 # Hardware Needed
 - [Raspberry Pi](https://www.raspberrypi.org/)
 - [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
@@ -7,15 +8,19 @@
  
 # Example project:
  
-The following sketch demonstrates a simple application to measure the illumination density using a UV Sensor.
+The Moisture Sensor will return a ```value``` of 0 when it's dry. Then ```value``` will increase the moister the sensor is up to 1023.
 
 Demo code (copy and paste this to a FogLighter project):
+
 First declare the connections in IoTApp.java:
 
 .include "./src/main/java/com/ociweb/grove/IoTApp.java"
 
 Then specify the behavior of the program in the Behavior class:
-.include "./src/main/java/com/ociweb/grove/UVSensorBehavior.java"	
+
+.include "./src/main/java/com/ociweb/grove/MoistureSensorBehavior.java"   
+
+
 
  
  

@@ -9,16 +9,21 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.real_time_clock.RTC_Constants.*;
+import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceFacade;
 /**
  *
  * @author huydo
  */
-public class RTC_Facade implements IODeviceFacade {
-    FogCommandChannel target;
-    
+public class RTC_Facade implements IODeviceFacade,I2CListener {
+    private final FogCommandChannel target;
+    private RTCListener listener;
     public RTC_Facade(FogCommandChannel ch){
         this.target = ch;
+    }
+    public RTC_Facade(FogCommandChannel ch,RTCListener l){
+        this.target = ch;
+        this.listener = l;
     }
     /**
      * Stop the clock.
@@ -136,7 +141,11 @@ public class RTC_Facade implements IODeviceFacade {
     }
     
     
-    
+        /**
+     * write a byte to a register
+     * @param register register to write to
+     * @param value byte to write
+     */
     public void writeSingleByteToRegister(int register, int value) {
         
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DS1307_I2C_ADDRESS);
@@ -157,5 +166,10 @@ public class RTC_Facade implements IODeviceFacade {
         
         target.i2cCommandClose();
         target.i2cFlushBatch();
+    }
+
+    @Override
+    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
+        listener.clockVals(this.interpretData(backing, position, length, mask));
     }
 }

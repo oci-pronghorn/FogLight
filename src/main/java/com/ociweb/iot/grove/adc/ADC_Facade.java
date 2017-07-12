@@ -42,21 +42,30 @@ public class ADC_Facade implements IODeviceFacade,I2CListener{
     public void setCONFIG_REG(int _b){
         writeSingleByteToRegister(REG_ADDR_CONFIG,_b);
     }
-    
+    /**
+     * Set the lower limit threshold used to determine the alert condition
+     * @param _b positive integer between 0 and 4095
+     */
     public void setLowerLimit(int _b){
         int[] value = {0,0};
         value[0] = (_b >>8) & 0xff;
         value[1] = _b & 0xff;
         writeTwoBytesToRegister(REG_ADDR_LIMITL,value);
     }
-    
+    /**
+     * Set the upper limit threshold used to determine the alert condition
+     * @param _b positive integer between 0 and 4095
+     */
     public void setUpperLimit(int _b){
         int[] value = {0,0};
         value[0] = (_b >>8) & 0xff;
         value[1] = _b & 0xff;
         writeTwoBytesToRegister(REG_ADDR_LIMITH,value);
     }
-    
+    /**
+     * Set the hysteresis value
+     * @param _b positive integer between 0 and 4095
+     */
     public void setHysteresis(int _b){
         int[] value = {0,0};
         value[0] = (_b >>8) & 0xff;
@@ -78,6 +87,14 @@ public class ADC_Facade implements IODeviceFacade,I2CListener{
         
         return temp;
     }
+    /**
+     * Method returns a 1 if there's an alert, 0 otherwise
+     * @param backing
+     * @param position
+     * @param length
+     * @param mask
+     * @return return a 1 if there's an alert, 0 otherwise
+     */
     public int readAlertFlag(byte[] backing, int position, int length, int mask){
         
         return ((backing[position]) & 0x03 )>0?1:0;
@@ -96,7 +113,11 @@ public class ADC_Facade implements IODeviceFacade,I2CListener{
         target.i2cCommandClose();
         target.i2cFlushBatch();
     }
-    
+    /**
+     * write 2 bytes to a register
+     * @param register 
+     * @param value 
+     */
     public void writeTwoBytesToRegister(int register, int[] value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(ADDR_ADC121);
         

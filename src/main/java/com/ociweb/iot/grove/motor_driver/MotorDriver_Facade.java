@@ -16,7 +16,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  * @author huydo
  */
 public class MotorDriver_Facade implements IODeviceFacade{
-    FogCommandChannel target;
+    private final FogCommandChannel target;
     public int DRIVER_I2C_ADD = 0x0f; //default address of the driver
     
     public MotorDriver_Facade(FogCommandChannel ch){

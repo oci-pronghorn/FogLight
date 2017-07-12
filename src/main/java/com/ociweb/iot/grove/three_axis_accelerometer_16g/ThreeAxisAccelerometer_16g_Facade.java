@@ -9,18 +9,23 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16g_Constants.*;
+import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceFacade;
 
 /**
  *
  * @author huydo
  */
-public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade {
-    FogCommandChannel target;
-    public static final int ADXL345_DEVICE    = 0x53;
+public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade,I2CListener {    
+    private final FogCommandChannel target;
+    private ThreeAxisAccelerometer_16gListener listener;
     
     public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch){
         this.target = ch;
+    }
+    public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener l){
+        this.target = ch;
+        this.listener = l;
     }
     /**
      * Start the device in measurement mode, with auto-sleep disabled and sleep mode disabled
@@ -303,4 +308,21 @@ public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade {
         target.i2cCommandClose();
         target.i2cFlushBatch();
     }
+
+    @Override
+    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
+        if(addr == ADXL345_DEVICE){
+            if(register == ADXL345_DATAX0){
+                short[] xyzVals = this.interpretData(backing, position, length, mask);
+                listener.accelVals(xyzVals[0], xyzVals[1], xyzVals[2]);
+            }
+            if(register == ADXL345_ACT_TAP_STATUS){
+                listener.act_tapStatus(backing[position]);
+            }
+            if(register == ADXL345_INT_SOURCE){
+                listener.interruptStatus(backing[position]);
+            }
+        }
+    }
+
 }

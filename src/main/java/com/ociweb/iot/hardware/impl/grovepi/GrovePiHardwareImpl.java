@@ -39,6 +39,8 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	public GrovePiHardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking) {
 		super(gm, args, i2cBacking);
 
+		assert(null != i2cBacking) : "must have i2c backing";
+		
 		model = PiModel.detect();
 		rs232ClientDevice = model.serialDevice();
 		rs232ClientBaud = Baud.B___921600;

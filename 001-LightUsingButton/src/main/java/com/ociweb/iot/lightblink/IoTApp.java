@@ -31,7 +31,8 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        final FogCommandChannel ledChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
+        final FogCommandChannel ledChannel = runtime.newCommandChannel(
+        		GreenCommandChannel.DYNAMIC_MESSAGING | FogRuntime.PIN_WRITER); 
         
         runtime.addDigitalListener((connection,time,durationMillis, value)->{
         	

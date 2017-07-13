@@ -141,6 +141,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		try {
 			return new I2CNativeLinuxBacking().configure(deviceNum);
 		} catch (Throwable t) {
+			logger.info("warning could not find the i2c bus", t);
 			//avoid non error case that is used to detect which hardware is running.
 			return null;
 		}

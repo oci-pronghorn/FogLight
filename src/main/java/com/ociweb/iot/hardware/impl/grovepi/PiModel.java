@@ -109,12 +109,10 @@ public enum PiModel {
 			
 			PiModel[] all = PiModel.values();
 			int i = all.length;
-			while (--i >= 0) {
-				
+			while (--i >= 0) {		
 				String[] codes = all[i].revisionCodes;
 				int j = codes.length;
-				while (--j >= 0) {
-					
+				while (--j >= 0) {		
 					if (value.indexOf(codes[j])>=0) {
 						return all[i];
 					}

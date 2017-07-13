@@ -60,7 +60,6 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     public Pipe<?>[] getOutputPipes() {
     	//we must wait till this last possible moment to build.
     	buildFogPipes();
-    	
     	return super.getOutputPipes();
     }
     

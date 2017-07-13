@@ -104,15 +104,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			////////////////////////
 			//The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
 			///////////////////////
-
+			PiModel pm = null;
 			I2CBacking i2cBacking = null;
 
-			
-
-			PiModel pm = PiModel.detect();
-
-			if (pm != PiModel.Unknown){
-				System.out.println("A Pi is detected");
+			if ((pm = PiModel.detect()) != PiModel.Unknown){
 				logger.trace("Detected running on " + pm);
 				this.builder = new GrovePiHardwareImpl(gm,args,HardwareImpl.getI2CBacking((byte)pm.i2cBus()));
 			}

@@ -62,6 +62,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		
 		assert(!instanceCreated.getAndSet(true)) : "Only one i2c manager can be running at a time";
 			
+		assert(null != hardware.i2cBacking) : "I2C backing required but not provided";
 		
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;

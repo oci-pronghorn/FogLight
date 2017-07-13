@@ -90,7 +90,7 @@ public enum PiModel {
 				}
 			} while (lastPos!=buffer.length);
 			
-			System.out.println("DETECT DATA\n"+new String(buffer,0,lastPos));
+			//System.out.println("DETECT DATA\n"+new String(buffer,0,lastPos));
 			
 			
 		} catch (Exception e) {

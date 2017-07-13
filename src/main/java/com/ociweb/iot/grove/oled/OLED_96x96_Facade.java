@@ -18,7 +18,7 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 		//A nibble determines pixel. A byte is therefore two horizontally adjascent pixels.
 		//96x96 divided 2. Since each pixel takes a nibble to send
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);
-		this.chip = SH1107G;
+		this.chip = SSD1327;
 		
 	}
 	@Deprecated
@@ -26,6 +26,10 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 		this.iteration = iteration;
 	}
 
+	public void setTextBrightness(int brightness){
+		lowPixelLevel = (brightness) & 0x0F;
+		highPixelLevel = (brightness << 4) & 0xF0;
+	}
 
 	//TODO: FIGURE OUT WHAT CHIP
 	private OLED_96x96_DriverChip determineChip(){

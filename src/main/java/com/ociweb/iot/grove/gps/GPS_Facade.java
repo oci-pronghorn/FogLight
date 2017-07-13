@@ -8,12 +8,13 @@ import com.ociweb.iot.maker.SerialReader;
 
 public class GPS_Facade implements SerialListener{
 	private final FogRuntime rt;
+	private GeoCoordinateListener l;
 	public GPS_Facade(FogRuntime rt){
 		this.rt = rt;
 	}
 	@Override
 	public int message(SerialReader reader) {
-		
+		l.coordinates(1, 2);
 		return 0;
 	}
 	

@@ -26,7 +26,7 @@ public enum PiModel {
 	PiZerov1_2(512,"/dev/ttyAMA0", 1, null,"900092"),
 	PiZerov1_3(512,"/dev/ttyAMA0",1, null,"900093"),
 	
-	PiZeroW(512,"/dev/ttyS0", 1, "/dev/ttyAMA0","0x9000C1"),
+	PiZeroW(512,"/dev/ttyS0", 1, "/dev/ttyAMA0","0x9000C1", "9000C1"),
 	Pi3ModelB(1024,"/dev/ttyS0", 1, "/dev/ttyAMA0","a02082","a22082");
 	
 	private final int mb;

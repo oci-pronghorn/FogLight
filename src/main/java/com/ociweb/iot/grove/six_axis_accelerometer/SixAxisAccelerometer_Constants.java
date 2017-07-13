@@ -14,10 +14,10 @@ public class SixAxisAccelerometer_Constants {
     public static final int LSM303D_ADDR = 0x1E;  // assuming SA0 grounded
     
     /* LSM303 Register definitions */
-    public static final int TEMP_OUT_L		= 0x05;
+    public static final int TEMP_OUT_L		= (byte)((0x05 | 0x80)&0xff);//append a 1 at MSB to enable auto address increment
     public static final int TEMP_OUT_H		= 0x06;
     public static final int	STATUS_REG_M	= 0x07;
-    public static final int OUT_X_L_M 		= 0x08;
+    public static final int OUT_X_L_M 		= (byte)((0x08 | 0x80)&0xff);//append a 1 at MSB to enable auto address increment
     public static final int OUT_X_H_M 		= 0x09;
     public static final int OUT_Y_L_M 		= 0x0A;
     public static final int OUT_Y_H_M 		= 0x0B;
@@ -46,7 +46,7 @@ public class SixAxisAccelerometer_Constants {
     public static final int CTRL_REG6 		= 0x25;
     public static final int CTRL_REG7 		= 0x26;
     public static final int	STATUS_REG_A	= 0x27;
-    public static final int OUT_X_L_A 		= (byte)((0x28 | 0x80)&0xff);
+    public static final int OUT_X_L_A 		= (byte)((0x28 | 0x80)&0xff); //append a 1 at MSB to enable auto address increment
     public static final int OUT_X_H_A 		= (0x29 | 0x80);
     public static final int OUT_Y_L_A 		= (0x2A | 0x80);
     public static final int OUT_Y_H_A 		= (0x2B | 0x80);

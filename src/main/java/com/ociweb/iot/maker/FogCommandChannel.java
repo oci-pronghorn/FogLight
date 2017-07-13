@@ -28,17 +28,16 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
 
 	private static final Logger logger = LoggerFactory.getLogger(FogCommandChannel.class);
     public static final int SIZE_OF_I2C_COMMAND = Pipe.sizeOf(I2CCommandSchema.instance, I2CCommandSchema.MSG_COMMAND_7);
-	protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
-    protected final Pipe<GroveRequestSchema> pinOutput; //TODO: find a way to not create if not used like http or message pup/sub
 
-    protected final Pipe<SerialOutputSchema> serialOutput;
+    protected Pipe<I2CCommandSchema> i2cOutput;  
+    protected Pipe<GroveRequestSchema> pinOutput;
+    protected Pipe<SerialOutputSchema> serialOutput;
     
     public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog .0vs digital
     protected static final long MS_TO_NS = 1_000_000;
      
     protected int runningI2CCommandCount;
-    
-    protected final int maxCommands;
+    protected int maxCommands=-1;
 
     public static final int I2C_WRITER      = 1<<29;
     public static final int PIN_WRITER      = 1<<28;
@@ -51,78 +50,96 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     		                    PipeConfigManager pcm) {
     	    	
        super(gm, hardware, features, parallelInstanceId, pcm);
-
-       logger.trace("created new FogCommandChannel {}",features);
-       boolean setupPins = hardware.hasDigitalOrAnalogOutputs();
-       if (setupPins) {
-    	   this.pinOutput = new Pipe<GroveRequestSchema>(pcm.getConfig(GroveRequestSchema.class));
-       } else {
-    	   this.pinOutput = null;
-       }
-       
-       
-       boolean setupSerial = (0 != (features & SERIAL_WRITER));//if feature bit is on then set for write...
-       if (setupSerial) {
-    	   logger.trace("created pipes for serial write");
-    	   serialOutput = newSerialOutputPipe(pcm.getConfig(SerialOutputSchema.class), hardware);
-       } else {
-    	   serialOutput = null;
-       }
-       
-       boolean setupI2C = (I2C_WRITER & features) != 0;
-       if (setupI2C) {
+       if ((I2C_WRITER & features) != 0) {
     	   hardware.useI2C();//critical for hardware to know that I2C is really really  in use.
        }
-       	   
-       if (setupI2C) { 
-    	   //yes i2c usage
-	       optionalOutputPipes = new Pipe<?>[]{
-		    	   this.pinOutput,
-		    	   this.i2cOutput = new Pipe<I2CCommandSchema>(pcm.getConfig(I2CCommandSchema.class))
-	    	   };
-	    	   
-	       maxCommands = i2cOutput.sizeOfSlabRing/SIZE_OF_I2C_COMMAND;   
-
-       } else {
-    	   logger.info("warning i2c was not set up");
-    	   i2cOutput=null;
-    	   maxCommands = 0;
-    	   
-    	   //non i2c usage (TODO: THIS IS NEW CODE UNDER TEST)
-	       optionalOutputPipes = new Pipe<?>[]{
-	    	   this.pinOutput
-    	   }; 
-       }
-       
-       //////////////////////////
-       //////////////////////////
-       
-       int optionalPipeCount = 0;
-       if (null != serialOutput) {
-    	   optionalPipeCount++;
-       }
-       if (null != pinOutput) {
-    	   optionalPipeCount++;
-       }
-       if (null != i2cOutput) {
-    	   optionalPipeCount++;
-       }
-       optionalOutputPipes = new Pipe<?>[optionalPipeCount];
-       
-       
-       if (null!=serialOutput) {
-    	   int serialPipeIdx = (byte)--optionalPipeCount;
-    	   optionalOutputPipes[serialPipeIdx] = serialOutput;
-       }
-       if (null!=i2cOutput) {
-    	   int i2cPipeIdx = (byte)(--optionalPipeCount);
-    	   optionalOutputPipes[i2cPipeIdx] = i2cOutput;
-       }
-       if (null!=pinOutput) {
-    	   optionalOutputPipes[--optionalPipeCount] = pinOutput;
-       }
-       
     }
+
+
+    @Override
+    public Pipe<?>[] getOutputPipes() {
+    	//we must wait till this last possible moment to build.
+    	buildFogPipes();
+    	
+    	return super.getOutputPipes();
+    }
+    
+	private void buildFogPipes() {
+		
+		   if (maxCommands<0) { //this block will set maxCommands
+			   
+			   logger.trace("created new FogCommandChannel {}",this.initFeatures);
+			   boolean setupPins = builder.hasDigitalOrAnalogOutputs();
+			   if (setupPins) {
+				   this.pinOutput = new Pipe<GroveRequestSchema>(pcm.getConfig(GroveRequestSchema.class));
+			   } else {
+				   this.pinOutput = null;
+			   }
+			   
+			   
+			   boolean setupSerial = (0 != (this.initFeatures & SERIAL_WRITER));//if feature bit is on then set for write...
+			   if (setupSerial) {
+				   logger.trace("created pipes for serial write");
+				   serialOutput = newSerialOutputPipe(pcm.getConfig(SerialOutputSchema.class), builder);
+			   } else {
+				   serialOutput = null;
+			   }
+			   
+			   boolean setupI2C = (I2C_WRITER & this.initFeatures) != 0;
+	
+			   	   
+			   if (setupI2C) { 
+				   //yes i2c usage
+			       optionalOutputPipes = new Pipe<?>[]{
+				    	   this.pinOutput,
+				    	   this.i2cOutput = new Pipe<I2CCommandSchema>(pcm.getConfig(I2CCommandSchema.class))
+			    	   };
+			    	   
+			       maxCommands = i2cOutput.sizeOfSlabRing/SIZE_OF_I2C_COMMAND;   
+	
+			   } else {
+				   //logger.trace("warning i2c was not set up");
+				   i2cOutput=null;
+				   maxCommands = 0;
+				   
+				   //non i2c usage (TODO: THIS IS NEW CODE UNDER TEST)
+			       optionalOutputPipes = new Pipe<?>[]{
+			    	   this.pinOutput
+				   }; 
+			   }
+			   
+			   //////////////////////////
+			   //////////////////////////
+			   
+			   int optionalPipeCount = 0;
+			   if (null != serialOutput) {
+				   optionalPipeCount++;
+			   }
+			   if (null != pinOutput) {
+				   optionalPipeCount++;
+			   }
+			   if (null != i2cOutput) {
+				   optionalPipeCount++;
+			   }
+			   optionalOutputPipes = new Pipe<?>[optionalPipeCount];
+			   
+			   
+			   if (null!=serialOutput) {
+				   int serialPipeIdx = (byte)--optionalPipeCount;
+				   optionalOutputPipes[serialPipeIdx] = serialOutput;
+			   }
+			   if (null!=i2cOutput) {
+				   int i2cPipeIdx = (byte)(--optionalPipeCount);
+				   optionalOutputPipes[i2cPipeIdx] = i2cOutput;
+			   }
+			   if (null!=pinOutput) {
+				   optionalOutputPipes[--optionalPipeCount] = pinOutput;
+			   }
+			   
+		   }
+		   
+		   
+	}
     
     
     private static Pipe<SerialOutputSchema> newSerialOutputPipe(PipeConfig<SerialOutputSchema> config,HardwareImpl hardware) {

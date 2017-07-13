@@ -594,9 +594,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		logger.trace("total order pipes {} ",orderPipes.length);//this is too small TODO: this must be fixed.
 
 		int eventSchemas = 0;
-		
-		logger.info("i2c pipe count {} uses i2c {} ",i2cPipes.length, isUseI2C());
-		
+
 		IDX_PIN = requestPipes.length>0 ? eventSchemas++ : -1;
 		IDX_I2C = i2cPipes.length>0 ? eventSchemas++ : -1;
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
@@ -613,7 +611,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][0];
 		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][0];
 		
-		if (IDX_PIN >= 0) {
+		if (IDX_PIN >= 0) {	
 			masterGoOut[IDX_PIN] = new Pipe[requestPipes.length];
 			masterAckIn[IDX_PIN] = new Pipe[requestPipes.length];
 		}		
@@ -658,7 +656,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_NET);
 			}
 			if (isPinWriter) {
-				hasConnections = true;		 		
+				hasConnections = true;	
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_PIN);
 			}
 			if (isI2CWriter) {

@@ -45,7 +45,8 @@ public class IoTApp implements FogApp
         
     	
     	
-    	final FogCommandChannel lcdScreenChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+    	final FogCommandChannel lcdScreenChannel = runtime.newCommandChannel(
+    			GreenCommandChannel.DYNAMIC_MESSAGING | FogRuntime.I2C_WRITER );
     	runtime.addAnalogListener((port, time, durationMillis, average, value)->{
  
     		switch(port) {

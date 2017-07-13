@@ -12,6 +12,7 @@ import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayCommand;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -33,7 +34,8 @@ public class PiCommandChannel extends FogCommandChannel{
 	public PiCommandChannel(GraphManager gm, HardwareImpl hardware, int features, 
 			               int instance, PipeConfigManager pcm, 
 			               byte commandIndex) { 
-		super(gm, hardware, features, instance, pcm); 
+				
+		super(gm, hardware, features |  ((features&FogRuntime.PIN_WRITER)==0?0:FogRuntime.I2C_WRITER), instance, pcm); 
 	}
 
 	@Override

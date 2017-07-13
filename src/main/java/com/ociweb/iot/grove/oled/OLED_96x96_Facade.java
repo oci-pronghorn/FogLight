@@ -18,7 +18,7 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 		//A nibble determines pixel. A byte is therefore two horizontally adjascent pixels.
 		//96x96 divided 2. Since each pixel takes a nibble to send
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);
-		this.chip = SSD1327;
+		this.chip = SH1107G;
 		
 	}
 	@Deprecated
@@ -103,18 +103,19 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 			return true;
 			
 		case SH1107G:
-
+			for(int j=0; j<128;j++){ 
+				data_out[j] = 0x00;  //make an empty array to be sent repeatedly
+			} 
 			for(int i=0; i<16;i++){
 
 				cmd_out[0] = SH1107G_Consts.SET_ROW_BASE_BYTE + i;
 				cmd_out[1] = 0x00;
 				cmd_out[2] = 0x10;
-				sendCommands(0,3);
-				for(int j=0; j<128;j++){ 
-					data_out[index++] = 0x00; 
+				if (! sendCommands(0,3) || !sendData(0,128)){
+					return false;
 				}
 			}
-			return sendData(0,2048); //2048 = 16 * 128
+			return true; //2048 = 16 * 128
 
 		default:
 			return false;

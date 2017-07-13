@@ -28,6 +28,7 @@ import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
+import com.ociweb.iot.hardware.impl.grovepi.*;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
  
@@ -111,11 +112,12 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	            this.builder = new GroveV3EdisonImpl(gm, args, i2cBacking);
 	            logger.trace("Detected running on Edison");
 	        } else {
-	        	i2cBacking = HardwareImpl.getI2CBacking(piI2C);
-	    	    if (null != i2cBacking) {
-	    	        this.builder = new GrovePiHardwareImpl(gm, args, i2cBacking);
-	    	        logger.trace("Detected running on Pi");
-	    	    }
+	        	PiModel pm = PiModel.detect();
+	        	if (pm != PiModel.Unknown){
+	        		this.builder = new GrovePiHardwareImpl(gm,args,HardwareImpl.getI2CBacking((byte)pm.i2cBus()));
+	        	}
+	        	
+
     	        else {
     	            this.builder = new TestHardware(gm, args);
     	            logger.trace("Unrecognized hardware, test mock hardware will be used");

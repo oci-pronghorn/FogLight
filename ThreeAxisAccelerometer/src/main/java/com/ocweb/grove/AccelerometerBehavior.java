@@ -6,24 +6,26 @@
 package com.ocweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
+
 import com.ociweb.iot.grove.three_axis_accelerometer_16g.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.I2CListener;
+import static com.ociweb.iot.maker.FogRuntime.*;
 
 /**
  *
  * @author huydo
  */
-public class AccelerometerBehavior implements I2CListener,StartupListener {
+public class AccelerometerBehavior implements ThreeAxisAccelerometer_16gListener,StartupListener {
     
     //private static final Logger logger = LoggerFactory.getLogger(AccelerometerBehavior.class);
     private final FogCommandChannel c;
     private final ThreeAxisAccelerometer_16g_Facade accSensor;
     
     public AccelerometerBehavior(FogRuntime runtime){
-        this.c = runtime.newCommandChannel();
-        accSensor = new ThreeAxisAccelerometer_16g_Facade(c);
+        this.c = runtime.newCommandChannel(I2C_WRITER);
+        accSensor = new ThreeAxisAccelerometer_16g_Facade(c,this);
+        runtime.registerListener(accSensor);
     }
     
     @Override
@@ -32,16 +34,21 @@ public class AccelerometerBehavior implements I2CListener,StartupListener {
         accSensor.setRange(4);
         
     }
-    
+
     @Override
-    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
-        
-        short[] values = accSensor.interpretData(backing, position, length, mask);
-        System.out.println("x= "+values[0]);
-        System.out.println("y= "+values[1]);
-        System.out.println("z= "+values[2]);
+    public void accelVals(int x, int y, int z) {
+        System.out.println("x: "+x);
+        System.out.println("y: "+y);
+        System.out.println("z: "+z);
     }
-    
-    
-    
+
+    @Override
+    public void act_tapStatus(int byteRead) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void interruptStatus(int byteRead) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

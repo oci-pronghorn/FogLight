@@ -11,6 +11,7 @@ import static com.ociweb.iot.grove.motor_driver.MotorDriverTwig.MotorDriver;
 import com.ociweb.iot.grove.motor_driver.MotorDriver_Facade;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
+import static com.ociweb.iot.maker.FogRuntime.*;
 
 /**
  *
@@ -19,8 +20,8 @@ import com.ociweb.iot.maker.FogRuntime;
 public class MotorDriverBehavior implements StartupListener{
     FogCommandChannel ch;
     MotorDriver_Facade controller;
-    public MotorDriverBehavior(FogRuntime runtime){
-        this.ch = runtime.newCommandChannel(FogRuntime.I2C_WRITER, 52000);
+    public MotorDriverBehavior(FogRuntime runtime){    
+        this.ch = runtime.newCommandChannel(I2C_WRITER, 52000);
         controller = MotorDriver.newFacade(ch);
     }
     

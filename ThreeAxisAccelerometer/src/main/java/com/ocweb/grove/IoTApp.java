@@ -17,7 +17,6 @@ public class IoTApp implements FogApp
         c.useI2C();
         //c.connect(Button,D4);
         c.connect(ThreeAxisAccelerometer_16g.GetXYZ);
-        
     }
     
     

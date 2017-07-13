@@ -20,9 +20,8 @@ public class MotorDriverBehavior implements StartupListener{
     FogCommandChannel ch;
     MotorDriver_Facade controller;
     public MotorDriverBehavior(FogRuntime runtime){
-        this.ch = runtime.newCommandChannel(1, 52000);
+        this.ch = runtime.newCommandChannel(FogRuntime.I2C_WRITER, 52000);
         controller = MotorDriver.newFacade(ch);
-        
     }
     
     @Override

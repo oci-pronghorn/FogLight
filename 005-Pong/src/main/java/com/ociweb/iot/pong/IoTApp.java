@@ -18,7 +18,7 @@ public class IoTApp implements FogApp {
 		c.connect(Button, PongConstants.ButtonCon); //D2
 		
 		
-		c.setTriggerRate(100);
+		c.setTimerPulseRate(100);
 	//TODO: 	c.startStateMachineWith(GameStage.???)
 
 	}    

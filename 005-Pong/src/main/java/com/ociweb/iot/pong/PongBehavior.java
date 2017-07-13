@@ -44,7 +44,8 @@ public class PongBehavior implements StartupListener, TimeListener, AnalogListen
 	private GameState gameState = GameState.startUp; //TODO: using state listener this is not needed.
 
 	public PongBehavior(FogRuntime runtime) {
-		this.pongChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING); 
+		this.pongChannel = runtime.newCommandChannel(
+				GreenCommandChannel.DYNAMIC_MESSAGING | FogRuntime.I2C_WRITER); 
 	}	
 
 	@Override

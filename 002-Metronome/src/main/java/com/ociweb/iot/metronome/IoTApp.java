@@ -25,8 +25,7 @@ public class IoTApp implements FogApp {
     public void declareConnections(Hardware c) {
         c.connect(Buzzer, BUZZER_PORT); //could use relay or LED instead of buzzer if desired
         c.connect(AngleSensor, ROTARY_ANGLE_PORT, 100);
-        c.useI2C();
-        c.setTriggerRate(200);
+        c.setTimerPulseRate(200);
     }
 
 

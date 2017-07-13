@@ -59,8 +59,8 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private int showingBPM;
     
     public MetronomeBehavior(FogRuntime runtime) {
-        this.tickCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-        this.screenCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+        this.tickCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING | FogRuntime.I2C_WRITER | FogRuntime.PIN_WRITER);
+        this.screenCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING | FogRuntime.I2C_WRITER | FogRuntime.PIN_WRITER);
     }
 
     @Override

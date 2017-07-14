@@ -56,14 +56,14 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     }
 
     public void ensureI2CWriting() {
-    	if (maxCommands<0) {
+    	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= I2C_WRITER;
     }
     
     public void ensureI2CWriting(int queueLength, int maxMessageSize) {
-    	if (maxCommands<0) {
+    	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= I2C_WRITER;    
@@ -74,14 +74,14 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     }
     
     public void ensurePinWriting() {
-    	if (maxCommands<0) {
+    	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= PIN_WRITER;
     }
     
     public void ensurePinWriting(int queueLength, int maxMessageSize) {
-    	if (maxCommands<0) {
+    	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= PIN_WRITER;    
@@ -92,14 +92,14 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     }
     
     public void ensureSerialWriting() {
-    	if (maxCommands<0) {
+    	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= SERIAL_WRITER;
     }
     
     public void ensureSerialWriting(int queueLength, int maxMessageSize) {
-    	if (maxCommands<0) {
+    	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= SERIAL_WRITER;    

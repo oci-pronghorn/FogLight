@@ -19,7 +19,7 @@ public class SerialListenerBehavior implements SerialListener {
 	private int timeToLive = 10;
 	private FogCommandChannel cmd2;
 	
-	public SerialListenerBehavior(FogRuntime runtime) {
+	SerialListenerBehavior(FogRuntime runtime) {
 		this.runtime = runtime;
 		this.cmd2 = runtime.newCommandChannel();
 	}

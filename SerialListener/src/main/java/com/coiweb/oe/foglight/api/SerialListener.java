@@ -26,8 +26,6 @@ public class SerialListener implements FogApp
     	
     	runtime.addTimePulseListener(new SerialWriterBehavior(runtime));
 
-
-        
     }
           
 }

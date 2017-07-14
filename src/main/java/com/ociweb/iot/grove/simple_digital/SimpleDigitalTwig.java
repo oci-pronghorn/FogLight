@@ -1,11 +1,11 @@
-package com.ociweb.iot.grove.digital;
+package com.ociweb.iot.grove.simple_digital;
 
 import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
 
-public enum DigitalTwig implements ADIODevice {
+public enum SimpleDigitalTwig implements ADIODevice {
 	Buzzer() {
 		@Override
 		public boolean isOutput() {

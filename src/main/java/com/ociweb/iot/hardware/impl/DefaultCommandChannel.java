@@ -199,8 +199,7 @@ public class DefaultCommandChannel extends FogCommandChannel{
             }
         } finally {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-        }
-        
+        }        
     }
 	
 
@@ -209,31 +208,6 @@ public class DefaultCommandChannel extends FogCommandChannel{
     public boolean block(Port port, long duration) { 
         return block((port.isAnalog()?ANALOG_BIT:0) |port.port,duration); 
     }
-
-    @Override
-    public boolean block(long msDuration) {
-
-        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-        try {
-            if (goHasRoom() &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCHANNEL_22)) {
-
-                PipeWriter.writeLong(pinOutput, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
-                PipeWriter.publishWrites(pinOutput);
-                
-                builder.releasePinOutTraffic(1,this);
-                
-                return true;
-            } else {
-                return false;
-            }
-
-        } finally {
-            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-        }
-    }
-	
-
-
 
     @Override
     public boolean blockUntil(Port port, long time) {
@@ -257,8 +231,6 @@ public class DefaultCommandChannel extends FogCommandChannel{
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
         }
     }
-
-
 
 
 

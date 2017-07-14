@@ -212,16 +212,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
         return aBool.compareAndSet(true, false);
     }
 
-    /**
-     * Causes this channel to delay processing any actions until the specified
-     * amount of time has elapsed.
-     *
-     * @param msDuration Milliseconds to delay.
-     *
-     * @return True if blocking was successful, and false otherwise.
-     */
-    public abstract boolean block(long msDuration);
-
+ 
     /**
      * Causes this channel to delay processing any actions on a given {@link Port}
      * until the specified amount of time has elapsed.

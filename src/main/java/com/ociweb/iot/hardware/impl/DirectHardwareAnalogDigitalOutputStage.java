@@ -77,13 +77,6 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                    ((HardwareImpl)hardware).write(Port.ANALOGS[PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141)], 
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142));
 	                    break;
-	                    	                    
-	                case GroveRequestSchema.MSG_BLOCKCHANNEL_22:
-	                
-                        blockChannelDuration(activePipe,PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
-	                    logger.debug("CommandChannel blocked for {} nanos ",PipeReader.readLong(pipe, GroveRequestSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
-	                 
-	                break;    
 	                    
 	                default:
 	                    

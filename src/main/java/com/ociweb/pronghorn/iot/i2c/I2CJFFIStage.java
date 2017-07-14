@@ -303,7 +303,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
     			case I2CCommandSchema.MSG_BLOCKCHANNEL_22:
     			{
-    				blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));   
+    				hardware.blockChannelDuration(PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13), goPipeId(activePipe));   
     				if (logger.isDebugEnabled()) {
     					logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
     				}

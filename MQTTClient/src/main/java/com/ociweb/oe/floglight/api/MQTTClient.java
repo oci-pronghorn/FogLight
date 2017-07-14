@@ -43,7 +43,7 @@ public class MQTTClient implements FogApp {
 		runtime.transmissionBridge("topic/egress", mqttConfig); //optional 2 topics, optional transform lambda
 
 		// Inject the timer
-		runtime.addTimeListener(new TimeBehavior(runtime));
+		runtime.addTimePulseListener(new TimeBehavior(runtime));
 
 		// Inject a listener for "topic/ingress" - produced by mosquitto_pub
 		runtime.addPubSubListener(new IngressBehavior(runtime)).addSubscription("topic/ingress");

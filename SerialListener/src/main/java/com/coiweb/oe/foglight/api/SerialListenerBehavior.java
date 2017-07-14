@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.maker.SerialReader;
@@ -16,9 +17,11 @@ public class SerialListenerBehavior implements SerialListener {
 	
 	private byte[] myBuffer = new byte[10];
 	private int timeToLive = 10;
+	private FogCommandChannel cmd2;
 	
 	public SerialListenerBehavior(FogRuntime runtime) {
 		this.runtime = runtime;
+		this.cmd2 = runtime.newCommandChannel();
 	}
 
 	@Override

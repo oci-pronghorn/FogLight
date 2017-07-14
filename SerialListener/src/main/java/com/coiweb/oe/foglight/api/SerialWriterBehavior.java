@@ -28,7 +28,8 @@ public class SerialWriterBehavior implements TimeListener {
 	};
 	
 	public SerialWriterBehavior(FogRuntime runtime) {	
-		cmd = runtime.newCommandChannel(SERIAL_WRITER);
+		
+		cmd = runtime.newCommandChannel(SERIAL_WRITER );
 	}
 
 	@Override

@@ -11,7 +11,7 @@ public class EgressBehavior implements PubSubListener {
 		// topic is the MQTT topic
 		// payload is the MQTT payload
 		// this received when mosquitto_pub is invoked - see MQTTClient
-		System.out.println("got topic "+topic+" payload "+payload.readUTF());
+		System.out.println("got topic "+topic+" payload "+payload.readUTF()+"\n");
 		
 		return true;
 	}		

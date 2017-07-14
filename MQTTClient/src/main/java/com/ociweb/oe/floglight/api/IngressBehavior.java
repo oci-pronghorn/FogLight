@@ -33,7 +33,7 @@ public class IngressBehavior implements PubSubListener {
 			@Override
 			public void write(BlobWriter writer) {
 
-				writer.writeUTF("second step test message");
+				writer.writeUTF("\nsecond step test message");
 			}
 
 		};

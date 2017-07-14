@@ -24,12 +24,12 @@ public class MQTTClient implements FogApp {
 		// Create a single mqtt client
 		mqttConfig = builder.useMQTT("127.0.0.1", 1883, "my name")
 							.cleanSession(true)
-							.transmissionOoS(2)
-							.subscriptionQoS(2) 
+							.transmissionOoS(1)
+							.subscriptionQoS(1) 
 							.keepAliveSeconds(10); 
 
 		// Timer rate
-		builder.setTriggerRate(1000); 
+		builder.setTimerPulseRate(1000); 
 		//builder.enableTelemetry(true);
 				
 	}

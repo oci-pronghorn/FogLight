@@ -340,7 +340,9 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      *
      */
     public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
-        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
+
+    	assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
 
             if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
@@ -364,6 +366,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      * @param durationNanos Time in nanoseconds to delay.
      */
     public void i2cDelay(int targetAddress, long durationNanos) {
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             if (++runningI2CCommandCount > maxCommands) {
@@ -395,6 +398,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      * @return True if the I2C bus is ready for communication, and false otherwise.
      */
     public boolean i2cIsReady(int requestedCommandCount) {
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
     	assert(null!=i2cOutput) : "pipe must not be null";
     	assert(Pipe.isInit(i2cOutput)) : "pipe must be initialized";    	
         return goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, SIZE_OF_I2C_COMMAND*requestedCommandCount);
@@ -403,7 +407,8 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     /**
      * Flushes all awaiting I2C data to the I2C bus for consumption.
      */
-    public void i2cFlushBatch() {        
+    public void i2cFlushBatch() { 
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
         	builder.releaseI2CTraffic(runningI2CCommandCount, this);        	
@@ -414,7 +419,8 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     }
 
 
-    public void i2cCommandClose() {  
+    public void i2cCommandClose() { 
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             if (++runningI2CCommandCount > maxCommands) {

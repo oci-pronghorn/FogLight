@@ -19,7 +19,7 @@ public class DefaultCommandChannel extends FogCommandChannel{
 	
 
 	private boolean block(int connector, long duration) {
-
+    	assert((0 != (initFeatures & PIN_WRITER))) : "CommandChannel must be created with PIN_WRITER flag";
 		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
 			if (goHasRoom() &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTION_220)) {
@@ -43,12 +43,13 @@ public class DefaultCommandChannel extends FogCommandChannel{
 
 	@Override
 	public boolean setValue(Port port, boolean value) {
+		assert((0 != (initFeatures & PIN_WRITER))) : "CommandChannel must be created with PIN_WRITER flag";
 		return setValue(port, (!value) ? 0 : builder.getConnectedDevice(port).range()-1);
 	}
 	
 	@Override
 	public boolean setValue(Port port, int value) {
-
+		assert((0 != (initFeatures & PIN_WRITER))) : "CommandChannel must be created with PIN_WRITER flag";
 		int mask = 0;
 		int msgId;
 		int msgField1;
@@ -91,6 +92,7 @@ public class DefaultCommandChannel extends FogCommandChannel{
 	}
 	@Override
 	public boolean digitalPulse(Port port, long durationNanos) {
+		    assert((0 != (initFeatures & PIN_WRITER))) : "CommandChannel must be created with PIN_WRITER flag";
 			if (port.isAnalog()) {
 				throw new UnsupportedOperationException();
 			}
@@ -156,7 +158,7 @@ public class DefaultCommandChannel extends FogCommandChannel{
 
     @Override
     public boolean setValueAndBlock(Port port, int value, long msDuration) {
-    	
+    	assert((0 != (initFeatures & PIN_WRITER))) : "CommandChannel must be created with PIN_WRITER flag";
     	int mask = 0;
 		int msgId;
 		int msgField1;
@@ -206,11 +208,13 @@ public class DefaultCommandChannel extends FogCommandChannel{
 
     @Override
     public boolean block(Port port, long duration) { 
+    	assert((0 != (initFeatures & PIN_WRITER))) : "CommandChannel must be created with PIN_WRITER flag";
         return block((port.isAnalog()?ANALOG_BIT:0) |port.port,duration); 
     }
 
     @Override
     public boolean blockUntil(Port port, long time) {
+    	assert((0 != (initFeatures & PIN_WRITER))) : "CommandChannel must be created with PIN_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             if (goHasRoom() &&  PipeWriter.tryWriteFragment(pinOutput, GroveRequestSchema.MSG_BLOCKCONNECTIONUNTIL_221)) {

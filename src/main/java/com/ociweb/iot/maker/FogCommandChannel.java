@@ -55,7 +55,60 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
        }
     }
 
-
+    public void ensureI2CWriting() {
+    	if (maxCommands<0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= I2C_WRITER;
+    }
+    
+    public void ensureI2CWriting(int queueLength, int maxMessageSize) {
+    	if (maxCommands<0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= I2C_WRITER;    
+    	PipeConfig<I2CCommandSchema> config = pcm.getConfig(I2CCommandSchema.class);
+		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
+    		this.pcm.addConfig(queueLength, maxMessageSize, I2CCommandSchema.class);   
+    	}
+    }
+    
+    public void ensurePinWriting() {
+    	if (maxCommands<0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= PIN_WRITER;
+    }
+    
+    public void ensurePinWriting(int queueLength, int maxMessageSize) {
+    	if (maxCommands<0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= PIN_WRITER;    
+    	PipeConfig<GroveRequestSchema> config = pcm.getConfig(GroveRequestSchema.class);
+		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
+    		this.pcm.addConfig(queueLength, maxMessageSize, GroveRequestSchema.class);   
+    	}
+    }
+    
+    public void ensureSerialWriting() {
+    	if (maxCommands<0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= SERIAL_WRITER;
+    }
+    
+    public void ensureSerialWriting(int queueLength, int maxMessageSize) {
+    	if (maxCommands<0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= SERIAL_WRITER;    
+    	PipeConfig<SerialOutputSchema> config = pcm.getConfig(SerialOutputSchema.class);
+		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
+    		this.pcm.addConfig(queueLength, maxMessageSize, SerialOutputSchema.class);   
+    	}
+    }
+    
     @Override
     public Pipe<?>[] getOutputPipes() {
     	//we must wait till this last possible moment to build.

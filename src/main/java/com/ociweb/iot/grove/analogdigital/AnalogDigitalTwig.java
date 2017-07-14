@@ -18,10 +18,104 @@ import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayFacade;
  *
  * @see com.ociweb.iot.hardware.IODevice
  */
-//TODO: Moved everything out to either analog or digital. These two are left here because they are odd and we need to decide 
-//	where to put them.
-@Deprecated
+
+
 public enum AnalogDigitalTwig implements ADIODevice {
+	
+	UVSensor() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int response() {
+			return 30;
+		}
+
+
+	},
+	LightSensor() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int response() {
+			return 100;
+		}
+	},
+	SoundSensor() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int response() {
+			return 2;
+		}
+	},
+	AngleSensor() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int response() {
+			return 40;
+		}
+		@Override
+		public int range() {
+			return 1024;
+		}
+	},
+	MoistureSensor() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+	},
+	Button() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		public int response() {
+			return 40;
+		}
+
+		@Override
+		public int range() {
+			return 1;
+		}
+
+	},
+	MotionSensor() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int range() {
+			return 1;
+		}
+	},
+	LineFinder() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int range() {
+			return 1;
+		}
+	},
 	RotaryEncoder() {
 		@Override
 		public boolean isInput() {
@@ -34,13 +128,77 @@ public enum AnalogDigitalTwig implements ADIODevice {
 		}
 
 	},
-	
-	
-	
+	Buzzer() {
+		@Override
+		public boolean isOutput() {
+			return true;
+		}
+
+	},
+	LED() {
+		@Override
+		public boolean isOutput() {
+			return true;
+		}
+
+		@Override
+		public boolean isPWM() {
+			return true;
+		}
+	},
+	Relay() {
+		@Override
+		public boolean isOutput() {
+			return true;
+		}
+	},
+	Servo() {
+		@Override
+		public boolean isOutput() {
+			return true;
+		}
+	},
 	
 
-	
-	
+	UltrasonicRanger() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int range() {
+			return 1024;
+		}
+
+		@Override
+		public int response() {
+			return 200;
+		}
+
+		@Override
+		public int scanDelay() {
+			return 1_420_000;
+		}
+
+	},
+	ThumbJoystick(){
+		@Override
+		public boolean isInput(){
+			return true;
+		}
+		@Override
+		public int range(){
+			return 1024;
+		}
+		@Override
+		public int pinsUsed(){
+			return 2;
+		}
+		public boolean isPressed(int val){
+			return val == 1023;
+		}
+	},
 	FourDigitDisplay(){
 		;
 		@Override
@@ -73,14 +231,48 @@ public enum AnalogDigitalTwig implements ADIODevice {
 			return set_up;
 		}
 		
+	},
+
+	VibrationSensor(){
+		@Override
+		public boolean isInput(){
+			return true;
+		}
+		@Override
+		public int range(){
+			return 1024;
+		}
+	},
+
+	
+
+	WaterSensor(){
+		@Override
+		public boolean isInput(){
+			return true;
+		}
+
+		@Override
+		public int range(){
+			return 1024;
+		}
+	},
+	TouchSensor() {
+		@Override()
+		public boolean isInput(){
+			return true;
+		}
+
+		@Override
+		public int range(){
+			return 1;
+		}
+
+		@Override
+		public int response(){
+			return 60;
+		}
 	};
-
-	
-
-	
-
-	
-	
 	/**
 	 * @return True if this twig is an input device, and false otherwise.
 	 */

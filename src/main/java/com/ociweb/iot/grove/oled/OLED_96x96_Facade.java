@@ -1,6 +1,8 @@
 package com.ociweb.iot.grove.oled;
 
 import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
+
+import com.ociweb.iot.grove.gps.GPS_Consts;
 import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -18,6 +20,7 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 		//A nibble determines pixel. A byte is therefore two horizontally adjascent pixels.
 		//96x96 divided 2. Since each pixel takes a nibble to send
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);
+		ch.ensureI2CWriting(16, BATCH_SIZE);
 		this.chip = SSD1327;
 		
 	}
@@ -50,6 +53,7 @@ public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
 		else {
 			chip = SSD1327;
 		}
+		
 	}
 
 	@Override

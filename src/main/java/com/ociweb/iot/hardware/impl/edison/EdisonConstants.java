@@ -1,6 +1,6 @@
 package com.ociweb.iot.hardware.impl.edison;
 
-import com.ociweb.iot.grove.AnalogDigitalTwig;
+import com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig;
 import com.ociweb.iot.grove.i2c.I2CTwig;
 import com.ociweb.iot.hardware.HardwareConnection;
 

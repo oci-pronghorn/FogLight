@@ -19,6 +19,9 @@ public abstract class BinaryOLED {
 		this.data_out = data_out;
 		this.cmd_out = cmd_out;
 		this.i2c_address = i2c_address;
+		ch.ensureI2CWriting(16, BATCH_SIZE);
+		
+	
 	}
 	
 	/**

@@ -2,8 +2,7 @@ package com.ociweb.pronghorn.iot;
 
 import java.util.Arrays;
 
-import com.ociweb.iot.grove.AnalogDigitalTwig;
-
+import com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 

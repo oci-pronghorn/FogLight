@@ -551,9 +551,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 
-	public boolean isUseNetClient() {
-		return useNetClient;
-	}
 
 	public void releasePinOutTraffic(int count, MsgCommandChannel<?> gcc) {		
 		MsgCommandChannel.publishGo(count, IDX_PIN, gcc);		
@@ -691,6 +688,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		////////
 		if (useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes)) {
 			
+			
+			final int connectionsInBits=10;			
+			final int maxPartialResponses=4;
+			final boolean isTLS = false;  //TODO: we need a better solution.
+			final int responseQueue = 10;
+			final int responseSize = 1<<16;
+			
+			
 			System.err.println("loaded client http");
 			if (masterGoOut[IDX_NET].length != masterAckIn[IDX_NET].length) {
 				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+masterAckIn[IDX_NET].length);
@@ -707,10 +712,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
 		
 			//BUILD GRAPH
+
 			
-			int connectionsInBits=10;			
-			int maxPartialResponses=4;
-			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, true);
+			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, isTLS);
 		
 			int outputsCount = 1;
 			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
@@ -721,9 +725,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			
 			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[IDX_NET], masterAckIn[IDX_NET], clientRequests);
 						
-			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, 10, 1<<15, clientRequests, netResponsePipes); 
-			
-						
+			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, responseQueue, responseSize, clientRequests, netResponsePipes); 
+									
 		}
 		
 		if (IDX_MSG <0) {

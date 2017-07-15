@@ -5,6 +5,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.IODeviceFacade;
 import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.maker.SerialReader;
+import com.ociweb.pronghorn.pipe.BlobReader;
 
 
 public class GPS_Facade implements SerialListener, IODeviceFacade{
@@ -14,7 +15,7 @@ public class GPS_Facade implements SerialListener, IODeviceFacade{
 		this.ch = ch;
 	}
 	@Override
-	public int message(SerialReader reader) {
+	public int message(BlobReader reader) {
 		
 		l.coordinates(1, 2);
 		return 0;

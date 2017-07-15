@@ -24,7 +24,7 @@ public class PiCamTest implements FogApp {
 
     @Override
     public void declareConnections(Hardware hardware) {
-        hardware.setTriggerRate(1250);
+        hardware.setTimerPulseRate(1250);
     }
 
     @Override

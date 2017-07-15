@@ -53,8 +53,8 @@ public class TestHardware extends HardwareImpl {
     }
 	
     public void enableTelemetry(boolean enable) {
-    	if (!isInUnitTest) {
-    		super.enableTelemetry(enable);
+    	if (!isInUnitTest && enable) {
+    		super.enableTelemetry();
     	}
     	//else do nothing this is a test.
     }

@@ -9,21 +9,38 @@ import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
 public class HTTPServer implements FogApp
 {
 	byte[] cookieHeader = HTTPHeaderDefaults.COOKIE.rootBytes();
-	int routeId;
+	
+	int emptyResponseRouteId;
+	int smallResponseRouteId;
+	int largeResponseRouteId;
+	
+	
 	byte[] myArgName = "myarg".getBytes();
 	
     @Override
     public void declareConnections(Hardware c) {
         
 		c.enableServer(false, 8088);    	
-		routeId = c.registerRoute("/testpage?arg=#{myarg}", cookieHeader);
+		emptyResponseRouteId = c.registerRoute("/testpageA?arg=#{myarg}", cookieHeader);
+		smallResponseRouteId = c.registerRoute("/testpageB");
+		largeResponseRouteId = c.registerRoute("/testpageC", cookieHeader);
+		
+		c.enableTelemetry();
 		
     }
 
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        runtime.addRestListener(new RestBehavior(runtime, myArgName)).includeRoutes(routeId);
+        runtime.addRestListener(new RestBehaviorEmptyResponse(runtime, myArgName))
+                 .includeRoutes(emptyResponseRouteId);
+        
+        runtime.addRestListener(new RestBehaviorSmallResponse(runtime))
+        		.includeRoutes(smallResponseRouteId);
+        
+        runtime.addRestListener(new RestBehaviorLargeResponse(runtime))
+        		 .includeRoutes(largeResponseRouteId);
+        
     }
           
     

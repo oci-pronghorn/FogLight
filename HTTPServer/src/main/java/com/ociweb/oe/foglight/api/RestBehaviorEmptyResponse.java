@@ -9,13 +9,13 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
 import com.ociweb.pronghorn.pipe.BlobReader;
 
-public class RestBehavior implements RestListener {
+public class RestBehaviorEmptyResponse implements RestListener {
 
 	final byte[] cookieHeader = HTTPHeaderDefaults.COOKIE.rootBytes();
 	final byte[] fieldName;
 	private final FogCommandChannel cmd;
 	
-	public RestBehavior(FogRuntime runtime, byte[] myArgName) {
+	public RestBehaviorEmptyResponse(FogRuntime runtime, byte[] myArgName) {
 		this.fieldName = myArgName;		
 		this.cmd = runtime.newCommandChannel(NET_RESPONDER);
 	}

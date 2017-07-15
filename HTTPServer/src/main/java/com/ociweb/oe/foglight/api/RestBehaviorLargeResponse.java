@@ -10,6 +10,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
 import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.BlobWriter;
 
 public class RestBehaviorLargeResponse implements RestListener {
 
@@ -34,7 +35,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	NetWritable writableA = new NetWritable() {
 		
 		@Override
-		public void write(NetResponseWriter writer) {
+		public void write(BlobWriter writer) {
 			writer.writeUTF8Text("beginning of text file\n");//23 in length
 		}
 		
@@ -43,7 +44,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	NetWritable writableB = new NetWritable() {
 		
 		@Override
-		public void write(NetResponseWriter writer) {
+		public void write(BlobWriter writer) {
 			writer.writeUTF8Text("ending of text file\n");//20 in length
 		}
 		

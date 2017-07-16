@@ -248,8 +248,10 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
                 consumePubSubMessage(listener, (Pipe<MessageSubscription>) inputPipes[p]);
             } else if (Pipe.isForSchema((Pipe<NetResponseSchema>)inputPipes[p], NetResponseSchema.class)) {
                //should only have this pipe if listener is also instance of HTTPResponseListener
+               //HTTP response from our request earlier
                consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) inputPipes[p]);
             } else if (Pipe.isForSchema((Pipe<HTTPRequestSchema>)inputPipes[p], HTTPRequestSchema.class)) {            	
+               //HTTP reqeust to our internal server from the outside
                consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) inputPipes[p], 
             			          routeIds[p], parallelIds[p]);                           
             } else 

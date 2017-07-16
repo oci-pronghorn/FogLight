@@ -682,52 +682,53 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 		initChannelBlocker(maxGoPipeId);
 		
+		buildHTTPClientGraph(netPipeLookup2, netResponsePipes, netRequestPipes, masterGoOut, masterAckIn);
 		
-		////////
-		//create the network client stages
-		////////
-		if (useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes)) {
-			
-			
-			final int connectionsInBits=10;			
-			final int maxPartialResponses=4;
-			final boolean isTLS = false;  //TODO: we need a better solution.
-			final int responseQueue = 10;
-			final int responseSize = 1<<16;
-			
-			
-			System.err.println("loaded client http");
-			if (masterGoOut[IDX_NET].length != masterAckIn[IDX_NET].length) {
-				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+masterAckIn[IDX_NET].length);
-			}
-			if (masterGoOut[IDX_NET].length != netRequestPipes.length) {
-				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+netRequestPipes.length);
-			}
-			
-			assert(masterGoOut[IDX_NET].length == masterAckIn[IDX_NET].length);
-			assert(masterGoOut[IDX_NET].length == netRequestPipes.length);
-			
-			
-			PipeConfig<ClientHTTPRequestSchema> netRequestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
-			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
-		
-			//BUILD GRAPH
-
-			
-			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, isTLS);
-		
-			int outputsCount = 1;
-			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
-			int r = outputsCount;
-			while (--r>=0) {
-				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
-			}
-			
-			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[IDX_NET], masterAckIn[IDX_NET], clientRequests);
-						
-			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, responseQueue, responseSize, clientRequests, netResponsePipes); 
-									
-		}
+//		////////
+//		//create the network client stages
+//		////////
+//		if (useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes)) {
+//			
+//			
+//			final int connectionsInBits=10;			
+//			final int maxPartialResponses=4;
+//			final boolean isTLS = false;  //TODO: we need a better solution.
+//			final int responseQueue = 10;
+//			final int responseSize = 1<<16;
+//			
+//			
+//			System.err.println("loaded client http");
+//			if (masterGoOut[IDX_NET].length != masterAckIn[IDX_NET].length) {
+//				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+masterAckIn[IDX_NET].length);
+//			}
+//			if (masterGoOut[IDX_NET].length != netRequestPipes.length) {
+//				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+netRequestPipes.length);
+//			}
+//			
+//			assert(masterGoOut[IDX_NET].length == masterAckIn[IDX_NET].length);
+//			assert(masterGoOut[IDX_NET].length == netRequestPipes.length);
+//			
+//			
+//			PipeConfig<ClientHTTPRequestSchema> netRequestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
+//			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
+//		
+//			//BUILD GRAPH
+//
+//			
+//			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, isTLS);
+//		
+//			int outputsCount = 1;
+//			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
+//			int r = outputsCount;
+//			while (--r>=0) {
+//				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
+//			}
+//			
+//			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[IDX_NET], masterAckIn[IDX_NET], clientRequests);
+//						
+//			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, responseQueue, responseSize, clientRequests, netResponsePipes); 
+//									
+//		}
 		
 		if (IDX_MSG <0) {
 				logger.trace("saved some resources by not starting up the unused pub sub service.");

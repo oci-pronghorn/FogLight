@@ -11,12 +11,13 @@ import com.ociweb.iot.grove.three_axis_accelerometer_16g.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import static com.ociweb.iot.maker.FogRuntime.*;
+import com.ociweb.iot.maker.I2CListener;
 
 /**
  *
  * @author huydo
  */
-public class AccelerometerBehavior implements ThreeAxisAccelerometer_16gListener,StartupListener {
+public class AccelerometerBehavior implements AccelValsListener,StartupListener,I2CListener,ActTapStatusListener,InterruptStatusListener {
     
     //private static final Logger logger = LoggerFactory.getLogger(AccelerometerBehavior.class);
     private final FogCommandChannel c;
@@ -24,14 +25,14 @@ public class AccelerometerBehavior implements ThreeAxisAccelerometer_16gListener
     
     public AccelerometerBehavior(FogRuntime runtime){
         this.c = runtime.newCommandChannel(I2C_WRITER);
-        accSensor = new ThreeAxisAccelerometer_16g_Facade(c,this);
+        accSensor = new ThreeAxisAccelerometer_16g_Facade(c,this,this,this);
         runtime.registerListener(accSensor);
     }
     
     @Override
     public void startup() {
-        accSensor.begin();
-        accSensor.setRange(4);
+        //accSensor.begin();
+        //accSensor.setRange(4);
         
     }
 
@@ -50,5 +51,12 @@ public class AccelerometerBehavior implements ThreeAxisAccelerometer_16gListener
     @Override
     public void interruptStatus(int byteRead) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
+        System.out.println("addr: "+addr);
+        System.out.println("reg: "+register);
+        System.out.println("value: "+backing[position]);    
     }
 }

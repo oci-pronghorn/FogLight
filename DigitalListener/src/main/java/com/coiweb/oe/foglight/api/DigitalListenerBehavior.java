@@ -15,7 +15,7 @@ public class DigitalListenerBehavior implements DigitalListener {
 
 	private FogCommandChannel channel;
 	public DigitalListenerBehavior(FogRuntime runtime) {
-		channel = runtime.newCommandChannel(FogCommandChannel.I2C_WRITER | FogCommandChannel.PIN_WRITER | DYNAMIC_MESSAGING);
+		channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER | DYNAMIC_MESSAGING);
 	}
 
 	@Override

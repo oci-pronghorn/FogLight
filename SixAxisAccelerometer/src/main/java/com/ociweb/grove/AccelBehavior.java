@@ -15,14 +15,14 @@ import static com.ociweb.iot.maker.FogRuntime.*;
  *
  * @author huydo
  */
-public class AccelBehavior implements SixAxisAccelerometerListener,StartupListener { 
-    FogCommandChannel ch;
+public class AccelBehavior implements AccelValsListener,StartupListener,MagValsListener { 
+    private final FogCommandChannel ch;
     
-    SixAxisAccelerometer_Facade accSensor;
+    private final SixAxisAccelerometer_Facade accSensor;
     
     AccelBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);     
-        accSensor = new SixAxisAccelerometer_Facade(ch,this);
+        accSensor = new SixAxisAccelerometer_Facade(ch,this,this);
         runtime.registerListener(accSensor);
     }
    
@@ -36,12 +36,15 @@ public class AccelBehavior implements SixAxisAccelerometerListener,StartupListen
 
     @Override
     public void magVals(int x, int y, int z) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        double heading = 180*Math.atan2(y, x)/3.14;
+        heading = (heading<0)?(heading+360):heading;
+        System.out.println("heading: "+heading);
+        
     }
 
     @Override
     public void startup() {
-        
+        accSensor.begin();
     }
 
     

@@ -330,13 +330,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	
 
-	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<NetResponseSchema>[] netResponsePipes, Pipe<ClientHTTPRequestSchema>[] netRequestPipes) {
+	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<ClientHTTPRequestSchema>[] netRequestPipes) {
 		
 		if (isUseNetClient() && IntHashTable.isEmpty(netPipeLookup)) {
 			throw new UnsupportedOperationException("useNetClient is enabled however no HTTPResponseListener instances were registered.");
 		}
 		
-		return !IntHashTable.isEmpty(netPipeLookup) && (netResponsePipes.length!=0) && (netRequestPipes.length!=0);
+		return !IntHashTable.isEmpty(netPipeLookup) && (netRequestPipes.length!=0);
 	}
 
 
@@ -572,7 +572,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfType(gm2, I2CResponseSchema.instance);
 		Pipe<NetResponseSchema>[] netResponsePipes = GraphManager.allPipesOfType(gm2, NetResponseSchema.instance);
 		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfType(gm2, TrafficOrderSchema.instance);
-		Pipe<GroveRequestSchema>[] requestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
+		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
 		Pipe<ClientHTTPRequestSchema>[] netRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
 		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfType(gm2, SerialOutputSchema.instance);		
@@ -594,10 +594,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 		int eventSchemas = 0;
 
-		IDX_PIN = requestPipes.length>0 ? eventSchemas++ : -1;
+		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;
 		IDX_I2C = i2cPipes.length>0 ? eventSchemas++ : -1;
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
-		IDX_NET = useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
+		IDX_NET = useNetClient(netPipeLookup2, netRequestPipes) ? eventSchemas++ : -1;
 		IDX_SER = serialOutputPipes.length>0 ? eventSchemas++ : -1;
 
 		long timeout = 20_000; //20 seconds
@@ -611,8 +611,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][0];
 		
 		if (IDX_PIN >= 0) {	
-			masterGoOut[IDX_PIN] = new Pipe[requestPipes.length];
-			masterAckIn[IDX_PIN] = new Pipe[requestPipes.length];
+			masterGoOut[IDX_PIN] = new Pipe[pinRequestPipes.length];
+			masterAckIn[IDX_PIN] = new Pipe[pinRequestPipes.length];
 		}		
 		if (IDX_I2C >= 0) {
 			masterGoOut[IDX_I2C] = new Pipe[i2cPipes.length];
@@ -623,8 +623,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			masterAckIn[IDX_MSG] = new Pipe[messagePubSub.length];
 		}		
 		if (IDX_NET >= 0) {
-			masterGoOut[IDX_NET] = new Pipe[netResponsePipes.length];
-			masterAckIn[IDX_NET] = new Pipe[netResponsePipes.length];
+			masterGoOut[IDX_NET] = new Pipe[netRequestPipes.length];
+			masterAckIn[IDX_NET] = new Pipe[netRequestPipes.length];
 		}		
 		if (IDX_SER >=0) {
 			masterGoOut[IDX_SER] = new Pipe[serialOutputPipes.length];
@@ -766,7 +766,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			assert(PronghornStage.noNulls(masterGoOut[IDX_PIN])) : "Go Pipe must not contain nulls";
 			assert(PronghornStage.noNulls(masterAckIn[IDX_PIN])) : "Ack Pipe must not contain nulls";
 			       
-			createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
+			createADOutputStage(pinRequestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
 		}
 	}
 

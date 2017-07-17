@@ -50,6 +50,7 @@ import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
@@ -644,11 +645,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			boolean isI2CWriter        = (features&FogRuntime.I2C_WRITER) != 0;
 			boolean isSerialWriter     = (features&FogRuntime.SERIAL_WRITER) != 0;
 
-//			assert(!isPinWriter || (IDX_PIN>0)) : "Pin feature is on but not used?";
-//			assert(!isI2CWriter || (IDX_I2C>0)) : "I2C feature is on but not used?";
-//			assert(!isSerialWriter || (IDX_SER>0)) : "Serial feature is on but not used?";
-//			assert(!isNetRequester || (IDX_NET>0)) : "Net requests feature is on but not used?";
-//			assert(!isDynamicMessaging || (IDX_MSG>0)) : "PubSub feature is on but not used?";
+			assert(!isPinWriter || (IDX_PIN>0)) : "Pin feature is on but not used?";
+			assert(!isSerialWriter || (IDX_SER>0)) : "Serial feature is on but not used?";
+			assert(!isNetRequester || (IDX_NET>0)) : "Net requests feature is on but not used?";
+			assert(!isDynamicMessaging || (IDX_MSG>0)) : "PubSub feature is on but not used?";
+
+			//PI?
+			//			assert(!isI2CWriter || (IDX_I2C>0)) : "I2C feature is on but not used?";
 						
 			boolean hasConnections = false;
 			if (isDynamicMessaging) {
@@ -684,52 +687,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		buildHTTPClientGraph(netPipeLookup2, netResponsePipes, netRequestPipes, masterGoOut, masterAckIn);
 		
-//		////////
-//		//create the network client stages
-//		////////
-//		if (useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes)) {
-//			
-//			
-//			final int connectionsInBits=10;			
-//			final int maxPartialResponses=4;
-//			final boolean isTLS = false;  //TODO: we need a better solution.
-//			final int responseQueue = 10;
-//			final int responseSize = 1<<16;
-//			
-//			
-//			System.err.println("loaded client http");
-//			if (masterGoOut[IDX_NET].length != masterAckIn[IDX_NET].length) {
-//				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+masterAckIn[IDX_NET].length);
-//			}
-//			if (masterGoOut[IDX_NET].length != netRequestPipes.length) {
-//				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+netRequestPipes.length);
-//			}
-//			
-//			assert(masterGoOut[IDX_NET].length == masterAckIn[IDX_NET].length);
-//			assert(masterGoOut[IDX_NET].length == netRequestPipes.length);
-//			
-//			
-//			PipeConfig<ClientHTTPRequestSchema> netRequestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
-//			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
-//		
-//			//BUILD GRAPH
-//
-//			
-//			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, isTLS);
-//		
-//			int outputsCount = 1;
-//			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
-//			int r = outputsCount;
-//			while (--r>=0) {
-//				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
-//			}
-//			
-//			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[IDX_NET], masterAckIn[IDX_NET], clientRequests);
-//						
-//			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, responseQueue, responseSize, clientRequests, netResponsePipes); 
-//									
-//		}
-		
 		if (IDX_MSG <0) {
 				logger.trace("saved some resources by not starting up the unused pub sub service.");
 		} else {
@@ -737,6 +694,21 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			 			                 messagePubSub, 
 			 			                 masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
 		}
+		
+		//			assert(PronghornStage.noNulls(masterGoOut[IDX_PIN])) : "Go Pipe must not contain nulls";
+		//          assert(PronghornStage.noNulls(masterAckIn[IDX_PIN])) : "Ack Pipe must not contain nulls";
+		int c = masterGoOut.length;
+		while (--c>=0) {
+									
+			if (!PronghornStage.noNulls(masterGoOut[c])) {
+				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
+			}
+			if (!PronghornStage.noNulls(masterAckIn[c])) {
+				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
+			}
+		}
+		
+		
 				
 		//////////////////
 		//only build and connect I2C if it is used for either in or out  
@@ -790,11 +762,38 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//only build direct pin output when we detected its use
 		///////////////
 		if (IDX_PIN>=0) {
+			assert(PronghornStage.noNulls(masterGoOut[IDX_PIN])) : "Go Pipe must not contain nulls";
+			assert(PronghornStage.noNulls(masterAckIn[IDX_PIN])) : "Ack Pipe must not contain nulls";
+			       
 			createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
 		}
 	}
 
-
+	private String featureName(final int c) {
+		
+		if (c == IDX_I2C) {
+			//FogRuntime.I2C_WRITER;
+			return "I2C_WRITER";
+		}
+		if (c == IDX_MSG) {
+			//Behavior.DYNAMIC_MESSAGING;
+			return "DYNAMIC_MESSAGING";
+		}
+		if (c == IDX_NET) { //TODO: where is the responder??
+			//Behavior.NET_REQUESTER;
+			return "NET_REQUESTER";
+		}
+		if (c == IDX_PIN) {
+			//FogRuntime.PIN_WRITER;
+			return "PIN_WRITER";
+		}
+		if (c == IDX_SER) {
+			//FogRuntime.SERIAL_WRITER;
+			return "SERIAL_WRITER";
+		}
+		
+		return null;
+	}
 
 	protected void createSerialOutputStage(Pipe<SerialOutputSchema>[] serialOutputPipes,
 			Pipe<TrafficReleaseSchema>[] masterGoOut, Pipe<TrafficAckSchema>[] masterAckIn) {

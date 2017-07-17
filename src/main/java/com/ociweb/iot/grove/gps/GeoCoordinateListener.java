@@ -1,5 +1,7 @@
 package com.ociweb.iot.grove.gps;
 
-public interface GeoCoordinateListener {
+import com.ociweb.gl.api.Behavior;
+
+public interface GeoCoordinateListener extends Behavior {
 	void coordinates(int longtitude, int lattitude);
 }

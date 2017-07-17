@@ -1,6 +1,8 @@
 package com.ociweb.grove;
 
 
+import java.io.IOException;
+
 import com.ociweb.gl.api.*;
 import com.ociweb.iot.maker.*;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
@@ -17,7 +19,12 @@ public class RestfulWaterSensorBehavior implements AnalogListener, RestListener 
 	public boolean restRequest(HTTPRequestReader reader) {
 		return ch.publishHTTPResponse(reader, 200, HTTPFieldReader.END_OF_RESPONSE | HTTPFieldReader.CLOSE_CONNECTION, HTTPContentTypeDefaults.HTML,
 				(writer)->{
-					writer.append(Integer.toString(this.val));
+					try {
+						writer.append(Integer.toString(this.val));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				});
 	}
 

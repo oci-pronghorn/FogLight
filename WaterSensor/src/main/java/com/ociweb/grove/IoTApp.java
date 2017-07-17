@@ -18,7 +18,7 @@ public class IoTApp implements FogApp
 				hostIP,
 				8088);	
 
-		c.enableTelemetry(true);
+		c.enableTelemetry();
 
 		webRoute = c.registerRoute(requestRoute);
 	}

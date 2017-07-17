@@ -6,6 +6,7 @@
 package com.ociweb.grove;
 
 import com.ociweb.gl.api.TimeListener;
+
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 
@@ -22,7 +23,7 @@ public class VariableColorLEDBehavior implements TimeListener {
     private final FogCommandChannel ledChannel;
     
     public VariableColorLEDBehavior(FogRuntime runtime){
-        this.ledChannel = runtime.newCommandChannel();
+        this.ledChannel = runtime.newCommandChannel(PIN_WRITER);
     }
     
     @Override

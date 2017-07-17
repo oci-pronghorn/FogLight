@@ -4,7 +4,7 @@ import com.ociweb.iot.maker.*;
 
 import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
-
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 public class LightSensorBehavior implements AnalogListener {
 	
@@ -15,7 +15,7 @@ public class LightSensorBehavior implements AnalogListener {
 
 	public LightSensorBehavior(FogRuntime runtime) {
 		// TODO Auto-generated constructor stub
-		lcdScreenChannel = runtime.newCommandChannel();
+		lcdScreenChannel = runtime.newCommandChannel(PIN_WRITER);
 	}
 
 	@Override

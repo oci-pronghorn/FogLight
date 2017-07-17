@@ -1,5 +1,5 @@
 package com.ociweb.grove;
-
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 import static com.ociweb.iot.maker.Port.D2;
 
 import com.ociweb.iot.maker.AnalogListener;
@@ -15,7 +15,7 @@ public class ViberationSensorBehavior implements AnalogListener {
 
 	public ViberationSensorBehavior(FogRuntime runtime) {
 		// TODO Auto-generated constructor stub
-		ch = runtime.newCommandChannel();
+		ch = runtime.newCommandChannel(PIN_WRITER);
 	}
 
 	@Override

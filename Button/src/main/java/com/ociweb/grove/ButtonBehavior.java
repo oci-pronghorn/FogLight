@@ -3,6 +3,7 @@ import com.ociweb.iot.maker.*;
 
 import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 public class ButtonBehavior implements DigitalListener {
 
@@ -11,7 +12,7 @@ public class ButtonBehavior implements DigitalListener {
     final FogCommandChannel channel1;
 	public ButtonBehavior(FogRuntime runtime) {
 		// TODO Auto-generated constructor stub
-       channel1 = runtime.newCommandChannel();
+       channel1 = runtime.newCommandChannel(PIN_WRITER);
 
 	}
 

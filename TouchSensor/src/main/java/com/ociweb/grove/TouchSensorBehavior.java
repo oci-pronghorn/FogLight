@@ -1,6 +1,7 @@
 package com.ociweb.grove;
 
 import static com.ociweb.iot.maker.Port.D2;
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -14,7 +15,7 @@ public class TouchSensorBehavior implements DigitalListener {
 	final FogCommandChannel channel1;
 	public TouchSensorBehavior(FogRuntime runtime) {
 		// TODO Auto-generated constructor stub
-    	channel1 = runtime.newCommandChannel();
+    	channel1 = runtime.newCommandChannel(PIN_WRITER);
 
 	}
 

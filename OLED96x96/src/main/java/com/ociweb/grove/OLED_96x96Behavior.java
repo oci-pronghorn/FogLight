@@ -1,6 +1,7 @@
 package com.ociweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
+
 import com.ociweb.gl.api.TimeListener;
 import static com.ociweb.iot.grove.oled.OLEDTwig.*;
 
@@ -16,7 +17,7 @@ import static com.ociweb.iot.maker.FogRuntime.*;
 public class OLED_96x96Behavior implements StartupListener, TimeListener{
 	private final OLED_96x96_Facade display;
 	public OLED_96x96Behavior(FogRuntime rt){
-		display = OLED_96x96.newFacade(rt.newCommandChannel()); 
+		display = OLED_96x96.newFacade(rt.newCommandChannel(PIN_WRITER)); 
 
 	}
 	@Override

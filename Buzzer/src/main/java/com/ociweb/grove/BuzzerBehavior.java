@@ -4,6 +4,7 @@ import com.ociweb.iot.maker.*;
 
 import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 public class BuzzerBehavior implements DigitalListener {
 	
@@ -13,7 +14,7 @@ public class BuzzerBehavior implements DigitalListener {
 	
 	public BuzzerBehavior(FogRuntime runtime) {
 		// TODO Auto-generated constructor stub
-        channel1 = runtime.newCommandChannel();
+        channel1 = runtime.newCommandChannel(PIN_WRITER);
 
 	}
 

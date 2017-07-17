@@ -10,7 +10,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.grove.IoTApp.*;
-
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 /**
  *
@@ -22,8 +22,8 @@ public class AngleSensorBehavior implements AnalogListener {
     private    final FogCommandChannel led2Channel;
     
     public AngleSensorBehavior(FogRuntime runtime){
-        this.led1Channel = runtime.newCommandChannel();
-        this.led2Channel = runtime.newCommandChannel();
+        this.led1Channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER);
+        this.led2Channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER);
     }
         
     @Override

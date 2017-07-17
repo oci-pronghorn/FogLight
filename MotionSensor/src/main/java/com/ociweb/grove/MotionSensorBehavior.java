@@ -11,6 +11,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.grove.IoTApp.*;
 
+
 /**
  *
  * @author huydo
@@ -20,7 +21,7 @@ public class MotionSensorBehavior implements DigitalListener{
     private final FogCommandChannel ledChannel;
     
     public MotionSensorBehavior(FogRuntime runtime){
-        this.ledChannel = runtime.newCommandChannel();
+        this.ledChannel = runtime.newCommandChannel(PIN_WRITER);
     }
     
     @Override

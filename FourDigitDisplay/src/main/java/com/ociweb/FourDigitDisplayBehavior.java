@@ -6,6 +6,7 @@ import com.ociweb.gl.api.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.grove.four_digit_display.FourDigitDisplayCommand.*;
 
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 public class FourDigitDisplayBehavior implements TimeListener,StartupListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(FourDigitDisplayBehavior.class);
@@ -15,7 +16,7 @@ public class FourDigitDisplayBehavior implements TimeListener,StartupListener {
 
 	
 	public FourDigitDisplayBehavior(FogRuntime r, Port p){
-		this.ch = r.newCommandChannel();
+		this.ch = r.newCommandChannel(PIN_WRITER);
 		this.p = p;
 	}
 	@Override

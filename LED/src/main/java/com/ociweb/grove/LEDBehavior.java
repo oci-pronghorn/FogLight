@@ -5,7 +5,7 @@ import com.ociweb.iot.maker.*;
 
 import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
-
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 public class LEDBehavior implements DigitalListener {
 	
 	private static final Port LED_PORT = D2;
@@ -14,7 +14,7 @@ public class LEDBehavior implements DigitalListener {
 	
 	public LEDBehavior(FogRuntime runtime) {
 		// TODO Auto-generated constructor stub
-    	channel1 = runtime.newCommandChannel();
+    	channel1 = runtime.newCommandChannel(PIN_WRITER);
 
 	}
 

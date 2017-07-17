@@ -18,7 +18,7 @@ public class GPS implements FogApp
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        runtime.addBehavior(new GPSBehavior(runtime));
+        runtime.registerBehavior(new GPSBehavior(runtime));
     }
           
 }

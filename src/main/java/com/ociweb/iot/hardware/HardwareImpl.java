@@ -645,9 +645,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			boolean isI2CWriter        = (features&FogRuntime.I2C_WRITER) != 0;
 			boolean isSerialWriter     = (features&FogRuntime.SERIAL_WRITER) != 0;
 
-			assert(!isPinWriter || (IDX_PIN>0)) : "Pin feature is on but not used?";
-			assert(!isSerialWriter || (IDX_SER>0)) : "Serial feature is on but not used?";
-			assert(!isNetRequester || (IDX_NET>0)) : "Net requests feature is on but not used?";
+			//these are not right.
+			//assert(!isPinWriter || (IDX_PIN>0)) : "Pin feature is on but not used?";
+			//assert(!isSerialWriter || (IDX_SER>0)) : "Serial feature is on but not used?";
+			//assert(!isNetRequester || (IDX_NET>0)) : "Net requests feature is on but not used?";
 
 			//PI?
 			//assert(!isDynamicMessaging || (IDX_MSG>0)) : "PubSub feature is on but not used?";

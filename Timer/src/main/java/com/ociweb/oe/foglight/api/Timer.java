@@ -12,7 +12,7 @@ public class Timer implements FogApp
 
     @Override
     public void declareConnections(Hardware c) {
-    	c.setTriggerRate(1); //the rate at which time is checked in milliseconds
+    	c.setTimerPulseRate(1); //the rate at which time is checked in milliseconds
         
     }
 

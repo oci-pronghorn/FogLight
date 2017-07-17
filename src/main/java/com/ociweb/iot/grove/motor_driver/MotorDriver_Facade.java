@@ -5,6 +5,7 @@
 */
 package com.ociweb.iot.grove.motor_driver;
 
+import com.ociweb.gl.api.StartupListener;
 import static com.ociweb.iot.grove.motor_driver.MotorDriver_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
@@ -15,7 +16,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class MotorDriver_Facade implements IODeviceFacade{
+public class MotorDriver_Facade implements IODeviceFacade,StartupListener{
     private final FogCommandChannel target;
     public int DRIVER_I2C_ADD = 0x0f; //default address of the driver
     private int motor1Vel = 0;
@@ -32,16 +33,16 @@ public class MotorDriver_Facade implements IODeviceFacade{
     
     private void direction(int _direction){
         
-            DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
-            
-            i2cPayloadWriter.writeByte(DIR_REG);
-            i2cPayloadWriter.writeByte(_direction);
-            i2cPayloadWriter.writeByte(DUMMY_BYTE);
-            
-            target.i2cCommandClose();
-            target.i2cFlushBatch();
-            target.i2cDelay(DRIVER_I2C_ADD, 4000000);
-  
+        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
+        
+        i2cPayloadWriter.writeByte(DIR_REG);
+        i2cPayloadWriter.writeByte(_direction);
+        i2cPayloadWriter.writeByte(DUMMY_BYTE);
+        
+        target.i2cCommandClose();
+        target.i2cFlushBatch();
+        target.i2cDelay(DRIVER_I2C_ADD, 4000000);
+        
     }
     /**
      * Set the velocity of the motor on specified channel
@@ -96,13 +97,13 @@ public class MotorDriver_Facade implements IODeviceFacade{
 //        }
 //        motor1_Vel = (Math.abs(motor1_Vel)>255)?255:Math.abs(motor1_Vel);
 //        motor2_Vel = (Math.abs(motor2_Vel)>255)?255:Math.abs(motor2_Vel);
-//        
+//
 //        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
-//        
+//
 //        i2cPayloadWriter.writeByte(SPEED_REG);
 //        i2cPayloadWriter.writeByte(motor1_Vel);
 //        i2cPayloadWriter.writeByte(motor2_Vel);
-//        
+//
 //        target.i2cCommandClose();
 //        target.i2cFlushBatch();
 //        target.i2cDelay(DRIVER_I2C_ADD, 4000000);
@@ -192,5 +193,13 @@ public class MotorDriver_Facade implements IODeviceFacade{
                 direction(0b1001);
             }
         }
+        
+    }
+    
+    @Override
+    public void startup() {
+        direction(0x00);
+        setVelocity(1,0);
+        setVelocity(2,0);
     }
 }

@@ -24,10 +24,16 @@ public class SixAxisAccelerometer_Facade implements IODeviceFacade,I2CListener {
     public SixAxisAccelerometer_Facade(FogCommandChannel ch){
         this.target = ch;
     }
-    public SixAxisAccelerometer_Facade(FogCommandChannel ch, AccelValsListener l1,MagValsListener l2){
+    public SixAxisAccelerometer_Facade(FogCommandChannel ch, SixAxisAccelerometer_16gListener... l ){
         this.target = ch;
-        this.accellistener = l1;
-        this.maglistener = l2;
+        for(SixAxisAccelerometer_16gListener item:l){
+            if(item instanceof AccelValsListener){
+                this.accellistener = (AccelValsListener) item;
+            }
+            if(item instanceof MagValsListener){
+                this.maglistener = (MagValsListener) item;
+            }
+        }
     }
     /**
      * Start the accelerometer sensor with the following configurations:

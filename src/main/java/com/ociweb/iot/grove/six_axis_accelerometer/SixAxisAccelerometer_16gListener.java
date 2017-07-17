@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ociweb.iot.grove.three_axis_accelerometer_16g;
+package com.ociweb.iot.grove.six_axis_accelerometer;
 
 /**
  *
  * @author huydo
  */
-public interface AccelValsListener extends ThreeAxisAccelerometer_16gListener {
-    void accelVals(int x,int y,int z);
+public interface SixAxisAccelerometer_16gListener {
+    
 }

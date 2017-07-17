@@ -9,6 +9,7 @@ package com.ociweb.iot.grove.three_axis_accelerometer_16g;
  *
  * @author huydo
  */
-public interface InterruptStatusListener {
-    void interruptStatus(int byteRead);
+public interface ACT_TAP_STATUS_RegListener extends ThreeAxisAccelerometer_16gListener{
+    void act_tapStatus(int byteRead); //byteRead is the 8 bit stored in ACT_TAP_STATUS register
+
 }

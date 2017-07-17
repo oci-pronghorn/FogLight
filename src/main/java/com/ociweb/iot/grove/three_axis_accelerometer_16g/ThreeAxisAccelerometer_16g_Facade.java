@@ -19,16 +19,24 @@ import com.ociweb.iot.maker.IODeviceFacade;
 public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade,I2CListener {    
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
-    private ActTapStatusListener acttaplistener;
-    private InterruptStatusListener interrlistener;
+    private ACT_TAP_STATUS_RegListener acttaplistener;
+    private INT_SOURCE_RegListener interrlistener;
     public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch){
         this.target = ch;
     }
-    public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch, AccelValsListener l1,ActTapStatusListener l2,InterruptStatusListener l3){
+    public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener ... l){
         this.target = ch;
-        this.accellistener = l1;
-        this.acttaplistener = l2;
-        this.interrlistener = l3;
+        for(ThreeAxisAccelerometer_16gListener item:l){
+            if(item instanceof AccelValsListener){
+                this.accellistener = (AccelValsListener) item;
+            }
+            if(item instanceof ACT_TAP_STATUS_RegListener){
+                this.acttaplistener = (ACT_TAP_STATUS_RegListener) item;
+            }
+            if(item instanceof INT_SOURCE_RegListener){
+                this.interrlistener =  (INT_SOURCE_RegListener) item;
+            }
+        }
     }
     
     
@@ -325,7 +333,9 @@ public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade,I2CList
                 acttaplistener.act_tapStatus(backing[position]);
             }
             if(register == ADXL345_INT_SOURCE){
-                interrlistener.interruptStatus(backing[position]);
+                interrlistener.regStatus(backing[position]);
+                int freefall = (backing[position] & 0b00000100)>>2;
+                interrlistener.freefallStatus(freefall);
             }
         }
     }

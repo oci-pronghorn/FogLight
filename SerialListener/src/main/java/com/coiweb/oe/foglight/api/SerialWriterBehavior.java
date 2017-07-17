@@ -20,7 +20,7 @@ public class SerialWriterBehavior implements TimeListener {
 
 	SerialWritable writable = new SerialWritable() {
 		@Override
-		public void write(SerialWriter writer) {
+		public void write(BlobWriter writer) {
 			writer.writeByte(value++);
 		}		
 	};

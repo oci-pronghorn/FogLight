@@ -9,6 +9,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.maker.SerialReader;
+import com.ociweb.pronghorn.pipe.BlobReader;
 
 public class SerialListenerBehavior implements SerialListener {
 
@@ -25,7 +26,7 @@ public class SerialListenerBehavior implements SerialListener {
 	}
 
 	@Override
-	public int message(SerialReader reader) {
+	public int message(BlobReader reader) {
 		
 		if (reader.available()<10) {
 			return 0; //consumed nothing

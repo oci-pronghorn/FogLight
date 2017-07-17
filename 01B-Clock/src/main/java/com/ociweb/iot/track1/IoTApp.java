@@ -68,7 +68,7 @@ public class IoTApp implements FogApp
     	c.connect(LightSensor, LIGHT_SENSOR_PORT);
     	c.connect(AngleSensor, ANGLE_SENSOR_PORT);
     	c.useI2C();
-    	c.setTriggerRate(TimeTrigger.OnTheSecond);
+    	c.setTimerPulseRate(TimeTrigger.OnTheSecond);
     }
 
 

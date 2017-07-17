@@ -41,7 +41,7 @@ public class IoTApp implements FogApp
     	c.connect(LED, LED_PORT);
     	
     	c.useI2C();
-    	c.setTriggerRate(200);
+    	c.setTimerPulseRate(200);
     }
 
 

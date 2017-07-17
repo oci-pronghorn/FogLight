@@ -15,6 +15,7 @@ import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.BlobReader;
 
 public class PublishKafka implements PubSubListener {
 
@@ -112,7 +113,7 @@ public class PublishKafka implements PubSubListener {
 	}
 
 	@Override
-	public boolean message(CharSequence topic, MessageReader payload) {
+	public boolean message(CharSequence topic, BlobReader payload) {
 
 		
 		String sensorTopic = payload.readUTF();

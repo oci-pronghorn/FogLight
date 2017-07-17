@@ -5,6 +5,7 @@ import com.ociweb.gl.api.PubSubListener;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.util.field.MessageConsumer;
 
 public class DecrementValueBehavior implements PubSubListener {
@@ -32,7 +33,7 @@ public class DecrementValueBehavior implements PubSubListener {
 	}
 
 	@Override
-	public boolean message(CharSequence topic, MessageReader payload) {
+	public boolean message(CharSequence topic, BlobReader payload) {
 		//
 		////NOTE: this one line will copy messages from payload if consumer returns true
 		////      when the message is copied its topic is changed to the first argument string

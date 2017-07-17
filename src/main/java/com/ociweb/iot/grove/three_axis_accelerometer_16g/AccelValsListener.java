@@ -9,8 +9,6 @@ package com.ociweb.iot.grove.three_axis_accelerometer_16g;
  *
  * @author huydo
  */
-public interface ThreeAxisAccelerometer_16gListener {
+public interface AccelValsListener {
     void accelVals(int x,int y,int z);
-    void act_tapStatus(int byteRead);
-    void interruptStatus(int byteRead);
 }

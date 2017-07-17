@@ -9,7 +9,6 @@ package com.ociweb.iot.grove.six_axis_accelerometer;
  *
  * @author huydo
  */
-public interface SixAxisAccelerometerListener {
+public interface AccelValsListener {
     void accelVals(int x,int y,int z);
-    void magVals(int x,int y,int z);
 }

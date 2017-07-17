@@ -18,15 +18,20 @@ import com.ociweb.iot.maker.IODeviceFacade;
  */
 public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade,I2CListener {    
     private final FogCommandChannel target;
-    private ThreeAxisAccelerometer_16gListener listener;
-    
+    private AccelValsListener accellistener;
+    private ActTapStatusListener acttaplistener;
+    private InterruptStatusListener interrlistener;
     public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch){
         this.target = ch;
     }
-    public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener l){
+    public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch, AccelValsListener l1,ActTapStatusListener l2,InterruptStatusListener l3){
         this.target = ch;
-        this.listener = l;
+        this.accellistener = l1;
+        this.acttaplistener = l2;
+        this.interrlistener = l3;
     }
+    
+    
     /**
      * Start the device in measurement mode, with auto-sleep disabled and sleep mode disabled
      */
@@ -314,13 +319,13 @@ public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade,I2CList
         if(addr == ADXL345_DEVICE){
             if(register == ADXL345_DATAX0){
                 short[] xyzVals = this.interpretData(backing, position, length, mask);
-                listener.accelVals(xyzVals[0], xyzVals[1], xyzVals[2]);
+                accellistener.accelVals(xyzVals[0], xyzVals[1], xyzVals[2]);
             }
             if(register == ADXL345_ACT_TAP_STATUS){
-                listener.act_tapStatus(backing[position]);
+                acttaplistener.act_tapStatus(backing[position]);
             }
             if(register == ADXL345_INT_SOURCE){
-                listener.interruptStatus(backing[position]);
+                interrlistener.interruptStatus(backing[position]);
             }
         }
     }

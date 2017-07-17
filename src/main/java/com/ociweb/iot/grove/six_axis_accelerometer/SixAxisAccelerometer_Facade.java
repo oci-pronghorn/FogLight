@@ -19,13 +19,15 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  */
 public class SixAxisAccelerometer_Facade implements IODeviceFacade,I2CListener {
     private final FogCommandChannel target;
-    private SixAxisAccelerometerListener listener;
+    private AccelValsListener accellistener;
+    private MagValsListener maglistener;
     public SixAxisAccelerometer_Facade(FogCommandChannel ch){
         this.target = ch;
     }
-    public SixAxisAccelerometer_Facade(FogCommandChannel ch, SixAxisAccelerometerListener l){
+    public SixAxisAccelerometer_Facade(FogCommandChannel ch, AccelValsListener l1,MagValsListener l2){
         this.target = ch;
-        this.listener = l;
+        this.accellistener = l1;
+        this.maglistener = l2;
     }
     /**
      * Start the accelerometer sensor with the following configurations:
@@ -135,11 +137,11 @@ public class SixAxisAccelerometer_Facade implements IODeviceFacade,I2CListener {
         if(addr == LSM303D_ADDR){
             if(register == OUT_X_L_A){
                 short[] xyz_accel = this.interpretData(backing, position, length, mask);
-                listener.accelVals(xyz_accel[0], xyz_accel[1], xyz_accel[2]);
+                accellistener.accelVals(xyz_accel[0], xyz_accel[1], xyz_accel[2]);
             }
             if(register == OUT_X_L_M){
                 short[] xyz_mag = this.interpretData(backing, position, length, mask);
-                listener.magVals(xyz_mag[0], xyz_mag[1], xyz_mag[2]);
+                maglistener.magVals(xyz_mag[0], xyz_mag[1], xyz_mag[2]);
             }
         }
 

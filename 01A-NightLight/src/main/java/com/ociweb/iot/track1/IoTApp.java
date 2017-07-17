@@ -42,8 +42,7 @@ public class IoTApp implements FogApp
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        
-    	
+           	
     	
     	final FogCommandChannel lcdScreenChannel = runtime.newCommandChannel(
     			GreenCommandChannel.DYNAMIC_MESSAGING | FogRuntime.I2C_WRITER );

@@ -17,12 +17,12 @@
 
 package com.ociweb.iot.project.lightblink;
 
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.FogApp;
+import com.ociweb.pronghorn.pipe.BlobReader;
 
 public class BlinkerBehavior implements StartupListener, PubSubListener {
  

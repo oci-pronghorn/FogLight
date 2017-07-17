@@ -12,14 +12,14 @@ public class HTTPGetBehavior implements StartupListener {
 
 	public HTTPGetBehavior(FogRuntime runtime, int responseId) {
 		this.cmd = runtime.newCommandChannel(NET_REQUESTER);
+		
 		this.responseId = responseId;
 	}
 
 	@Override
 	public void startup() {
 		
-		//TODO: how do we support TLS or not?
-		cmd.httpGet("google.com", 443, "/", responseId);
+		cmd.httpGet("www.google.com", "/", responseId);
 		
 	}
 

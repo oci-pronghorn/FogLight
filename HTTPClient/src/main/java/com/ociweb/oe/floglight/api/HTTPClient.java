@@ -9,9 +9,10 @@ public class HTTPClient implements FogApp
 {
 
     @Override
-    public void declareConnections(Hardware c) {       
+    public void declareConnections(Hardware c) {   
+    	c.useNetClient();
+    	c.enableTelemetry();
     }
-
 
     @Override
     public void declareBehavior(FogRuntime runtime) {       

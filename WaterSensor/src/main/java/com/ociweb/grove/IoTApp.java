@@ -1,8 +1,9 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 import static com.ociweb.grove.RestfulWaterSensorConstants.*;
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
+
 import com.ociweb.iot.maker.*;
 
 public class IoTApp implements FogApp

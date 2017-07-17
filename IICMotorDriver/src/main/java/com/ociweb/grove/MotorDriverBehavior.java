@@ -27,7 +27,8 @@ public class MotorDriverBehavior implements StartupListener{
     
     @Override
     public void startup() {
-        controller.setVelocity(150, 150); //set the velocity of both motors 
+        controller.setVelocity(150, 150); 
+        //set the velocity of both motors 
         //to stop the motor, use controller.setVelocity(0,0);
 //        controller.StepperRun(250);
 //        controller.StepperRun(-250);

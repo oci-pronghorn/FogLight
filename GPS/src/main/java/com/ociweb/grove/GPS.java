@@ -1,34 +1,24 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
-
 import com.ociweb.iot.maker.*;
+
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 public class GPS implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
-
-
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-
-        
+    	 c.useSerial(Baud.B_____9600);
+    	 c.limitThreads();
+    	 
     }
 
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
-
+        runtime.addBehavior(new GPSBehavior(runtime));
     }
           
 }

@@ -1,11 +1,10 @@
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.MotionSensor;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.LED;
-
 import com.ociweb.iot.maker.*;
 
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.LED;
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.MotionSensor;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp {

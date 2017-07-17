@@ -8,7 +8,7 @@ public class OLED128x64 implements FogApp
 	@Override
 	public void declareConnections(Hardware c) {
 		c.useI2C();
-		c.setTriggerRate(125);
+		c.setTimerPulseRate(250);
 		//c.enableTelemetry(true);
 		//TODO: give warning message if trigger rate was not set and time listener is used
 	}
@@ -19,6 +19,6 @@ public class OLED128x64 implements FogApp
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		runtime.addListener(new GameOfLifeBehavior(runtime));
+		runtime.registerBehavior(new GameOfLifeBehavior(runtime));
 	}
 }

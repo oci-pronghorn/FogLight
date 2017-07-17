@@ -1,6 +1,6 @@
 package com.ociweb.grove;
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.UltrasonicRanger;
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.UltrasonicRanger;
 import static com.ociweb.iot.maker.Port.A0;
 
 import com.ociweb.iot.maker.FogRuntime;

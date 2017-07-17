@@ -1,12 +1,12 @@
 package com.ociweb;
 
 import com.ociweb.iot.maker.*;
+
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 public class IoTApp implements FogApp
 {
 	private static final Logger logger = LoggerFactory.getLogger(IoTApp.class);

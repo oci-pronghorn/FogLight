@@ -39,7 +39,7 @@ public class ImageGenerator {
 			ret[i][j] = b >> (8 - pixelDepth);
 			}
 		}
-		/*
+		
 		for (int i = 0; i < ret.length; i ++){
 			System.out.print("{");
 			for (int j = 0; j < ret[0].length;j++){
@@ -50,7 +50,6 @@ public class ImageGenerator {
 			}
 			System.out.println("},");
 		}
-		 */
 		return ret;
 		 
 	}

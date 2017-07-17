@@ -18,6 +18,8 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 public class MotorDriver_Facade implements IODeviceFacade{
     private final FogCommandChannel target;
     public int DRIVER_I2C_ADD = 0x0f; //default address of the driver
+    private int motor1Vel = 0;
+    private int motor2Vel = 0;
     
     public MotorDriver_Facade(FogCommandChannel ch){
         this.target = ch;
@@ -42,11 +44,17 @@ public class MotorDriver_Facade implements IODeviceFacade{
   
     }
     /**
-     * Set the velocity of both motors. The motor rotates clockwise if velocity > 0 and vice versa
-     * @param motor1Vel integer between -255 and 255
-     * @param motor2Vel integer between -255 and 255
+     * Set the velocity of the motor on specified channel
+     * @param channel either 1 or 2
+     * @param velocity integer between -255 and 255
      */
-    public void setVelocity(int motor1Vel,int motor2Vel){
+    public void setVelocity(int channel,int velocity){
+        if(channel == 1){
+            motor1Vel = velocity;
+        }else{
+            motor2Vel = velocity;
+        }
+        
         if(motor1Vel >= 0 && motor2Vel >= 0){
             direction(M1CW_M2CW);
         }else if(motor1Vel < 0 && motor2Vel<0){
@@ -56,6 +64,7 @@ public class MotorDriver_Facade implements IODeviceFacade{
         }else if(motor1Vel < 0 && motor2Vel >= 0){
             direction(M1ACW_M2CW);
         }
+        
         motor1Vel = (Math.abs(motor1Vel)>255)?255:Math.abs(motor1Vel);
         motor2Vel = (Math.abs(motor2Vel)>255)?255:Math.abs(motor2Vel);
         
@@ -69,6 +78,35 @@ public class MotorDriver_Facade implements IODeviceFacade{
         target.i2cFlushBatch();
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);
     }
+    
+//    /**
+//     * Set the velocity of both motors. The motor rotates clockwise if velocity > 0 and vice versa
+//     * @param motor1_Vel integer between -255 and 255
+//     * @param motor2_Vel integer between -255 and 255
+//     */
+//    public void setVelocity(int motor1_Vel,int motor2_Vel){
+//        if(motor1_Vel >= 0 && motor2_Vel >= 0){
+//            direction(M1CW_M2CW);
+//        }else if(motor1_Vel < 0 && motor2_Vel<0){
+//            direction(M1ACW_M2ACW);
+//        }else if(motor1_Vel >= 0 && motor2_Vel < 0){
+//            direction(M1CW_M2ACW);
+//        }else if(motor1_Vel < 0 && motor2_Vel >= 0){
+//            direction(M1ACW_M2CW);
+//        }
+//        motor1_Vel = (Math.abs(motor1_Vel)>255)?255:Math.abs(motor1_Vel);
+//        motor2_Vel = (Math.abs(motor2_Vel)>255)?255:Math.abs(motor2_Vel);
+//        
+//        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
+//        
+//        i2cPayloadWriter.writeByte(SPEED_REG);
+//        i2cPayloadWriter.writeByte(motor1_Vel);
+//        i2cPayloadWriter.writeByte(motor2_Vel);
+//        
+//        target.i2cCommandClose();
+//        target.i2cFlushBatch();
+//        target.i2cDelay(DRIVER_I2C_ADD, 4000000);
+//    }
     
     public void setFrequency(int frequency){
         byte _s;

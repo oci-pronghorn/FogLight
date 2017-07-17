@@ -8,9 +8,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
-import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.pronghorn.pipe.BlobReader;
 
 public class PublishDataMQTT implements PubSubListener{
@@ -44,7 +42,7 @@ public class PublishDataMQTT implements PubSubListener{
 
 	        int payloadSize = payload.available();
 	        byte[] data = new byte[payloadSize];
-	        payload.readByte(data);
+	        payload.read(data);
 
 	        message.setPayload(data);
 	        message.setRetained(false);

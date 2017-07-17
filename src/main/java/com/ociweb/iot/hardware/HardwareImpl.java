@@ -646,20 +646,20 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			boolean isSerialWriter     = (features&FogRuntime.SERIAL_WRITER) != 0;
 
 			//these are not right.
-			//assert(!isPinWriter || (IDX_PIN>0)) : "Pin feature is on but not used?";
-			//assert(!isSerialWriter || (IDX_SER>0)) : "Serial feature is on but not used?";
-			//assert(!isNetRequester || (IDX_NET>0)) : "Net requests feature is on but not used?";
+			assert(!isPinWriter || (IDX_PIN>=0)) : "Pin feature is on but not used?";
+			assert(!isSerialWriter || (IDX_SER>=0)) : "Serial feature is on but not used?";
+			assert(!isNetRequester || (IDX_NET>=0)) : "Net requests feature is on but not used?";
+			assert(!isDynamicMessaging || (IDX_MSG>=0)) : "PubSub feature is on but not used?";
 
 			//PI?
-			//assert(!isDynamicMessaging || (IDX_MSG>0)) : "PubSub feature is on but not used?";
-			//			assert(!isI2CWriter || (IDX_I2C>0)) : "I2C feature is on but not used?";
+			//			assert(!isI2CWriter || (IDX_I2C>=0)) : "I2C feature is on but not used?";
 						
 			boolean hasConnections = false;
 			if (isDynamicMessaging && IDX_MSG>=0) {
 				hasConnections = true;		 		
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_MSG);
 			}
-			if (isNetRequester && IDX_NET>0) {
+			if (isNetRequester && IDX_NET>=0) {
 				hasConnections = true;		 		
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_NET);
 			}
@@ -671,7 +671,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 				hasConnections = true;		 		
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_I2C);
 			}
-			if (isSerialWriter && IDX_SER>0) {
+			if (isSerialWriter && IDX_SER>=0) {
 				hasConnections = true;		 		
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_SER);
 			}
@@ -700,7 +700,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//          assert(PronghornStage.noNulls(masterAckIn[IDX_PIN])) : "Ack Pipe must not contain nulls";
 		int c = masterGoOut.length;
 		while (--c>=0) {
-									
+					
+	
+			
 			if (!PronghornStage.noNulls(masterGoOut[c])) {
 				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
 			}

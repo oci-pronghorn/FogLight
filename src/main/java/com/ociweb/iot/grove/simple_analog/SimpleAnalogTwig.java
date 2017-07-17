@@ -1,11 +1,11 @@
-package com.ociweb.iot.grove.analog;
+package com.ociweb.iot.grove.simple_analog;
 
 import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceFacade;
 
-public enum AnalogTwig implements ADIODevice{
+public enum SimpleAnalogTwig implements ADIODevice{
 	UVSensor() {
 		@Override
 		public boolean isInput() {

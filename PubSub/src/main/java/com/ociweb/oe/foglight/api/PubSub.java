@@ -1,11 +1,12 @@
 package com.ociweb.oe.foglight.api;
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
-
 import java.util.ArrayList;
 import java.util.Random;
+
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
 
 public class PubSub implements FogApp
 {

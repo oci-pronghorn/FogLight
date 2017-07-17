@@ -1,14 +1,13 @@
 package com.ociweb.oe.foglight.api;
 
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.PubSubStructuredWritable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.util.field.IntegerFieldProcessor;
 import com.ociweb.pronghorn.util.field.MessageConsumer;
 import com.ociweb.pronghorn.util.field.StructuredBlobWriter;
-import com.ociweb.pronghorn.util.field.UTF8FieldProcessor;
 
 public class ThingBehavior implements PubSubListener {
 
@@ -45,7 +44,7 @@ public class ThingBehavior implements PubSubListener {
     };
     
 	@Override
-	public boolean message(CharSequence topic, MessageReader payload) {
+	public boolean message(CharSequence topic, BlobReader payload) {
 					
 		//
 		////NOTE: this one line will copy messages from payload if consumer returns true

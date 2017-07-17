@@ -6,6 +6,7 @@ import com.ociweb.gl.api.PubSubWritable;
 import com.ociweb.gl.api.PubSubWriter;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
 public class IngressBehavior implements PubSubListener {
@@ -18,7 +19,7 @@ public class IngressBehavior implements PubSubListener {
 	}
 
 
-	public boolean message(CharSequence topic, MessageReader payload) {
+	public boolean message(CharSequence topic,  BlobReader payload) {
 
 		// this received when mosquitto_pub is invoked - see MQTTClient
 		System.out.print("\ningress body: ");

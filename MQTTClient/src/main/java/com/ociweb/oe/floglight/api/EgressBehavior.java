@@ -2,11 +2,12 @@ package com.ociweb.oe.floglight.api;
 
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.pronghorn.pipe.BlobReader;
 
 public class EgressBehavior implements PubSubListener {
 
 	@Override
-	public boolean message(CharSequence topic, MessageReader payload) {
+	public boolean message(CharSequence topic, BlobReader payload) {
 
 		// topic is the MQTT topic
 		// payload is the MQTT payload

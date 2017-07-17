@@ -655,23 +655,23 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			//			assert(!isI2CWriter || (IDX_I2C>0)) : "I2C feature is on but not used?";
 						
 			boolean hasConnections = false;
-			if (isDynamicMessaging) {
+			if (isDynamicMessaging && IDX_MSG>=0) {
 				hasConnections = true;		 		
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_MSG);
 			}
-			if (isNetRequester) {
+			if (isNetRequester && IDX_NET>0) {
 				hasConnections = true;		 		
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_NET);
 			}
-			if (isPinWriter) {
+			if (isPinWriter && IDX_PIN>=0) {
 				hasConnections = true;	
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_PIN);
 			}
-			if (isI2CWriter) {
+			if (isI2CWriter && IDX_I2C>=0) {
 				hasConnections = true;		 		
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_I2C);
 			}
-			if (isSerialWriter) {
+			if (isSerialWriter && IDX_SER>0) {
 				hasConnections = true;		 		
 		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_SER);
 			}

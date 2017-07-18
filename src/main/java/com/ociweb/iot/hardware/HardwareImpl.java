@@ -328,16 +328,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//can be overridden by specific hardware impl if shutdown is supported.
 	}
 
-	
-
-	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<ClientHTTPRequestSchema>[] netRequestPipes) {
-		
-		if (isUseNetClient() && IntHashTable.isEmpty(netPipeLookup)) {
-			throw new UnsupportedOperationException("useNetClient is enabled however no HTTPResponseListener instances were registered.");
-		}
-		
-		return !IntHashTable.isEmpty(netPipeLookup) && (netRequestPipes.length!=0);
-	}
 
 
 	private void createUARTInputStage(Pipe<SerialInputSchema> masterUARTPipe) {
@@ -570,11 +560,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfType(gm2, GroveResponseSchema.instance);
 		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfType(gm2, I2CResponseSchema.instance);
-		Pipe<NetResponseSchema>[] netResponsePipes = GraphManager.allPipesOfType(gm2, NetResponseSchema.instance);
+		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfType(gm2, NetResponseSchema.instance);
 		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfType(gm2, TrafficOrderSchema.instance);
 		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
-		Pipe<ClientHTTPRequestSchema>[] netRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
+		Pipe<ClientHTTPRequestSchema>[] httpClientRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
 		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfType(gm2, SerialOutputSchema.instance);		
 		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfType(gm2, SerialInputSchema.instance);
 		
@@ -597,7 +587,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;
 		IDX_I2C = i2cPipes.length>0 ? eventSchemas++ : -1;
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
-		IDX_NET = useNetClient(netPipeLookup2, netRequestPipes) ? eventSchemas++ : -1;
+		IDX_NET = useNetClient(netPipeLookup2, httpClientRequestPipes) ? eventSchemas++ : -1;
 		IDX_SER = serialOutputPipes.length>0 ? eventSchemas++ : -1;
 
 		long timeout = 20_000; //20 seconds
@@ -623,8 +613,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			masterAckIn[IDX_MSG] = new Pipe[messagePubSub.length];
 		}		
 		if (IDX_NET >= 0) {
-			masterGoOut[IDX_NET] = new Pipe[netRequestPipes.length];
-			masterAckIn[IDX_NET] = new Pipe[netRequestPipes.length];
+			masterGoOut[IDX_NET] = new Pipe[httpClientRequestPipes.length];
+			masterAckIn[IDX_NET] = new Pipe[httpClientRequestPipes.length];
 		}		
 		if (IDX_SER >=0) {
 			masterGoOut[IDX_SER] = new Pipe[serialOutputPipes.length];
@@ -645,7 +635,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			boolean isI2CWriter        = (features&FogRuntime.I2C_WRITER) != 0;
 			boolean isSerialWriter     = (features&FogRuntime.SERIAL_WRITER) != 0;
 
-			//these are not right.
 			assert(!isPinWriter || (IDX_PIN>=0)) : "Pin feature is on but not used?";
 			assert(!isSerialWriter || (IDX_SER>=0)) : "Serial feature is on but not used?";
 			assert(!isNetRequester || (IDX_NET>=0)) : "Net requests feature is on but not used?";
@@ -683,10 +672,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			}
 		}
 		
-
 		initChannelBlocker(maxGoPipeId);
 		
-		buildHTTPClientGraph(netPipeLookup2, netResponsePipes, netRequestPipes, masterGoOut, masterAckIn);
+		buildHTTPClientGraph(netPipeLookup2, httpClientResponsePipes, httpClientRequestPipes, masterGoOut, masterAckIn);
 		
 		if (IDX_MSG <0) {
 				logger.trace("saved some resources by not starting up the unused pub sub service.");
@@ -695,22 +683,16 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			 			                 messagePubSub, 
 			 			                 masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
 		}
-		
-		//			assert(PronghornStage.noNulls(masterGoOut[IDX_PIN])) : "Go Pipe must not contain nulls";
-		//          assert(PronghornStage.noNulls(masterAckIn[IDX_PIN])) : "Ack Pipe must not contain nulls";
+
 		int c = masterGoOut.length;
 		while (--c>=0) {
-					
-	
-			
 			if (!PronghornStage.noNulls(masterGoOut[c])) {
 				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
 			}
 			if (!PronghornStage.noNulls(masterAckIn[c])) {
 				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
 			}
-		}
-		
+		}		
 		
 				
 		//////////////////

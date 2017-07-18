@@ -8,6 +8,8 @@ package com.ociweb.iot.astropi;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -26,6 +28,7 @@ public class AstroPiLEDMatrix {
         int b = (pix[2] >> 3) & 0x1F;
         int bits16 = (r << 11) + (g << 5) + b;
         for(int i = 0;i<= 255;i++){
+            System.out.println(i);
             writeSingleByteToRegister(i,bits16);
         }
     }

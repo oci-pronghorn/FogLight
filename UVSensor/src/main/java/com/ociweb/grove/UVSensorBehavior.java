@@ -7,9 +7,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 
 public class UVSensorBehavior implements AnalogListener {
-    private FogCommandChannel ch;
-    public UVSensorBehavior(FogRuntime runtime) {
-        this.ch = runtime.newCommandChannel(PIN_WRITER);
+    public UVSensorBehavior(FogRuntime runtime) {   
     }
     
     @Override

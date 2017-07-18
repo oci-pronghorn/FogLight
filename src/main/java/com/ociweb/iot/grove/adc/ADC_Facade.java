@@ -20,11 +20,18 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  */
 public class ADC_Facade implements IODeviceFacade,I2CListener{
     private final FogCommandChannel target;
-    private ADCListener listener;
-
-    public ADC_Facade(FogCommandChannel ch, ADCListener l){
+    private AlertStatusListener alertListener;
+    private ConversionResultListener resultListener;
+    public ADC_Facade(FogCommandChannel ch, ADCListener... l){
         this.target = ch;
-        this.listener = l;
+        for(ADCListener item:l){
+            if(item instanceof AlertStatusListener){
+                this.alertListener = (AlertStatusListener) item;
+            }
+            if(item instanceof ConversionResultListener){
+                this.resultListener = (ConversionResultListener) item;
+            }
+        }
     }
     /**
      * Begin the ADC with the default configuration :
@@ -134,10 +141,10 @@ public class ADC_Facade implements IODeviceFacade,I2CListener{
     public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
         if(addr == ADDR_ADC121){
             if(register == REG_ADDR_RESULT){
-                listener.conversionResult(this.interpretData(backing, position, length, mask));
+                resultListener.conversionResult(this.interpretData(backing, position, length, mask));
             }
             if(register == REG_ADDR_ALERT){
-                listener.alertStatus(this.readAlertFlag(backing, position, length, mask));
+                alertListener.alertStatus(this.readAlertFlag(backing, position, length, mask));
             }
         }
     }

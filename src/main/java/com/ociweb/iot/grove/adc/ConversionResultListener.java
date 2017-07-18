@@ -9,6 +9,6 @@ package com.ociweb.iot.grove.adc;
  *
  * @author huydo
  */
-public interface ADCListener {
-
+public interface ConversionResultListener extends ADCListener {
+    void conversionResult(int result);
 }

@@ -330,10 +330,10 @@ public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade,I2CList
                 accellistener.accelVals(xyzVals[0], xyzVals[1], xyzVals[2]);
             }
             if(register == ADXL345_ACT_TAP_STATUS){
-                acttaplistener.act_tapStatus(backing[position]);
+                acttaplistener.ACT_TAP_RegStatus(backing[position]);
             }
             if(register == ADXL345_INT_SOURCE){
-                interrlistener.regStatus(backing[position]);
+                interrlistener.INT_SOURCE_RegStatus(backing[position]);
                 int freefall = (backing[position] & 0b00000100)>>2;
                 interrlistener.freefallStatus(freefall);
             }

@@ -9,6 +9,6 @@ package com.ociweb.iot.grove.adc;
  *
  * @author huydo
  */
-public interface ADCListener {
-
+public interface AlertStatusListener extends ADCListener {
+    void alertStatus(int status);
 }

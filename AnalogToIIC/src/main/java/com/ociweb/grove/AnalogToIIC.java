@@ -1,9 +1,11 @@
 package com.ociweb.grove;
 
 
+import static com.ociweb.iot.grove.AnalogDigitalTwig.SoundSensor;
 import static com.ociweb.iot.grove.adc.ADCTwig.*;
 
 import com.ociweb.iot.maker.*;
+import static com.ociweb.iot.maker.Port.A0;
 
 public class AnalogToIIC implements FogApp
 {

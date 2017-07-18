@@ -17,46 +17,43 @@ import com.ociweb.iot.maker.I2CListener;
  *
  * @author huydo
  */
-public class AccelerometerBehavior implements AccelValsListener,StartupListener,I2CListener,ActTapStatusListener,InterruptStatusListener {
+public class AccelerometerBehavior implements StartupListener,INT_SOURCE_RegListener,AccelValsListener {
     
-    //private static final Logger logger = LoggerFactory.getLogger(AccelerometerBehavior.class);
     private final FogCommandChannel c;
     private final ThreeAxisAccelerometer_16g_Facade accSensor;
     
     public AccelerometerBehavior(FogRuntime runtime){
         this.c = runtime.newCommandChannel(I2C_WRITER);
-        accSensor = new ThreeAxisAccelerometer_16g_Facade(c,this,this,this);
+        accSensor = new ThreeAxisAccelerometer_16g_Facade(c,this);
+        
+        
         runtime.registerListener(accSensor);
     }
     
     @Override
     public void startup() {
-        //accSensor.begin();
-        //accSensor.setRange(4);
+        accSensor.begin();
+        accSensor.setRange(4);
+        accSensor.setFreeFallDuration(4);
+        accSensor.setFreeFallThreshold(9);
+        accSensor.setINT_ENABLE_Reg(0b00000100);
+        
         
     }
 
     @Override
     public void accelVals(int x, int y, int z) {
-        System.out.println("x: "+x);
-        System.out.println("y: "+y);
         System.out.println("z: "+z);
     }
 
     @Override
-    public void act_tapStatus(int byteRead) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void INT_SOURCE_RegStatus(int byteRead) {
+        System.out.println("reg: "+byteRead);
     }
 
     @Override
-    public void interruptStatus(int byteRead) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void freefallStatus(int status) {
+        System.out.println("free fall: "+status);
     }
-    
-    @Override
-    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
-        System.out.println("addr: "+addr);
-        System.out.println("reg: "+register);
-        System.out.println("value: "+backing[position]);    
-    }
+
 }

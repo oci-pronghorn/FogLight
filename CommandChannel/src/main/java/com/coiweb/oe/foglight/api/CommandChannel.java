@@ -1,6 +1,4 @@
 package com.coiweb.oe.foglight.api;
-
-
 import static com.ociweb.iot.grove.GroveTwig.*;
 
 import com.ociweb.iot.maker.*;
@@ -8,27 +6,23 @@ import static com.ociweb.iot.maker.Port.*;
 
 public class CommandChannel implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
 
+	private static final Port BUTTON_PORT = D3;
+	private static final Port LED_PORT = D2;
 
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
 
+    	c.connect(Button, BUTTON_PORT);
+    	c.connect(LED, LED_PORT);
         
     }
 
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
-
+    	
+    	runtime.addDigitalListener(new CmdChannelBehavior(runtime));
     }
           
 }

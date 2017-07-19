@@ -6,7 +6,7 @@ import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
-
+import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 
 public class IoTApp implements FogApp
 {
@@ -24,7 +24,17 @@ public class IoTApp implements FogApp
         
         // // specify each of the connections on the harware, eg which component is plugged into which connection.
         c.useI2C();
-        c.connect(RTC.ReadTime);
+//        int reg = 192;
+//        byte regadd = (byte)(reg & 0xff);
+//        for(int i = reg;i<=255;i++){
+//            regadd = (byte)(i & 0xff);
+//            AstroPiLEDMatrix2 ob = new AstroPiLEDMatrix2(regadd);
+//            c.connect(ob);
+//        }
+
+        AstroPiLEDMatrix2 ob = new AstroPiLEDMatrix2((byte)0b11110010);
+        c.connect(ob);
+        //c.connect(RTC.ReadTime);
     }
     
     

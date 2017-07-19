@@ -252,8 +252,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
                consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) inputPipes[p]);
             } else if (Pipe.isForSchema((Pipe<HTTPRequestSchema>)inputPipes[p], HTTPRequestSchema.class)) {            	
                //HTTP reqeust to our internal server from the outside
-               consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) inputPipes[p], 
-            			          routeIds[p], parallelIds[p]);                           
+               consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) inputPipes[p]);                           
             } else 
             {   // HTTPRequestSchema
                 logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(inputPipes[p]));

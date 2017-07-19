@@ -11,13 +11,18 @@
       <directory>src/main/resources</directory>
       <includes>
         <include>**/*.props</include>
-        <include>**/*.conf</include>
       </includes>
     </fileSet>
     <fileSet filtered="true" packaged="true">
       <directory>src/test/java</directory>
       <includes>
         <include>**/*.java</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" packaged="false" encoding="UTF-8">
+      <directory/>
+      <includes>
+        <include>proguard.conf</include>
       </includes>
     </fileSet>
   </fileSets>

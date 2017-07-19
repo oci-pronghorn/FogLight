@@ -11,6 +11,7 @@
       <directory>src/main/resources</directory>
       <includes>
         <include>**/*.props</include>
+        <include>**/*.conf</include>
       </includes>
     </fileSet>
     <fileSet filtered="true" packaged="true">

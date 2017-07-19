@@ -17,7 +17,7 @@ public class OLED96x96 implements FogApp
 	}
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		runtime.registerBehavior(new OLED_96x96Behavior(runtime));
+		runtime.registerListener(new OLED_96x96Behavior(runtime));
 	}
 	public static void main(String[] args){
 		FogRuntime.run(new OLED96x96());

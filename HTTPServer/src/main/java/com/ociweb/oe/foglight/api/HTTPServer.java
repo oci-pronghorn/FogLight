@@ -13,6 +13,7 @@ public class HTTPServer implements FogApp
 	int emptyResponseRouteId;
 	int smallResponseRouteId;
 	int largeResponseRouteId;
+	int fileServerId;
 	
 	
 	byte[] myArgName = "myarg".getBytes();
@@ -24,7 +25,7 @@ public class HTTPServer implements FogApp
 		emptyResponseRouteId = c.registerRoute("/testpageA?arg=#{myarg}", cookieHeader);
 		smallResponseRouteId = c.registerRoute("/testpageB");
 		largeResponseRouteId = c.registerRoute("/testpageC", cookieHeader);
-		
+		fileServerId         = c.registerRoute("/file${path}");
 		c.enableTelemetry();
 		
     }
@@ -41,11 +42,11 @@ public class HTTPServer implements FogApp
         runtime.addRestListener(new RestBehaviorLargeResponse(runtime))
         		 .includeRoutes(largeResponseRouteId);
         
+        //NOTE .includeAllRoutes() can be used to write a behavior taking all routes
+        
+        //NOTE when using the above no routes need to be registered and if they are
+        //     all other routes will return a 404
+
     }
-          
-    
-    //TODO: need an example showing the file server
-    
-    //TODO: need an example showing large file return with continuation.
-    
+   
 }

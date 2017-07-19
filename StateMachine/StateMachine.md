@@ -10,97 +10,17 @@
 
 # Example project:
 
-The following sketch will demonstrate a simple use of the addStateChangeListener() method.
+The following sketch will demonstrate a simple use of the ```StateChangeListener```.
 
-Demo code: 
+Demo code:
+Main Class
 
-```java
-package com.ociweb.oe.foglight.api;
+.includeFile ".srcmainjavacomociweboefoglightapiStateMachine.java"
 
+Behavior classes
 
-import static com.ociweb.iot.grove.GroveTwig.*;
+.includeFile ".srcmainjavacomcoiweboefoglightapiTimingBehavior.java"
 
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
+.includeFile ".srcmainjavacomcoiweboefoglightapiStateChangeBehavior.java"
 
-import com.ociweb.gl.api.StateChangeListener;
-
-public class StateMachine implements FogApp
-{
-
-	static String cGreen = "Green";
-	static String cYellow = "Yellow";
-	static String cRed = "Red";
-	
-	public enum StopLight{
-		
-		Go(cGreen), 
-		Caution(cYellow), 
-		Stop(cRed);
-		
-		private String color;
-		
-		StopLight(String lightColor){
-			color = lightColor;
-		}
-		
-		public String getColor(){
-			return color;
-		}
-	}
-
-
-    @Override
-    public void declareConnections(Hardware c) {
-    	
-    	c.startStateMachineWith(StopLight.Go);
-    }
-
-   
-    @Override
-    public void declareBehavior(FogRuntime runtime) {
-
-        final FogCommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        final FogCommandChannel channel2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-
-        
-        
-        runtime.addStartupListener(()-> {
-        	channel2.changeStateTo(StopLight.Caution);
-        	System.out.println("first");
-        });
-        
-        
-    	StateChangeListener<StopLight> thing = (oldState, newState) -> {
-    		
-    		if(newState == StopLight.Go){
-    			System.out.println("Go! The light is " + StopLight.Go.getColor());
-    			if(channel1.changeStateTo(StopLight.Caution)){
-    				channel1.block(7000);
-    			}
-    		}
-    		
-    		else if(newState == StopLight.Caution){
-    			System.out.println("The light is " + StopLight.Caution.getColor());
-
-    			if(channel1.changeStateTo(StopLight.Stop)){
-    				channel1.block(7000);
-    			}
-    		}
-    		
-    		else{
-    			System.out.println("Stop! The light is " + StopLight.Stop.getColor());
-    			if(channel1.changeStateTo(StopLight.Go)){
-    				channel1.block(7000);
-    			}
-    		}
-    		return true;
-    	};
-    	
-		runtime.addStateChangeListener(thing);
-    	
-    }
-          
-}
-```
-The above code simulates a stop light, changing between the different enums, ```Go```, ```Caution```, and ```Stop```. The ```StateChangeListener()``` will listen for any change in the state of an enum. In this demo, each change will also trigger another change in the state, however, by blocking the channel, the next change in state will not be immedeate. 
+These classes are a basic demo of how to use the ```StateChangeListener``` method. In the main class, a stop light is simulated with 3 different states, ```Go```, ```Caution```, and ```Stop```. In the ```declareConnections``` section, the stop light is initialized to the ```Stop``` state to beging with. If a state is initilized there, you use a ```changeState()``` in a StartupListener as the two will clash when starting the program, so you must use one or the other. In the ```TimeBehavior``` class, a TimeListener is being used to change the state the state of the stop light. Every 5 seconds, the state is changed to the next state in the pregression. In the ```StateChangeBehavior``` class, there is a StateChangeListener. Whenever it hears a change in state, it will print the new states color and will return true.

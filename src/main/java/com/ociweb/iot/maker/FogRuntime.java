@@ -32,7 +32,7 @@ import com.ociweb.iot.hardware.impl.grovepi.*;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
-
+	private static boolean isRunning = false;
 	public static final int I2C_WRITER      = FogCommandChannel.I2C_WRITER;
 	public static final int PIN_WRITER      = FogCommandChannel.PIN_WRITER;
 	public static final int SERIAL_WRITER   = FogCommandChannel.SERIAL_WRITER;
@@ -353,7 +353,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	public static FogRuntime run(FogApp app) {
 		return run(app,null);
 	}
-	public static FogRuntime run(FogApp app, String[] args) {
+	public static FogRuntime run(FogApp app, String[] args) throws UnsupportedOperationException {
+		if (FogRuntime.isRunning){
+			throw new UnsupportedOperationException("An FogApp is already running!");
+		}
+		FogRuntime.isRunning = true;
 		FogRuntime runtime = new FogRuntime(args);
 		try {
 			app.declareConfiguration(runtime.getHardware());

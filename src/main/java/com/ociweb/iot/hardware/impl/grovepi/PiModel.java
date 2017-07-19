@@ -119,7 +119,6 @@ public enum PiModel {
 				}
 			}
 		}
-		
 		return Unknown;
 	}
 }

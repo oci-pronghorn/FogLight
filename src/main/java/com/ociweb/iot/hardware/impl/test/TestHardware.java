@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
@@ -182,7 +183,9 @@ public class TestHardware extends HardwareImpl {
     public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Object listener, 
     		                                                 Pipe<?>[] inputPipes, Pipe<?>[] outputPipes,
     		                                                 int parallelInstance) {
-        return (R)new ReactiveListenerStageIOT(gm, listener,
+        assert(null!=listener);
+        assert(listener instanceof Behavior);
+    	return (R)new ReactiveListenerStageIOT(gm, listener,
         		                               inputPipes, outputPipes, 
         		                               this, parallelInstance);
     }

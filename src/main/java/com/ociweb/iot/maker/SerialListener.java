@@ -1,10 +1,10 @@
 package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.Behavior;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.iot.impl.SerialListenerBase;
 
-public interface SerialListener extends Behavior {
+public interface SerialListener extends Behavior, SerialListenerBase {
 
-	public int message(BlobReader reader);
+	
 	
 }

@@ -1,16 +1,9 @@
-package com.ociweb.iot.maker;
+package com.ociweb.iot.impl;
 
-import com.ociweb.gl.api.Behavior;
-import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Port;
 
-/**
- * Functional interface for analog events registered with the
- * {@link FogRuntime}.
- *
- * @author Nathan Tippy
- */
-@FunctionalInterface
-public interface AnalogListener extends Behavior, AnalogListenerBase {
+public interface AnalogListenerBase {
 
     /**
      * Invoked when the state of an analog device registered with the

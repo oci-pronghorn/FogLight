@@ -203,7 +203,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return registerListener(listener);
 	}
 
-	public ListenerFilterIoT registerListener(Object listener) { //TODO: rename Object to Behavior
+	public ListenerFilterIoT registerListener(Behavior listener) {
 		return registerListenerImpl(listener);
 	}
 
@@ -228,7 +228,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return registerListenerImpl(listener);
 	}
 
-	private ListenerFilterIoT registerListenerImpl(Object listener) {//, int ... optionalInts) {
+	private ListenerFilterIoT registerListenerImpl(Behavior listener) {
 
 		outputPipes = new Pipe<?>[0];
 

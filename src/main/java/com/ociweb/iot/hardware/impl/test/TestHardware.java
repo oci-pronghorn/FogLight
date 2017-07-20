@@ -180,11 +180,11 @@ public class TestHardware extends HardwareImpl {
         return lastProvidedTime;
     }
     
-    public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Object listener, 
+    @Override
+    public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
     		                                                 Pipe<?>[] inputPipes, Pipe<?>[] outputPipes,
     		                                                 int parallelInstance) {
         assert(null!=listener);
-        assert(listener instanceof Behavior);
     	return (R)new ReactiveListenerStageIOT(gm, listener,
         		                               inputPipes, outputPipes, 
         		                               this, parallelInstance);

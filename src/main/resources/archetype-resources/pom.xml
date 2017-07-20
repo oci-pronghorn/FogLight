@@ -193,27 +193,6 @@
 	          </execution>
 	        </executions>
 	        <configuration>
-	          <options>
-	          
-				<option>-keep public class com.ociweb.FogLight {
-			    	public static void main(java.lang.String[]);
-				}</option>
-				<option>-keep public class * implements com.ociweb.iot.maker.FogApp {
-				    public static void main(java.lang.String[]);
-				}</option><!-- Keeping all enums may be dangerous but it is safe -->
-				<option>-keepclassmembers class * extends java.lang.Enum {
-				    public static **[] values();
-				    public static ** valueOf(java.lang.String);
-				}</option>
-				
-				<option>-keep class jnr.ffi.** { *; }</option>
-				<option>-keep class com.kenai.jffi.** { *; }</option>
-	            <option>-dontobfuscate</option>
-				<option>-ignorewarnings</option>
-				<option>-dontnote</option>
-                <option>-dontwarn</option>
-				<option>-optimizations code/allocation/</option>
-	          </options>
 	          <obfuscate>false</obfuscate>
 	          <libs>
 	            <lib>${java.bootstrap.classes}</lib>
@@ -222,6 +201,9 @@
 	          </libs>
 	          <injar>uber${artifactId}.jar</injar>
 	          <outjar>${artifactId}.jar</outjar>
+	          
+	          <outputDirectory>${project.build.directory}</outputDirectory>
+              <proguardInclude>${basedir}/proguard.conf</proguardInclude>
 	        </configuration>
 	        <dependencies>
 	          <dependency>

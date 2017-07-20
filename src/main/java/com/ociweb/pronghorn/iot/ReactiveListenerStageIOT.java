@@ -223,44 +223,47 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     		}
     	}
     	
-        if (timeEvents) {         	
+    	
+    	if (timeEvents) {         	
 			processTimeEvents((TimeListener)listener, timeTrigger);            
 		}
+
+        processAllListeners(listener, inputPipes);
         
-        //TODO: replace with linked list of processors?, NOTE each one also needs a length bound so it does not starve the rest.
         
-        int p = inputPipes.length;
+    }
+
+	private void processAllListeners(Object target, Pipe<?>[] inputs) {
+		int p = inputs.length;
         //logger.trace("input pipes "+p);
         while (--p >= 0) {
             //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
 
         	//logger.trace(inputPipes[p].schemaName(inputPipes[p]));
         	
-            if (Pipe.isForSchema((Pipe<SerialInputSchema>)inputPipes[p], SerialInputSchema.class)) {
+            if (Pipe.isForSchema((Pipe<SerialInputSchema>)inputs[p], SerialInputSchema.class)) {
             	//logger.trace("checking for  consumeSerialMessage");
-            	consumeSerialMessage((SerialListener)listener, (Pipe<SerialInputSchema>) inputPipes[p]);
-            } else if (Pipe.isForSchema((Pipe<GroveResponseSchema>)inputPipes[p], GroveResponseSchema.class)) {
-                consumeResponseMessage(listener, (Pipe<GroveResponseSchema>) inputPipes[p]);
-            } else if (Pipe.isForSchema((Pipe<I2CResponseSchema>)inputPipes[p], I2CResponseSchema.class)) {
+            	consumeSerialMessage((SerialListener)target, (Pipe<SerialInputSchema>) inputs[p]);
+            } else if (Pipe.isForSchema((Pipe<GroveResponseSchema>)inputs[p], GroveResponseSchema.class)) {
+                consumeResponseMessage(target, (Pipe<GroveResponseSchema>) inputs[p]);
+            } else if (Pipe.isForSchema((Pipe<I2CResponseSchema>)inputs[p], I2CResponseSchema.class)) {
             	//listener may be analog or digital if we are using the grovePi board            	
-            	consumeI2CMessage(listener, (Pipe<I2CResponseSchema>) inputPipes[p]);
-            } else if (Pipe.isForSchema((Pipe<MessageSubscription>)inputPipes[p], MessageSubscription.class)) {                
-                consumePubSubMessage(listener, (Pipe<MessageSubscription>) inputPipes[p]);
-            } else if (Pipe.isForSchema((Pipe<NetResponseSchema>)inputPipes[p], NetResponseSchema.class)) {
+            	consumeI2CMessage(target, (Pipe<I2CResponseSchema>) inputs[p]);
+            } else if (Pipe.isForSchema((Pipe<MessageSubscription>)inputs[p], MessageSubscription.class)) {                
+                consumePubSubMessage(target, (Pipe<MessageSubscription>) inputs[p]);
+            } else if (Pipe.isForSchema((Pipe<NetResponseSchema>)inputs[p], NetResponseSchema.class)) {
                //should only have this pipe if listener is also instance of HTTPResponseListener
                //HTTP response from our request earlier
-               consumeNetResponse((HTTPResponseListener)listener, (Pipe<NetResponseSchema>) inputPipes[p]);
-            } else if (Pipe.isForSchema((Pipe<HTTPRequestSchema>)inputPipes[p], HTTPRequestSchema.class)) {            	
+               consumeNetResponse((HTTPResponseListener)target, (Pipe<NetResponseSchema>) inputs[p]);
+            } else if (Pipe.isForSchema((Pipe<HTTPRequestSchema>)inputs[p], HTTPRequestSchema.class)) {            	
                //HTTP reqeust to our internal server from the outside
-               consumeRestRequest((RestListener)listener, (Pipe<HTTPRequestSchema>) inputPipes[p]);                           
+               consumeRestRequest((RestListener)target, (Pipe<HTTPRequestSchema>) inputs[p]);                           
             } else 
             {   // HTTPRequestSchema
-                logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(inputPipes[p]));
+                logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(inputs[p]));
             }
         }
-        
-        
-    }
+	}
         
     
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {

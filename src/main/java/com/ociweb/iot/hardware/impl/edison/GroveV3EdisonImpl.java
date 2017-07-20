@@ -3,6 +3,7 @@ package com.ociweb.iot.hardware.impl.edison;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
@@ -181,7 +182,7 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 
 
 	@Override
-	public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Object listener, 
+	public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
 			                                                          Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, int parallelInstance) {
 		return (R)new ReactiveListenerStageIOT(gm, listener, inputPipes, outputPipes, this, parallelInstance);
 	}

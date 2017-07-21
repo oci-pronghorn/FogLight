@@ -1,5 +1,7 @@
 package com.ociweb.grove;
 
+import com.ociweb.iot.astropi.AstroPiTwig;
+import com.ociweb.iot.astropi.AstroPiTwig.AstroPi;
 import static com.ociweb.iot.grove.real_time_clock.RTCTwig.*;
 import com.ociweb.iot.grove.real_time_clock.*;
 import com.ociweb.iot.maker.FogApp;
@@ -32,8 +34,8 @@ public class IoTApp implements FogApp
 //            c.connect(ob);
 //        }
 
-        AstroPiLEDMatrix2 ob = new AstroPiLEDMatrix2((byte)0b11110010);
-        c.connect(ob);
+        c.connect(AstroPi.GetJoystick,100);
+        //c.setTimerPulseRate(1000);
         //c.connect(RTC.ReadTime);
     }
     

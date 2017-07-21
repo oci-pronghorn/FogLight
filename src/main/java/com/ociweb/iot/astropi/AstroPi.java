@@ -87,7 +87,7 @@ public class AstroPi implements I2CListener {
     }
     /**
      * get the 8x8x3 matrix showing the current state of the screen
-     * @return 8x8x3 matrix showing the current state of the screen
+     * @return 
      */
     public int[][][] getPixels(){
         return bitmap;
@@ -96,7 +96,7 @@ public class AstroPi implements I2CListener {
      * get the R,G,B values of the specified pixel
      * @param row integer from 0 to 7
      * @param col integer from 0 to 7
-     * @return R,G,B values of the specified pixel
+     * @return 
      */
     public int[] getPixel(int row,int col){
         row = ensureRange(row,0,7);

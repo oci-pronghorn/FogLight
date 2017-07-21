@@ -88,7 +88,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
     }
     /**
      * get the 8x8x3 matrix showing the current state of the screen
-     * @return
+     * @return 
      */
     public int[][][] getPixels(){
         return bitmap;
@@ -97,7 +97,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
      * get the R,G,B values of the specified pixel
      * @param row integer from 0 to 7
      * @param col integer from 0 to 7
-     * @return R,G,B values of the specified pixel
+     * @return 
      */
     public int[] getPixel(int row,int col){
         row = ensureRange(row,0,7);

@@ -249,13 +249,16 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		/////////
 		int pipesCount = 0;
 		if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
+			System.out.println("HAS I2C INPUTS");
 			pipesCount++;
 		}
 		if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
+			System.out.println("HAS PIN INPUTS");
 			pipesCount++;
 		}
 
 		if (this.builder.isListeningToSerial(listener)) {
+			System.out.println("HAS SERIAL INPUTS");
 			pipesCount++;      
 		}
 

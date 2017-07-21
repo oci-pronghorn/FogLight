@@ -48,7 +48,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		bluetoothDevice = model.bluetoothDevice();
 		configI2C = true; 
 		System.out.println("You are running on the GrovePi hardware on the "+model);
-		new Exception().printStackTrace();
+	
 	}
 
 

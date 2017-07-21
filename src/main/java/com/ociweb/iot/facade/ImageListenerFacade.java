@@ -1,5 +1,7 @@
 package com.ociweb.iot.facade;
 
-public interface ImageListenerFacade {
+import com.ociweb.iot.impl.ImageListenerBase;
+
+public interface ImageListenerFacade extends ListenerFacade, ImageListenerBase{
 
 }

@@ -579,7 +579,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		logger.trace("total order pipes {} ",orderPipes.length);//this is too small TODO: this must be fixed.
 
 		int eventSchemas = 0;
-
+		System.out.println("IDC_I2C early: " + IDX_I2C);
 		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;
 		IDX_I2C = i2cPipes.length>0 ? eventSchemas++ : -1;
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
@@ -692,6 +692,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
 		}
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
+			System.out.println("IDC_I2C late: " + IDX_I2C);
+			System.out.println("I2cPipes.length: " + i2cPipes.length);
 			createI2COutputInputStage(i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
 		}
 		

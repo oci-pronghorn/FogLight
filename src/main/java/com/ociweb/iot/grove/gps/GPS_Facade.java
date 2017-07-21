@@ -15,8 +15,7 @@ public class GPS_Facade implements SerialListener, IODeviceFacade{
 		this.ch = ch;
 	}
 	@Override
-	public int message(BlobReader reader) {
-		
+	public int message(BlobReader reader) {		
 		l.coordinates(1, 2);
 		return 0;
 	}

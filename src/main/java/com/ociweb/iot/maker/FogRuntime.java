@@ -242,20 +242,23 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		}
 
 		//extract pipes used by listener
-		visitCommandChannelsUsedByListener(listener, 0, gatherPipesVisitor, cmdChannelUsageChecker);//populates  httpRequestPipes and outputPipes
+		visitCommandChannelsUsedByListener(listener, 0, gatherPipesVisitor, cmdChannelUsageChecker, listener);//populates  httpRequestPipes and outputPipes
 
 		/////////
 		//pre-count how many pipes will be needed so the array can be built to the right size
 		/////////
 		int pipesCount = 0;
 		if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
+			System.out.println("HAS I2C INPUTS");
 			pipesCount++;
 		}
 		if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
+			System.out.println("HAS PIN INPUTS");
 			pipesCount++;
 		}
 
 		if (this.builder.isListeningToSerial(listener)) {
+			System.out.println("HAS SERIAL INPUTS");
 			pipesCount++;      
 		}
 

@@ -1,9 +1,9 @@
 package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.Behavior;
+import com.ociweb.iot.impl.DigitalListenerBase;
 
-public interface DigitalListener extends Behavior {
+public interface DigitalListener extends Behavior, DigitalListenerBase {
 
-    public void digitalEvent(Port port, long time, long durationMillis, int value);
     
 }

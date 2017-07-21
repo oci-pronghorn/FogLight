@@ -348,7 +348,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	protected void createI2COutputInputStage(Pipe<I2CCommandSchema>[] i2cPipes,
 			Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn, Pipe<I2CResponseSchema> masterI2CResponsePipe) {
-		
+
 		if (hasI2CInputs()) {
 			I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
 		} else {

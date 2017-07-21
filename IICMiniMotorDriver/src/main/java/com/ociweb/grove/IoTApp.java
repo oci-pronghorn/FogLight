@@ -30,8 +30,6 @@ public class IoTApp implements FogApp
         c.connect(MiniMotorDriver.checkFaultCH1);
         c.connect(MiniMotorDriver.checkFaultCH2);
         c.connect(AngleSensor,ANGLE_SENSOR);
-        
-        
     }
     
     @Override

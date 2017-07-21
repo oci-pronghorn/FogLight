@@ -44,7 +44,7 @@ public class AppTest {
 	}
 	@Test
 	public void testImageSerialization(){
-		
+		/*
 		try {
 			int[][] map = null;
 			map = ImageGenerator.convertToGrayScale(4, 0, 0, 96, 96);
@@ -55,6 +55,6 @@ public class AppTest {
 			
 			e.printStackTrace();
 		}
-		
+		*/
 	}
 }

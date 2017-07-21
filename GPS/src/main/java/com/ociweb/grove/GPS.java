@@ -14,11 +14,9 @@ public class GPS implements FogApp
     	 c.limitThreads();
     	 
     }
-
-
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        runtime.registerBehavior(new GPSBehavior(runtime));
+        runtime.registerListener(new GPSBehavior(runtime));
     }
           
 }

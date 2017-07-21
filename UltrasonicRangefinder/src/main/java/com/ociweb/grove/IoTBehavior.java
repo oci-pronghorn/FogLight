@@ -7,6 +7,7 @@ package com.ociweb.grove;
 
 
 import com.ociweb.gl.api.GreenCommandChannel;
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 import com.ociweb.iot.grove.lcd_rgb.*;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -22,7 +23,7 @@ public class IoTBehavior implements AnalogListener{
     
     public IoTBehavior(FogRuntime runtime) {
         
-        channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+        channel = runtime.newCommandChannel(I2C_WRITER);
         
     }
     

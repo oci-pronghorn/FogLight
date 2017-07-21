@@ -15,7 +15,6 @@ public class BuzzerBehavior implements DigitalListener {
 	public BuzzerBehavior(FogRuntime runtime) {
 		// TODO Auto-generated constructor stub
         channel1 = runtime.newCommandChannel(PIN_WRITER);
-
 	}
 
 	@Override

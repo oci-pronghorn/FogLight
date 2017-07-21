@@ -88,7 +88,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
     }
     /**
      * get the 8x8x3 matrix showing the current state of the screen
-     * @return 
+     * @return 8x8x3 matrix showing the current state of the screen
      */
     public int[][][] getPixels(){
         return bitmap;

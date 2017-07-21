@@ -137,9 +137,8 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
 				   serialOutput = null;
 			   }
 			   
-			   boolean setupI2C = (I2C_WRITER & this.initFeatures) != 0;
-	
-			   	   
+			   boolean setupI2C = (I2C_WRITER & this.initFeatures) != 0;	
+			   	System.out.println(setupI2C);
 			   if (setupI2C) { 
 				   //yes i2c usage
 			       optionalOutputPipes = new Pipe<?>[]{

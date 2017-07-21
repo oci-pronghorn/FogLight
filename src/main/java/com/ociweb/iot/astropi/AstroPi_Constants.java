@@ -88,4 +88,20 @@ public class AstroPi_Constants {
     public static final int WHO_AM_I_AG_RSP	=0x68;
     public static final int WHO_AM_I_M_RSP	=0x3D;
     
+    
+    // Sensor Sensitivity Constants
+// Values set according to the typical specifications provided in
+// table 3 of the LSM9DS1 datasheet. (pg 12)
+public static final double SENSITIVITY_ACCELEROMETER_2  =0.000061;
+public static final double SENSITIVITY_ACCELEROMETER_4  =0.000122;
+public static final double SENSITIVITY_ACCELEROMETER_8  =0.000244;
+public static final double SENSITIVITY_ACCELEROMETER_16 =0.000732;
+public static final double SENSITIVITY_GYROSCOPE_245    =0.00875;
+public static final double SENSITIVITY_GYROSCOPE_500    =0.0175;
+public static final double SENSITIVITY_GYROSCOPE_2000   =0.07;
+public static final double SENSITIVITY_MAGNETOMETER_4   =0.00014;
+public static final double SENSITIVITY_MAGNETOMETER_8   =0.00029;
+public static final double SENSITIVITY_MAGNETOMETER_12  =0.00043;
+public static final double SENSITIVITY_MAGNETOMETER_16  =0.00058;
+
 }

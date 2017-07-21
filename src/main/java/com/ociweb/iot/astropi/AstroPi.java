@@ -15,8 +15,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-//public class AstroPi implements I2CListener {
-    public class AstroPi {
+public class AstroPi implements I2CListener {
     private final FogCommandChannel target;
     private int[][][] bitmap = new int [8][8][3];
     
@@ -174,7 +173,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
     private int ensureRange(int value, int min, int max) {
         return Math.min(Math.max(value, min), max);
     }
-
+    
     
     private int[] bitmapToList(int[][][] map){
         int [] list = new int[192];
@@ -247,32 +246,21 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
         target.i2cFlushBatch();
     }
     
-
-    public void writeSingleByteToRegister(int register, int value) {
-        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(AstroPi_Constants.LED_I2C_ADDR);
-        
-        i2cPayloadWriter.writeByte(register);
-        i2cPayloadWriter.writeByte(value);
-        
-        target.i2cCommandClose();
-        target.i2cFlushBatch();
-    }
-
     JoyStickListener joysticklistener;
-//    @Override
-//    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
-//        if(addr == AstroPi_Constants.LED_I2C_ADDR){
-//            if(register == AstroPi_Constants.JOYSTICK_REG_ADDR){
-//                int down = (backing[position]&0x01);
-//                int right = (backing[position]&0x02)>>1;
-//                int up = (backing[position]&0x04)>>2;
-//                int push = (backing[position]&0x08)>>3;
-//                int left = (backing[position]&0x1f)>>4;
-//                System.out.println(down);
-//                joysticklistener.joystickEvent(up, down, left, right, push);
-//            }
-//        }
-//    }
+    @Override
+    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
+        if(addr == AstroPi_Constants.LED_I2C_ADDR){
+            if(register == AstroPi_Constants.JOYSTICK_REG_ADDR){
+                int down = (backing[position]&0x01);
+                int right = (backing[position]&0x02)>>1;
+                int up = (backing[position]&0x04)>>2;
+                int push = (backing[position]&0x08)>>3;
+                int left = (backing[position]&0x1f)>>4;
+                System.out.println(down);
+                joysticklistener.joystickEvent(up, down, left, right, push);
+            }
+        }
+    }
     
     /*   LSM9DS1 3D accelerometer, 3D gyroscope, 3D magnetometer  */
     public void initGyro(){

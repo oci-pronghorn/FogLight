@@ -37,8 +37,8 @@ public class ObjectPassingTest {
 				@Override
 				public void declareBehavior(FogRuntime runtime) {
 					
-					final FogCommandChannel cc1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 					runtime.addPubSubListener(new PubSubListener() {
+						FogCommandChannel cc1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 
 						@Override
 						public boolean message(CharSequence topic, BlobReader payload) {
@@ -72,8 +72,8 @@ public class ObjectPassingTest {
 						}}).addSubscription("test\\topic");
 					
 					
-					final FogCommandChannel cc2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 					runtime.addStartupListener(new StartupListener() {
+						FogCommandChannel cc2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 
 						@Override
 						public void startup() {

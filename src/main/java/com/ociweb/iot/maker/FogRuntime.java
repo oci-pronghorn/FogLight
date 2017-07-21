@@ -242,7 +242,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		}
 
 		//extract pipes used by listener
-		visitCommandChannelsUsedByListener(listener, 0, gatherPipesVisitor);//populates  httpRequestPipes and outputPipes
+		visitCommandChannelsUsedByListener(listener, 0, gatherPipesVisitor, cmdChannelUsageChecker, listener);//populates  httpRequestPipes and outputPipes
 
 		/////////
 		//pre-count how many pipes will be needed so the array can be built to the right size

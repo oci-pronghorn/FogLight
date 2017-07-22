@@ -21,6 +21,11 @@ public class MotorDriver_Facade implements IODeviceFacade,StartupListener{
     public int DRIVER_I2C_ADD = 0x0f; //default address of the driver
     private int motor1Vel = 0;
     private int motor2Vel = 0;
+
+    public enum Channel {
+        CH1,
+        CH2
+    }
     
     public MotorDriver_Facade(FogCommandChannel ch){
         this.target = ch;
@@ -44,17 +49,31 @@ public class MotorDriver_Facade implements IODeviceFacade,StartupListener{
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);
         
     }
+
     /**
      * Set the velocity of the motor on specified channel
-     * @param channel either 1 or 2
+     * @param Channel either CH1 or CH2
      * @param velocity integer between -255 and 255
      */
-    public void setVelocity(int channel,int velocity){
-        if(channel == 1){
-            motor1Vel = velocity;
-        }else{
-            motor2Vel = velocity;
+    public void setVelocity(Channel chan,int velocity) {
+        switch (chan) {
+            case CH1:
+                setVelocity(velocity, this.motor2Vel);
+                break;
+            case CH2:
+                setVelocity(this.motor1Vel, velocity);
+                break;
         }
+    }
+
+    /**
+     * Set the velocity of the motor on both channel
+     * @param motorAVel integer between -255 and 255
+     * @param motorBVel integer between -255 and 255
+     */
+    public void setVelocity(int motorAVel,int motorBVel){
+        this.motor1Vel = motorAVel;
+        this.motor2Vel = motorBVel;
         
         if(motor1Vel >= 0 && motor2Vel >= 0){
             direction(M1CW_M2CW);

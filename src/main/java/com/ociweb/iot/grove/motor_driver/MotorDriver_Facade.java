@@ -22,9 +22,9 @@ public class MotorDriver_Facade implements IODeviceFacade,StartupListener{
     private int motor1Vel = 0;
     private int motor2Vel = 0;
 
-    public enum Port {
-        A,
-        B
+    public enum Channel {
+        CH1,
+        CH2
     }
     
     public MotorDriver_Facade(FogCommandChannel ch){
@@ -52,22 +52,22 @@ public class MotorDriver_Facade implements IODeviceFacade,StartupListener{
 
     /**
      * Set the velocity of the motor on specified channel
-     * @param port either A or B
+     * @param Channel either CH1 or CH2
      * @param velocity integer between -255 and 255
      */
-    public void setVelocity(Port port,int velocity) {
-        switch (port) {
-            case A:
+    public void setVelocity(Channel chan,int velocity) {
+        switch (chan) {
+            case CH1:
                 setVelocity(velocity, this.motor2Vel);
                 break;
-            case B:
+            case CH2:
                 setVelocity(this.motor1Vel, velocity);
                 break;
         }
     }
 
     /**
-     * Set the velocity of the motor on specified channel
+     * Set the velocity of the motor on both channel
      * @param motorAVel integer between -255 and 255
      * @param motorBVel integer between -255 and 255
      */

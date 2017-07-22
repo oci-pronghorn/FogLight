@@ -3,15 +3,10 @@ package com.ociweb.pronghorn.iot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.HTTPResponseListener;
-import com.ociweb.gl.api.RestListener;
-import com.ociweb.gl.api.ShutdownListener;
-import com.ociweb.gl.api.TimeListener;
-import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
+import com.ociweb.gl.impl.stage.ReactiveOperator;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
@@ -23,9 +18,6 @@ import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.maker.SerialReader;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
-import com.ociweb.pronghorn.network.schema.NetResponseSchema;
-import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -87,7 +79,8 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
                 
     }
 
-    private void setupMovingAverages(HardwareImpl hardware, MAvgRollerLong[] target, HardwareConnection[] con) {
+
+	private void setupMovingAverages(HardwareImpl hardware, MAvgRollerLong[] target, HardwareConnection[] con) {
         int i = con.length;
         while (--i >= 0) {            
               target[hardware.convertToPort(con[i].register)] = new MAvgRollerLong(con[i].movingAverageWindowMS/con[i].responseMS);
@@ -144,6 +137,51 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     @Override
     public void startup() {
     	
+    	//Add more supported operators
+    	operators
+    	  .addOperator(SerialListener.class, 
+        		SerialInputSchema.instance,
+       		 new ReactiveOperator() {
+			@Override
+			public void apply(Object target, Pipe input) {
+				consumeSerialMessage((SerialListener)target, input);										
+			}        		                	 
+        })
+        .addOperator(AnalogListener.class, 
+        		GroveResponseSchema.instance,
+	       		 new ReactiveOperator() {
+				@Override
+				public void apply(Object target, Pipe input) {
+					consumeResponseMessage(target, input);										
+				}        		                	 
+	        })
+        .addOperator(DigitalListener.class, 
+        		GroveResponseSchema.instance,
+	       		 new ReactiveOperator() {
+				@Override
+				public void apply(Object target, Pipe input) {
+					consumeResponseMessage(target, input);										
+				}        		                	 
+	        })
+        .addOperator(RotaryListener.class, 
+        		GroveResponseSchema.instance,
+	       		 new ReactiveOperator() {
+				@Override
+				public void apply(Object target, Pipe input) {
+					consumeResponseMessage(target, input);										
+				}        		                	 
+	        })
+        .addOperator(I2CListener.class, 
+        		I2CResponseSchema.instance,
+	       		 new ReactiveOperator() {
+				@Override
+				public void apply(Object target, Pipe input) {
+					consumeI2CMessage(target, input);										
+				}        		                	 
+	        });
+    	
+    	
+    	
         //Init all the moving averages to the right size
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_PORTS];
         rollingMovingAveragesDigital = new MAvgRollerLong[MAX_PORTS];
@@ -184,87 +222,10 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         stageRate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
         
         timeProcessWindow = (null==stageRate? 0 : (int)(stageRate.longValue()/MS_to_NS));
-        
-        
-        
+                        
         //Do last so we complete all the initializations first
         super.startup();
     }
-
-    @Override
-    public void run() {
-        
-    	if (shutdownRequsted.get()) {
-    		if (!shutdownCompleted) {
-    			
-    			if (listener instanceof ShutdownListener) {    				
-    				if (((ShutdownListener)listener).acceptShutdown()) {
-    					int remaining = liveShutdownListeners.decrementAndGet();
-    					assert(remaining>=0);
-    					requestShutdown();
-    					return;
-    				}
-    				//else continue with normal run processing
-    				
-    			} else {
-    				//this one is not a listener so we must wait for all the listeners to close first
-    				
-    				if (0 == liveShutdownListeners.get()) {    					
-    					requestShutdown();
-    					return;
-    				}
-    				//else continue with normal run processing.
-    				
-    			}
-    		} else {
-    			assert(shutdownCompleted);
-    			assert(false) : "run should not have been called if this stage was shut down.";
-    			return;
-    		}
-    	}
-    	
-    	
-    	if (timeEvents) {         	
-			processTimeEvents((TimeListener)listener, timeTrigger);            
-		}
-
-        processAllListeners(listener, inputPipes);
-        
-        
-    }
-
-	private void processAllListeners(Object target, Pipe<?>[] inputs) {
-		int p = inputs.length;
-        //logger.trace("input pipes "+p);
-        while (--p >= 0) {
-            //TODO: this solution works but smells, a "process" lambda added to the Pipe may be a better solution? Still thinking....
-
-        	//logger.trace(inputPipes[p].schemaName(inputPipes[p]));
-        	
-            if (Pipe.isForSchema((Pipe<SerialInputSchema>)inputs[p], SerialInputSchema.class)) {
-            	//logger.trace("checking for  consumeSerialMessage");
-            	consumeSerialMessage((SerialListener)target, (Pipe<SerialInputSchema>) inputs[p]);
-            } else if (Pipe.isForSchema((Pipe<GroveResponseSchema>)inputs[p], GroveResponseSchema.class)) {
-                consumeResponseMessage(target, (Pipe<GroveResponseSchema>) inputs[p]);
-            } else if (Pipe.isForSchema((Pipe<I2CResponseSchema>)inputs[p], I2CResponseSchema.class)) {
-            	//listener may be analog or digital if we are using the grovePi board            	
-            	consumeI2CMessage(target, (Pipe<I2CResponseSchema>) inputs[p]);
-            } else if (Pipe.isForSchema((Pipe<MessageSubscription>)inputs[p], MessageSubscription.class)) {                
-                consumePubSubMessage(target, (Pipe<MessageSubscription>) inputs[p]);
-            } else if (Pipe.isForSchema((Pipe<NetResponseSchema>)inputs[p], NetResponseSchema.class)) {
-               //should only have this pipe if listener is also instance of HTTPResponseListener
-               //HTTP response from our request earlier
-               consumeNetResponse((HTTPResponseListener)target, (Pipe<NetResponseSchema>) inputs[p]);
-            } else if (Pipe.isForSchema((Pipe<HTTPRequestSchema>)inputs[p], HTTPRequestSchema.class)) {            	
-               //HTTP reqeust to our internal server from the outside
-               consumeRestRequest((RestListener)target, (Pipe<HTTPRequestSchema>) inputs[p]);                           
-            } else 
-            {   // HTTPRequestSchema
-                logger.error("unrecognized pipe sent to listener of type {} ", Pipe.schemaName(inputs[p]));
-            }
-        }
-	}
-        
     
     protected void consumeI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
 

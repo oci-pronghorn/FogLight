@@ -52,7 +52,7 @@ public class MotorDriver_Facade implements IODeviceFacade,StartupListener{
 
     /**
      * Set the velocity of the motor on specified channel
-     * @param Channel either CH1 or CH2
+     * @param chan either CH1 or CH2
      * @param velocity integer between -255 and 255
      */
     public void setVelocity(Channel chan,int velocity) {

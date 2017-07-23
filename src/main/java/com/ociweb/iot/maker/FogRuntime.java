@@ -6,18 +6,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
-import com.ociweb.gl.api.ListenerConfig;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.MsgRuntime;
-import com.ociweb.gl.api.RestListener;
 import com.ociweb.gl.impl.ChildClassScanner;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
+import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
+import com.ociweb.iot.hardware.impl.grovepi.PiModel;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -25,14 +25,12 @@ import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
-import com.ociweb.iot.hardware.impl.grovepi.*;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
@@ -274,12 +272,17 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		/////////////////////
 		//TimeListener, time rate signals are sent from the stages its self and therefore does not need a pipe to consume.
 		/////////////////////
-
-		ArrayList consumers = null; //TODO: get from common method....
+        //this is empty when transducerAutowiring is off
+        final ArrayList<ReactiveManagerPipeConsumer> consumers = new ArrayList<ReactiveManagerPipeConsumer>(); 
+        
+        //extract this into common method to be called in GL and FL
+		if (transducerAutowiring) {
+			inputPipes = autoWireTransducers(listener, inputPipes, consumers);
+		}  
 		
 		ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, 
-				inputPipes, outputPipes, consumers,
-				parallelInstanceUnderActiveConstruction);
+													inputPipes, outputPipes, consumers,
+													parallelInstanceUnderActiveConstruction);
 		configureStageRate(listener,reactiveListener);
 
 		//////////

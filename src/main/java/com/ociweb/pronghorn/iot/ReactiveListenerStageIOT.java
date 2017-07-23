@@ -1,13 +1,22 @@
 package com.ociweb.pronghorn.iot;
 
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
+import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.gl.impl.stage.ReactiveOperator;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
+import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.impl.DigitalListenerBase;
+import com.ociweb.iot.impl.I2CListenerBase;
+import com.ociweb.iot.impl.RotaryListenerBase;
+import com.ociweb.iot.impl.SerialListenerBase;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -24,7 +33,6 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
 public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl> implements ListenerFilterIoT {
-
   
     private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStageIOT.class); 
     
@@ -64,13 +72,60 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     
     private SerialReader serialStremReader; //must be held as we accumulate serial data.
     
-    public ReactiveListenerStageIOT(GraphManager graphManager, Object listener, 
+    static {
+    	
+    	//Add more supported operators to the system
+    	operators
+    	  .addOperator(SerialListenerBase.class, 
+        		SerialInputSchema.instance,
+       		 new ReactiveOperator() {
+			@Override
+			public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+				((ReactiveListenerStageIOT)r).consumeSerialMessage((SerialListener)target, input);										
+			}        		                	 
+        })
+        .addOperator(AnalogListenerBase.class, 
+        		GroveResponseSchema.instance,
+	       		 new ReactiveOperator() {
+				@Override
+				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+					((ReactiveListenerStageIOT)r).consumeResponseMessage(target, input);										
+				}        		                	 
+	        })
+        .addOperator(DigitalListenerBase.class, 
+        		GroveResponseSchema.instance,
+	       		 new ReactiveOperator() {
+				@Override
+				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+					((ReactiveListenerStageIOT)r).consumeResponseMessage(target, input);										
+				}        		                	 
+	        })
+        .addOperator(RotaryListenerBase.class, 
+        		GroveResponseSchema.instance,
+	       		 new ReactiveOperator() {
+				@Override
+				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+					((ReactiveListenerStageIOT)r).consumeResponseMessage(target, input);										
+				}        		                	 
+	        })
+        .addOperator(I2CListenerBase.class, 
+        		I2CResponseSchema.instance,
+	       		 new ReactiveOperator() {
+				@Override
+				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+					((ReactiveListenerStageIOT)r).consumeI2CMessage(target, input);										
+				}        		                	 
+	        });    	
+    }
+    
+    public ReactiveListenerStageIOT(GraphManager graphManager, Behavior listener, 
     		                        Pipe<?>[] inputPipes, 
     		                        Pipe<?>[] outputPipes, 
+    		                        ArrayList<ReactiveManagerPipeConsumer> consumers,
     		                        HardwareImpl hardware, int parallelInstance) {
 
         
-        super(graphManager, listener, inputPipes, outputPipes, hardware, parallelInstance);
+        super(graphManager, listener, inputPipes, outputPipes, consumers, hardware, parallelInstance);
 
         this.builder = hardware;
                    
@@ -136,51 +191,6 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     
     @Override
     public void startup() {
-    	
-    	//Add more supported operators
-    	operators
-    	  .addOperator(SerialListener.class, 
-        		SerialInputSchema.instance,
-       		 new ReactiveOperator() {
-			@Override
-			public void apply(Object target, Pipe input) {
-				consumeSerialMessage((SerialListener)target, input);										
-			}        		                	 
-        })
-        .addOperator(AnalogListener.class, 
-        		GroveResponseSchema.instance,
-	       		 new ReactiveOperator() {
-				@Override
-				public void apply(Object target, Pipe input) {
-					consumeResponseMessage(target, input);										
-				}        		                	 
-	        })
-        .addOperator(DigitalListener.class, 
-        		GroveResponseSchema.instance,
-	       		 new ReactiveOperator() {
-				@Override
-				public void apply(Object target, Pipe input) {
-					consumeResponseMessage(target, input);										
-				}        		                	 
-	        })
-        .addOperator(RotaryListener.class, 
-        		GroveResponseSchema.instance,
-	       		 new ReactiveOperator() {
-				@Override
-				public void apply(Object target, Pipe input) {
-					consumeResponseMessage(target, input);										
-				}        		                	 
-	        })
-        .addOperator(I2CListener.class, 
-        		I2CResponseSchema.instance,
-	       		 new ReactiveOperator() {
-				@Override
-				public void apply(Object target, Pipe input) {
-					consumeI2CMessage(target, input);										
-				}        		                	 
-	        });
-    	
-    	
     	
         //Init all the moving averages to the right size
         rollingMovingAveragesAnalog = new MAvgRollerLong[MAX_PORTS];

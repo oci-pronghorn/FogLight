@@ -1,5 +1,6 @@
 package com.ociweb.iot.hardware.impl.test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
+import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
@@ -183,11 +185,12 @@ public class TestHardware extends HardwareImpl {
     @Override
     public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
     		                                                 Pipe<?>[] inputPipes, Pipe<?>[] outputPipes,
+    		                                                 ArrayList<ReactiveManagerPipeConsumer> consumers,
     		                                                 int parallelInstance) {
         assert(null!=listener);
     	return (R)new ReactiveListenerStageIOT(gm, listener,
         		                               inputPipes, outputPipes, 
-        		                               this, parallelInstance);
+        		                               consumers, this, parallelInstance);
     }
 
     

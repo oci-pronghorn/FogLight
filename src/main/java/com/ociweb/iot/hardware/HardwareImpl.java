@@ -6,8 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
+import com.ociweb.gl.api.ListenerFacade;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.impl.BuilderImpl;
+import com.ociweb.gl.impl.ChildClassScanner;
+import com.ociweb.gl.impl.ChildClassScannerVisitor;
 import com.ociweb.gl.impl.schema.IngressMessages;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
@@ -361,21 +364,49 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
 	}
 
+	private final ChildClassScannerVisitor deepSerialListener = new ChildClassScannerVisitor<ListenerFacade>() {
+		@Override
+		public boolean visit(ListenerFacade child, Object topParent) {
+			boolean found = child instanceof SerialListener;
+			return !found;
+		}		
+	};
+	
+	private final ChildClassScannerVisitor deepI2CListener = new ChildClassScannerVisitor<ListenerFacade>() {
+		@Override
+		public boolean visit(ListenerFacade child, Object topParent) {
+			boolean found = child instanceof I2CListener;
+			return !found;
+		}		
+	};
+	
+	private final ChildClassScannerVisitor deepPinsListener = new ChildClassScannerVisitor<ListenerFacade>() {
+		@Override
+		public boolean visit(ListenerFacade child, Object topParent) {
+			boolean found = child instanceof DigitalListener || 
+					        child instanceof AnalogListener || 
+					        child instanceof RotaryListener;
+			return !found;
+		}		
+	};
 	
 	public boolean isListeningToSerial(Object listener) {
-		return listener instanceof SerialListener;
+		return listener instanceof SerialListener
+			   || !ChildClassScanner.visitUsedByClass(listener, deepSerialListener, ListenerFacade.class);
 	}
 	
 	public boolean isListeningToI2C(Object listener) {
-		return listener instanceof I2CListener;
+		return listener instanceof I2CListener
+				 || !ChildClassScanner.visitUsedByClass(listener, deepI2CListener, ListenerFacade.class);
 	}
 
 	public boolean isListeningToPins(Object listener) {
-		return listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener;
+		return listener instanceof DigitalListener || 
+			   listener instanceof AnalogListener || 
+			   listener instanceof RotaryListener
+			   || !ChildClassScanner.visitUsedByClass(listener, deepPinsListener, ListenerFacade.class);
 	}
-
-
-
+	
 	private Pipe<MessagePubSub> getTempPipeOfStartupSubscriptions() {
 		if (null==tempPipeOfStartupSubscriptions) {
 

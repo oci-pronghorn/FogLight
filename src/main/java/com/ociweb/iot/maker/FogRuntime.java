@@ -1,12 +1,16 @@
 package com.ociweb.iot.maker;
 
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.ListenerConfig;
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.api.RestListener;
+import com.ociweb.gl.impl.ChildClassScanner;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
@@ -40,11 +44,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	private static final Logger logger = LoggerFactory.getLogger(FogRuntime.class);
 
-	private final int i2cDefaultLength = 300;
-	private final int i2cDefaultMaxPayload = 16;
+	private static final int i2cDefaultLength = 300;
+	private static final int i2cDefaultMaxPayload = 16;
 
-	private final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
-	private final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);
+	private static final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
+	private static final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);
 
 	private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
 	private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x();
@@ -165,8 +169,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	}
 
-	private PipeConfigManager buildPipeManager() {
-		PipeConfigManager pcm = new PipeConfigManager();
+	protected PipeConfigManager buildPipeManager() {
+		PipeConfigManager pcm = super.buildPipeManager();
 		pcm.addConfig(requestPipeConfig);
 		pcm.addConfig(i2cPayloadPipeConfig);
 		pcm.addConfig(defaultCommandChannelLength,0,TrafficOrderSchema.class );
@@ -231,34 +235,20 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	private ListenerFilterIoT registerListenerImpl(Behavior listener) {
 
 		outputPipes = new Pipe<?>[0];
-
-		if (listener instanceof RestListener) {
-
-			final int p = ListenerConfig.computeParallel(builder, parallelInstanceUnderActiveConstruction);
-			httpRequestPipes = ListenerConfig.newHTTPRequestPipes(builder, p);
-
-		} else {
-			httpRequestPipes = (Pipe<HTTPRequestSchema>[]) new Pipe<?>[0];     	
-		}
-
-		//extract pipes used by listener
-		visitCommandChannelsUsedByListener(listener, 0, gatherPipesVisitor, cmdChannelUsageChecker, listener);//populates  httpRequestPipes and outputPipes
+		ChildClassScanner.visitUsedByClass(listener, gatherPipesVisitor, MsgCommandChannel.class);//populates OutputPipes
 
 		/////////
 		//pre-count how many pipes will be needed so the array can be built to the right size
 		/////////
 		int pipesCount = 0;
 		if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
-			System.out.println("HAS I2C INPUTS");
 			pipesCount++;
 		}
 		if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
-			System.out.println("HAS PIN INPUTS");
 			pipesCount++;
 		}
 
 		if (this.builder.isListeningToSerial(listener)) {
-			System.out.println("HAS SERIAL INPUTS");
 			pipesCount++;      
 		}
 
@@ -285,8 +275,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		//TimeListener, time rate signals are sent from the stages its self and therefore does not need a pipe to consume.
 		/////////////////////
 
+		ArrayList consumers = null; //TODO: get from common method....
+		
 		ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, 
-				inputPipes, outputPipes, 
+				inputPipes, outputPipes, consumers,
 				parallelInstanceUnderActiveConstruction);
 		configureStageRate(listener,reactiveListener);
 

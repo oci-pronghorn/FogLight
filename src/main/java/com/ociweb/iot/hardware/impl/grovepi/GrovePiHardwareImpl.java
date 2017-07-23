@@ -1,10 +1,13 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
+import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig;
 import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -103,8 +106,8 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	@Override
 	public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
-			Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, int parallelInstance) {
-		return (R)new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, this, parallelInstance); 
+			Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, ArrayList<ReactiveManagerPipeConsumer> consumers, int parallelInstance) {
+		return (R)new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, consumers, this, parallelInstance); 
 	}
 
 	@Override

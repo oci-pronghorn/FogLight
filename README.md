@@ -96,7 +96,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - Moisture Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Moisture_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LineFinder/README.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MoistureSensor/README.md)
 - Motion Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Motion_Sensor/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MotionSensor/README.md)

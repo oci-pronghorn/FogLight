@@ -64,6 +64,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	public FogRuntime(String[] args) {
 		super(args);
+        
+        //adds all the operators for the FogRuntime
+		ReactiveListenerStageIOT.initOperators();
+        
 	}
 
 
@@ -274,6 +278,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		/////////////////////
         //this is empty when transducerAutowiring is off
         final ArrayList<ReactiveManagerPipeConsumer> consumers = new ArrayList<ReactiveManagerPipeConsumer>(); 
+
         
         //extract this into common method to be called in GL and FL
 		if (transducerAutowiring) {

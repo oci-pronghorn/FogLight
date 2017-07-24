@@ -72,7 +72,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     
     private SerialReader serialStremReader; //must be held as we accumulate serial data.
     
-    static {
+    public static void initOperators() {
     	
     	//Add more supported operators to the system
     	operators
@@ -81,7 +81,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
        		 new ReactiveOperator() {
 			@Override
 			public void apply(Object target, Pipe input, ReactiveListenerStage r) {
-				((ReactiveListenerStageIOT)r).consumeSerialMessage((SerialListener)target, input);										
+				((ReactiveListenerStageIOT)r).consumeSerialMessage((SerialListenerBase)target, input);										
 			}        		                	 
         })
         .addOperator(AnalogListenerBase.class, 
@@ -278,7 +278,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 
 
 	
-	private void consumeSerialMessage(SerialListener serial, Pipe<SerialInputSchema> p) {
+	private void consumeSerialMessage(SerialListenerBase serial, Pipe<SerialInputSchema> p) {
 
 		while (PipeReader.tryReadFragment(p)) {
 		    int msgIdx = PipeReader.getMsgIdx(p);
@@ -323,26 +323,26 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
             switch (msgIdx) {   
 
                 case GroveResponseSchema.MSG_ANALOGSAMPLE_30:
-                    if (listener instanceof AnalogListener) {                        
+                    if (listener instanceof AnalogListenerBase) {                        
                         commonAnalogEventProcessing(Port.ANALOGS[PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31)],
                         				            PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11), 
                         				            PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32), 
-                        				            (AnalogListener)listener);
+                        				            (AnalogListenerBase)listener);
                         
                     }   
                 break;               
                 case GroveResponseSchema.MSG_DIGITALSAMPLE_20:
                     
-                    if (listener instanceof DigitalListener) {
+                    if (listener instanceof DigitalListenerBase) {
                         commonDigitalEventProcessing(Port.DIGITALS[PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_CONNECTOR_21)], 
                         		                     PipeReader.readLong(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_TIME_11), 
                         		                     PipeReader.readInt(p, GroveResponseSchema.MSG_DIGITALSAMPLE_20_FIELD_VALUE_22), 
-                        		                     (DigitalListener)listener);
+                        		                     (DigitalListenerBase)listener);
                     }   
                 break; 
                 case GroveResponseSchema.MSG_ENCODER_70:
                     
-                    if (listener instanceof RotaryListener) {    
+                    if (listener instanceof RotaryListenerBase) {    
                         int connector = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_CONNECTOR_71);
                         long time = PipeReader.readLong(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_TIME_11);
                         int value = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_VALUE_72);
@@ -350,7 +350,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
                         int speed = PipeReader.readInt(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_SPEED_74);
                         long duration = PipeReader.readLong(p, GroveResponseSchema.MSG_ENCODER_70_FIELD_PREVDURATION_75);
                         
-                        ((RotaryListener)listener).rotaryEvent(Port.DIGITALS[connector], time, value, delta, speed);
+                        ((RotaryListenerBase)listener).rotaryEvent(Port.DIGITALS[connector], time, value, delta, speed);
                                             
                     }   
                 break;
@@ -377,7 +377,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 	}
 	    
     
-	protected void commonDigitalEventProcessing(Port port, long time, int value, DigitalListener dListener) {
+	protected void commonDigitalEventProcessing(Port port, long time, int value, DigitalListenerBase dListener) {
 		
 		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 
@@ -398,7 +398,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 		}
 	}
 
-	protected void commonAnalogEventProcessing(Port port, long time, int value, AnalogListener aListener) {
+	protected void commonAnalogEventProcessing(Port port, long time, int value, AnalogListenerBase aListener) {
 		
 		if (isIncluded(port, includedPorts) && isNotExcluded(port, excludedPorts)) {
 			

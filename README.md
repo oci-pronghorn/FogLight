@@ -120,6 +120,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - SixAxisAccelerometer
   - [wiki](http://wiki.seeed.cc/Grove-6-Axis_AccelerometerAndCompass_V2.0/)
+  - demo -Coming Soon!
 - Temperature Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Temperature_Sensor/)
   - demo - Coming Soon!

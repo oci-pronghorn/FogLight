@@ -7,7 +7,7 @@
     <version>1</version>
   </parent>
   <groupId>com.ociweb.oe.foglight.api</groupId>
-  <artifactId>AnalogFacade</artifactId>
+  <artifactId>AnalogTransducer</artifactId>
   <version>1.0-SNAPSHOT</version>
   
   <properties>
@@ -158,7 +158,7 @@
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
 
-            <finalName>uberAnalogFacade</finalName>  
+            <finalName>uberAnalogTransducer</finalName>  
             <appendAssemblyId>false</appendAssemblyId>    
   
           </configuration>
@@ -216,8 +216,8 @@
 	            <lib>${java.cryptographic.extension.classes}</lib>
 	            <lib>${java.secure.socket.extension.classes}</lib>
 	          </libs>
-	          <injar>uberAnalogFacade.jar</injar>
-	          <outjar>AnalogFacade.jar</outjar>
+	          <injar>uberAnalogTransducer.jar</injar>
+	          <outjar>AnalogTransducer.jar</outjar>
 	        </configuration>
 	        <dependencies>
 	          <dependency>

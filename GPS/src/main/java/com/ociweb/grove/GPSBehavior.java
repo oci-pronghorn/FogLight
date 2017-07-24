@@ -13,7 +13,6 @@ public class GPSBehavior implements GeoCoordinateListener{
 	private GPS_Transducer gps;
 	public GPSBehavior(FogRuntime rt){
 		this.gps = GPS.newTransducer(rt.newCommandChannel(SERIAL_WRITER | I2C_WRITER));
-		rt.registerListener(null);
 	}
 	@Override
 	public void coordinates(int longtitude, int lattitude) {

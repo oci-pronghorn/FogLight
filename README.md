@@ -91,6 +91,9 @@ Of course, this is just a simple example; for more interesting examples that dem
 - Line Finder
   - [wiki](http://wiki.seeed.cc/Grove-Line_Finder/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LineFinder/LineFinder.md)
+- MP3Player
+  - [wiki](http://wiki.seeed.cc/Grove-Serial_MP3_Player/)
+  - demo - Coming Soon!
 - Moisture Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Moisture_Sensor/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MoistureSensor/MoistureSensor.md)
@@ -115,6 +118,8 @@ Of course, this is just a simple example; for more interesting examples that dem
 - Serial Bluetooth
   - [wiki](http://wiki.seeed.cc/Grove-Serial_Bluetooth_v3.0/)
   - demo - Coming Soon!
+- SixAxisAccelerometer
+  - [wiki](http://wiki.seeed.cc/Grove-6-Axis_AccelerometerAndCompass_V2.0/)
 - Temperature Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Temperature_Sensor/)
   - demo - Coming Soon!

@@ -60,7 +60,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - Angle Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Rotary_Angle_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AngleSensor/AngleSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AngleSensor/README.md)
 - Button
   - [wiki](http://wiki.seeed.cc/Grove-Button/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Button/Button.md)

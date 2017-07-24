@@ -8,7 +8,7 @@ package com.ociweb.iot.grove.mini_motor_driver;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *
@@ -57,8 +57,8 @@ public enum MiniMotorDriverTwig {
             
             @SuppressWarnings("unchecked")
             @Override
-            public MiniMotorDriver_Facade newFacade(FogCommandChannel...ch){
-                return new MiniMotorDriver_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+            public MiniMotorDriver_Transducer newTransducer(FogCommandChannel...ch){
+                return new MiniMotorDriver_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
             }
             
             

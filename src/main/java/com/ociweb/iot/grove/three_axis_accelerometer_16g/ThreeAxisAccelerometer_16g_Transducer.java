@@ -10,21 +10,21 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16g_Constants.*;
 import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *
  * @author huydo
  */
-public class ThreeAxisAccelerometer_16g_Facade implements IODeviceFacade,I2CListener {    
+public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer,I2CListener {    
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
     private ACT_TAP_STATUS_RegListener acttaplistener;
     private INT_SOURCE_RegListener interrlistener;
-    public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch){
+    public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch){
         this.target = ch;
     }
-    public ThreeAxisAccelerometer_16g_Facade(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener ... l){
+    public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener ... l){
         this.target = ch;
         for(ThreeAxisAccelerometer_16gListener item:l){
             if(item instanceof AccelValsListener){

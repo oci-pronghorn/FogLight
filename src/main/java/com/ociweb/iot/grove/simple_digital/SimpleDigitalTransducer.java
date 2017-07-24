@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.Port;
 
-public class SimpleDigitalFacade implements IODeviceFacade, DigitalListener {
+public class SimpleDigitalTransducer implements IODeviceTransducer, DigitalListener {
 	private final FogCommandChannel ch;
 	private final Port p;
 
@@ -17,7 +17,7 @@ public class SimpleDigitalFacade implements IODeviceFacade, DigitalListener {
 
 
 	//TODO: STD DEV LISTENERS AS VARIABLES
-	public SimpleDigitalFacade(FogCommandChannel ch, Port p, SimpleDigitalListener... dl){
+	public SimpleDigitalTransducer(FogCommandChannel ch, Port p, SimpleDigitalListener... dl){
 		ch.ensurePinWriting();
 		this.ch = ch;
 		this.p = p;

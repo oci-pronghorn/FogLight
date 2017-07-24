@@ -11,12 +11,12 @@ import com.ociweb.iot.maker.Port;
  * @author Ray Lo, Nathan Tippy
  *
  */
-public class FourDigitDisplayFacade {
+public class FourDigitDisplayTransducer {
 	
 	private final FogCommandChannel ch;
 	private final Port p;
 	
-	public FourDigitDisplayFacade(FogCommandChannel ch, Port p){
+	public FourDigitDisplayTransducer(FogCommandChannel ch, Port p){
 		this.ch = ch;
 		this.p = p;
 	}

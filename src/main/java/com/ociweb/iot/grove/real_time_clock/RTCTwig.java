@@ -8,7 +8,7 @@ package com.ociweb.iot.grove.real_time_clock;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *
@@ -47,8 +47,8 @@ public enum RTCTwig {
                 }
                 @SuppressWarnings("unchecked")
                 @Override
-                public RTC_Facade newFacade(FogCommandChannel...ch){
-                    return new RTC_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+                public RTC_Transducer newTransducer(FogCommandChannel...ch){
+                    return new RTC_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
                 }
                 /**
                  * @return Delay, in milliseconds, for scan. TODO: What's scan?

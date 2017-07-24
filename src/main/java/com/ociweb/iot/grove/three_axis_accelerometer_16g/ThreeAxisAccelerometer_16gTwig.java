@@ -9,7 +9,7 @@ import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *
@@ -69,8 +69,8 @@ public enum ThreeAxisAccelerometer_16gTwig {
             
             @SuppressWarnings("unchecked")
             @Override
-            public ThreeAxisAccelerometer_16g_Facade newFacade(FogCommandChannel...ch){
-                return new ThreeAxisAccelerometer_16g_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+            public ThreeAxisAccelerometer_16g_Transducer newTransducer(FogCommandChannel...ch){
+                return new ThreeAxisAccelerometer_16g_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
             }
             /**
              *

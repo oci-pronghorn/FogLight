@@ -3,7 +3,7 @@ package com.ociweb.iot.grove.gps;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.SerialIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 public enum GPSTwig implements SerialIODevice{
 	GPS (){
@@ -22,8 +22,8 @@ public enum GPSTwig implements SerialIODevice{
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public GPS_Facade newFacade(FogCommandChannel... ch) {
-			return new GPS_Facade(ch[0]);
+		public GPS_Transducer newTransducer(FogCommandChannel... ch) {
+			return new GPS_Transducer(ch[0]);
 		}
 		
 	};
@@ -82,7 +82,7 @@ public enum GPSTwig implements SerialIODevice{
 	}
 
 	@Override
-	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

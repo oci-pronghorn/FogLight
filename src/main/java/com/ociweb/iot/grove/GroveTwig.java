@@ -6,12 +6,12 @@ import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import static com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay.*;
 
-import com.ociweb.iot.grove.oled.OLED_128x64_Facade;
-import com.ociweb.iot.grove.oled.OLED_96x96_Facade;
+import com.ociweb.iot.grove.oled.OLED_128x64_Transducer;
+import com.ociweb.iot.grove.oled.OLED_96x96_Transducer;
 
 
 //NOTE: Analog and Digital I/O twig information should now go into the AnalogDigitalTwig enum, while twigs
@@ -267,8 +267,8 @@ public enum GroveTwig implements IODevice, ADIODevice, I2CIODevice {
 		}
 		@SuppressWarnings("unchecked")
 		@Override
-		public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
-			return (F) new OLED_128x64_Facade(ch[0]);
+		public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
+			return (F) new OLED_128x64_Transducer(ch[0]);
 		}
 	},
 
@@ -279,8 +279,8 @@ public enum GroveTwig implements IODevice, ADIODevice, I2CIODevice {
 		}
 		@SuppressWarnings("unchecked")
 		@Override
-		public <F extends IODeviceFacade> F newFacade(FogCommandChannel...ch){
-			return (F) new OLED_96x96_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+		public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel...ch){
+			return (F) new OLED_96x96_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
 		}
 	},
 
@@ -398,8 +398,8 @@ public enum GroveTwig implements IODevice, ADIODevice, I2CIODevice {
 		return 1;
 	}
 
-
-	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+	@Override
+	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
 		return null;
 	}
 }

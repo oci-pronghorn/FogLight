@@ -10,7 +10,7 @@ import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *
@@ -106,8 +106,8 @@ public enum SixAxisAccelerometerTwig {
             
             @SuppressWarnings("unchecked")
             @Override
-            public SixAxisAccelerometer_Facade newFacade(FogCommandChannel...ch){
-                return new SixAxisAccelerometer_Facade(ch[0]);
+            public SixAxisAccelerometer_Transducer newTransducer(FogCommandChannel...ch){
+                return new SixAxisAccelerometer_Transducer(ch[0]);
             }
             /**
              *

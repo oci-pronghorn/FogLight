@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 import static com.ociweb.pronghorn.util.ma.MAvgRollerLong.*;
 
-public class SimpleAnalogFacade implements IODeviceFacade, AnalogListener{
+public class SimpleAnalogTransducer implements IODeviceTransducer, AnalogListener{
 	private FogCommandChannel ch;
 	private Port p;
 
@@ -26,7 +26,7 @@ public class SimpleAnalogFacade implements IODeviceFacade, AnalogListener{
 	 * @param p
 	 * @param ls var args of listeners specific to this SimpleAnalog device's AnalogEvent.
 	 */
-	public SimpleAnalogFacade(FogCommandChannel ch, Port p, SimpleAnalogListener... ls){
+	public SimpleAnalogTransducer(FogCommandChannel ch, Port p, SimpleAnalogListener... ls){
 		
 		this.p  = p;
 		this.ch = ch;
@@ -46,7 +46,7 @@ public class SimpleAnalogFacade implements IODeviceFacade, AnalogListener{
 		}
 	}
 	
-	public SimpleAnalogFacade(Port p, SimpleAnalogListener... ls){
+	public SimpleAnalogTransducer(Port p, SimpleAnalogListener... ls){
 		this.p  = p;
 		this.ch = null;
 
@@ -71,7 +71,7 @@ public class SimpleAnalogFacade implements IODeviceFacade, AnalogListener{
 		return ch.setValueAndBlock(p, val, durationMillis);
 	}
 
-	public SimpleAnalogFacade registerListener(RunningStatsListener l){
+	public SimpleAnalogTransducer registerListener(RunningStatsListener l){
 		if (l instanceof RunningStdDevListener){
 			rsListeners.add((RunningStdDevListener) l);
 		}
@@ -82,7 +82,7 @@ public class SimpleAnalogFacade implements IODeviceFacade, AnalogListener{
 		return this;
 	}
 
-	public SimpleAnalogFacade registerListener(MovingStatsListener l, int bucketSize){
+	public SimpleAnalogTransducer registerListener(MovingStatsListener l, int bucketSize){
 		if ( l instanceof MovingAverageListener){
 			maListeners.add((MovingAverageListener) l);
 			maRollers.add(new MAvgRollerLong(bucketSize));

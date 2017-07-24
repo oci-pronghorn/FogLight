@@ -10,18 +10,18 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.real_time_clock.RTC_Constants.*;
 import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 /**
  *
  * @author huydo
  */
-public class RTC_Facade implements IODeviceFacade,I2CListener {
+public class RTC_Transducer implements IODeviceTransducer,I2CListener {
     private final FogCommandChannel target;
     private RTCListener listener;
-    public RTC_Facade(FogCommandChannel ch){
+    public RTC_Transducer(FogCommandChannel ch){
         this.target = ch;
     }
-    public RTC_Facade(FogCommandChannel ch,RTCListener l){
+    public RTC_Transducer(FogCommandChannel ch,RTCListener l){
         this.target = ch;
         this.listener = l;
     }

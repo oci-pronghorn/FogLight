@@ -8,7 +8,7 @@ import static com.ociweb.iot.maker.Port.*;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 
@@ -87,8 +87,8 @@ public class Grove_FourDigitDisplay implements IODevice{
 	private Grove_FourDigitDisplay(){
 	}
 	
-	public static FourDigitDisplayFacade newFacade(FogCommandChannel ch, Port p){
-		return new FourDigitDisplayFacade(ch, p);
+	public static FourDigitDisplayTransducer newTransducer(FogCommandChannel ch, Port p){
+		return new FourDigitDisplayTransducer(ch, p);
 	}
 	
 	public static boolean init(FogCommandChannel ch, Port p){
@@ -370,7 +370,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 	}
 
 	@Override
-	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

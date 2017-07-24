@@ -8,7 +8,7 @@ package com.ociweb.iot.astropi;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *
@@ -75,7 +75,7 @@ public enum AstroPiTwig {
             }
             
             @Override
-            public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+            public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
             

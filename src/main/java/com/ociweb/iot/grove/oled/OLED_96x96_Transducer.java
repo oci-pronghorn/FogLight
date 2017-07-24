@@ -7,16 +7,16 @@ import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
-public class OLED_96x96_Facade extends BinaryOLED implements IODeviceFacade{
+public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransducer{
 
 	private int lowPixelLevel = 0x0F;
 	private int highPixelLevel = 0xF0;
 	private int iteration = 0;
 	private OLED_96x96_DriverChip chip;
 
-	public OLED_96x96_Facade(FogCommandChannel ch){
+	public OLED_96x96_Transducer(FogCommandChannel ch){
 		//A nibble determines pixel. A byte is therefore two horizontally adjascent pixels.
 		//96x96 divided 2. Since each pixel takes a nibble to send
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);

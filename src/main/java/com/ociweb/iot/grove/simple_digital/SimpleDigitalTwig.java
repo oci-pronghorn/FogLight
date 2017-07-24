@@ -3,7 +3,7 @@ package com.ociweb.iot.grove.simple_digital;
 import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 public enum SimpleDigitalTwig implements ADIODevice {
 	Buzzer() {
@@ -171,7 +171,7 @@ public enum SimpleDigitalTwig implements ADIODevice {
 		return 1;
 	}
 
-	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
 		return null;
 	}
 

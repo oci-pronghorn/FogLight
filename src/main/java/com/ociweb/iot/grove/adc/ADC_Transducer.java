@@ -10,7 +10,7 @@ import static com.ociweb.iot.grove.adc.ADC_Constants.*;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -18,11 +18,11 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class ADC_Facade implements IODeviceFacade,I2CListener{
+public class ADC_Transducer implements IODeviceTransducer,I2CListener{
     private final FogCommandChannel target;
     private AlertStatusListener alertListener;
     private ConversionResultListener resultListener;
-    public ADC_Facade(FogCommandChannel ch, ADCListener... l){
+    public ADC_Transducer(FogCommandChannel ch, ADCListener... l){
         this.target = ch;
         for(ADCListener item:l){
             if(item instanceof AlertStatusListener){

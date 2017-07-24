@@ -8,7 +8,7 @@ package com.ociweb.iot.grove.motor_driver;
 import com.ociweb.gl.api.StartupListener;
 import static com.ociweb.iot.grove.motor_driver.MotorDriver_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -16,7 +16,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class MotorDriver_Facade implements IODeviceFacade,StartupListener{
+public class MotorDriver_Transducer implements IODeviceTransducer,StartupListener{
     private final FogCommandChannel target;
     public int DRIVER_I2C_ADD = 0x0f; //default address of the driver
     private int motor1Vel = 0;
@@ -27,11 +27,11 @@ public class MotorDriver_Facade implements IODeviceFacade,StartupListener{
         CH2
     }
     
-    public MotorDriver_Facade(FogCommandChannel ch){
+    public MotorDriver_Transducer(FogCommandChannel ch){
         this.target = ch;
     }
     
-    public MotorDriver_Facade(FogCommandChannel ch,int i2cAddress){
+    public MotorDriver_Transducer(FogCommandChannel ch,int i2cAddress){
         this.target = ch;
         this.DRIVER_I2C_ADD = i2cAddress;
     }

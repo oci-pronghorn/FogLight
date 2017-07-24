@@ -2,7 +2,7 @@ package com.ociweb.iot.grove.lcd_rgb;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -618,7 +618,7 @@ public class Grove_LCD_RGB implements IODevice {
     }
 
 	@Override
-	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

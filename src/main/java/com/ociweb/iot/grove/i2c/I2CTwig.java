@@ -3,7 +3,7 @@ package com.ociweb.iot.grove.i2c;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 public enum I2CTwig implements I2CIODevice {
 	I2C{
@@ -73,7 +73,7 @@ public enum I2CTwig implements I2CIODevice {
 	}
 
 	@Override
-	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -8,7 +8,7 @@ package com.ociweb.iot.grove.motor_driver;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *
@@ -38,8 +38,8 @@ public enum MotorDriverTwig implements I2CIODevice {
         }
         @SuppressWarnings("unchecked")
         @Override
-        public MotorDriver_Facade newFacade(FogCommandChannel...ch){
-            return new MotorDriver_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+        public MotorDriver_Transducer newTransducer(FogCommandChannel...ch){
+            return new MotorDriver_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
         }
         /**
          * @return Delay, in milliseconds, for scan. TODO: What's scan?

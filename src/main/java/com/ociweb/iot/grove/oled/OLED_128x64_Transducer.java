@@ -1,6 +1,6 @@
 package com.ociweb.iot.grove.oled;
 
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.*;
 import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction.Left;
@@ -13,18 +13,18 @@ import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**
- * IODeviceFacade object that holds on to the FogCommandChannel, data_output array, and cmd_output array.
+ * IODeviceTransducer object that holds on to the FogCommandChannel, data_output array, and cmd_output array.
  * This class also contains all of the methods that can communicate with the OLED 128x64 display.
  * @author Ray Lo, Nathan Tippy
  *
  */
-public class OLED_128x64_Facade extends BinaryOLED implements IODeviceFacade{
+public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransducer{
 	/**
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
 	 * @param ch FogCommandChannel used for the i2c write.
 	 */
 
-	public OLED_128x64_Facade(FogCommandChannel ch){
+	public OLED_128x64_Transducer(FogCommandChannel ch){
 		super(ch, new int[1024], new int[32], OLEDADDRESS);
 		//the most amount of data we can ever send at once as this is one entire frame worth of data
 		//the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.

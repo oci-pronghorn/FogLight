@@ -2,7 +2,7 @@ package com.ociweb.iot.grove.oled;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 public enum OLEDTwig implements I2CIODevice {
 	
 	OLED_128x64(){
@@ -12,8 +12,8 @@ public enum OLEDTwig implements I2CIODevice {
 		}
 		@SuppressWarnings("unchecked")
 		@Override
-		public OLED_128x64_Facade newFacade(FogCommandChannel... ch) {
-			return new OLED_128x64_Facade(ch[0]);
+		public OLED_128x64_Transducer newTransducer(FogCommandChannel... ch) {
+			return new OLED_128x64_Transducer(ch[0]);
 		}
 	},
 	
@@ -24,8 +24,8 @@ public enum OLEDTwig implements I2CIODevice {
 		}
 		@SuppressWarnings("unchecked")
 		@Override
-		public OLED_96x96_Facade newFacade(FogCommandChannel...ch){
-			return new OLED_96x96_Facade(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+		public OLED_96x96_Transducer newTransducer(FogCommandChannel...ch){
+			return new OLED_96x96_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
 		}	
 	}
 	;
@@ -85,7 +85,7 @@ public enum OLEDTwig implements I2CIODevice {
 	}
 
 	@Override
-	public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch) {
+	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
 		return null;
 	}

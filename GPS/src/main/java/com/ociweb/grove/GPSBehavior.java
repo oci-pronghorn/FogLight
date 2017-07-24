@@ -12,11 +12,12 @@ public class GPSBehavior implements GeoCoordinateListener{
 	private FogCommandChannel ch;
 	private GPS_Transducer gps;
 	public GPSBehavior(FogRuntime rt){
-		this.gps = GPS.newTransducer(rt.newCommandChannel(SERIAL_WRITER | I2C_WRITER));
+		this.gps = new GPS_Transducer(rt.newCommandChannel(SERIAL_WRITER), this);
+
 	}
 	@Override
 	public void coordinates(int longtitude, int lattitude) {
-		
+		System.out.println("Long:" + longtitude + ", Lat: " + lattitude);
 	}
 	
 }

@@ -8,7 +8,8 @@ public class AstroPi_Constants {
     
     public static final byte JOYSTICK_REG_ADDR = (byte)0b11110010;
     //LSM9DS1 3D accelerometer, 3D gyroscope, 3D magnetometer
-    public static final int LSM9DS1_I2C_ADDR = 0x6a;
+    public static final int LSM9DS1_AG_ADDR = 0x6a;
+    public static final int LSM9DS1_M_ADDR = 0x1c;
     
     public static final int ACT_THS		=	0x04;
     public static final int ACT_DUR		=	0x05;

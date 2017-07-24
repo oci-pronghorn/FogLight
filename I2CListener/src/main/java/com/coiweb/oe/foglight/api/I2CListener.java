@@ -6,6 +6,8 @@ import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
+import com.ociweb.iot.grove.adc.ADCTwig.ADC;
+
 public class I2CListener implements FogApp
 {
     ///////////////////////
@@ -18,8 +20,8 @@ public class I2CListener implements FogApp
         ////////////////////////////
         //Connection specifications
         ///////////////////////////
-
-        
+    	c.useI2C();
+    	c.connect(ADC.ReadConversionResult);
     }
 
 
@@ -28,6 +30,7 @@ public class I2CListener implements FogApp
         //////////////////////////////
         //Specify the desired behavior
         //////////////////////////////
+    	runtime.addI2CListener(new I2CListenerBehavrio(runtime));
 
     }
           

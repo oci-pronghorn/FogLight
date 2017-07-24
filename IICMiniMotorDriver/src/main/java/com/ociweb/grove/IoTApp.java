@@ -3,7 +3,7 @@ package com.ociweb.grove;
 
 import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriverTwig.*;
-import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Facade;
+import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Transducer;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;

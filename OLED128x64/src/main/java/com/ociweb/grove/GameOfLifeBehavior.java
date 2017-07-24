@@ -5,7 +5,8 @@ import static com.ociweb.iot.grove.oled.OLEDTwig.*;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.*;
-import com.ociweb.iot.grove.oled.OLED_128x64_Facade;
+
+import com.ociweb.iot.grove.oled.OLED_128x64_Transducer;
 import com.ociweb.iot.maker.FogRuntime;
 import static com.ociweb.iot.maker.FogRuntime.*;
 
@@ -13,7 +14,7 @@ public class GameOfLifeBehavior implements StartupListener, TimeListener {
 	private int[][] curState = new int[rowCount][colCount];
 	private int[][] next_state = new int[rowCount][colCount];
 	private final boolean enableMonitoring = false;
-	private final OLED_128x64_Facade display;
+	private final OLED_128x64_Transducer display;
 	
 	public GameOfLifeBehavior(FogRuntime rt){
 		this(rt, def_start);
@@ -29,7 +30,7 @@ public class GameOfLifeBehavior implements StartupListener, TimeListener {
 	}
 	public GameOfLifeBehavior(FogRuntime rt, int[][] start_state){
 		curState = start_state;
-		display = OLED_128x64.newFacade(rt.newCommandChannel(I2C_WRITER,20000));
+		display = OLED_128x64.newTransducer(rt.newCommandChannel(I2C_WRITER,20000));
 	}
 	
 	@Override

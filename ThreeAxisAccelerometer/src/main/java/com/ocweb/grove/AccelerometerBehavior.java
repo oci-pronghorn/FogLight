@@ -20,11 +20,11 @@ import com.ociweb.iot.maker.I2CListener;
 public class AccelerometerBehavior implements StartupListener,INT_SOURCE_RegListener,AccelValsListener {
     
     private final FogCommandChannel c;
-    private final ThreeAxisAccelerometer_16g_Facade accSensor;
+    private final ThreeAxisAccelerometer_16g_Transducer accSensor;
     
     public AccelerometerBehavior(FogRuntime runtime){
         this.c = runtime.newCommandChannel(I2C_WRITER);
-        accSensor = new ThreeAxisAccelerometer_16g_Facade(c,this);
+        accSensor = new ThreeAxisAccelerometer_16g_Transducer(c,this);
         runtime.registerListener(accSensor);
     }
     

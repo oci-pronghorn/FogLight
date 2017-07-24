@@ -8,7 +8,7 @@ package com.ociweb.grove;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import static com.ociweb.iot.grove.motor_driver.MotorDriverTwig.MotorDriver;
-import com.ociweb.iot.grove.motor_driver.MotorDriver_Facade;
+import com.ociweb.iot.grove.motor_driver.MotorDriver_Transducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import static com.ociweb.iot.maker.FogRuntime.*;
@@ -19,10 +19,10 @@ import static com.ociweb.iot.maker.FogRuntime.*;
  */
 public class MotorDriverBehavior implements StartupListener{
     FogCommandChannel ch;
-    MotorDriver_Facade controller;
+    MotorDriver_Transducer controller;
     public MotorDriverBehavior(FogRuntime runtime){    
         this.ch = runtime.newCommandChannel(I2C_WRITER, 52000);
-        controller = MotorDriver.newFacade(ch);
+        controller = MotorDriver.newTransducer(ch);
     }
     
     @Override

@@ -7,7 +7,7 @@ import static com.ociweb.iot.grove.oled.OLEDTwig.*;
 
 import com.ociweb.iot.maker.FogRuntime;
 
-import com.ociweb.iot.grove.oled.OLED_96x96_Facade;
+import com.ociweb.iot.grove.oled.OLED_96x96_Transducer;
 import static com.ociweb.grove.OCI_Logo.*;
 import static com.ociweb.grove.Grumpy.*;
 import static com.ociweb.grove.PiLogo.*;
@@ -15,9 +15,9 @@ import static com.ociweb.grove.DexterLogo.*;
 import static com.ociweb.iot.maker.FogRuntime.*;
 
 public class OLED_96x96Behavior implements StartupListener, TimeListener{
-	private final OLED_96x96_Facade display;
+	private final OLED_96x96_Transducer display;
 	public OLED_96x96Behavior(FogRuntime rt){
-		display = OLED_96x96.newFacade(rt.newCommandChannel(I2C_WRITER)); 
+		display = OLED_96x96.newTransducer(rt.newCommandChannel(I2C_WRITER)); 
 
 	}
 	@Override

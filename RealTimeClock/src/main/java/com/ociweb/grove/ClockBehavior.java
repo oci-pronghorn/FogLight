@@ -10,7 +10,7 @@ import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.astropi.*;
 
 import com.ociweb.iot.grove.real_time_clock.RTCListener;
-import com.ociweb.iot.grove.real_time_clock.RTC_Facade;
+import com.ociweb.iot.grove.real_time_clock.RTC_Transducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import static com.ociweb.iot.maker.FogRuntime.*;
 import com.ociweb.iot.maker.FogRuntime;
@@ -24,10 +24,10 @@ import java.util.Arrays;
 //public class ClockBehavior implements RTCListener{
 //
 //    private FogCommandChannel ch;
-//    RTC_Facade clock;
+//    RTC_Transducer clock;
 //    public ClockBehavior(FogRuntime runtime){
 //        this.ch = runtime.newCommandChannel(I2C_WRITER);
-//        clock = new RTC_Facade(ch,this);
+//        clock = new RTC_Transducer(ch,this);
 //    }
 //
 //    @Override

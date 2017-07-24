@@ -18,11 +18,11 @@ import static com.ociweb.iot.maker.FogRuntime.*;
 public class AccelBehavior implements AccelValsListener,StartupListener,MagValsListener { 
     private final FogCommandChannel ch;
     
-    private final SixAxisAccelerometer_Facade accSensor;
+    private final SixAxisAccelerometer_Transducer accSensor;
     
     AccelBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);     
-        accSensor = new SixAxisAccelerometer_Facade(ch,this,this);
+        accSensor = new SixAxisAccelerometer_Transducer(ch,this,this);
         runtime.registerListener(accSensor);
     }
    

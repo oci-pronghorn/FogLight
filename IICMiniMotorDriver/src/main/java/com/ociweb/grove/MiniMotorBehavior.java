@@ -6,7 +6,7 @@
 package com.ociweb.grove;
 
 import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriverListener;
-import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Facade;
+import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Transducer;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import static com.ociweb.iot.maker.FogCommandChannel.*;
@@ -19,11 +19,11 @@ import com.ociweb.iot.maker.Port;
  */
 public class MiniMotorBehavior implements AnalogListener,MiniMotorDriverListener {
     FogCommandChannel ch;
-    MiniMotorDriver_Facade motorController;
+    MiniMotorDriver_Transducer motorController;
     
     MiniMotorBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);
-        motorController = new MiniMotorDriver_Facade(ch,this);
+        motorController = new MiniMotorDriver_Transducer(ch,this);
         runtime.registerListener(motorController);
     }
     

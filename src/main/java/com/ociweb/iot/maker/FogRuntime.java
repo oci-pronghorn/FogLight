@@ -59,7 +59,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 
 	public FogRuntime() {
-		this(null);
+		this(new String[0]);
 	}
 
 	public FogRuntime(String[] args) {
@@ -349,7 +349,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	}
 
 	public static FogRuntime run(FogApp app) {
-		return run(app,null);
+		return run(app,new String[0]);
 	}
 	public static FogRuntime run(FogApp app, String[] args) throws UnsupportedOperationException {
 		if (FogRuntime.isRunning){

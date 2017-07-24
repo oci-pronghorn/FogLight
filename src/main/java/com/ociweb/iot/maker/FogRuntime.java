@@ -59,7 +59,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 
 	public FogRuntime() {
-		this(null);
+		this(new String[0]);
 	}
 
 	public FogRuntime(String[] args) {

@@ -90,16 +90,16 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LightSensor/LightSensor.md)
 - Line Finder
   - [wiki](http://wiki.seeed.cc/Grove-Line_Finder/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LineFinder/LineFinder.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LineFinder/README.md)
 - MP3Player
   - [wiki](http://wiki.seeed.cc/Grove-Serial_MP3_Player/)
   - demo - Coming Soon!
 - Moisture Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Moisture_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MoistureSensor/MoistureSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LineFinder/README.md)
 - Motion Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Motion_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MotionSensor/MotionSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MotionSensor/README.md)
 - OLED 128x64
   - [wiki](http://wiki.seeed.cc/Grove-OLED_Display_0.96inch/)
   - demo - Coming Soon!

@@ -11,15 +11,19 @@ public class HTTPClient implements FogApp
     @Override
     public void declareConnections(Hardware c) {   
     	c.useNetClient();
-    	c.enableTelemetry();
+    	//c.enableTelemetry();
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {       
     	
-    	int responseId = runtime.addResponseListener(new HTTPResponse()).getId();
+    	runtime.addStartupListener(new HTTPGetBehaviorSingle(runtime));
     	
-    	runtime.addStartupListener(new HTTPGetBehavior(runtime, responseId));
+    	
+    	//int responseId = runtime.addResponseListener(new HTTPResponse()).getId();    	
+    	//runtime.addStartupListener(new HTTPGetBehaviorChained(runtime, responseId));
+    	
+    	
     	
     }
           

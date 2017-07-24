@@ -16,18 +16,14 @@ public class HTTPResponse implements HTTPResponseListener {
 		
 		//TODO: this is not yet implemented.. Under active work...
 		Payloadable payload = new Payloadable() {
-
 			@Override
 			public void read(BlobReader reader) {
-				// TODO Auto-generated method stub
 				System.out.println(reader.readUTFOfLength(reader.available()));
-				
 			}
-			
 		};
+		//TODO: This index location does not appear to be right
 		reader.openPayloadData(payload );
-		//TODO: not sure this is the right interface for this?
-		
+
 		return true;
 	}
 

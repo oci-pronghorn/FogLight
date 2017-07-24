@@ -18,7 +18,7 @@ public class AppTest {
 	 @Test
 	    public void testApp()
 	    {
-		    FogRuntime runtime = FogRuntime.test(new AnalogFacade());	    	
+		    FogRuntime runtime = FogRuntime.test(new AnalogTransducerDemo());	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    

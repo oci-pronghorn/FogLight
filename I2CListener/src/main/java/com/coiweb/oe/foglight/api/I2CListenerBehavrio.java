@@ -17,18 +17,16 @@ public class I2CListenerBehavrio implements I2CListener, StartupListener {
     private final ADC_Transducer sensor;
         
 	public I2CListenerBehavrio(FogRuntime runtime) {
-		// TODO Auto-generated constructor stub
+
 		this.ch = runtime.newCommandChannel(I2C_WRITER);
         sensor = new ADC_Transducer(ch);
 	}
 
 	@Override
 	public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
-		// TODO Auto-generated method stub
-		 if(addr == ADDR_ADC121){
-	            if(register == REG_ADDR_RESULT){
-	                System.out.println(sensor.interpretData(backing, position, length, mask));
-	            }     
+
+		if(addr == ADDR_ADC121 && register == REG_ADDR_RESULT){
+			 System.out.println(sensor.interpretData(backing, position, length, mask));   
 	     }
 	}
 	@Override

@@ -10,16 +10,12 @@ import com.ociweb.iot.grove.adc.ADCTwig.ADC;
 
 public class I2CListener implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
+
 
 
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
+        
     	c.useI2C();
     	c.connect(ADC.ReadConversionResult);
     }
@@ -27,9 +23,7 @@ public class I2CListener implements FogApp
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
+        
     	runtime.addI2CListener(new I2CListenerBehavrio(runtime));
 
     }

@@ -11,6 +11,7 @@ import static com.ociweb.iot.grove.adc.ADC_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -18,7 +19,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class ADC_Transducer implements IODeviceTransducer,I2CListener{
+public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
     private final FogCommandChannel target;
     private AlertStatusListener alertListener;
     private ConversionResultListener resultListener;

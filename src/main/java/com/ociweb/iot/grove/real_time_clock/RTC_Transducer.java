@@ -11,11 +11,12 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.real_time_clock.RTC_Constants.*;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
 /**
  *
  * @author huydo
  */
-public class RTC_Transducer implements IODeviceTransducer,I2CListener {
+public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer {
     private final FogCommandChannel target;
     private RTCListener listener;
     public RTC_Transducer(FogCommandChannel ch){

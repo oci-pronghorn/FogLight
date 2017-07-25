@@ -45,7 +45,7 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 - ImageListener
   - demo - Coming Soon!
 - MQTTClient
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/MQTTClient/MQTTClient.md)
 - PubSub
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/PubSub/PubSub.md)
 - PubSubStructured

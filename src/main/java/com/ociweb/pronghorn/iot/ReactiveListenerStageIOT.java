@@ -272,7 +272,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 			int length = PipeReader.readBytesLength(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 			int mask = PipeReader.readBytesMask(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12);
 		    
-		    commonI2CEventProcessing((I2CListener) listener, addr, register, time, backing, position, length, mask);
+		    commonI2CEventProcessing((I2CListenerBase) listener, addr, register, time, backing, position, length, mask);
 
 	}
 

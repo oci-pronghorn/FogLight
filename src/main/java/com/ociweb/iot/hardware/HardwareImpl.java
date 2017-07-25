@@ -25,6 +25,11 @@ import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
+import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.impl.DigitalListenerBase;
+import com.ociweb.iot.impl.I2CListenerBase;
+import com.ociweb.iot.impl.RotaryListenerBase;
+import com.ociweb.iot.impl.SerialListenerBase;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.Baud;
 import com.ociweb.iot.maker.DigitalListener;
@@ -34,6 +39,11 @@ import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.SerialListener;
+import com.ociweb.iot.transducer.AnalogListenerTransducer;
+import com.ociweb.iot.transducer.DigitalListenerTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
+import com.ociweb.iot.transducer.RotaryListenerTransducer;
+import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
@@ -367,47 +377,25 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
 	}
 
-	private final ChildClassScannerVisitor deepSerialListener = new ChildClassScannerVisitor<ListenerTransducer>() {
-		@Override
-		public boolean visit(ListenerTransducer child, Object topParent) {
-			boolean found = child instanceof SerialListener;
-			return !found;
-		}		
-	};
-	
-	private final ChildClassScannerVisitor deepI2CListener = new ChildClassScannerVisitor<ListenerTransducer>() {
-		@Override
-		public boolean visit(ListenerTransducer child, Object topParent) {
-			boolean found = child instanceof I2CListener;
-			return !found;
-		}		
-	};
-	
-	private final ChildClassScannerVisitor deepPinsListener = new ChildClassScannerVisitor<ListenerTransducer>() {
-		@Override
-		public boolean visit(ListenerTransducer child, Object topParent) {
-			boolean found = child instanceof DigitalListener || 
-					        child instanceof AnalogListener || 
-					        child instanceof RotaryListener;
-			return !found;
-		}		
-	};
+
 	
 	public boolean isListeningToSerial(Object listener) {
-		return listener instanceof SerialListener
-			   || !ChildClassScanner.visitUsedByClass(listener, deepSerialListener, ListenerTransducer.class);
+		return listener instanceof SerialListenerBase
+			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, SerialListenerTransducer.class);
 	}
 	
 	public boolean isListeningToI2C(Object listener) {
-		return listener instanceof I2CListener
-				 || !ChildClassScanner.visitUsedByClass(listener, deepI2CListener, ListenerTransducer.class);
+		return listener instanceof I2CListenerBase
+				 || !ChildClassScanner.visitUsedByClass(listener, deepListener, I2CListenerTransducer.class);
 	}
 
 	public boolean isListeningToPins(Object listener) {
-		return listener instanceof DigitalListener || 
-			   listener instanceof AnalogListener || 
-			   listener instanceof RotaryListener
-			   || !ChildClassScanner.visitUsedByClass(listener, deepPinsListener, ListenerTransducer.class);
+		return listener instanceof DigitalListenerBase || 
+			   listener instanceof AnalogListenerBase || 
+			   listener instanceof RotaryListenerBase
+			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, DigitalListenerTransducer.class)
+			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, AnalogListenerTransducer.class)
+			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, RotaryListenerTransducer.class);
 	}
 	
 	private Pipe<MessagePubSub> getTempPipeOfStartupSubscriptions() {

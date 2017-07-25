@@ -12,6 +12,7 @@ import com.ociweb.iot.grove.real_time_clock.RTC_Transducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import static com.ociweb.iot.maker.FogRuntime.*;
 import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.I2CListener;
 
 /**
  *

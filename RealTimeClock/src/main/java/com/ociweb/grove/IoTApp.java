@@ -23,7 +23,7 @@ public class IoTApp implements FogApp
         // // specify each of the connections on the harware, eg which component is plugged into which connection.
         c.useI2C();
         c.connect(RTC.ReadTime);
-
+        c.enableTelemetry();
     }
     
     

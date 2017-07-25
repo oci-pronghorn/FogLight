@@ -24,7 +24,6 @@ public class MiniMotorBehavior implements AnalogListener,MiniMotorDriverListener
     MiniMotorBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);
         motorController = new MiniMotorDriver_Transducer(ch,this);
-        runtime.registerListener(motorController);
     }
     
     

@@ -25,7 +25,6 @@ public class AccelerometerBehavior implements StartupListener,INT_SOURCE_RegList
     public AccelerometerBehavior(FogRuntime runtime){
         this.c = runtime.newCommandChannel(I2C_WRITER);
         accSensor = new ThreeAxisAccelerometer_16g_Transducer(c,this);
-        runtime.registerListener(accSensor);
     }
     
     @Override

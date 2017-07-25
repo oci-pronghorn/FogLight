@@ -7,6 +7,8 @@ package com.ociweb.iot.astropi;
 
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -15,7 +17,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class AstroPi implements I2CListener {
+public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
     private final FogCommandChannel target;
     private int[][][] bitmap = new int [8][8][3];
     
@@ -260,13 +262,5 @@ public class AstroPi implements I2CListener {
                 joysticklistener.joystickEvent(up, down, left, right, push);
             }
         }
-    }
-    
-    /*   LSM9DS1 3D accelerometer, 3D gyroscope, 3D magnetometer  */
-    public void initGyro(){
-        
-    }
-    
-    
-    
+    }    
 }

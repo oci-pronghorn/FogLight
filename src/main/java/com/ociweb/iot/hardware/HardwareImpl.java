@@ -825,6 +825,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return IDX_NET;
 	}
 
+	public boolean isTestHardware() {
+		return false;
+	}
 	
 	
 }

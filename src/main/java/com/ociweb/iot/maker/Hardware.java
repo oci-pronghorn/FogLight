@@ -109,5 +109,7 @@ public interface Hardware extends Builder {
 	 */
     Hardware useSerial(Baud baud, String device);
    
+    
+    boolean isTestHardware();
    
 }

@@ -47,7 +47,14 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         target.i2cCommandClose();
         target.i2cFlushBatch();
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);
-        
+    }
+
+    public int getMinVelocity() {
+        return -255;
+    }
+
+    public int getMaxVelocity() {
+        return 255;
     }
 
     /**
@@ -84,15 +91,17 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         }else if(motor1Vel < 0 && motor2Vel >= 0){
             direction(M1ACW_M2CW);
         }
-        
-        motor1Vel = (Math.abs(motor1Vel)>255)?255:Math.abs(motor1Vel);
-        motor2Vel = (Math.abs(motor2Vel)>255)?255:Math.abs(motor2Vel);
+
+        int actualMotor1Vel = Math.abs(motor1Vel);
+        int actualMotor2Vel = Math.abs(motor2Vel);
+        if (actualMotor1Vel > 255) actualMotor1Vel = 255;
+        if (actualMotor2Vel > 255) actualMotor2Vel = 255;
         
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
         
         i2cPayloadWriter.writeByte(SPEED_REG);
-        i2cPayloadWriter.writeByte(motor1Vel);
-        i2cPayloadWriter.writeByte(motor2Vel);
+        i2cPayloadWriter.writeByte(actualMotor1Vel);
+        i2cPayloadWriter.writeByte(actualMotor2Vel);
         
         target.i2cCommandClose();
         target.i2cFlushBatch();

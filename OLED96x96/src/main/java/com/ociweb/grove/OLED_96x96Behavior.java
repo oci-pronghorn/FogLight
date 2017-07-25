@@ -17,7 +17,7 @@ import static com.ociweb.iot.maker.FogRuntime.*;
 public class OLED_96x96Behavior implements StartupListener, TimeListener{
 	private final OLED_96x96_Transducer display;
 	public OLED_96x96Behavior(FogRuntime rt){
-		display = OLED_96x96.newTransducer(rt.newCommandChannel(I2C_WRITER)); 
+		display = OLED_96x96.newTransducer(rt.newCommandChannel()); 
 
 	}
 	@Override

@@ -18,12 +18,12 @@ import com.ociweb.iot.maker.I2CListener;
  */
 public class AnalogToIICBehavior implements StartupListener,AlertStatusListener,ConversionResultListener{
     private final FogCommandChannel ch;
-    private final ADC_Facade sensor;
+    private final ADC_Transducer sensor;
     private int check;
     private final int upperLimit = 1100;
     public AnalogToIICBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);
-        sensor = new ADC_Facade(ch,this);
+        sensor = new ADC_Transducer(ch,this);
         runtime.registerListener(sensor);
     }
     @Override

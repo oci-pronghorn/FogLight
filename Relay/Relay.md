@@ -35,6 +35,5 @@ public class IoTApp implements FogApp
 }
 ```
 
-```
 When executed, the above code will cause the relay on D7 (digital output 7) to turn on when the button on D3 (digital input 3) is pressed.
 

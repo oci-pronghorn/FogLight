@@ -60,7 +60,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - Angle Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Rotary_Angle_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AngleSensor/AngleSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AngleSensor/README.md)
 - Button
   - [wiki](http://wiki.seeed.cc/Grove-Button/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Button/Button.md)
@@ -90,13 +90,16 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LightSensor/LightSensor.md)
 - Line Finder
   - [wiki](http://wiki.seeed.cc/Grove-Line_Finder/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LineFinder/LineFinder.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LineFinder/README.md)
+- MP3Player
+  - [wiki](http://wiki.seeed.cc/Grove-Serial_MP3_Player/)
+  - demo - Coming Soon!
 - Moisture Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Moisture_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MoistureSensor/MoistureSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MoistureSensor/README.md)
 - Motion Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Motion_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MotionSensor/MotionSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MotionSensor/README.md)
 - OLED 128x64
   - [wiki](http://wiki.seeed.cc/Grove-OLED_Display_0.96inch/)
   - demo - Coming Soon!
@@ -115,6 +118,9 @@ Of course, this is just a simple example; for more interesting examples that dem
 - Serial Bluetooth
   - [wiki](http://wiki.seeed.cc/Grove-Serial_Bluetooth_v3.0/)
   - demo - Coming Soon!
+- SixAxisAccelerometer
+  - [wiki](http://wiki.seeed.cc/Grove-6-Axis_AccelerometerAndCompass_V2.0/)
+  - demo -Coming Soon!
 - Temperature Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Temperature_Sensor/)
   - demo - Coming Soon!
@@ -129,13 +135,13 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/TouchSensor/TouchSensor.md)
 - UV Sensor
   - [wiki](http://wiki.seeed.cc/Grove-UV_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UVSensor/UVSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UVSensor/README.md)
 - Ultrasonic Rangefinder
   - [wiki](http://wiki.seeed.cc/Grove-Ultrasonic_Ranger/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UltrasonicRangefinder/UltrasonicRangefinder.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UltrasonicRangefinder/README.md)
 - Variable Color LED
   - [wiki](http://wiki.seeed.cc/Grove-Variable_Color_LED/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/VariableColorLED/VariableColorLED.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/VariableColorLED/README.md)
 - Vibration Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Piezo_Vibration_Sensor/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/VibrationSensor/readme.md)

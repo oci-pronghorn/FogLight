@@ -2,6 +2,7 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.iot.grove.real_time_clock.RTCTwig.*;
+import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -24,6 +25,11 @@ public class IoTApp implements FogApp
         c.useI2C();
         c.connect(RTC.ReadTime);
         c.enableTelemetry();
+        if(c instanceof TestHardware){
+            byte[] dummy ={0};
+            ((TestHardware) c).setI2CValueToRead((byte)104,dummy,1);
+        }
+        
     }
     
     

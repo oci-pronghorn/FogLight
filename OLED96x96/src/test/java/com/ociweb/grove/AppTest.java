@@ -43,6 +43,10 @@ public class AppTest {
 
 	}
 	@Test
+	public void testInit(){
+		
+	}
+	
 	public void testImageSerialization(){
 		/*
 		try {

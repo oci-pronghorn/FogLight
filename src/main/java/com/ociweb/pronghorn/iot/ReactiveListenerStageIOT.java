@@ -370,7 +370,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     }
     
 
-	protected void commonI2CEventProcessing(I2CListener listener, int addr, int register, long time, byte[] backing, int position, int length, int mask) {
+	protected void commonI2CEventProcessing(I2CListenerBase listener, int addr, int register, long time, byte[] backing, int position, int length, int mask) {
 		if (isIncluded(addr, includedI2Cs) && isNotExcluded(addr, excludedI2Cs)) {
 			listener.i2cEvent(addr, register, time, backing, position, length, mask);
 		}

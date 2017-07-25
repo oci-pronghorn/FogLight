@@ -1,16 +1,20 @@
 package com.ociweb.grove;
 
 
+import com.ociweb.iot.astropi.AstroPiLEDMatrix;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogApp;
+import static com.ociweb.iot.maker.FogRuntime.*;
 
 import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
-{
+{    public static void main( String[] args) {
+        FogRuntime.run(new IoTApp());
+    } 
     ///////////////////////
     //Connection constants 
     ///////////////////////
@@ -34,6 +38,7 @@ public class IoTApp implements FogApp
         //c.connect(LightSensor, LIGHT_SENSOR_PORT); 
         //c.connect(LED, LED_PORT);        
         //c.useI2C();
+        c.useI2C();
         
     }
 
@@ -61,5 +66,9 @@ public class IoTApp implements FogApp
         //                channel1.digitalBlock(RELAY_PORT, 1000); 
         //            }
         //        });
+        
+        runtime.registerListener(new TemperatureBehavior(runtime));
+        
+        
     }  
 }

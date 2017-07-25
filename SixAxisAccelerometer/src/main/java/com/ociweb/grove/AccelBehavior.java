@@ -23,7 +23,6 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
     AccelBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);     
         accSensor = new SixAxisAccelerometer_Transducer(ch,this,this);
-        runtime.registerListener(accSensor);
     }
    
     @Override

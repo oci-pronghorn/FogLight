@@ -24,7 +24,6 @@ public class AnalogToIICBehavior implements StartupListener,AlertStatusListener,
     public AnalogToIICBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);
         sensor = new ADC_Transducer(ch,this);
-        runtime.registerListener(sensor);
     }
     @Override
     public void startup() {

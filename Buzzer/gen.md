@@ -16,5 +16,5 @@ Demo code:
 
 .include "./src/main/java/com/ociweb/grove/IoTApp.java"
 
-When executed, the above code will allow you to turn on the buzzer whenever the butto is pressed. Also, whenever the button is released, there will be a 500 millisecond delay before the buzzer will turn on again.
+When executed, the above code will allow you to turn on the buzzer whenever the button is pressed. Also, whenever the button is released, there will be a 500 millisecond delay before the buzzer will turn on again.
 The addDigitalListener() method passes a 1 as value when the button is pressed, and 0 when it is released. In order to send a signal to the relay on the digital port, use the setValue() method to check if the value is equivalent to 1, and when it is, a signal will be sent.

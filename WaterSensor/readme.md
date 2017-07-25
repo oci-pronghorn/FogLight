@@ -50,7 +50,7 @@ public class IoTApp implements IoTSetup
 
 ```
 
-Since the IoT app needs to both exhist AnalogListener behavior as well as well RestListener behavior, a custom listener (```RestfulWaterSensorBehavior```) that extends both is needed :
+Since the IoT app needs to both exist AnalogListener behavior as well as well RestListener behavior, a custom listener (```RestfulWaterSensorBehavior```) that extends both is needed :
 
 ```java
 import com.ociweb.gl.api.*;

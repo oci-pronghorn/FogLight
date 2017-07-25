@@ -1,14 +1,10 @@
 package com.ociweb.grove;
 
-import com.ociweb.iot.astropi.AstroPiTwig;
-import com.ociweb.iot.astropi.AstroPiTwig.AstroPi;
+
 import static com.ociweb.iot.grove.real_time_clock.RTCTwig.*;
-import com.ociweb.iot.grove.real_time_clock.*;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
 
 public class IoTApp implements FogApp
 {
@@ -26,17 +22,8 @@ public class IoTApp implements FogApp
         
         // // specify each of the connections on the harware, eg which component is plugged into which connection.
         c.useI2C();
-//        int reg = 192;
-//        byte regadd = (byte)(reg & 0xff);
-//        for(int i = reg;i<=255;i++){
-//            regadd = (byte)(i & 0xff);
-//            AstroPiLEDMatrix2 ob = new AstroPiLEDMatrix2(regadd);
-//            c.connect(ob);
-//        }
+        c.connect(RTC.ReadTime);
 
-        c.connect(AstroPi.GetJoystick,100);
-        //c.setTimerPulseRate(1000);
-        //c.connect(RTC.ReadTime);
     }
     
     

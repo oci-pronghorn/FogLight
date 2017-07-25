@@ -21,8 +21,8 @@ Behavior class
 
 .include ".\src\main\java\com\coiweb\oe\foglight\api\AnalogListenerBehavior.java"
 
-These classes are a basic demo of how to use the ```AnalogListener() method```. Following it with the ```includePorts()```method will cuase that listener to only listen to the ports listed. Similarly, the ```ecludePorts()``` will make that listener ignore anything coming from any ports listed. Without either of those methods, the AnalogListener will listen and to any analog devices connected to any analog compatibale ports. 
-In the behavior class, the overridden method will provide you with five variables, ```port```, - ```time```, ```durationMillis```, ```average```, and ```value```. 
+These classes are a basic demo of how to use the ```AnalogListener() method```. Following it with the ```includePorts()```method will cause that listener to only listen to the ports listed. Similarly, the ```ecludePorts()``` will make that listener ignore anything coming from any ports listed. Without either of those methods, the AnalogListener will listen to any analog devices connected to any analog compatible ports. 
+In the behavior class, the overridden method will provide you with five variables, ```port```,  ```time```, ```durationMillis```, ```average```, and ```value```. 
 - ```port``` will give you the port from which the change in value came from.
 - ```time``` will give the length of time in milliseconds that the ```value``` has been/was at that specifc value. 
 - ```durationMillis``` will give ... 

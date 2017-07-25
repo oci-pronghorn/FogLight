@@ -39,7 +39,7 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 - HTTPServer
   - demo - Coming Soon!
 - I2CListener
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/I2CListener/I2CListener.md)
 - ImageListener
   - demo - Coming Soon!
 - MQTTClient
@@ -51,7 +51,7 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 - SerialListener
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/SerialListener/SerialListener.md)
 - Shutdown
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Shutdown/Shutdown.md)
 - Startup
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Startup/Startup.md)
 - StateMachine

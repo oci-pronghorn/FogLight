@@ -11,12 +11,13 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16g_Constants.*;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
 
 /**
  *
  * @author huydo
  */
-public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer,I2CListener {    
+public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer,I2CListenerTransducer {    
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
     private ACT_TAP_STATUS_RegListener acttaplistener;

@@ -60,6 +60,6 @@ public class GyroSettings {
     
     protected static double gRes;
     
-    protected static int[] gBias = new int[3];
+    protected static double[] gBias = new double[3];
     protected static int[] gBiasRaw = new int[3];
 }

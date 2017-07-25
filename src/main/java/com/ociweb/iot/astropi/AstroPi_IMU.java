@@ -7,6 +7,9 @@ package com.ociweb.iot.astropi;
 
 import static com.ociweb.iot.astropi.AstroPi_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.I2CListener;
+import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -14,40 +17,47 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class AstroPi_IMU {
+public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
     FogCommandChannel target;
-    private int CTRL_REG9Val;
-    private boolean tempEnable = true;
-    private boolean _autoCalc = false;
     
-    public AstroPi_IMU(FogCommandChannel ch){
+    public AstroPi_IMU(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
-    }
-    
-    public void init(){
+        for(AstroPiListener item:l){
+            if(item instanceof GyroListener){
+                this.gyroListener = (GyroListener) item;
+            }
+            if(item instanceof AccelListener){
+                this.accelListener = (AccelListener) item;
+            }
+            if(item instanceof MagListener){
+                this.magListener = (MagListener) item;
+            }
         
-        tempEnable = true;
-        for (int i=0; i<3; i++)
-	{
-		GyroSettings.gBias[i] = 0;
-		AccelSettings.aBias[i] = 0;
-		MagSettings.mBias[i] = 0;
-		GyroSettings.gBiasRaw[i] = 0;
-		AccelSettings.aBiasRaw[i] = 0;
-		MagSettings.mBiasRaw[i] = 0;
-	}
-	_autoCalc = false;
-        
+        }
     }
-    
-    public void begin(){
+
+    /**
+     * Begin the IMU with the following settings:
+     * Gyroscope, Accelerometer and Magnetometer are enabled, with all x,y,z enabled
+     * Gyroscope: scale = 245, sampleRate = 119 Hz
+     * Accelerometer: scale = 2, sampleRate = 952 Hz
+     * Magnetometer: scale = 4, sampleRate = 80 Hz
+     * @param gyro either true or false to enable/disable gyroscope
+     * @param accel either true or false to enable/disable acclerometer
+     * @param mag either true or false to enable/disable magnetometer
+     */
+    public void begin(boolean gyro,boolean accel,boolean mag){
         constrainScales();
         // Once we have the scale values, we can calculate the resolution
 	// of each sensor. That's what these functions are for. One for each sensor
 	calcgRes(); // Calculate DPS / ADC tick, stored in gRes variable
 	calcmRes(); // Calculate Gs / ADC tick, stored in mRes variable
 	calcaRes(); // Calculate g / ADC tick, stored in aRes variable
-        
+
+        GyroSettings.enabled = gyro;
+        AccelSettings.enabled = accel;
+        MagSettings.enabled = mag;
+                
         initGyro();
         initAccel();
         initMag();
@@ -75,6 +85,7 @@ public class AstroPi_IMU {
         }
     }
     public void initGyro(){
+        GyroSettings.CTRL_REG1_GVal = 0;
         if(GyroSettings.enabled){
             GyroSettings.CTRL_REG1_GVal = (GyroSettings.sampleRate & 0x07) << 5;
         }
@@ -85,6 +96,7 @@ public class AstroPi_IMU {
             case 2000:
                 GyroSettings.CTRL_REG1_GVal |= (0x03 << 3);
                 break;
+                // Otherwise we'll set it to 245 dps (0x0 << 4)
         }
         GyroSettings.CTRL_REG1_GVal |= GyroSettings.bandwidth & 0x03;
         
@@ -269,19 +281,16 @@ public class AstroPi_IMU {
         mWriteByte(CTRL_REG5_M, MagSettings.CTRL_REG5_MVal);
         target.i2cFlushBatch();
     }
-    
     public double calcGyro(int gyro)
     {
         // Return the gyro raw reading times our pre-calculated DPS / (ADC tick):
         return GyroSettings.gRes * gyro;
-    }
-    
+    }   
     public double calcAccel(int accel)
     {
         // Return the accel raw reading times our pre-calculated g's / (ADC tick):
         return AccelSettings.aRes * accel;
-    }
-    
+    } 
     public double calcMag(int mag)
     {
         // Return the mag raw reading times our pre-calculated Gs / (ADC tick):
@@ -369,7 +378,6 @@ public class AstroPi_IMU {
         // Calculate a new mRes, which relies on mScale being set correctly:
         calcmRes();
     }
-    
     public void setGyroODR(int gRate){
         if((gRate & 0x07) != 0){
             //mask out the gyro ODR bits
@@ -381,6 +389,7 @@ public class AstroPi_IMU {
             target.i2cFlushBatch();
         }
     }
+    
     public void setAccelODR(int aRate)
     {
         // Only do this if aRate is not 0 (which would disable the accel)
@@ -396,8 +405,7 @@ public class AstroPi_IMU {
             agWriteByte(CTRL_REG6_XL, AccelSettings.CTRL_REG6_XLVal);
             target.i2cFlushBatch();
         }
-    }
-    
+    }   
     public void setMagODR(int mRate)
     {
         
@@ -410,9 +418,7 @@ public class AstroPi_IMU {
         mWriteByte(CTRL_REG1_M, MagSettings.CTRL_REG1_MVal);
         target.i2cFlushBatch();
         
-    }
-    
-    
+    }   
     public void calcgRes()
     {
         switch (GyroSettings.scale)
@@ -449,8 +455,7 @@ public class AstroPi_IMU {
             default:
                 break;
         }
-    }
-    
+    }   
     public void calcmRes()
     {
         switch (MagSettings.scale)
@@ -470,27 +475,30 @@ public class AstroPi_IMU {
         }
     }
     
-    public void sleepGyro(boolean enable)
-    {
-        if (enable){
-            CTRL_REG9Val |= (1<<6);
-        }
-        else {
-            CTRL_REG9Val &= ~(1<<6);
-        }
-        agWriteByte(CTRL_REG9, CTRL_REG9Val);
-    }
-    
-    public void enableFIFO(boolean enable)
-    {
-        if (enable) {
-            CTRL_REG9Val |= (1<<1);
-        }
-        else {
-            CTRL_REG9Val &= ~(1<<1);
-        }
-        agWriteByte(CTRL_REG9, CTRL_REG9Val);
-    }
+//    private int CTRL_REG9Val;
+//    public void sleepGyro(boolean enable)
+//    {
+//        if (enable){
+//            CTRL_REG9Val |= (1<<6);
+//        }
+//        else {
+//            CTRL_REG9Val &= ~(1<<6);
+//        }
+//        agWriteByte(CTRL_REG9, CTRL_REG9Val);
+//        target.i2cFlushBatch();
+//    }
+//    
+//    public void enableFIFO(boolean enable)
+//    {
+//        if (enable) {
+//            CTRL_REG9Val |= (1<<1);
+//        }
+//        else {
+//            CTRL_REG9Val &= ~(1<<1);
+//        }
+//        agWriteByte(CTRL_REG9, CTRL_REG9Val);
+//        target.i2cFlushBatch();
+//    }
 //    
 //    public void setFIFO(fifoMode_type fifoMode, uint8_t fifoThs)
 //    {
@@ -499,12 +507,16 @@ public class AstroPi_IMU {
 //        int threshold = fifoThs <= 0x1F ? fifoThs : 0x1F;
 //        agWriteByte(FIFO_CTRL, ((fifoMode & 0x7) << 5) | (threshold & 0x1F));
 //    }
+    private void setMagOffset(int axis,int offset){
+        int msb,lsb;
+        msb = (offset & 0xff00)>>8;
+        lsb = (offset & 0xff);
+        mWriteByte(AstroPi_Constants.OFFSET_X_REG_L_M +(2*axis),lsb);
+        target.i2cFlushBatch();
+        mWriteByte(AstroPi_Constants.OFFSET_X_REG_H_M +(2*axis),msb);
+        target.i2cFlushBatch();
+    }
 
-
-    
-    
-    
-    
     private void agWriteByte(int register, int value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(AstroPi_Constants.LSM9DS1_AG_ADDR);
         
@@ -513,6 +525,7 @@ public class AstroPi_IMU {
         
         target.i2cCommandClose();
     }
+
     private void mWriteByte(int register, int value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(AstroPi_Constants.LSM9DS1_M_ADDR);
         
@@ -520,6 +533,105 @@ public class AstroPi_IMU {
         i2cPayloadWriter.writeByte(value);
         
         target.i2cCommandClose();
+    }
+    /**
+     * Convert the 6 bytes of X,Y,Z values to the correct two's complement representation
+     * @param backing array containing 6 bytes
+     * @param position index of the first byte
+     * @param length length of the array
+     * @param mask
+     * @return array of 3 X,Y,Z values ,where array[0] = X, array[1] = Y
+     */
+    private int[] interpretData(byte[] backing, int position, int length, int mask){
+        int[] temp = {0,0,0};
+        //format the data from the circular buffer backing[]
+        
+        temp[0] = (int)(((backing[(position+1)&mask]&0xFF) << 8) | (backing[position&mask]&0xFF));
+        temp[1] = (int)(((backing[(position+3)&mask]&0xFF) << 8) | (backing[(position+2)&mask]&0xFF));
+        temp[2] = (int)(((backing[(position+5)&mask]&0xFF) << 8) | (backing[(position+4)&mask]&0xFF));
+        
+        return temp;
+    }
+    
+    private int calibrateGyro = 0;
+    private int calibrateAccel = 0;
+    private int calibrateMag = 0;
+    
+    private int[] gBiasRawTemp = new int[3];
+    private int[] aBiasRawTemp = new int[3];
+    int[] magMin ={0,0,0};
+    int[] magMax ={0,0,0};
+    
+    private GyroListener gyroListener;
+    private AccelListener accelListener;
+    private MagListener magListener;
+    @Override
+    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
+        if(addr == AstroPi_Constants.LSM9DS1_AG_ADDR){
+            if(register == AstroPi_Constants.OUT_X_L_G){
+                if(calibrateGyro < 8){
+                    int[] temp = this.interpretData(backing, position, length, mask);
+                    gBiasRawTemp[0] += temp[0];
+                    gBiasRawTemp[1] += temp[1];
+                    gBiasRawTemp[2] += temp[2];
+                    calibrateGyro++;
+                }
+                else if(calibrateGyro == 8){
+                    for(int i=0;i<3;i++){
+                        GyroSettings.gBiasRaw[i] = gBiasRawTemp[i]>>3;
+                        GyroSettings.gBias[i] = calcGyro(GyroSettings.gBiasRaw[i]);
+                    }
+                    System.out.println("Gyroscope Calibration Complete.");
+                    calibrateGyro++;
+                }else{
+                    int[] temp = this.interpretData(backing, position, length, mask);
+                    gyroListener.gyroEvent(calcGyro(temp[0]-GyroSettings.gBiasRaw[0]), calcGyro(temp[1]-GyroSettings.gBiasRaw[1]), calcGyro(temp[2]-GyroSettings.gBiasRaw[2]));
+                }
+            }
+            if(register == AstroPi_Constants.OUT_X_L_XL){
+                if(calibrateAccel < 8){
+                    int[] temp = this.interpretData(backing, position, length, mask);
+                    aBiasRawTemp[0] += temp[0];
+                    aBiasRawTemp[1] += temp[1];
+                    aBiasRawTemp[2] += temp[2] - (int)(1/AccelSettings.aRes);
+                    calibrateAccel++;
+                }
+                else if(calibrateAccel == 8){
+                    for(int i=0;i<3;i++){
+                        AccelSettings.aBiasRaw[i] = aBiasRawTemp[i]>>3;
+                        AccelSettings.aBias[i] = calcAccel(AccelSettings.aBiasRaw[i]);
+                    }
+                    System.out.println("Accelerometer Calibration Complete.");
+                    calibrateAccel++;
+                }else{
+                    int[] temp = this.interpretData(backing, position, length, mask);
+                    accelListener.accelEvent(calcAccel(temp[0]-AccelSettings.aBiasRaw[0]), calcAccel(temp[1]-AccelSettings.aBiasRaw[1]), calcAccel(temp[2]-AccelSettings.aBiasRaw[2]));
+                }
+            }
+        }
+        if(addr == AstroPi_Constants.LSM9DS1_M_ADDR){
+            if(register == AstroPi_Constants.OUT_X_L_M){
+                if(calibrateMag < 8){
+                    int[] temp = this.interpretData(backing, position, length, mask);
+                    for (int j = 0; j < 3; j++){
+			if (temp[j] > magMax[j]) magMax[j] = temp[j];
+			if (temp[j] < magMin[j]) magMin[j] = temp[j];
+                    }
+                    calibrateMag++;
+                }
+                else if(calibrateMag == 8){
+                    for(int i=0;i<3;i++){
+                        MagSettings.mBiasRaw[i] = (magMax[i]+magMin[i])/2;
+                        MagSettings.mBias[i] = calcMag(MagSettings.mBiasRaw[i]);
+                        setMagOffset(i,MagSettings.mBiasRaw[i]);
+                    }
+                    System.out.println("Magnetometer Calibration Complete.");
+                }else{
+                    int[] temp = this.interpretData(backing, position, length, mask);
+                    magListener.magEvent(calcMag(temp[0]), calcMag(temp[1]),calcMag(temp[2]));
+                }
+            }
+        }
     }
     
 }

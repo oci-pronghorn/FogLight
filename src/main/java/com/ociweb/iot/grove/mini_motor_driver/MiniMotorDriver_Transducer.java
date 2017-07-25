@@ -9,6 +9,7 @@ import static com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Constants.*
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -16,7 +17,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class MiniMotorDriver_Transducer implements IODeviceTransducer,I2CListener {
+public class MiniMotorDriver_Transducer implements IODeviceTransducer,I2CListenerTransducer {
     private final FogCommandChannel target;
     private MiniMotorDriverListener listener;
     public MiniMotorDriver_Transducer(FogCommandChannel ch){

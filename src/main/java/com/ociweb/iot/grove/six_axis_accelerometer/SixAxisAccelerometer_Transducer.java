@@ -9,6 +9,7 @@ import static com.ociweb.iot.grove.six_axis_accelerometer.SixAxisAccelerometer_C
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -17,7 +18,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CListener {
+public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CListenerTransducer {
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
     private MagValsListener maglistener;

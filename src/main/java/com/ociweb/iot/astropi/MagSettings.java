@@ -42,6 +42,6 @@ public class MagSettings {
     
     protected static double mRes;
     
-    protected static int[] mBias = new int[3];
+    protected static double[] mBias = new double[3];
     protected static int[] mBiasRaw = new int[3];
 }

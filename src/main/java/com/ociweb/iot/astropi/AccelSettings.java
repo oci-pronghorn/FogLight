@@ -42,6 +42,6 @@ public class AccelSettings {
     
     protected static double aRes;
     
-    protected static int[] aBias = new int[3];
+    protected static double[] aBias = new double[3];
     protected static int[] aBiasRaw = new int[3];
 }

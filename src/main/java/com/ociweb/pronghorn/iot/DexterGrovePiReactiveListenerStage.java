@@ -10,6 +10,10 @@ import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
+import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.impl.DigitalListenerBase;
+import com.ociweb.iot.impl.I2CListenerBase;
+import com.ociweb.iot.impl.RotaryListenerBase;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -37,7 +41,9 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStageIOT
 
 	@Override
 	protected void processI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
-		if (listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener) {
+		if (listener instanceof I2CListenerBase 
+			|| listener instanceof DigitalListenerBase 
+			|| listener instanceof AnalogListenerBase) {
 			int addr = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11);
 			int register = PipeReader.readInt(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14);
 			long time = PipeReader.readLong(p, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13);
@@ -50,16 +56,16 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStageIOT
 			
 			logger.debug("Pi listener consuming I2C message from addr: {}",addr);
 
-			if(listener instanceof DigitalListener && addr==4 && length==1){
+			if(listener instanceof DigitalListenerBase && addr==4 && length==1){
 				int tempValue = backing[position&mask];
 
 				int connector = GrovePiConstants.REGISTER_TO_PORT[register];
 				assert(connector!=-1);
 
-				commonDigitalEventProcessing(Port.DIGITALS[connector], time, tempValue, (DigitalListener)listener);
+				commonDigitalEventProcessing(Port.DIGITALS[connector], time, tempValue, (DigitalListenerBase)listener);
 
 			}
-			else if(listener instanceof AnalogListener && addr==4 && length==3){
+			else if(listener instanceof AnalogListenerBase && addr==4 && length==3){
 
 				int high = (int)backing[(position+1)&mask];
 				int low = (int)backing[(position+2)&mask];
@@ -77,15 +83,15 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStageIOT
 					if ((tempValue<0) || (tempValue>1024)) {
 						logger.error("connection {} bad i2c result array [{}, {}, {}] ",connector,backing[(position+0)&mask],backing[(position+1)&mask],backing[(position+2)&mask]);
 					} else {						
-						commonAnalogEventProcessing(Port.ANALOGS[connector], time, tempValue, (AnalogListener)listener);
+						commonAnalogEventProcessing(Port.ANALOGS[connector], time, tempValue, (AnalogListenerBase)listener);
 					}
 				}
-			}else if(listener instanceof RotaryListener && addr==4 && length==2){
+			}else if(listener instanceof RotaryListenerBase && addr==4 && length==2){
 				byte[] tempArray = {backing[(position+0)&mask], backing[(position+1)&mask]};
 				int tempValue = (((int)tempArray[0])<<8) | (0xFF&((int)tempArray[1]));
-				((RotaryListener)listener).rotaryEvent(Port.DIGITALS[register], time, tempValue, 0, 0);
-			} else if (listener instanceof I2CListener){ //must be last so we only do this if one of the more specific conditions were not met first.
-				super.commonI2CEventProcessing((I2CListener)listener, addr, register, time, backing, position, length, mask);;
+				((RotaryListenerBase)listener).rotaryEvent(Port.DIGITALS[register], time, tempValue, 0, 0);
+			} else if (listener instanceof I2CListenerBase){ //must be last so we only do this if one of the more specific conditions were not met first.
+				super.commonI2CEventProcessing((I2CListenerBase)listener, addr, register, time, backing, position, length, mask);;
 				logger.debug("Creating I2C event");
 			}
 		}

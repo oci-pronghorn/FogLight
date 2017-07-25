@@ -201,13 +201,15 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	@Override
 	public Hardware connect(I2CIODevice t){
 		logger.debug("Connecting I2C Device "+t.getClass());
+		
 		if(t.isInput()){
-			assert(!t.isOutput());
 			i2cInputs = growI2CConnections(i2cInputs, t.getI2CConnection());
-		}else if(t.isOutput()){
-			assert(!t.isInput());
+		}
+		
+		if(t.isOutput()){
 			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
 		}
+		
 		this.useI2C();
 		return this;
 	}
@@ -215,12 +217,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	public Hardware connect(I2CIODevice t, int customRateMS){
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
-			assert(!t.isOutput());
 			i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t.getI2CConnection(),customRateMS));
-		}else if(t.isOutput()){
-			assert(!t.isInput());
+		}
+		
+		if(t.isOutput()){
 			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
 		}
+		
 		this.useI2C();
 		return this;
 	}
@@ -822,6 +825,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return IDX_NET;
 	}
 
+	public boolean isTestHardware() {
+		return false;
+	}
 	
 	
 }

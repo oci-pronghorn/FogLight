@@ -105,8 +105,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
 
 		for (int i = 0; i < inputs.length; i++) {
-			timeOut = hardware.currentTimeMillis() + writeTime;
-			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
+			if (null != inputs[i].setup) {
+				timeOut = hardware.currentTimeMillis() + writeTime;
+				while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
+			}
 			logger.debug("I2C setup {} complete",inputs[i].address);
 		}
 		if (null!=schedule) {

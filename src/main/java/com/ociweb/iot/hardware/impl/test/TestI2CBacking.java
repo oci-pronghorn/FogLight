@@ -90,7 +90,7 @@ public class TestI2CBacking implements I2CBacking{
 		if (!configured) {
 			throw new IllegalStateException();
 		}
-
+		assert(length<=message.length);
 		lastWriteCount++;
 		lastWriteTime[lastWriteIdx] = System.currentTimeMillis();
 		lastWriteAddress[lastWriteIdx] = address;
@@ -106,7 +106,13 @@ public class TestI2CBacking implements I2CBacking{
 
 
 	protected void consoleSimulationLCD(byte address, byte[] message, int length) {
-		if (62==address & '@'==message[0]) {
+		assert(length<=message.length);
+		
+		if (length==0) {
+			
+			Appendables.appendHexDigits(System.out.append("Zero length message payload sent to address "),address).append("\n");
+						
+		} else if (62==address && '@'==message[0]) {
 
 			for(int i = 1; i<length; i++) {
 
@@ -122,7 +128,7 @@ public class TestI2CBacking implements I2CBacking{
 
 			newLineNeeded = true;
 		} else {
-			if (62==address & -128==message[0] & -64==message[1] & 2==length) {
+			if (62==address && 2==length && -128==message[0] && -64==message[1] ) {
 				System.out.println(); //new line message
 				newLineNeeded=false;
 			} else {

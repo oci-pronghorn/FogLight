@@ -101,7 +101,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	@Override
 	public boolean isListeningToI2C(Object listener) {
-		return listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener;
+		return super.isListeningToI2C(listener) || super.isListeningToPins(listener);
 	}
 
 	@Override

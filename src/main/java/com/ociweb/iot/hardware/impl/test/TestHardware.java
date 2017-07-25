@@ -193,5 +193,8 @@ public class TestHardware extends HardwareImpl {
         		                               consumers, this, parallelInstance);
     }
 
+	public final boolean isTestHardware() {
+		return true;
+	}
     
 }

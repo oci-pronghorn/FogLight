@@ -84,9 +84,13 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStageIOT
 						logger.error("connection {} bad i2c result array [{}, {}, {}] ",connector,backing[(position+0)&mask],backing[(position+1)&mask],backing[(position+2)&mask]);
 					} else {						
 						
+						//force the range for analog input
+						Port p2 = Port.ANALOGS[connector];
+						int range = builder.getConnectedDevice(p2).range();
 						
-						
-						commonAnalogEventProcessing(Port.ANALOGS[connector], time, tempValue, (AnalogListenerBase)listener);
+						int finalValue = (range*tempValue)>>10;// divides by 1024;
+					
+						commonAnalogEventProcessing(p2, time, finalValue, (AnalogListenerBase)listener);
 					}
 				}
 			}else if(listener instanceof RotaryListenerBase && addr==4 && length==2){

@@ -28,7 +28,9 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
     private AlertStatusListener alertListener;
     private ConversionResultListener resultListener;
     public ADC_Transducer(FogCommandChannel ch, ADCListener... l){
+    	
         this.target = ch;
+        target.ensureI2CWriting();
         for(ADCListener item:l){
             if(item instanceof AlertStatusListener){
                 this.alertListener = (AlertStatusListener) item;

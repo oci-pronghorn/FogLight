@@ -2,9 +2,6 @@ package com.coiweb.oe.foglight.api;
 
 import static com.ociweb.iot.grove.adc.ADC_Constants.*;
 import com.ociweb.iot.grove.adc.*;
-
-import com.ociweb.iot.grove.adc.*;
-
 import static com.ociweb.iot.maker.FogRuntime.I2C_WRITER;
 
 import com.ociweb.gl.api.StartupListener;
@@ -13,13 +10,11 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.I2CListener;
 
 public class I2CListenerBehavior implements I2CListener, StartupListener {
-	private final FogCommandChannel ch;
+
     private final ADC_Transducer sensor;
         
 	public I2CListenerBehavior(FogRuntime runtime) {
-
-		this.ch = runtime.newCommandChannel(I2C_WRITER);
-        sensor = new ADC_Transducer(ch);
+        sensor = new ADC_Transducer(runtime.newCommandChannel());
 	}
 
 	@Override

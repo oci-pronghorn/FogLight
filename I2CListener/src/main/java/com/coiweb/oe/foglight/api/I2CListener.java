@@ -13,5 +13,4 @@ public class I2CListener implements FogApp
     public void declareBehavior(FogRuntime runtime) {   
     	runtime.registerListener(new I2CListenerBehavior(runtime));
     }
-          
 }

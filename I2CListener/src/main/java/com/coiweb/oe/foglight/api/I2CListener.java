@@ -24,7 +24,7 @@ public class I2CListener implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-    	runtime.addI2CListener(new I2CListenerBehavrio(runtime));
+    	runtime.addI2CListener(new I2CListenerBehavior(runtime));
 
     }
           

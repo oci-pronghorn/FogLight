@@ -13,6 +13,7 @@ import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
+import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 public class ObjectPassingTest {
@@ -36,11 +37,11 @@ public class ObjectPassingTest {
 				@Override
 				public void declareBehavior(FogRuntime runtime) {
 					
-					final FogCommandChannel cc1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 					runtime.addPubSubListener(new PubSubListener() {
+						FogCommandChannel cc1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 
 						@Override
-						public boolean message(CharSequence topic, MessageReader payload) {
+						public boolean message(CharSequence topic, BlobReader payload) {
 							
 							try {
 								
@@ -71,8 +72,8 @@ public class ObjectPassingTest {
 						}}).addSubscription("test\\topic");
 					
 					
-					final FogCommandChannel cc2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 					runtime.addStartupListener(new StartupListener() {
+						FogCommandChannel cc2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 
 						@Override
 						public void startup() {

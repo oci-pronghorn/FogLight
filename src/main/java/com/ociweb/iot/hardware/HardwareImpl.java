@@ -5,33 +5,45 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.Behavior;
+import com.ociweb.gl.api.ListenerTransducer;
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.impl.BuilderImpl;
+import com.ociweb.gl.impl.ChildClassScanner;
+import com.ociweb.gl.impl.ChildClassScannerVisitor;
 import com.ociweb.gl.impl.schema.IngressMessages;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficAckSchema;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
-import com.ociweb.gl.impl.stage.MessagePubSubStage;
 import com.ociweb.gl.impl.stage.TrafficCopStage;
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
+import com.ociweb.iot.hardware.impl.SerialDataReaderStage;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
-import com.ociweb.iot.hardware.impl.SerialDataReaderStage;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
-
+import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.impl.DigitalListenerBase;
+import com.ociweb.iot.impl.I2CListenerBase;
+import com.ociweb.iot.impl.RotaryListenerBase;
+import com.ociweb.iot.impl.SerialListenerBase;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.Baud;
 import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.pronghorn.iot.HTTPClientRequestStage;
+import com.ociweb.iot.transducer.AnalogListenerTransducer;
+import com.ociweb.iot.transducer.DigitalListenerTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
+import com.ociweb.iot.transducer.RotaryListenerTransducer;
+import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
@@ -42,16 +54,15 @@ import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.network.ClientCoordinator;
-import com.ociweb.pronghorn.network.NetGraphBuilder;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
-import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 import com.ociweb.pronghorn.util.math.PMath;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
@@ -74,7 +85,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	protected I2CConnection[] i2cInputs;
 	protected I2CConnection[] i2cOutputs;
-	
 
 	private static final int DEFAULT_LENGTH = 16;
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
@@ -109,22 +119,20 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
     private int IDX_PIN = -1;
     private int IDX_I2C = -1;
-    private int IDX_MSG = -1;
-    private int IDX_NET = -1;
     private int IDX_SER = -1;
 	
     public IODevice getConnectedDevice(Port p) {    	
     	return deviceOnPort[p.ordinal()];
     }
 
-	public HardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
-		this(gm, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+	public HardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking) {
+		this(gm, args, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
 	}
 
-	protected HardwareImpl(GraphManager gm, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
+	protected HardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
 			HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
 
-		super(gm);
+		super(gm, args);
 		
 		this.i2cBacking = i2cBacking;
 
@@ -143,6 +151,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		try {
 			return new I2CNativeLinuxBacking().configure(deviceNum);
 		} catch (Throwable t) {
+			//logger.info("warning could not find the i2c bus", t);
 			//avoid non error case that is used to detect which hardware is running.
 			return null;
 		}
@@ -166,7 +175,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	protected I2CConnection[] growI2CConnections(I2CConnection[] original, I2CConnection toAdd){
-		System.out.println("Grow I2C Connections");
 		if (null==original) {
 			return new I2CConnection[] {toAdd};
 		} else {
@@ -177,8 +185,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			return result;
 		}
 	}
-
-
 
 	protected Hardware internalConnectAnalog(IODevice t, int connection, int customRate, int customAverageMS, boolean everyValue) {
 		if (t.isInput()) {
@@ -200,49 +206,66 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			digitalOutputs = growHardwareConnections(digitalOutputs, new HardwareConnection(t,connection, customRate, customAverageMS, everyValue));
 		}
 		return this;
-	}  
-
+	}
+	
 	@Override
-	public Hardware connectI2C(IODevice t){ 
+	public Hardware connect(I2CIODevice t){
 		logger.debug("Connecting I2C Device "+t.getClass());
+		
 		if(t.isInput()){
-			assert(!t.isOutput());
 			i2cInputs = growI2CConnections(i2cInputs, t.getI2CConnection());
-		}else if(t.isOutput()){
-			assert(!t.isInput());
+		}
+		
+		if(t.isOutput()){
 			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
 		}
+		
+		this.useI2C();
 		return this;
 	}
 	@Override
-	public Hardware connectI2C(IODevice t, int customRateMS){ 
+	public Hardware connect(I2CIODevice t, int customRateMS){
 		logger.debug("Connecting I2C Device "+t.getClass());
 		if(t.isInput()){
-			assert(!t.isOutput());
 			i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t.getI2CConnection(),customRateMS));
-		}else if(t.isOutput()){
-			assert(!t.isInput());
+		}
+		
+		if(t.isOutput()){
 			i2cOutputs = growI2CConnections(i2cOutputs, t.getI2CConnection());
 		}
+		
+		this.useI2C();
 		return this;
 	}
-	
-	
+
+		
 	public Hardware useSerial(Baud baud) {
 		this.rs232ClientBaud = baud;
 		return this;
 	}
+	
+	/**
+     *             
+	 * @param baud
+	 * @param device Name of the port. On UNIX systems this will typically
+     *             be of the form /dev/ttyX, where X is a port number. On
+     *             Windows systems this will typically of the form COMX,
+     *             where X is again a port number.
+	 */
+	public Hardware useSerial(Baud baud, String device) {
+		this.rs232ClientBaud = baud;
+		this.rs232ClientDevice = device;
+		return this;
+	}
 
 	public Hardware useI2C() {
-		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,
-		                       //TODO: when this is NOT on do not build the i2c pipes.
+		this.configI2C = true;
 		return this;
 	}
 	
 	@Deprecated //would be nice if we did not have to do this.
 	public Hardware useI2C(int bus) {
-		this.configI2C = true; //TODO: ensure pi grove turns this on at all times,
-		                       //TODO: when this is NOT on do not build the i2c pipes.
+		this.configI2C = true;
 		this.i2cBus = bus;
 		return this;
 	}
@@ -317,16 +340,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//can be overridden by specific hardware impl if shutdown is supported.
 	}
 
-	
-
-	private boolean useNetClient(IntHashTable netPipeLookup, Pipe<NetResponseSchema>[] netResponsePipes, Pipe<ClientHTTPRequestSchema>[] netRequestPipes) {
-		
-		if (isUseNetClient() && IntHashTable.isEmpty(netPipeLookup)) {
-			throw new UnsupportedOperationException("useNetClient is enabled however no HTTPResponseListener instances were registered.");
-		}
-		
-		return !IntHashTable.isEmpty(netPipeLookup) && (netResponsePipes.length!=0) && (netRequestPipes.length!=0);
-	}
 
 
 	private void createUARTInputStage(Pipe<SerialInputSchema> masterUARTPipe) {
@@ -364,21 +377,27 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
 	}
 
+
 	
 	public boolean isListeningToSerial(Object listener) {
-		return listener instanceof SerialListener;
+		return listener instanceof SerialListenerBase
+			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, SerialListenerTransducer.class);
 	}
 	
 	public boolean isListeningToI2C(Object listener) {
-		return listener instanceof I2CListener;
+		return listener instanceof I2CListenerBase
+				 || !ChildClassScanner.visitUsedByClass(listener, deepListener, I2CListenerTransducer.class);
 	}
 
 	public boolean isListeningToPins(Object listener) {
-		return listener instanceof DigitalListener || listener instanceof AnalogListener || listener instanceof RotaryListener;
+		return listener instanceof DigitalListenerBase || 
+			   listener instanceof AnalogListenerBase || 
+			   listener instanceof RotaryListenerBase
+			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, DigitalListenerTransducer.class)
+			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, AnalogListenerTransducer.class)
+			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, RotaryListenerTransducer.class);
 	}
-
-
-
+	
 	private Pipe<MessagePubSub> getTempPipeOfStartupSubscriptions() {
 		if (null==tempPipeOfStartupSubscriptions) {
 
@@ -390,13 +409,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return tempPipeOfStartupSubscriptions;
 	}
 
-
-	public boolean hasSerialInputs() {
-		if (true ) {
-			throw new UnsupportedOperationException("not yet implemented");
-		}
-		return true; 
-	}
 	
 	public boolean hasI2CInputs() {
 		return this.i2cInputs!=null && this.i2cInputs.length>0;
@@ -474,8 +486,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return connection;
 	}
 			
-
-	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
+	@Override
+	public Hardware connect(ADIODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -490,7 +502,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 	
-	public Hardware connect(IODevice t, Port port, int customRateMS, int customAvgWindowMS) {
+	@Override
+	public Hardware connect(ADIODevice t, Port port, int customRateMS, int customAvgWindowMS) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -505,7 +518,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 
-	public Hardware connect(IODevice t, Port port, int customRateMS) {
+	@Override
+	public Hardware connect(ADIODevice t, Port port, int customRateMS) {
 		
 		deviceOnPort[port.ordinal()] = t;
 				
@@ -517,7 +531,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 	}
 	
-	public Hardware connect(IODevice t, Port port, int customRateMS, boolean everyValue) {
+	@Override
+	public Hardware connect(ADIODevice t, Port port, int customRateMS, boolean everyValue) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -529,7 +544,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 	}
 	
-	public Hardware connect(IODevice t, Port port) {
+	@Override
+	public Hardware connect(ADIODevice t, Port port) {
 		
 		deviceOnPort[port.ordinal()] = t;
 		
@@ -544,32 +560,29 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return this;
 	}
 
-	public boolean isUseNetClient() {
-		return useNetClient;
+
+	public void releasePinOutTraffic(int count, MsgCommandChannel<?> gcc) {		
+		MsgCommandChannel.publishGo(count, IDX_PIN, gcc);		
 	}
 
-	public void releasePinOutTraffic(int count, GreenCommandChannel<?> gcc) {		
-		GreenCommandChannel.publishGo(count, IDX_PIN, gcc);		
-	}
-
-	public void releaseI2CTraffic(int count, GreenCommandChannel<?> gcc) {
-		GreenCommandChannel.publishGo(count, IDX_I2C, gcc);
+	public void releaseI2CTraffic(int count, MsgCommandChannel<?> gcc) {
+		MsgCommandChannel.publishGo(count, IDX_I2C, gcc);
 	}
 	
 	@Override
-	public void releasePubSubTraffic(int count, GreenCommandChannel<?> gcc) {
-		GreenCommandChannel.publishGo(count, IDX_MSG, gcc);
+	public void releasePubSubTraffic(int count, MsgCommandChannel<?> gcc) {
+		MsgCommandChannel.publishGo(count, IDX_MSG, gcc);
 	}
 
 	public void buildStages(IntHashTable subscriptionPipeLookup2, IntHashTable netPipeLookup2, GraphManager gm2) {
 		
 		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfType(gm2, GroveResponseSchema.instance);
 		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfType(gm2, I2CResponseSchema.instance);
-		Pipe<NetResponseSchema>[] netResponsePipes = GraphManager.allPipesOfType(gm2, NetResponseSchema.instance);
+		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfType(gm2, NetResponseSchema.instance);
 		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfType(gm2, TrafficOrderSchema.instance);
-		Pipe<GroveRequestSchema>[] requestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
+		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
-		Pipe<ClientHTTPRequestSchema>[] netRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
+		Pipe<ClientHTTPRequestSchema>[] httpClientRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
 		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfType(gm2, SerialOutputSchema.instance);		
 		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfType(gm2, SerialInputSchema.instance);
 		
@@ -577,88 +590,119 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfType(gm2, MessagePubSub.instance);
 		Pipe<IngressMessages>[] ingressMessagePipes = GraphManager.allPipesOfType(gm2, IngressMessages.instance);
 		
+		//TODO: must pull out those pubSub Pipes for direct connections
+		//TODO: new MessageSchema for direct messages from point to point
+		//      create the pipe instead of pub sub and attach?
+		//TODO: declare up front once in connections, direct connect topics
+		//      upon seeing these we build a new pipe
+		
+		
 		int commandChannelCount = orderPipes.length;
+		logger.trace("total order pipes {} ",orderPipes.length);//this is too small TODO: this must be fixed.
 
 		int eventSchemas = 0;
-		
-		IDX_PIN = requestPipes.length>0 ? eventSchemas++ : -1;
-		IDX_I2C = eventSchemas++;
+		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;
+		IDX_I2C = i2cPipes.length>0 || i2cResponsePipes.length > 0 ? eventSchemas++ : -1;  //the 'or' check is to ensure that reading without a cmd channel works
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
-		IDX_NET = useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes) ? eventSchemas++ : -1;
+		IDX_NET = useNetClient(netPipeLookup2, httpClientRequestPipes) ? eventSchemas++ : -1;
 		IDX_SER = serialOutputPipes.length>0 ? eventSchemas++ : -1;
-						
-		
-		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][commandChannelCount];
-		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][commandChannelCount];
-		
+
 		long timeout = 20_000; //20 seconds
 		
 		//TODO: can we share this while with the parent BuilderImpl, I think so..
 		int maxGoPipeId = 0;
+					
 		int t = commandChannelCount;
+								
+		Pipe<TrafficReleaseSchema>[][] masterGoOut = new Pipe[eventSchemas][0];
+		Pipe<TrafficAckSchema>[][]     masterAckIn = new Pipe[eventSchemas][0];
+		
+		if (IDX_PIN >= 0) {	
+			masterGoOut[IDX_PIN] = new Pipe[pinRequestPipes.length];
+			masterAckIn[IDX_PIN] = new Pipe[pinRequestPipes.length];
+		}		
+		if (IDX_I2C >= 0) {
+			masterGoOut[IDX_I2C] = new Pipe[i2cPipes.length];
+			masterAckIn[IDX_I2C] = new Pipe[i2cPipes.length];
+		}		
+		if (IDX_MSG >= 0) {
+			masterGoOut[IDX_MSG] = new Pipe[messagePubSub.length];
+			masterAckIn[IDX_MSG] = new Pipe[messagePubSub.length];
+		}		
+		if (IDX_NET >= 0) {
+			masterGoOut[IDX_NET] = new Pipe[httpClientRequestPipes.length];
+			masterAckIn[IDX_NET] = new Pipe[httpClientRequestPipes.length];
+		}		
+		if (IDX_SER >=0) {
+			masterGoOut[IDX_SER] = new Pipe[serialOutputPipes.length];
+			masterAckIn[IDX_SER] = new Pipe[serialOutputPipes.length];
+		}
+
+				
 		while (--t>=0) {
 		
-			int p = eventSchemas;//major command requests that can come from commandChannels
-			Pipe<TrafficReleaseSchema>[] goOut = new Pipe[p];
-			Pipe<TrafficAckSchema>[] ackIn = new Pipe[p];
-			while (--p>=0) {
-				masterGoOut[p][t] = goOut[p] = new Pipe<TrafficReleaseSchema>(releasePipesConfig);
-				maxGoPipeId = Math.max(maxGoPipeId, goOut[p].id);
-				
-				masterAckIn[p][t] = ackIn[p]=new Pipe<TrafficAckSchema>(ackPipesConfig);								
-			}
+			int features = getFeatures(gm2, orderPipes[t]);
 			
-			TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut);
-		
+			Pipe<TrafficReleaseSchema>[] goOut = new Pipe[eventSchemas];
+			Pipe<TrafficAckSchema>[] ackIn = new Pipe[eventSchemas];
+			
+			boolean isDynamicMessaging = (features&Behavior.DYNAMIC_MESSAGING) != 0;
+			boolean isNetRequester     = (features&Behavior.NET_REQUESTER) != 0;
+			boolean isPinWriter        = (features&FogRuntime.PIN_WRITER) != 0;
+			boolean isI2CWriter        = (features&FogRuntime.I2C_WRITER) != 0;
+			boolean isSerialWriter     = (features&FogRuntime.SERIAL_WRITER) != 0;
+
+			boolean hasConnections = false;
+			if (isDynamicMessaging && IDX_MSG>=0) {
+				hasConnections = true;		 		
+		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_MSG);
+			}
+			if (isNetRequester && IDX_NET>=0) {
+				hasConnections = true;		 		
+		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_NET);
+			}
+			if (isPinWriter && IDX_PIN>=0) {
+				hasConnections = true;	
+		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_PIN);
+			}
+			if (isI2CWriter && IDX_I2C>=0) {
+				hasConnections = true;		 		
+		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_I2C);
+			}
+			if (isSerialWriter && IDX_SER>=0) {
+				hasConnections = true;		 		
+		 		maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_SER);
+			}
+
+			if (hasConnections) {
+				TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut, this);
+			} else {
+				PipeCleanerStage.newInstance(gm, orderPipes[t]);
+			}
 		}
+		
 		initChannelBlocker(maxGoPipeId);
 		
-		
-		////////
-		//create the network client stages
-		////////
-		if (useNetClient(netPipeLookup2, netResponsePipes, netRequestPipes)) {
-			
-			System.err.println("loaded client http");
-			if (masterGoOut[IDX_NET].length != masterAckIn[IDX_NET].length) {
-				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+masterAckIn[IDX_NET].length);
-			}
-			if (masterGoOut[IDX_NET].length != netRequestPipes.length) {
-				throw new UnsupportedOperationException(masterGoOut[IDX_NET].length+"!="+netRequestPipes.length);
-			}
-			
-			assert(masterGoOut[IDX_NET].length == masterAckIn[IDX_NET].length);
-			assert(masterGoOut[IDX_NET].length == netRequestPipes.length);
-			
-			
-			PipeConfig<ClientHTTPRequestSchema> netRequestConfig = new PipeConfig<ClientHTTPRequestSchema>(ClientHTTPRequestSchema.instance, 30,1<<9);		
-			PipeConfig<NetPayloadSchema> clientNetRequestConfig = new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,4,16000); 		
-		
-			//BUILD GRAPH
-			
-			int connectionsInBits=10;			
-			int maxPartialResponses=4;
-			ClientCoordinator ccm = new ClientCoordinator(connectionsInBits, maxPartialResponses, true);
-		
-			int outputsCount = 1;
-			Pipe<NetPayloadSchema>[] clientRequests = new Pipe[outputsCount];
-			int r = outputsCount;
-			while (--r>=0) {
-				clientRequests[r] = new Pipe<NetPayloadSchema>(clientNetRequestConfig);		
-			}
-			
-			HTTPClientRequestStage requestStage = new HTTPClientRequestStage(gm, this, ccm, netRequestPipes, masterGoOut[IDX_NET], masterAckIn[IDX_NET], clientRequests);
-						
-			NetGraphBuilder.buildHTTPClientGraph(gm, maxPartialResponses, ccm, netPipeLookup2, 10, 1<<15, clientRequests, netResponsePipes); 
-			
-						
-		}
+		buildHTTPClientGraph(netPipeLookup2, httpClientResponsePipes, httpClientRequestPipes, masterGoOut, masterAckIn);
 		
 		if (IDX_MSG <0) {
-				logger.info("saved some resources by not starting up the unused pub sub service.");
+				logger.trace("saved some resources by not starting up the unused pub sub service.");
 		} else {
-			 	createMessagePubSubStage(subscriptionPipeLookup2, ingressMessagePipes, messagePubSub, masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
+			 	createMessagePubSubStage(subscriptionPipeLookup2, ingressMessagePipes, 
+			 			                 messagePubSub, 
+			 			                 masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
 		}
+
+		int c = masterGoOut.length;
+		while (--c>=0) {
+			if (!PronghornStage.noNulls(masterGoOut[c])) {
+				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
+			}
+			if (!PronghornStage.noNulls(masterAckIn[c])) {
+				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
+			}
+		}		
+		
 				
 		//////////////////
 		//only build and connect I2C if it is used for either in or out  
@@ -675,39 +719,79 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//////////////
 		//only build and connect gpio input responses if it is used
 		//////////////
-		if (responsePipes.length>0) {
+		if (responsePipes.length>1) {
 			Pipe<GroveResponseSchema> masterResponsePipe = GroveResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 			new ReplicatorStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
 			createADInputStage(masterResponsePipe);
+		} else {
+			if (responsePipes.length==1) {
+				createADInputStage(responsePipes[0]);
+			}
 		}
-		
-		//////////////
-		//only build serial input if the data is consumed
-		//////////////
-		if (serialInputPipes.length>0) {
-			Pipe<SerialInputSchema> masterUARTPipe = SerialDataSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
-			new ReplicatorStage<SerialInputSchema>(gm, masterUARTPipe, serialInputPipes);   
-			createUARTInputStage(masterUARTPipe);
-		}		
 		
 		/////////////
 		//only build serial output if data is sent
 		/////////////
-		if (serialOutputPipes.length>0) {			
-			createSerialOutputStage(serialOutputPipes, masterGoOut, masterAckIn);			
+		if (serialOutputPipes.length>0) {	
+			assert(null!=masterGoOut[IDX_SER]);
+			assert(serialOutputPipes.length == masterGoOut[IDX_SER].length) : serialOutputPipes.length+" == "+masterGoOut[IDX_SER].length;
+			createSerialOutputStage(serialOutputPipes, masterGoOut[IDX_SER], masterAckIn[IDX_SER]);			
 		}
+
+		//////////////
+		//only build serial input if the data is consumed
+		//////////////
+		if (serialInputPipes.length>1) {
+			Pipe<SerialInputSchema> masterUARTPipe = SerialDataSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			new ReplicatorStage<SerialInputSchema>(gm, masterUARTPipe, serialInputPipes);   
+			createUARTInputStage(masterUARTPipe);
+		} else {
+			if (serialInputPipes.length==1) {
+				createUARTInputStage(serialInputPipes[0]);
+			}
+		}
+		
 				
 		///////////////
 		//only build direct pin output when we detected its use
 		///////////////
 		if (IDX_PIN>=0) {
-			createADOutputStage(requestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
+			assert(PronghornStage.noNulls(masterGoOut[IDX_PIN])) : "Go Pipe must not contain nulls";
+			assert(PronghornStage.noNulls(masterAckIn[IDX_PIN])) : "Ack Pipe must not contain nulls";
+			       
+			createADOutputStage(pinRequestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
 		}
 	}
 
+	private String featureName(final int c) {
+		
+		if (c == IDX_I2C) {
+			//FogRuntime.I2C_WRITER;
+			return "I2C_WRITER";
+		}
+		if (c == IDX_MSG) {
+			//Behavior.DYNAMIC_MESSAGING;
+			return "DYNAMIC_MESSAGING";
+		}
+		if (c == IDX_NET) { //TODO: where is the responder??
+			//Behavior.NET_REQUESTER;
+			return "NET_REQUESTER";
+		}
+		if (c == IDX_PIN) {
+			//FogRuntime.PIN_WRITER;
+			return "PIN_WRITER";
+		}
+		if (c == IDX_SER) {
+			//FogRuntime.SERIAL_WRITER;
+			return "SERIAL_WRITER";
+		}
+		
+		return null;
+	}
+
 	protected void createSerialOutputStage(Pipe<SerialOutputSchema>[] serialOutputPipes,
-			Pipe<TrafficReleaseSchema>[][] masterGoOut, Pipe<TrafficAckSchema>[][] masterAckIn) {
-		new SerialDataWriterStage(gm, serialOutputPipes, masterGoOut[IDX_SER], masterAckIn[IDX_SER],
+			Pipe<TrafficReleaseSchema>[] masterGoOut, Pipe<TrafficAckSchema>[] masterAckIn) {
+		new SerialDataWriterStage(gm, serialOutputPipes, masterGoOut, masterAckIn,
 				                     this, this.buildSerialClient());
 	}
 
@@ -729,6 +813,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return IDX_NET;
 	}
 
+	public boolean isTestHardware() {
+		return false;
+	}
 	
 	
 }

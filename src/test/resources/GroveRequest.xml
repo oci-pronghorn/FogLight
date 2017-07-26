@@ -21,22 +21,12 @@
      </uInt32>
      <uInt64 name="TimeMS" id="114"/>  
   </template>   
-  
-     
+       
   <template name="AnalogSet" id="140"> 
      <uInt32 name="Connector" id="141">
      	<copy/>
      </uInt32>
      <uInt32 name="Value" id="142"/>
   </template>  
-
-  <template name="BlockChannel" id="22">
-     <uInt64 name="DurationNanos" id="13"/>     
-  </template>
-   
-  <template name="BlockChannelUntil" id="23">
-     <uInt64 name="TimeMS" id="14"/>     
-  </template>
-
 
 </templates>

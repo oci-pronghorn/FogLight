@@ -1,10 +1,15 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
-import com.ociweb.iot.grove.GroveTwig;
+import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
+import com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig;
+import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.I2CConnection;
@@ -35,29 +40,30 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	//TODO: urgent need for unit tests here, this custom pi logic is easily broken.
 
-	public GrovePiHardwareImpl(GraphManager gm, I2CBacking i2cBacking) {
-		super(gm, i2cBacking);
+	public GrovePiHardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking) {
+		super(gm, args, i2cBacking);
 
+		assert(null != i2cBacking) : "must have i2c backing";
+		
 		model = PiModel.detect();
 		rs232ClientDevice = model.serialDevice();
 		rs232ClientBaud = Baud.B___921600;
 		bluetoothDevice = model.bluetoothDevice();
-
+		configI2C = true; 
 		System.out.println("You are running on the GrovePi hardware on the "+model);
 	}
 
 
 
 
-
 	@Override
-	public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
+	public PiCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
 		this.commandIndex++;
 		return new PiCommandChannel(gm, this, features, instance, pcm, commandIndex);	
 	}
 
 	@Override
-	public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
+	public PiCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {
 		this.commandIndex++;
 		return new PiCommandChannel(gm, this, 0, instance, pcm, commandIndex);	
 	}
@@ -95,13 +101,13 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	@Override
 	public boolean isListeningToI2C(Object listener) {
-		return listener instanceof I2CListener || listener instanceof DigitalListener || listener instanceof AnalogListener;
+		return super.isListeningToI2C(listener) || super.isListeningToPins(listener);
 	}
 
 	@Override
-	public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Object listener, 
-			Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, int parallelInstance) {
-		return (R)new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, this, parallelInstance); 
+	public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
+			Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, ArrayList<ReactiveManagerPipeConsumer> consumers, int parallelInstance) {
+		return (R)new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, consumers, this, parallelInstance); 
 	}
 
 	@Override
@@ -114,7 +120,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 				int register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection+i]; 
 
 				//NOTE: may need to add additional "special cases" here
-				byte groveOperation = GroveTwig.UltrasonicRanger == t ?
+				byte groveOperation = AnalogDigitalTwig.UltrasonicRanger == t ?
 						GrovePiConstants.ULTRASONIC_RANGER : 
 							GrovePiConstants.ANALOG_READ;
 
@@ -164,9 +170,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	}
 
 	@Override
-	public Hardware connect(IODevice t, Port port) {
+	public Hardware connect(ADIODevice t, Port port) {
 		System.out.println("GrovePiHardware.connect");
-		if (t == GroveTwig.FourDigitDisplay){	
+		if (t == AnalogDigitalTwig.FourDigitDisplay){	
 			deviceOnPort[port.ordinal()] = t; 
 			return connectGroveFirmwareDevice(t,port);
 		}
@@ -183,9 +189,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	 * @return the GrovePiHardware once the proper connections are made
 	 */
 	private Hardware connectGroveFirmwareDevice(IODevice t, Port... p){
-		if (t == GroveTwig.FourDigitDisplay){
+		if (t == AnalogDigitalTwig.FourDigitDisplay){
 			System.out.println("connectGroveFirmwareDevice");
-			byte[] tailored_setup = GroveTwig.FourDigitDisplay.I2COutSetup();
+			byte[] tailored_setup = AnalogDigitalTwig.FourDigitDisplay.I2COutSetup();
 			tailored_setup[1] = p[0].port;
 			i2cOutputs = growI2CConnections(i2cOutputs,  new I2CConnection(t.getI2CConnection(), tailored_setup));
 			return this;

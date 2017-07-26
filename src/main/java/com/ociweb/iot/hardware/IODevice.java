@@ -1,6 +1,6 @@
 package com.ociweb.iot.hardware;
 
-import com.ociweb.iot.maker.IODeviceFacade;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 
 /**
@@ -46,5 +46,5 @@ public interface IODevice {
       */
      public int           pinsUsed();//count of contiguous pins used, eg almost always 1 but would be 2 for the grove rotary encoder
      
-     public <F extends IODeviceFacade> F newFacade(FogCommandChannel... ch);
+     public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch);
 }

@@ -1,7 +1,10 @@
 package com.ociweb.iot.maker;
 
-public interface SerialListener {
+import com.ociweb.gl.api.Behavior;
+import com.ociweb.iot.impl.SerialListenerBase;
 
-	public boolean message(SerialReader reader);
+public interface SerialListener extends Behavior, SerialListenerBase {
+
+	
 	
 }

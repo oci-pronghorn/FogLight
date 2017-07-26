@@ -1,6 +1,9 @@
 package com.ociweb.iot.maker;
 
-import com.ociweb.gl.api.GreenCommandChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.PubSubWriter;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -21,105 +24,173 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
  * or resource on an IoT system.
  * 
  */
-public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl> {
+public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> {
 
-    protected final Pipe<I2CCommandSchema> i2cOutput;  //TODO: find a way to not create if not used like http or message pup/sub
-    protected final Pipe<GroveRequestSchema> pinOutput; //TODO: find a way to not create if not used like http or message pup/sub
+	private static final Logger logger = LoggerFactory.getLogger(FogCommandChannel.class);
+    public static final int SIZE_OF_I2C_COMMAND = Pipe.sizeOf(I2CCommandSchema.instance, I2CCommandSchema.MSG_COMMAND_7);
 
-    protected final Pipe<SerialOutputSchema> serialOutput;
+    protected Pipe<I2CCommandSchema> i2cOutput;  
+    protected Pipe<GroveRequestSchema> pinOutput;
+    protected Pipe<SerialOutputSchema> serialOutput;
     
     public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog .0vs digital
     protected static final long MS_TO_NS = 1_000_000;
      
     protected int runningI2CCommandCount;
-    
-    //TODO: need to set this as a constant driven from the known i2c devices and the final methods, what is the biggest command sequence?
-    protected final int maxCommands = 50;
+    protected int maxCommands=-1;
 
     public static final int I2C_WRITER      = 1<<29;
     public static final int PIN_WRITER      = 1<<28;
     public static final int SERIAL_WRITER   = 1<<27;
     public static final int BT_WRITER       = 1<<26;
 
-    
-	private final int MAX_COMMAND_FRAGMENTS_SIZE;
-        
-
-	
-	
-    protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, int features, int parallelInstanceId, PipeConfigManager pcm) {
+   	
+    protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, 
+    		                    int features, int parallelInstanceId,
+    		                    PipeConfigManager pcm) {
     	    	
        super(gm, hardware, features, parallelInstanceId, pcm);
-
-       boolean setupPins = hardware.hasDigitalOrAnalogOutputs();
-       if (setupPins) {
-    	   this.pinOutput = new Pipe<GroveRequestSchema>(pcm.getConfig(GroveRequestSchema.class));
-       } else {
-    	   this.pinOutput = null;
+       if ((I2C_WRITER & features) != 0) {
+    	   hardware.useI2C();//critical for hardware to know that I2C is really really  in use.
        }
-       
-       boolean setupSerial = (0 != (features & SERIAL_WRITER));//if feature bit is on then set for write...
-       if (setupSerial) {
-    	   serialOutput = newSerialOutputPipe(pcm.getConfig(SerialOutputSchema.class), hardware);
-       } else {
-    	   serialOutput = null;
-       }
-       
-       
-       
-       //TODO: if features is I2C and if I2C is configured both, add assert check.
-       boolean setupI2C = true;//right now this must always be on expcially for pi, hardware.isUseI2C();	  
-       	   
-       if (setupI2C) {
-    	   //yes i2c usage
-	       optionalOutputPipes = new Pipe<?>[]{
-		    	   this.pinOutput,
-		    	   this.i2cOutput = new Pipe<I2CCommandSchema>(pcm.getConfig(I2CCommandSchema.class))
-	    	   };
-	                             
-	       if (Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands >= this.i2cOutput.sizeOfSlabRing) {
-	           throw new UnsupportedOperationException("maxCommands too large or pipe is too small, pipe size must be at least "+(Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands));
-	       }
-	       MAX_COMMAND_FRAGMENTS_SIZE = Pipe.sizeOf(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)*maxCommands;
-       } else {
-    	   i2cOutput=null;
-    	   MAX_COMMAND_FRAGMENTS_SIZE = 0;
-    	   
-    	   //non i2c usage (TODO: THIS IS NEW CODE UNDER TEST)
-	       optionalOutputPipes = new Pipe<?>[]{
-	    	   this.pinOutput
-    	   }; 
-       }
-       
-       //////////////////////////
-       //////////////////////////
-       
-       int optionalPipeCount = 0;
-       if (null != serialOutput) {
-    	   optionalPipeCount++;
-       }
-       if (null != pinOutput) {
-    	   optionalPipeCount++;
-       }
-       if (null != i2cOutput) {
-    	   optionalPipeCount++;
-       }
-       optionalOutputPipes = new Pipe<?>[optionalPipeCount];
-       
-       
-       if (null!=serialOutput) {
-    	   int serialPipeIdx = (byte)--optionalPipeCount;
-    	   optionalOutputPipes[serialPipeIdx] = serialOutput;
-       }
-       if (null!=i2cOutput) {
-    	   int i2cPipeIdx = (byte)(--optionalPipeCount);
-    	   optionalOutputPipes[i2cPipeIdx] = i2cOutput;
-       }
-       if (null!=pinOutput) {
-    	   optionalOutputPipes[--optionalPipeCount] = pinOutput;
-       }
-       
     }
+
+    public void ensureI2CWriting() {
+    	if (maxCommands>=0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= I2C_WRITER;
+    }
+    
+    public void ensureI2CWriting(int queueLength, int maxMessageSize) {
+    	if (maxCommands>=0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= I2C_WRITER;    
+    	PipeConfig<I2CCommandSchema> config = pcm.getConfig(I2CCommandSchema.class);
+		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
+    		this.pcm.addConfig(queueLength, maxMessageSize, I2CCommandSchema.class);   
+    	}
+    }
+    
+    public void ensurePinWriting() {
+    	if (maxCommands>=0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= PIN_WRITER;
+    }
+    
+    public void ensurePinWriting(int queueLength, int maxMessageSize) {
+    	if (maxCommands>=0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= PIN_WRITER;    
+    	PipeConfig<GroveRequestSchema> config = pcm.getConfig(GroveRequestSchema.class);
+		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
+    		this.pcm.addConfig(queueLength, maxMessageSize, GroveRequestSchema.class);   
+    	}
+    }
+    
+    public void ensureSerialWriting() {
+    	if (maxCommands>=0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= SERIAL_WRITER;
+    }
+    
+    public void ensureSerialWriting(int queueLength, int maxMessageSize) {
+    	if (maxCommands>=0) {
+    		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
+    	}
+    	this.initFeatures |= SERIAL_WRITER;    
+    	PipeConfig<SerialOutputSchema> config = pcm.getConfig(SerialOutputSchema.class);
+		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
+    		this.pcm.addConfig(queueLength, maxMessageSize, SerialOutputSchema.class);   
+    	}
+    }
+    
+    @Override
+    public Pipe<?>[] getOutputPipes() {
+    	//we must wait till this last possible moment to build.
+    	buildFogPipes();
+    	return super.getOutputPipes();
+    }
+    
+	private void buildFogPipes() {
+		
+		   if (maxCommands<0) { //this block will set maxCommands
+			   
+			   logger.trace("created new FogCommandChannel {}",this.initFeatures);
+			   boolean setupPins = builder.hasDigitalOrAnalogOutputs();
+			   if (setupPins) {
+				   this.pinOutput = new Pipe<GroveRequestSchema>(pcm.getConfig(GroveRequestSchema.class));
+			   } else {
+				   this.pinOutput = null;
+			   }
+			   
+			   
+			   boolean setupSerial = (0 != (this.initFeatures & SERIAL_WRITER));//if feature bit is on then set for write...
+			   if (setupSerial) {
+				   logger.trace("created pipes for serial write");
+				   serialOutput = newSerialOutputPipe(pcm.getConfig(SerialOutputSchema.class), builder);
+			   } else {
+				   serialOutput = null;
+			   }
+			   
+			   boolean setupI2C = (I2C_WRITER & this.initFeatures) != 0;
+
+			   if (setupI2C) { 
+				   //yes i2c usage
+			       optionalOutputPipes = new Pipe<?>[]{
+				    	   this.pinOutput,
+				    	   this.i2cOutput = new Pipe<I2CCommandSchema>(pcm.getConfig(I2CCommandSchema.class))
+			    	   };
+			    	   
+			       maxCommands = i2cOutput.sizeOfSlabRing/SIZE_OF_I2C_COMMAND;   
+	
+			   } else {
+				   //logger.trace("warning i2c was not set up");
+				   i2cOutput=null;
+				   maxCommands = 0;
+				   
+				   //non i2c usage (TODO: THIS IS NEW CODE UNDER TEST)
+			       optionalOutputPipes = new Pipe<?>[]{
+			    	   this.pinOutput
+				   }; 
+			   }
+			   
+			   //////////////////////////
+			   //////////////////////////
+			   
+			   int optionalPipeCount = 0;
+			   if (null != serialOutput) {
+				   optionalPipeCount++;
+			   }
+			   if (null != pinOutput) {
+				   optionalPipeCount++;
+			   }
+			   if (null != i2cOutput) {
+				   optionalPipeCount++;
+			   }
+			   optionalOutputPipes = new Pipe<?>[optionalPipeCount];
+			   
+			   
+			   if (null!=serialOutput) {
+				   int serialPipeIdx = (byte)--optionalPipeCount;
+				   optionalOutputPipes[serialPipeIdx] = serialOutput;
+			   }
+			   if (null!=i2cOutput) {
+				   int i2cPipeIdx = (byte)(--optionalPipeCount);
+				   optionalOutputPipes[i2cPipeIdx] = i2cOutput;
+			   }
+			   if (null!=pinOutput) {
+				   optionalOutputPipes[--optionalPipeCount] = pinOutput;
+			   }
+			   
+		   }
+		   
+		   
+	}
     
     
     private static Pipe<SerialOutputSchema> newSerialOutputPipe(PipeConfig<SerialOutputSchema> config,HardwareImpl hardware) {
@@ -140,16 +211,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
         return aBool.compareAndSet(true, false);
     }
 
-    /**
-     * Causes this channel to delay processing any actions until the specified
-     * amount of time has elapsed.
-     *
-     * @param msDuration Milliseconds to delay.
-     *
-     * @return True if blocking was successful, and false otherwise.
-     */
-    public abstract boolean block(long msDuration);
-
+ 
     /**
      * Causes this channel to delay processing any actions on a given {@link Port}
      * until the specified amount of time has elapsed.
@@ -245,7 +307,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
     public boolean publishSerial(SerialWritable writable) {
         assert(writable != null);
         assert((0 != (initFeatures & SERIAL_WRITER))) : "CommandChannel must be created with SERIAL_WRITER flag";
-        
+                
         if (goHasRoom() && 
         	PipeWriter.tryWriteFragment(serialOutput, SerialDataSchema.MSG_CHUNKEDSTREAM_1)) {
   	
@@ -257,7 +319,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
             
             PipeWriter.publishWrites(serialOutput);     
            
-            GreenCommandChannel.publishGo(1, HardwareImpl.serialIndex(builder), this);
+            MsgCommandChannel.publishGo(1, HardwareImpl.serialIndex(builder), this);
             
             return true;
             
@@ -277,7 +339,9 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
      *
      */
     public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
-        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
+
+    	assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
 
             if (PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_COMMAND_7)) {
@@ -301,6 +365,7 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
      * @param durationNanos Time in nanoseconds to delay.
      */
     public void i2cDelay(int targetAddress, long durationNanos) {
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             if (++runningI2CCommandCount > maxCommands) {
@@ -325,18 +390,24 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
         
     }
 
+    public boolean i2cIsReady() {
+    	return i2cIsReady(1);
+    }
     /**
      * @return True if the I2C bus is ready for communication, and false otherwise.
      */
-    public boolean i2cIsReady() {
-        return goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, MAX_COMMAND_FRAGMENTS_SIZE);
-       
+    public boolean i2cIsReady(int requestedCommandCount) {
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
+    	assert(null!=i2cOutput) : "pipe must not be null";
+    	assert(Pipe.isInit(i2cOutput)) : "pipe must be initialized";    	
+        return goHasRoom() && PipeWriter.hasRoomForFragmentOfSize(i2cOutput, SIZE_OF_I2C_COMMAND*requestedCommandCount);
     }
 
     /**
      * Flushes all awaiting I2C data to the I2C bus for consumption.
      */
-    public void i2cFlushBatch() {        
+    public void i2cFlushBatch() { 
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
         	builder.releaseI2CTraffic(runningI2CCommandCount, this);        	
@@ -347,7 +418,8 @@ public abstract class FogCommandChannel extends GreenCommandChannel<HardwareImpl
     }
 
 
-    public void i2cCommandClose() {  
+    public void i2cCommandClose() { 
+    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             if (++runningI2CCommandCount > maxCommands) {

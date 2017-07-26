@@ -1,7 +1,7 @@
 package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.MsgApp;
-import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.MsgCommandChannel;
 
 /**
  * Base interface for a maker's IoT application.
@@ -16,9 +16,9 @@ import com.ociweb.gl.api.GreenCommandChannel;
 public interface FogApp extends MsgApp<Hardware, FogRuntime> {
 	
 	
-	public static final int DYNAMIC_MESSAGING = GreenCommandChannel.DYNAMIC_MESSAGING;
-	public static final int NET_REQUESTER     = GreenCommandChannel.NET_REQUESTER;
-	public static final int NET_RESPONDER     = GreenCommandChannel.NET_RESPONDER;
+	public static final int DYNAMIC_MESSAGING = MsgCommandChannel.DYNAMIC_MESSAGING;
+	public static final int NET_REQUESTER     = MsgCommandChannel.NET_REQUESTER;
+	public static final int NET_RESPONDER     = MsgCommandChannel.NET_RESPONDER;
 	
 	public static final int I2C_WRITER        = FogCommandChannel.I2C_WRITER;
 	public static final int PIN_WRITER        = FogCommandChannel.PIN_WRITER;

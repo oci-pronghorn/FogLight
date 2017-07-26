@@ -62,6 +62,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		
 		assert(!instanceCreated.getAndSet(true)) : "Only one i2c manager can be running at a time";
 			
+		assert(null != hardware.i2cBacking) : "I2C backing required but not provided";
 		
 		this.i2c = hardware.i2cBacking;
 		this.fromCommandChannels = i2cPayloadPipes;
@@ -104,8 +105,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
 
 		for (int i = 0; i < inputs.length; i++) {
-			timeOut = hardware.currentTimeMillis() + writeTime;
-			while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
+			if (null != inputs[i].setup) {
+				timeOut = hardware.currentTimeMillis() + writeTime;
+				while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
+			}
 			logger.debug("I2C setup {} complete",inputs[i].address);
 		}
 		if (null!=schedule) {
@@ -302,7 +305,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
     			case I2CCommandSchema.MSG_BLOCKCHANNEL_22:
     			{
-    				blockChannelDuration(activePipe,PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));   
+    				hardware.blockChannelDuration(PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13), goPipeId(activePipe));   
     				if (logger.isDebugEnabled()) {
     					logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
     				}

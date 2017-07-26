@@ -1,7 +1,7 @@
 package com.ociweb.iot.maker;
 
-public interface I2CListener {
+import com.ociweb.gl.api.Behavior;
+import com.ociweb.iot.impl.I2CListenerBase;
 
-    public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask);
-    
+public interface I2CListener extends Behavior, I2CListenerBase {   
 }

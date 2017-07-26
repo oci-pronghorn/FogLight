@@ -7,6 +7,7 @@ import java.util.List;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.ImageListener;
 
 /**
  * Simple Pi image capture test.
@@ -23,21 +24,24 @@ public class PiCamTest implements FogApp {
 
     @Override
     public void declareConnections(Hardware hardware) {
-        hardware.setTriggerRate(1250);
+        hardware.setTimerPulseRate(1250);
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        runtime.addImageListener((image) -> {
-            System.out.println("Grove Pi Captured Image: ");
-            System.out.println(image);
+        runtime.addImageListener(new ImageListener() {
+            @Override
+            public void onImage(File image) {
+                System.out.println("Grove Pi Captured Image: ");
+                System.out.println(image);
 
-            images.add(image);
+                images.add(image);
 
-            if (images.size() > 50) {
-                File f = images.get(0);
-                images.remove(0);
-                f.delete();
+                if (images.size() > 50) {
+                    File f = images.get(0);
+                    images.remove(0);
+                    f.delete();
+                }
             }
         });
     }

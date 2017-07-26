@@ -1,14 +1,17 @@
 package com.ociweb.iot.hardware.impl.test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
+import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
@@ -45,46 +48,23 @@ public class TestHardware extends HardwareImpl {
     
     private long lastProvidedTime;
     
-    private RS232Clientable fakeRS232 = new RS232Clientable() {
-
-		@Override
-		public int readInto(byte[] array, int position, int remaining, byte[] array2, int position2, int remaining2) {
-			System.out.println("reading from serial device");
-			return 0;
-		}
-
-		@Override
-		public int writeFrom(byte[] backing, int pos, int length) {
-			/////////////
-			///Appendables.appendArray(System.out, '[',backing,pos,Integer.MAX_VALUE,']',length);
-			/////////////
-			return length; //must be length to indicate all consumed
-		}
-
-		@Override
-		public int write(byte[] data) {
-			return data.length;
-		}
-    	
-    };
+    private RS232Clientable testSerial = new TestSerial();
     
-    public TestHardware(GraphManager gm) {
-        super(gm, new TestI2CBacking().configure((byte) 1));
+    public TestHardware(GraphManager gm, String[] args) {
+        super(gm, args, new TestI2CBacking().configure((byte) 1));
         //logger.trace("You are running on the test hardware.");
     }
-    
+	
     public void enableTelemetry(boolean enable) {
-    	if (!isInUnitTest) {
-    		super.enableTelemetry(enable);
+    	if (!isInUnitTest && enable) {
+    		super.enableTelemetry();
     	}
     	//else do nothing this is a test.
     }
     
     
     protected RS232Clientable buildSerialClient() {
-    	System.err.println("baud select: "+this.rs232ClientBaud);
-    	
-    	return fakeRS232;
+     	return testSerial;
     }
     
     public void setI2CValueToRead(byte address, byte[] data, int length) {
@@ -168,12 +148,14 @@ public class TestHardware extends HardwareImpl {
 
     
     @Override
-    public FogCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {    
+    public DefaultCommandChannel newCommandChannel(int features, int instance,
+    		                                   PipeConfigManager pcm) {    
        return new DefaultCommandChannel(gm, this, features, instance, pcm);       
     }
     
     @Override
-    public FogCommandChannel newCommandChannel(int instance, PipeConfigManager pcm) {    
+    public DefaultCommandChannel newCommandChannel(int instance, 
+    		                                     PipeConfigManager pcm) {    
        return new DefaultCommandChannel(gm, this, 0, instance, pcm);     
     }
     
@@ -200,12 +182,19 @@ public class TestHardware extends HardwareImpl {
         return lastProvidedTime;
     }
     
-    public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Object listener, 
-    		                                                 Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, int parallelInstance) {
-        return (R)new ReactiveListenerStageIOT(gm, listener,
+    @Override
+    public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
+    		                                                 Pipe<?>[] inputPipes, Pipe<?>[] outputPipes,
+    		                                                 ArrayList<ReactiveManagerPipeConsumer> consumers,
+    		                                                 int parallelInstance) {
+        assert(null!=listener);
+    	return (R)new ReactiveListenerStageIOT(gm, listener,
         		                               inputPipes, outputPipes, 
-        		                               this, parallelInstance);
+        		                               consumers, this, parallelInstance);
     }
 
+	public final boolean isTestHardware() {
+		return true;
+	}
     
 }

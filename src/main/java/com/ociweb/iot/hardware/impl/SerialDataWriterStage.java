@@ -32,10 +32,18 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage {
 			HardwareImpl hardware, RS232Clientable rs232Client) {
 		
 		super(graphManager, hardware, ccToAdOut, goPipe, ackPipe);
+		
+		assert(noNulls(ccToAdOut));
+		assert(noNulls(goPipe));
+	    assert(noNulls(ackPipe));
+	       
+		assert(goPipe.length == ackPipe.length) : "should be one ack pipe for every go pipe";        
+	    assert(goPipe.length == ccToAdOut.length) : "SerialData should be one pub sub pipe for every go "+goPipe.length+" vs "+ccToAdOut.length;
+		
 		this.fromCommandChannels = ccToAdOut;
 		this.rs232Client = rs232Client;
 		
-		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 1000_000_000, this);
+		GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, 10_000, this);
 	}
 
 	

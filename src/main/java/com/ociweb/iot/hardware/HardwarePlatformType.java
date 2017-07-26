@@ -6,5 +6,5 @@ package com.ociweb.iot.hardware;
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public enum HardwarePlatformType {
-    INTEL_EDITION, GROVE_PI, TEST
+    INTEL_EDITION, GROVE_PI, ANDROID, TEST
 }

@@ -2,10 +2,10 @@ package com.ociweb.pronghorn.iot;
 
 import java.util.Arrays;
 
-import com.ociweb.iot.grove.GroveTwig;
+import com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
-import com.ociweb.iot.hardware.I2CConnection;
+
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.Util;
 import com.ociweb.iot.maker.Port;
@@ -96,7 +96,9 @@ public class ReadDeviceInputStage extends PronghornStage {
 
 		//for devices that must poll frequently
 		frequentScriptConn = new int[activeSize];
-		frequentScriptTwig = new GroveTwig[activeSize];
+		
+		//TODO: what to do with this? Used to be GroveTwig[] 
+		frequentScriptTwig = new IODevice[activeSize];
 		frequentScriptLastPublished = new int[activeSize];
 
 		//before we setup the pins they must start in a known state
@@ -121,11 +123,11 @@ public class ReadDeviceInputStage extends PronghornStage {
 			
 				IODevice twig = hardware.getDigitalInputs()[i].twig;
 
-				if (twig == GroveTwig.RotaryEncoder) {
+				if (twig == AnalogDigitalTwig.RotaryEncoder) {
 					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register; //just the low address
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
-				} else if (twig == GroveTwig.Button) {                    
+				} else if (twig == AnalogDigitalTwig.Button) {                    
 					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register;
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
@@ -173,7 +175,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 				int connector = hc.register;
 				
 				
-				if (GroveTwig.RotaryEncoder == hc.twig) {
+				if (AnalogDigitalTwig.RotaryEncoder == hc.twig) {
 					assert (hc.twig.pinsUsed()==2);
 					//rotary encoder
 					//low level write

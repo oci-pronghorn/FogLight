@@ -13,13 +13,12 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.I2CListener;
 
 public class I2CListenerBehavior implements I2CListener, StartupListener {
-	private final FogCommandChannel ch;
+
     private final ADC_Transducer sensor;
         
 	public I2CListenerBehavior(FogRuntime runtime) {
 
-		this.ch = runtime.newCommandChannel(I2C_WRITER);
-        sensor = new ADC_Transducer(ch);
+        sensor = new ADC_Transducer(runtime.newCommandChannel(I2C_WRITER));
 	}
 
 	@Override
@@ -31,7 +30,6 @@ public class I2CListenerBehavior implements I2CListener, StartupListener {
 	}
 	@Override
 	public void startup() {
-       sensor.writeSingleByteToRegister(REG_ADDR_CONFIG,0x20);
        sensor.begin();
 		
 	}

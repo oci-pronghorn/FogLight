@@ -9,6 +9,7 @@ public class I2CListener implements FogApp
     public void declareConnections(Hardware c) {
     	c.connect(ADC.ReadConversionResult);
     }
+    
     @Override
     public void declareBehavior(FogRuntime runtime) {   
     	runtime.registerListener(new I2CListenerBehavior(runtime));

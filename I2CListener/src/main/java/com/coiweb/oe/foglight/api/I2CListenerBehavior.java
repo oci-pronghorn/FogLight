@@ -15,6 +15,7 @@ public class I2CListenerBehavior implements I2CListener, StartupListener {
         
 	public I2CListenerBehavior(FogRuntime runtime) {
         sensor = new ADC_Transducer(runtime.newCommandChannel());
+
 	}
 
 	@Override
@@ -26,7 +27,6 @@ public class I2CListenerBehavior implements I2CListener, StartupListener {
 	}
 	@Override
 	public void startup() {
-       sensor.writeSingleByteToRegister(REG_ADDR_CONFIG,0x20);
        sensor.begin();
 		
 	}

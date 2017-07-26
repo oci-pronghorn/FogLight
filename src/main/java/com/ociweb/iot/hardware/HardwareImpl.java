@@ -140,11 +140,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.getTempPipeOfStartupSubscriptions().initBuffers();
 	}
 
-	public static I2CBacking getI2CBacking(byte deviceNum) {
+	public static I2CBacking getI2CBacking(byte deviceNum, boolean reportError) {
 		try {
 			return new I2CNativeLinuxBacking().configure(deviceNum);
 		} catch (Throwable t) {
-			//logger.info("warning could not find the i2c bus", t);
+			if (reportError) {
+				logger.info("warning could not find the i2c bus", t);
+			}
 			//avoid non error case that is used to detect which hardware is running.
 			return null;
 		}

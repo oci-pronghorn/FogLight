@@ -105,11 +105,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
 
 		for (int i = 0; i < inputs.length; i++) {
-			if (null != inputs[i].setup) {
-				timeOut = hardware.currentTimeMillis() + writeTime;
-				while(!i2c.write(inputs[i].address, inputs[i].setup, inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
-			}
-			logger.debug("I2C setup {} complete",inputs[i].address);
+			setupSingleInput(i);
 		}
 		if (null!=schedule) {
 			logger.debug("proposed schedule: {} ",schedule);
@@ -120,6 +116,18 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 		if (!hasListeners()) {
 			logger.debug("No listeners are attached to I2C");
 		}
+	}
+
+	private void setupSingleInput(int i) {
+		if (null != inputs[i].setup) {
+			assert(hardware!=null);
+			assert(i2c!=null);
+			timeOut = hardware.currentTimeMillis() + writeTime;
+			while(!i2c.write(inputs[i].address, 
+					         inputs[i].setup, 
+					         inputs[i].setup.length) && hardware.currentTimeMillis()<timeOut){};
+		}
+		logger.debug("I2C setup {} complete",inputs[i].address);
 	}
 
 

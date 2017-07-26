@@ -5,11 +5,15 @@
 */
 package com.ociweb.iot.grove.adc;
 
-import com.ociweb.gl.api.StartupListener;
-import static com.ociweb.iot.grove.adc.ADC_Constants.*;
+import static com.ociweb.iot.grove.adc.ADC_Constants.ADDR_ADC121;
+import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_ALERT;
+import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_CONFIG;
+import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_HYST;
+import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_LIMITH;
+import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_LIMITL;
+import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_RESULT;
 
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -24,7 +28,9 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
     private AlertStatusListener alertListener;
     private ConversionResultListener resultListener;
     public ADC_Transducer(FogCommandChannel ch, ADCListener... l){
+    	
         this.target = ch;
+        target.ensureI2CWriting();
         for(ADCListener item:l){
             if(item instanceof AlertStatusListener){
                 this.alertListener = (AlertStatusListener) item;
@@ -141,10 +147,10 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
     @Override
     public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
         if(addr == ADDR_ADC121){
-            if(register == REG_ADDR_RESULT){
+            if(register == REG_ADDR_RESULT && null!=resultListener){
                 resultListener.conversionResult(this.interpretData(backing, position, length, mask));
             }
-            if(register == REG_ADDR_ALERT){
+            if(register == REG_ADDR_ALERT && null!=alertListener){
                 alertListener.alertStatus(this.readAlertFlag(backing, position, length, mask));
             }
         }

@@ -88,7 +88,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
      * @param mask 
      * @return The converted digital value. 
      */
-    public short interpretData(byte[] backing, int position, int length, int mask){
+    private short interpretData(byte[] backing, int position, int length, int mask){
         //format the data from the circular buffer backing[]
         
         short temp = (short)(((backing[(position)&mask]&0x0F) << 8) | (backing[(position+1)&mask]&0xFF));
@@ -103,7 +103,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
      * @param mask
      * @return return a 1 if there's an alert, 0 otherwise
      */
-    public int readAlertFlag(byte[] backing, int position, int length, int mask){
+    private int readAlertFlag(byte[] backing, int position, int length, int mask){
         
         return ((backing[position]) & 0x03 )>0?1:0;
     }
@@ -112,7 +112,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
      * @param register register to write to
      * @param value byte to write
      */
-    public void writeSingleByteToRegister(int register, int value) {
+    private void writeSingleByteToRegister(int register, int value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(ADDR_ADC121);
         
         i2cPayloadWriter.writeByte(register);
@@ -126,7 +126,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
      * @param register 
      * @param value 
      */
-    public void writeTwoBytesToRegister(int register, int[] value) {
+    private void writeTwoBytesToRegister(int register, int[] value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(ADDR_ADC121);
         
         i2cPayloadWriter.writeByte(register);

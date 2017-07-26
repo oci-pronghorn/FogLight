@@ -111,7 +111,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * @param mask
      * @return array of 3 X,Y,Z values ,where array[0] = X, array[1] = Y
      */
-    public short[] interpretData(byte[] backing, int position, int length, int mask){
+    private short[] interpretData(byte[] backing, int position, int length, int mask){
         assert(length==6) : "Non-Accelerometer data passed into the class";
         short[] temp = {0,0,0};
         //format the data from the circular buffer backing[]
@@ -129,7 +129,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * @param register register to write to
      * @param value byte to write
      */
-    public void writeSingleByteToRegister(int register, int value) {
+    private void writeSingleByteToRegister(int register, int value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(LSM303D_ADDR);
         
         i2cPayloadWriter.writeByte(register);

@@ -5,6 +5,10 @@
  */
 package com.ociweb.iot.astropi;
 
+import com.ociweb.iot.astropi.listeners.HumidityListener;
+import com.ociweb.iot.astropi.listeners.PressureListener;
+import com.ociweb.iot.astropi.listeners.TemperatureListener;
+import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
@@ -21,6 +25,7 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
     
     public AstroPi_EnvSensors(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
+        //target.ensureI2CWriting(1000, 1000);
         for(AstroPiListener item:l){
             if(item instanceof TemperatureListener){
                 this.tempListener = (TemperatureListener) item;
@@ -37,6 +42,13 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
     
     int CTRL_REG1_PVal = 0;
     int CTRL_REG1_HUMVal = 0;
+    /**
+     * Power up the humidity and/or the pressure sensor
+     * Set the output data rate (ODR) of the pressure sensor to 1 Hz
+     * Set the output data rate (ODR) of the humidity sensor to 1 Hz
+     * @param humiditySensor
+     * @param pressureSensor 
+     */
     public void begin(boolean humiditySensor,boolean pressureSensor){
         if(pressureSensor){
             CTRL_REG1_PVal |= AstroPi_Constants.POWER_UP_P;
@@ -58,10 +70,10 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
      * @param mask 
      * @return The converted digital value. 
      */
-    public int interpretTwoBytes(byte[] backing, int position, int length, int mask){
+    private short interpretTwoBytes(byte[] backing, int position, int length, int mask){
         //format the data from the circular buffer backing[]
         
-        int temp = (int)(((backing[(position+1)&mask]&0xFF) << 8) | (backing[(position)&mask]&0xFF));
+        short temp = (short)(((backing[(position+1)&mask] & 0xFF) << 8) | (backing[(position)&mask] & 0xFF));
         
         return temp;
     }
@@ -74,11 +86,12 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
      * @param mask 
      * @return The converted digital value. 
      */
-    public int interpretThreeBytes(byte[] backing, int position, int length, int mask){
+    private int interpretThreeBytes(byte[] backing, int position, int length, int mask){
         //format the data from the circular buffer backing[]
         
-        int temp = (int)(((backing[(position+2)&mask]&0xFF) << 16) | ((backing[(position+1)&mask]&0xFF) << 8) | (backing[(position)&mask]&0xFF));
+        int temp = (((backing[(position+2)&mask]&0xFF) << 16) | ((backing[(position+1)&mask]&0xFF) << 8) | (backing[(position)&mask]&0xFF));
         
+        if (temp >= 8388608) temp -= 2 * 8388608;
         return temp;
     }
     
@@ -111,7 +124,7 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
     public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
         if(addr == AstroPi_Constants.LPS25H_ADDRESS){
             if(register == AstroPi_Constants.TEMP_L_REG_P){
-                int data = this.interpretTwoBytes(backing, position, length, mask);
+                short data = this.interpretTwoBytes(backing, position, length, mask);
                 double temp = 42.5 + (data/480.0);
                 tempListener.temperatureVal(temp);
             }

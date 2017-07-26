@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ociweb.iot.astropi;
+package com.ociweb.iot.astropi.listeners;
 
 /**
  *
  * @author huydo
  */
-public interface GyroListener extends AstroPiListener{
-    void gyroEvent(double x,double y,double z);
+public interface PressureListener extends AstroPiListener{
+    void pressureVal(int pressure);
 }

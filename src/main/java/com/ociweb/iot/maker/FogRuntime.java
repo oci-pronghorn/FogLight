@@ -326,30 +326,27 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		runtime.builder = new TestHardware(runtime.gm, runtime.args);
 		TestHardware hardware = (TestHardware)runtime.getHardware();
 		hardware.isInUnitTest = true;
-		try {
-			app.declareConfiguration(runtime.builder);
-			GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());
 
-			runtime.declareBehavior(app);
+		app.declareConfiguration(runtime.builder);
+		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());
 
-			runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
+		runtime.declareBehavior(app);
 
-			runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
+		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
-			runtime.logStageScheduleRates();
+		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
 
-			if ( runtime.builder.isTelemetryEnabled()) {
-				runtime.gm.enableTelemetry(8098);
-			}
-			//exportGraphDotFile();
+		runtime.logStageScheduleRates();
 
-			runtime.scheduler  = new NonThreadScheduler(runtime.gm);
-			//= runtime.builder.createScheduler(runtime);
-			//for test we do not call startup and wait instead for this to be done by test.
-		} catch (Throwable t) {
-			t.printStackTrace();
-			System.exit(-1);
+		if ( runtime.builder.isTelemetryEnabled()) {
+			runtime.gm.enableTelemetry(8098);
 		}
+		//exportGraphDotFile();
+
+		runtime.scheduler  = new NonThreadScheduler(runtime.gm);
+		//= runtime.builder.createScheduler(runtime);
+		//for test we do not call startup and wait instead for this to be done by test.
+
 		return runtime;
 	}
 
@@ -362,36 +359,33 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		}
 		FogRuntime.isRunning = true;
 		FogRuntime runtime = new FogRuntime(args);
-		try {
-			app.declareConfiguration(runtime.getHardware());
-			GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());
 
-			runtime.declareBehavior(app);
+		app.declareConfiguration(runtime.getHardware());
+		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());
 
-			//TODO: at this point realize the stages in declare behavior
-			//      all updates are done so create the reactors with the right pipes and names
-			//      this change will let us move routes to part of the fluent API plus other benifits..
-			//      move all reactor fields into object created early, shell is created here.
-			//      register must hold list of all temp objects (linked list to preserve order?)
+		runtime.declareBehavior(app);
 
-			System.out.println("To exit app press Ctrl-C");
-			runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
+		//TODO: at this point realize the stages in declare behavior
+		//      all updates are done so create the reactors with the right pipes and names
+		//      this change will let us move routes to part of the fluent API plus other benifits..
+		//      move all reactor fields into object created early, shell is created here.
+		//      register must hold list of all temp objects (linked list to preserve order?)
 
-			runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
+		System.out.println("To exit app press Ctrl-C");
+		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
-			runtime.logStageScheduleRates();
+		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
 
-			if ( runtime.builder.isTelemetryEnabled()) {
-				runtime.gm.enableTelemetry(8098);
-			}
-			//exportGraphDotFile();
+		runtime.logStageScheduleRates();
 
-			runtime.scheduler = runtime.builder.createScheduler(runtime);
-			runtime.scheduler.startup();
-		} catch (Throwable t) {
-			t.printStackTrace();
-			System.exit(-1);
+		if ( runtime.builder.isTelemetryEnabled()) {
+			runtime.gm.enableTelemetry(8098);
 		}
+		//exportGraphDotFile();
+
+		runtime.scheduler = runtime.builder.createScheduler(runtime);
+		runtime.scheduler.startup();
+
 		return runtime;
 	}
 

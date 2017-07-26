@@ -12,11 +12,11 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.I2CListener;
 
-public class I2CListenerBehavrio implements I2CListener, StartupListener {
+public class I2CListenerBehavior implements I2CListener, StartupListener {
 	private final FogCommandChannel ch;
     private final ADC_Transducer sensor;
         
-	public I2CListenerBehavrio(FogRuntime runtime) {
+	public I2CListenerBehavior(FogRuntime runtime) {
 
 		this.ch = runtime.newCommandChannel(I2C_WRITER);
         sensor = new ADC_Transducer(ch);

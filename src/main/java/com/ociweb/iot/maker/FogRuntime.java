@@ -260,7 +260,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 
 		if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
-			inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(reponseI2CConfig);     
+			inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(reponseI2CConfig);
 		}
 		if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
 			inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(responsePinsConfig);

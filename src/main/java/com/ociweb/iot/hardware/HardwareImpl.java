@@ -6,11 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
-import com.ociweb.gl.api.ListenerTransducer;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.impl.BuilderImpl;
 import com.ociweb.gl.impl.ChildClassScanner;
-import com.ociweb.gl.impl.ChildClassScannerVisitor;
 import com.ociweb.gl.impl.schema.IngressMessages;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
@@ -30,15 +28,10 @@ import com.ociweb.iot.impl.DigitalListenerBase;
 import com.ociweb.iot.impl.I2CListenerBase;
 import com.ociweb.iot.impl.RotaryListenerBase;
 import com.ociweb.iot.impl.SerialListenerBase;
-import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.Baud;
-import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.RotaryListener;
-import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.transducer.AnalogListenerTransducer;
 import com.ociweb.iot.transducer.DigitalListenerTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
@@ -576,19 +569,23 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	public void buildStages(IntHashTable subscriptionPipeLookup2, IntHashTable netPipeLookup2, GraphManager gm2) {
 		
-		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfType(gm2, GroveResponseSchema.instance);
-		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfType(gm2, I2CResponseSchema.instance);
-		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfType(gm2, NetResponseSchema.instance);
-		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfType(gm2, TrafficOrderSchema.instance);
-		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
-		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
-		Pipe<ClientHTTPRequestSchema>[] httpClientRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
-		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfType(gm2, SerialOutputSchema.instance);		
-		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfType(gm2, SerialInputSchema.instance);
+		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, I2CResponseSchema.instance);
+		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, GroveResponseSchema.instance);
+
+		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, SerialOutputSchema.instance);		
+		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, I2CCommandSchema.instance);
+		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, GroveRequestSchema.instance);
+		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, SerialInputSchema.instance);
+
 		
-		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfType(gm2, MessageSubscription.instance);
-		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfType(gm2, MessagePubSub.instance);
-		Pipe<IngressMessages>[] ingressMessagePipes = GraphManager.allPipesOfType(gm2, IngressMessages.instance);
+		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, NetResponseSchema.instance);
+		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, MessageSubscription.instance);
+		
+		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, TrafficOrderSchema.instance);
+		Pipe<ClientHTTPRequestSchema>[] httpClientRequestPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, ClientHTTPRequestSchema.instance);			
+		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfTypeWithNoConsumer(gm2, MessagePubSub.instance);
+		Pipe<IngressMessages>[] ingressMessagePipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, IngressMessages.instance);
+		
 		
 		//TODO: must pull out those pubSub Pipes for direct connections
 		//TODO: new MessageSchema for direct messages from point to point
@@ -598,7 +595,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		
 		int commandChannelCount = orderPipes.length;
-		logger.trace("total order pipes {} ",orderPipes.length);//this is too small TODO: this must be fixed.
 
 		int eventSchemas = 0;
 		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;
@@ -710,8 +706,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
 		if (i2cResponsePipes.length>0) {
 			masterI2CResponsePipe =  I2CResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
-			new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
+			ReplicatorStage.newInstance(gm, masterI2CResponsePipe, i2cResponsePipes);   
 		}
+		
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
 			createI2COutputInputStage(i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
 		}
@@ -721,7 +718,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//////////////
 		if (responsePipes.length>1) {
 			Pipe<GroveResponseSchema> masterResponsePipe = GroveResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
-			new ReplicatorStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
+			ReplicatorStage.newInstance(gm, masterResponsePipe, responsePipes);      
 			createADInputStage(masterResponsePipe);
 		} else {
 			if (responsePipes.length==1) {

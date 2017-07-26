@@ -205,34 +205,30 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return registerListener(listener);
 	}
 
-    public ListenerFilterIoT addSerialListener(SerialListener listener) {
-        return registerListener(listener);
-    }
-    
-    public ListenerFilterIoT registerListener(Behavior listener) {
-    	return registerListenerImpl(listener);
-    }
+	public ListenerFilterIoT addSerialListener(SerialListener listener) {
+		return registerListener(listener);
+	}
 
-    public ListenerFilterIoT addImageListener(ImageListener listener) {
-    	//NOTE: this is an odd approach, this level of configuration is normally hidden on this layer.
-    	//      TODO: images should have their own internal time and not hijack the application level timer.
-        // TODO: FIXME:
-//if (builder.getTriggerRate() < 1250) {
-            //throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
-        //        }
-//
-//        switch (builder.getPlatformType()) {
-//            case GROVE_PI:
-//                return registerListener(new PiImageListenerStage(listener));
-//            default:
-//                throw new UnsupportedOperationException("Image listeners are not supported for [" +
-//                		builder.getPlatformType() +
-//                                                        "] hardware");
-//}
+	public ListenerFilterIoT registerListener(Behavior listener) {
+		return registerListenerImpl(listener);
+	}
 
+	public ListenerFilterIoT addImageListener(ImageListener listener) {
+		//NOTE: this is an odd approach, this level of configuration is normally hidden on this layer.
+		//      TODO: images should have their own internal time and not hijack the application level timer.
+		if (builder.getTriggerRate() < 1250) {
+			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
+		}
 
-                throw new UnsupportedOperationException("Image listeners aren't the same now...");
-    }
+		switch (builder.getPlatformType()) {
+		case GROVE_PI:
+			return registerListener(new PiImageListenerBacking(listener));
+		default:
+			throw new UnsupportedOperationException("Image listeners are not supported for [" +
+					builder.getPlatformType() +
+					"] hardware");
+		}
+	}
 
 	public ListenerFilterIoT addI2CListener(I2CListener listener) {
 		return registerListenerImpl(listener);

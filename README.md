@@ -22,8 +22,6 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 ## Starting Your Maven Project
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 ## Information and Demos 
-- AnalogFacade
-  - demo - Coming Soon!
 - AnalogListener
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/AnalogListener/AnalogListener.md)
 - AnalogTransducer

@@ -5,6 +5,8 @@
 */
 package com.ociweb.iot.astropi;
 
+import com.ociweb.iot.astropi.listeners.JoyStickListener;
+import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;

@@ -5,6 +5,10 @@
 */
 package com.ociweb.iot.astropi;
 
+import com.ociweb.iot.astropi.listeners.MagListener;
+import com.ociweb.iot.astropi.listeners.AccelListener;
+import com.ociweb.iot.astropi.listeners.GyroListener;
+import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import static com.ociweb.iot.astropi.AstroPi_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.I2CListener;
@@ -550,6 +554,10 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         temp[1] = (int)(((backing[(position+3)&mask]&0xFF) << 8) | (backing[(position+2)&mask]&0xFF));
         temp[2] = (int)(((backing[(position+5)&mask]&0xFF) << 8) | (backing[(position+4)&mask]&0xFF));
         
+        if (temp[0] >= 32768) temp[0] -= 2 * 32768;
+        if (temp[1] >= 32768) temp[1] -= 2 * 32768;
+        if (temp[2] >= 32768) temp[2] -= 2 * 32768;
+        
         return temp;
     }
     
@@ -625,6 +633,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
                         MagSettings.mBias[i] = calcMag(MagSettings.mBiasRaw[i]);
                         setMagOffset(i,MagSettings.mBiasRaw[i]);
                     }
+                    calibrateMag++;
                     System.out.println("Magnetometer Calibration Complete.");
                 }else{
                     int[] temp = this.interpretData(backing, position, length, mask);

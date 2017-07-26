@@ -31,8 +31,8 @@ public class AnalogToIICBehavior implements StartupListener,AlertStatusListener,
         sensor.setCONFIG_REG(0b00111000);
         //sensor.setHysteresis(100);
         sensor.setUpperLimit(upperLimit);
-        int[] start = {0,0};
-        sensor.writeTwoBytesToRegister(ADC_Constants.REG_ADDR_CONVH,start);
+//        int[] start = {0,0};
+//        sensor.writeTwoBytesToRegister(ADC_Constants.REG_ADDR_CONVH,start);
     }
 
 

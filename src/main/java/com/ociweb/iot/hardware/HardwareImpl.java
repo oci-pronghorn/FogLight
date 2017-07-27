@@ -49,6 +49,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -131,7 +132,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.pcm.addConfig(new PipeConfig<HTTPRequestSchema>(HTTPRequestSchema.instance, 
 									                   		 2, //only a few requests when FogLight  
 									                         MAXIMUM_INCOMMING_REST_SIZE));
-		
+
+		this.pcm.addConfig(new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,
+															2, //only a few requests when FogLight 
+															MINIMUM_TLS_BLOB_SIZE)); 		
+	
 		this.i2cBacking = i2cBacking;
 
 		this.configI2C = configI2C; //may be removed.

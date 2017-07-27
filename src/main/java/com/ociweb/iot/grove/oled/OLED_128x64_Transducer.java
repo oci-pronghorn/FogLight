@@ -508,14 +508,8 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 
 	@Override
 	public boolean setUpScroll() {
-		// TODO Auto-generated method stub
 		return false;
 	}
-
-	
-
-
-
 }
 
 

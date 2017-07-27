@@ -74,8 +74,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	public Hardware getHardware(){
 		if(this.builder==null){
 
-			reportLibs();
-
 			///////////////
 			//setup system for binary binding in case Zulu is found on Arm
 			//must populate os.arch as "arm" instead of "aarch32" or "aarch64" in that case, JIFFI is dependent on this value.
@@ -83,6 +81,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				System.setProperty("os.arch", "arm"); //TODO: investigate if this a bug against jiffi or zulu and inform them
 			}
 
+			long startTime = System.currentTimeMillis();
+			
 			// Detect provided hardware implementation.
 			// TODO: Should this ONLY occur on Android devices?
 			try {
@@ -107,6 +107,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				}
 			} catch (ClassNotFoundException ignored) { }
 
+			logger.info("android duration {} ",System.currentTimeMillis()-startTime);
+			
 			////////////////////////
 			//The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
 			///////////////////////
@@ -114,14 +116,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			I2CBacking i2cBacking = null;
 			if ((pm = PiModel.detect()) != PiModel.Unknown){
 				logger.trace("Detected running on " + pm);
-				this.builder = new GrovePiHardwareImpl(gm,args,HardwareImpl.getI2CBacking((byte)pm.i2cBus(), true));
-			}
-			
-			else if (null != (i2cBacking = HardwareImpl.getI2CBacking(edI2C, false))) {
-				this.builder = new GroveV3EdisonImpl(gm, args, i2cBacking);
+				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
+			}			
+			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
 				logger.trace("Detected running on Edison");
-			} 
-
+			}
 			else {
 				this.builder = new TestHardware(gm, args);
 				logger.trace("Unrecognized hardware, test mock hardware will be used");
@@ -130,26 +129,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return this.builder;
 	}
 
-	private void reportLibs() {
-
-		//does not work because final jars do not contain these manifests.
-
-		//    	try {
-		//	    	Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
-		//			while (resources.hasMoreElements()) {
-		//			      Manifest manifest = new Manifest(resources.nextElement().openStream());
-		//			      
-		//			      System.out.println(manifest.getMainAttributes().getValue("Specification-Title"));
-		////			      Map<String, Attributes> entries = manifest.getEntries();
-		////			      System.out.println(entries.get("Specification-Title"));
-		////			      System.out.println(entries.get("Specification-Version"));
-		////			      System.out.println(entries.get("Build-Time"));
-		//			   
-		//			}
-		//    	} catch (Exception e) {
-		//    		throw new RuntimeException(e);
-		//    	}
-	}
 
 	public FogCommandChannel newCommandChannel() {
 
@@ -357,15 +336,27 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		if (FogRuntime.isRunning){
 			throw new UnsupportedOperationException("An FogApp is already running!");
 		}
-		logger.info("{}ms startup", System.currentTimeMillis());
+		
+		long lastTime;
+		long nowTime;
+		
 		FogRuntime.isRunning = true;
 		FogRuntime runtime = new FogRuntime(args);
 
-		app.declareConfiguration(runtime.getHardware());
+		
+		logger.info("{} ms startup", lastTime = System.currentTimeMillis());
+		Hardware hardware = runtime.getHardware();
+
+		
+		app.declareConfiguration(hardware);
 		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());
-		logger.info("{}ms finished declare configuration", System.currentTimeMillis());
+		logger.info("{} ms duration {} ms finished declare configuration", nowTime = System.currentTimeMillis(), nowTime-lastTime);
+		lastTime = nowTime;
+				
 		runtime.declareBehavior(app);
-		logger.info("{}ms finished declare behavior", System.currentTimeMillis());
+		logger.info("{} ms duration {} ms finished declare behavior", nowTime = System.currentTimeMillis(), nowTime-lastTime);
+		lastTime = nowTime;
+				
 		//TODO: at this point realize the stages in declare behavior
 		//      all updates are done so create the reactors with the right pipes and names
 		//      this change will let us move routes to part of the fluent API plus other benifits..
@@ -378,17 +369,19 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
 		runtime.logStageScheduleRates();
 
-		logger.info("{}ms finished building internal graph", System.currentTimeMillis());
-		
+		logger.info("{} ms duration {} ms finished building internal graph", nowTime = System.currentTimeMillis(), nowTime-lastTime);
+		lastTime = nowTime;
+				
 		if ( runtime.builder.isTelemetryEnabled()) {
 			runtime.gm.enableTelemetry(8098);
-			logger.info("{}ms finished building telemetry", System.currentTimeMillis());
+			logger.info("{} ms duration {} ms finished building telemetry", lastTime = nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		}
 		//exportGraphDotFile();
 
 		runtime.scheduler = runtime.builder.createScheduler(runtime);
 		runtime.scheduler.startup();
-		logger.info("{}ms finished graph startup", System.currentTimeMillis());
+		logger.info("{} ms duration {} ms finished graph startup", nowTime = System.currentTimeMillis(), nowTime-lastTime);
+		lastTime = nowTime;
 		
 		return runtime;
 	}

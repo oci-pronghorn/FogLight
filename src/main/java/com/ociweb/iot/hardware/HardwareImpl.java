@@ -69,7 +69,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	private static final HardwareConnection[] EMPTY = new HardwareConnection[0];
 
 	protected boolean configI2C;       //Humidity, LCD need I2C address so..
-	protected int i2cBus;
+
 	protected long debugI2CRateLastTime;
 
 	protected HardwareConnection[] digitalInputs; //Button, Motion
@@ -85,7 +85,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
 
 
-	public final I2CBacking i2cBacking;
+	private int i2cBus;
+	protected I2CBacking i2cBackingInternal;
 
 	protected static final long MS_TO_NS = 1_000_000;
 
@@ -120,11 +121,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     	return deviceOnPort[p.ordinal()];
     }
 
-	public HardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking) {
-		this(gm, args, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+	public HardwareImpl(GraphManager gm, String[] args, int i2cBus) {
+		this(gm, args, i2cBus, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
 	}
 
-	protected HardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
+	protected HardwareImpl(GraphManager gm, String[] args, int i2cBus, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
 			HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
 
 		super(gm, args);
@@ -136,11 +137,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.pcm.addConfig(new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,
 															2, //only a few requests when FogLight 
 															MINIMUM_TLS_BLOB_SIZE)); 		
-	
-		this.i2cBacking = i2cBacking;
+		this.i2cBus = i2cBus;
 
 		this.configI2C = configI2C; //may be removed.
-		this.i2cBus = -1; // TODO: Should this be initialized in some more complexicated way?
 
 		this.digitalInputs = digitalInputs;
 		this.digitalOutputs = digitalOutputs;
@@ -149,8 +148,16 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 		this.getTempPipeOfStartupSubscriptions().initBuffers();
 	}
-
-	public static I2CBacking getI2CBacking(byte deviceNum, boolean reportError) {
+	
+	public I2CBacking getI2CBacking() {
+		if (null == i2cBackingInternal) {
+			i2cBackingInternal = getI2CBacking((byte)i2cBus, false);
+		}
+		return i2cBackingInternal;		
+	}
+	
+	private static I2CBacking getI2CBacking(byte deviceNum, boolean reportError) {
+		long start = System.currentTimeMillis();
 		try {
 			return new I2CNativeLinuxBacking().configure(deviceNum);
 		} catch (Throwable t) {
@@ -159,6 +166,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			}
 			//avoid non error case that is used to detect which hardware is running.
 			return null;
+		} finally {
+			logger.info("duration of getI2CBacking {} ", System.currentTimeMillis()-start);
 		}
 	}
 

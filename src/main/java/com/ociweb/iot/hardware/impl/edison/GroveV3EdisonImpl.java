@@ -35,8 +35,8 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	//pwm supports the same range and duty values for multiple platforms,  The frequencies are "near" each other but not yet the same.
 	private int pwmBitsShift = 12; //the absolute minimum range for Edison is 1<<12 or 4096 this prevents the user from hitting this value.
 
-	public GroveV3EdisonImpl(GraphManager gm, String[] args, I2CBacking i2cBacking) {
-		super(gm, args, i2cBacking);
+	public GroveV3EdisonImpl(GraphManager gm, String[] args, int i2cBus) {
+		super(gm, args, i2cBus);
 		System.out.println("You are running on the Edison hardware.");
 	}
 

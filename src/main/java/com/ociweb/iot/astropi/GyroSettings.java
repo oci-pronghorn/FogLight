@@ -5,11 +5,6 @@
 */
 package com.ociweb.iot.astropi;
 
-import static com.ociweb.iot.astropi.AstroPi_Constants.*;
-import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-
 /**
  *
  * @author huydo

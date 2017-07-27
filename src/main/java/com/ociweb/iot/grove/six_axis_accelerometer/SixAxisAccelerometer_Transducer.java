@@ -7,7 +7,6 @@ package com.ociweb.iot.grove.six_axis_accelerometer;
 
 import static com.ociweb.iot.grove.six_axis_accelerometer.SixAxisAccelerometer_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -22,9 +21,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
     private MagValsListener maglistener;
-    public SixAxisAccelerometer_Transducer(FogCommandChannel ch){
-        this.target = ch;
-    }
+
     public SixAxisAccelerometer_Transducer(FogCommandChannel ch, SixAxisAccelerometer_16gListener... l ){
         this.target = ch;
         for(SixAxisAccelerometer_16gListener item:l){
@@ -45,62 +42,62 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * 50Hz magnetic data rate; +/- 2 gauss, continuous conversion mode
      */
     public void begin(){
-        writeSingleByteToRegister(CTRL_REG1,0x57); // 0x57 = ODR=50hz, all accel axes on
-        writeSingleByteToRegister(CTRL_REG2,0b11000000); // set full-scale
-        writeSingleByteToRegister(CTRL_REG3,0x00); //no interrupt
-        writeSingleByteToRegister(CTRL_REG4,0x00); //no interrupt
-        writeSingleByteToRegister(CTRL_REG5,0b10010000); //0x10 = magnetic 50 Hz output rate, enable temperature
-        writeSingleByteToRegister(CTRL_REG6,MAG_SCALE_2); //magnetic scale = +/- 2 Gauss
-        writeSingleByteToRegister(CTRL_REG7,0x80); 
+        axWriteByte(CTRL_REG1,0x57); // 0x57 = ODR=50hz, all accel axes on
+        axWriteByte(CTRL_REG2,0b11000000); // set full-scale
+        axWriteByte(CTRL_REG3,0x00); //no interrupt
+        axWriteByte(CTRL_REG4,0x00); //no interrupt
+        axWriteByte(CTRL_REG5,0b10010000); //0x10 = magnetic 50 Hz output rate, enable temperature
+        axWriteByte(CTRL_REG6,MAG_SCALE_2); //magnetic scale = +/- 2 Gauss
+        axWriteByte(CTRL_REG7,0x80); 
     }
     /**
      * write a byte to CTRL_REG1
      * @param _b 
      */
     public void setCTRL_REG1(int _b){
-        writeSingleByteToRegister(CTRL_REG1,_b);
+        axWriteByte(CTRL_REG1,_b);
     }
     /**
      * write a byte to CTRL_REG2
      * @param _b 
      */
     public void setCTRL_REG2(int _b){
-        writeSingleByteToRegister(CTRL_REG2,_b);
+        axWriteByte(CTRL_REG2,_b);
     }
     /**
      * write a byte to CTRL_REG3
      * @param _b 
      */
     public void setCTRL_REG3(int _b){
-        writeSingleByteToRegister(CTRL_REG3,_b);
+        axWriteByte(CTRL_REG3,_b);
     }
     /**
      * write a byte to CTRL_REG4
      * @param _b 
      */
     public void setCTRL_REG4(int _b){
-        writeSingleByteToRegister(CTRL_REG4,_b);
+        axWriteByte(CTRL_REG4,_b);
     }
     /**
      * write a byte to CTRL_REG5
      * @param _b 
      */
     public void setCTRL_REG5(int _b){
-        writeSingleByteToRegister(CTRL_REG5,_b);
+        axWriteByte(CTRL_REG5,_b);
     }
     /**
      * write a byte to CTRL_REG6
      * @param _b 
      */
     public void setCTRL_REG6(int _b){
-        writeSingleByteToRegister(CTRL_REG6,_b);
+        axWriteByte(CTRL_REG6,_b);
     }
     /**
      * write a byte to CTRL_REG7
      * @param _b 
      */
     public void setCTRL_REG7(int _b){
-        writeSingleByteToRegister(CTRL_REG7,_b);
+        axWriteByte(CTRL_REG7,_b);
     }
     
     /**
@@ -129,7 +126,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * @param register register to write to
      * @param value byte to write
      */
-    private void writeSingleByteToRegister(int register, int value) {
+    private void axWriteByte(int register, int value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(LSM303D_ADDR);
         
         i2cPayloadWriter.writeByte(register);

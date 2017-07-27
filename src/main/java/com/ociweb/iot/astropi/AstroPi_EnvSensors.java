@@ -10,7 +10,6 @@ import com.ociweb.iot.astropi.listeners.PressureListener;
 import com.ociweb.iot.astropi.listeners.TemperatureListener;
 import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -25,7 +24,7 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
     
     public AstroPi_EnvSensors(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
-        //target.ensureI2CWriting(1000, 1000);
+        //target.ensureI2CWriting(200,10);
         for(AstroPiListener item:l){
             if(item instanceof TemperatureListener){
                 this.tempListener = (TemperatureListener) item;
@@ -40,8 +39,8 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
         }
     }
     
-    int CTRL_REG1_PVal = 0;
-    int CTRL_REG1_HUMVal = 0;
+    int CTRL_REG1_PVal = 0b00010100; //by default, ODR =1 Hz, turn on Block Data Update
+    int CTRL_REG1_HUMVal = 0b00000101; //by default, ODR = 1 Hz, turn on Block Data Update
     /**
      * Power up the humidity and/or the pressure sensor
      * Set the output data rate (ODR) of the pressure sensor to 1 Hz
@@ -52,17 +51,59 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
     public void begin(boolean humiditySensor,boolean pressureSensor){
         if(pressureSensor){
             CTRL_REG1_PVal |= AstroPi_Constants.POWER_UP_P;
-            CTRL_REG1_PVal |= AstroPi_Constants.ODR0_SET_P;
             LPS25HWriteByte(AstroPi_Constants.CTRL_REG1_P,CTRL_REG1_PVal);
         }
         if(humiditySensor){
             CTRL_REG1_HUMVal |= AstroPi_Constants.POWER_UP_HUM;
-            CTRL_REG1_HUMVal |= AstroPi_Constants.ODR0_SET_HUM;
             HTS221WriteByte(AstroPi_Constants.CTRL_REG1_HUM,CTRL_REG1_HUMVal);
         }
     }
-    
-            /**
+    /**
+     * Set the ODR of the pressure/temperature sensor
+     * @param odr 1 = 1 Hz; 2 = 7 Hz, 3 = 12.5 Hz, 4 = 25 Hz
+     */
+    public void setPressureSensorODR(int odr){
+        switch(odr){
+            case 1: 
+                CTRL_REG1_PVal |= 0x10;
+                break;
+            case 2:
+                CTRL_REG1_PVal |= 0x20;
+                break;
+            case 3:
+                CTRL_REG1_PVal |= 0x30;
+                break;
+            case 4:
+                CTRL_REG1_PVal |= 0x40;
+                break;
+            default:
+                CTRL_REG1_PVal |= 0x10;
+                break;
+        }
+                
+    }
+    /**
+     * Set the ODR of the pressure/temperature sensor
+     * @param odr 1 = 1 Hz; 2 = 7 Hz, 3 = 12.5 Hz, 4 = 25 Hz
+     */
+    public void setHumiditySensorODR(int odr){
+        switch(odr){
+            case 1: 
+                CTRL_REG1_HUMVal |= 0x10;
+                break;
+            case 2:
+                CTRL_REG1_HUMVal |= 0x20;
+                break;
+            case 3:
+                CTRL_REG1_HUMVal |= 0x30;
+                break;
+            default:
+                CTRL_REG1_HUMVal |= 0x10;
+                break;
+        }
+                
+    }    
+     /**
      * Convert the 2 bytes I2C read to the correct representation of the digital value
      * @param backing circular buffer containing data from I2C read
      * @param position index of the first byte
@@ -76,9 +117,8 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
         short temp = (short)(((backing[(position+1)&mask] & 0xFF) << 8) | (backing[(position)&mask] & 0xFF));
         
         return temp;
-    }
-    
-                /**
+    }    
+     /**
      * Convert the 3 bytes I2C read to the correct representation of the digital value
      * @param backing circular buffer containing data from I2C read
      * @param position index of the first byte
@@ -118,15 +158,16 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
     private PressureListener pressureListener;
     private HumidityListener humidityListener;
     
-    private int _h0_rH,_h1_rH,_T0_degC,_T1_degC,_H0_T0,_H1_T0,_T0_OUT,_T1_OUT;
-    private boolean calibratePressure = true;
+    private int _h0_rH,_h1_rH,_T0_degC,_T1_degC;
+    private short _H0_T0,_H1_T0,_T0_OUT,_T1_OUT;
+    private boolean calibrateHumidity = true;
     @Override
     public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
         if(addr == AstroPi_Constants.LPS25H_ADDRESS){
             if(register == AstroPi_Constants.TEMP_L_REG_P){
                 short data = this.interpretTwoBytes(backing, position, length, mask);
                 double temp = 42.5 + (data/480.0);
-                tempListener.temperatureVal(temp);
+                tempListener.tempValFromPressureSensor(temp);
             }
             if(register == AstroPi_Constants.PRESSURE_XL_REG){
                 int data = this.interpretThreeBytes(backing, position, length, mask);
@@ -136,7 +177,7 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
         }
         if(addr == AstroPi_Constants.HTS221_ADDRESS){
             if(register == AstroPi_Constants.CALIB_START){
-                if(calibratePressure){
+                if(calibrateHumidity){
                     _h0_rH = backing[(position)&mask]&0xFF;
                     _h1_rH = backing[(position+1)&mask]&0xFF;
                     _T0_degC = backing[(position+2)&mask]&0xFF;
@@ -150,23 +191,17 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
                     _T1_degC = (((backing[(position+5)&mask]&0xFF)&0xc)>>2)<<8;
                     _T1_degC |= tmp;
                     
-                    _H0_T0 = backing[(position+6)&mask]&0xFF;
-                    _H0_T0 |= (backing[(position+7)&mask]&0xFF)<<8;
-                    
-                    _H1_T0 = backing[(position+10)&mask]&0xFF;
-                    _H1_T0 |= (backing[(position+11)&mask]&0xFF)<<8;
-                    
-                    _T0_OUT = backing[(position+12)&mask]&0xFF;
-                    _T0_OUT = (backing[(position+13)&mask]&0xFF)<<8;
-                    
-                    _T1_OUT = backing[(position+14)&mask]&0xFF;
-                    _T1_OUT = (backing[(position+15)&mask]&0xFF)<<8;
-                    System.out.println("Pressure sensor calibration complete.");
-                    calibratePressure = false;
+                    _H0_T0 = (short) ((backing[(position+6)&mask]&0xFF) | ((backing[(position+7)&mask]&0xFF)<<8));
+                    _H1_T0 = (short) ((backing[(position+10)&mask]&0xFF) | ((backing[(position+11)&mask]&0xFF)<<8));
+                    _T0_OUT = (short) ((backing[(position+12)&mask]&0xFF) | ((backing[(position+13)&mask]&0xFF)<<8));
+                    _T1_OUT = (short) ((backing[(position+14)&mask]&0xFF) | ((backing[(position+15)&mask]&0xFF)<<8));
+
+                    System.out.println("Humidity sensor calibration complete.");
+                    calibrateHumidity = false;
                 }
             }
             if(register == AstroPi_Constants.HUMIDITY_L_REG){
-                if(!calibratePressure){
+                if(!calibrateHumidity){
                     int data = this.interpretTwoBytes(backing, position, length, mask);
                     double hum = (_h1_rH - _h0_rH)/2.0;
                     double h_temp = (double)((data - _H0_T0) * hum) / (double)(_H1_T0 - _H0_T0);
@@ -175,12 +210,12 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
                 }
             }
             if(register == AstroPi_Constants.TEMP_L_REG_HUM){
-                if(!calibratePressure){
+                if(!calibrateHumidity){
                     int data =  this.interpretTwoBytes(backing, position, length, mask);
                     double deg = (double)((_T1_degC) - (_T0_degC))/8.0;
                     double t_temp = (double)((data - _T0_OUT) * deg) / (double)(_T1_OUT - _T0_OUT);
                     deg    = (double)(_T0_degC) / 8.0;     // remove x8 multiple
-                    humidityListener.tempFromHumidityVal(deg+t_temp);
+                    tempListener.tempValFromHumiditySensor(deg+t_temp);
                 }
             }
         }

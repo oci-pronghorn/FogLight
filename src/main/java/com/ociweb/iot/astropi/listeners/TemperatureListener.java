@@ -10,5 +10,6 @@ package com.ociweb.iot.astropi.listeners;
  * @author huydo
  */
 public interface TemperatureListener extends AstroPiListener{
-    void temperatureVal(double temp);
+    void tempValFromPressureSensor(double temp);
+    void tempValFromHumiditySensor(double temp);
 }

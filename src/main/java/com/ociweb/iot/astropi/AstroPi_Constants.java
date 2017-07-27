@@ -134,7 +134,6 @@ public class AstroPi_Constants {
     public static final int CTRL_REG1_HUM        =0x20;
     public static final int POWER_UP_HUM         =0x80;
     public static final int BDU_SET_HUM          =0x4;
-    public static final int ODR0_SET_HUM         =0x1 ; // setting sensor reading period 1Hz
     public static final int CTRL_REG2_HUM        =0x21;
     public static final int CTRL_REG3_HUM        =0x22;
     public static final int REG_DEFAULT_HUM      =0x00;
@@ -197,9 +196,6 @@ public static final int RES_CONF_DEFAULT =0x05;
 public static final int CTRL_REG1_P  =0x20;
 public static final int POWER_UP_P   =0x80;
 public static final int BDU_SET_P    =0x04;
-public static final int ODR0_SET_P   =0x10; // 1 read each second
-
-
 
 public static final int CTRL_REG2_P  =0x21;
 public static final int CTRL_REG3_P  =0x22;

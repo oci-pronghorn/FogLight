@@ -71,54 +71,60 @@ public enum PiModel {
 	
 	public static synchronized PiModel detect() {
 		
-		//TODO: this is not GC free, should be updated to use a pipe		
-		byte[] buffer = new byte[1<<16]; //enough to get the revision		
-		
-			
-		int lastPos = 0;
+		long start = System.currentTimeMillis();
 		try {
-			Process process = Runtime.getRuntime().exec("cat /proc/cpuinfo");
-					    			
-			InputStream stream = process.getInputStream();
-			int len = 0;
+			
+			//TODO: this is not GC free, should be updated to use a pipe		
+			byte[] buffer = new byte[1<<16]; //enough to get the revision		
+			
+				
+			int lastPos = 0;
+			try {
+				Process process = Runtime.getRuntime().exec("cat /proc/cpuinfo");
+						    			
+				InputStream stream = process.getInputStream();
+				int len = 0;
+				do {
+					len = stream.read(buffer, lastPos, buffer.length-lastPos);
+					if (len>=0) {
+						lastPos+=len;
+					} else {
+						break;
+					}
+				} while (lastPos!=buffer.length);
+				
+				//System.out.println("DETECT DATA\n"+new String(buffer,0,lastPos));
+				
+				
+			} catch (Exception e) {
+				logger.info("unable to detect model.",e);
+				return Unknown;
+			}
+			
+			TrieParserReader.parseSetup(reader, buffer, 0, lastPos, buffer.length-1);
+			
+			int token;
 			do {
-				len = stream.read(buffer, lastPos, buffer.length-lastPos);
-				if (len>=0) {
-					lastPos+=len;
-				} else {
-					break;
-				}
-			} while (lastPos!=buffer.length);
-			
-			//System.out.println("DETECT DATA\n"+new String(buffer,0,lastPos));
-			
-			
-		} catch (Exception e) {
-			logger.info("unable to detect model.",e);
-			return Unknown;
-		}
-		
-		TrieParserReader.parseSetup(reader, buffer, 0, lastPos, buffer.length-1);
-		
-		int token;
-		do {
-			token = (int)reader.parseNext(reader, trie);		
-		} while (token!=1 && token!=-1);
-		if (1==token) {
-			StringBuilder value = reader.capturedFieldBytesAsUTF8(reader, 0, new StringBuilder());
-			
-			PiModel[] all = PiModel.values();
-			int i = all.length;
-			while (--i >= 0) {		
-				String[] codes = all[i].revisionCodes;
-				int j = codes.length;
-				while (--j >= 0) {		
-					if (value.indexOf(codes[j])>=0) {
-						return all[i];
+				token = (int)reader.parseNext(reader, trie);		
+			} while (token!=1 && token!=-1);
+			if (1==token) {
+				StringBuilder value = reader.capturedFieldBytesAsUTF8(reader, 0, new StringBuilder());
+				
+				PiModel[] all = PiModel.values();
+				int i = all.length;
+				while (--i >= 0) {		
+					String[] codes = all[i].revisionCodes;
+					int j = codes.length;
+					while (--j >= 0) {		
+						if (value.indexOf(codes[j])>=0) {
+							return all[i];
+						}
 					}
 				}
 			}
+			return Unknown;
+		} finally {
+			logger.info("pi dection duration {} ", System.currentTimeMillis()-start);
 		}
-		return Unknown;
 	}
 }

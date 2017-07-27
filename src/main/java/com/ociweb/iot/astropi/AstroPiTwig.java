@@ -77,7 +77,7 @@ public enum AstroPiTwig {
                     return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
                 }        
             },
-            GetTempFromHumidity(){;
+            GetTempFromHumiditySensor(){;
             @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.TEMP_L_REG_HUM};
@@ -88,7 +88,7 @@ public enum AstroPiTwig {
                     return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
                 }        
             },
-            GetTemperature(){
+            GetTempFromPressureSensor(){
             @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.TEMP_L_REG_P};

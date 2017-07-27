@@ -11,5 +11,4 @@ package com.ociweb.iot.astropi.listeners;
  */
 public interface HumidityListener extends AstroPiListener{
     void humidityVal(double humidity);
-    void tempFromHumidityVal(double temp);
 }

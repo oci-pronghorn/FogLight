@@ -51,8 +51,10 @@ public class TestHardware extends HardwareImpl {
     private RS232Clientable testSerial = new TestSerial();
     
     public TestHardware(GraphManager gm, String[] args) {
-        super(gm, args, new TestI2CBacking().configure((byte) 1));
+        super(gm, args, 1);
         //logger.trace("You are running on the test hardware.");
+        
+        i2cBackingInternal = new TestI2CBacking().configure((byte) 1);
     }
 	
     public void enableTelemetry(boolean enable) {
@@ -68,24 +70,24 @@ public class TestHardware extends HardwareImpl {
     }
     
     public void setI2CValueToRead(byte address, byte[] data, int length) {
-    	TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+    	TestI2CBacking testBacking = (TestI2CBacking)getI2CBacking();
     	testBacking.setValueToRead(address, data, length);
     }
     
     public void clearI2CWriteCount() {
-        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        TestI2CBacking testBacking = (TestI2CBacking)getI2CBacking();
         testBacking.clearWriteCount();
     }
     
     public int getI2CWriteCount() {
-        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        TestI2CBacking testBacking = (TestI2CBacking)getI2CBacking();
         return testBacking.getWriteCount();
     }
     
     public <A extends Appendable>A outputLastI2CWrite(A target, int back) {
         assert(back>0);
         assert(back<TestI2CBacking.MAX_BACK_MASK);
-        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        TestI2CBacking testBacking = (TestI2CBacking)getI2CBacking();
         testBacking.outputLastI2CWrite(target, back);
         return target;
         

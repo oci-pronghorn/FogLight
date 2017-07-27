@@ -40,10 +40,8 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	//TODO: urgent need for unit tests here, this custom pi logic is easily broken.
 
-	public GrovePiHardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking) {
-		super(gm, args, i2cBacking);
-
-		assert(null != i2cBacking) : "must have i2c backing";
+	public GrovePiHardwareImpl(GraphManager gm, String[] args, int i2cBus) {
+		super(gm, args, i2cBus);
 		
 		model = PiModel.detect();
 		rs232ClientDevice = model.serialDevice();

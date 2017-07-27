@@ -116,14 +116,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			I2CBacking i2cBacking = null;
 			if ((pm = PiModel.detect()) != PiModel.Unknown){
 				logger.trace("Detected running on " + pm);
-				this.builder = new GrovePiHardwareImpl(gm,args,HardwareImpl.getI2CBacking((byte)pm.i2cBus(), true));
-			}
-			
-			else if (null != (i2cBacking = HardwareImpl.getI2CBacking(edI2C, false))) {
-				this.builder = new GroveV3EdisonImpl(gm, args, i2cBacking);
+				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
+			}			
+			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
 				logger.trace("Detected running on Edison");
-			} 
-
+			}
 			else {
 				this.builder = new TestHardware(gm, args);
 				logger.trace("Unrecognized hardware, test mock hardware will be used");

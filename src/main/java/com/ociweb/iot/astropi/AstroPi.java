@@ -209,11 +209,9 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
     }
     private int [][][] copyBitmap(int[][][] arr){
         for(int ver = 0;ver<8;ver++){
-            for(int color = 0;color<3;color++){
-                for(int hor = 0;hor<8;hor++){
-                    bitmap[ver][hor][color] = arr[ver][hor][color];
-                }
-            }
+            for(int hori = 0;hori<8;hori++){
+                bitmap[ver][hori] = Arrays.copyOf(arr[ver][hori],3);
+            }            
         }
         return bitmap;
     }
@@ -259,7 +257,8 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
                 int up = (backing[position]&0x04)>>2;
                 int push = (backing[position]&0x08)>>3;
                 int left = (backing[position]&0x1f)>>4;
-                System.out.println(down);
+                assert(up+down <= 1);
+                assert(right+left <= 1);
                 joysticklistener.joystickEvent(up, down, left, right, push);
             }
         }

@@ -17,7 +17,7 @@ import com.ociweb.iot.maker.I2CListener;
  *
  * @author huydo
  */
-public class AccelerometerBehavior implements StartupListener,INT_SOURCE_RegListener,AccelValsListener {
+public class AccelerometerBehavior implements StartupListener,FreeFallListener,AccelValsListener {
     
     private final FogCommandChannel c;
     private final ThreeAxisAccelerometer_16g_Transducer accSensor;
@@ -44,13 +44,9 @@ public class AccelerometerBehavior implements StartupListener,INT_SOURCE_RegList
     }
 
     @Override
-    public void INT_SOURCE_RegStatus(int byteRead) {
-        System.out.println("reg: "+byteRead);
-    }
-
-    @Override
     public void freefallStatus(int status) {
         System.out.println("free fall: "+status);
     }
+
 
 }

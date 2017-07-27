@@ -11,14 +11,14 @@ public class ButtonBehavior implements DigitalListener {
 	
     final FogCommandChannel channel1;
 	public ButtonBehavior(FogRuntime runtime) {
-		// TODO Auto-generated constructor stub
+
        channel1 = runtime.newCommandChannel(PIN_WRITER);
 
 	}
 
 	@Override
 	public void digitalEvent(Port port, long time, long durationMillis, int value) {
-		// TODO Auto-generated method stub
+
         channel1.setValueAndBlock(RELAY_PORT, value == 1, 500); //500 is the amount of time in milliseconds that                                                                                         //delays a future action
 
 	}

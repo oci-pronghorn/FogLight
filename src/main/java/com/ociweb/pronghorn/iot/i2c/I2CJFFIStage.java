@@ -183,7 +183,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         I2CConnection connection = this.inputs[inProgressIdx];
                         timeOut = hardware.nanoTime() + (writeTime*35_000_000);///I2C allows for clients to abandon master after 35 ms
 
-                        logger.info("i2c request read from address: {} register: {} ",connection.address, connection.readCmd[0]);//+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
+              //          logger.info("i2c request read from address: {} register: {} ",connection.address, connection.readCmd[0]);//+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
                         
                         //Write the request to read
                        
@@ -307,7 +307,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 						logger.debug("{} send command {} {}", activePipe, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
     				}
      
-                    logger.info("i2c request write to address: {} register: {}  ",addr, workingBuffer[0]);//+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
+                //    logger.info("i2c request write to address: {} register: {}  ",addr, workingBuffer[0]);//+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
                     
 					
     				timeOut = hardware.currentTimeMillis() + writeTime;

@@ -30,7 +30,7 @@ public enum AnalogDigitalTwig implements ADIODevice {
 
 		@Override
 		public int response() {
-			return 30;
+			return 200;
 		}
 		@Override
 		public int range() {
@@ -46,7 +46,7 @@ public enum AnalogDigitalTwig implements ADIODevice {
 
 		@Override
 		public int response() {
-			return 100;
+			return 200;
 		}
 		
 		@Override

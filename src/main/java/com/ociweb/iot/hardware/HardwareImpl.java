@@ -151,6 +151,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 	public static I2CBacking getI2CBacking(byte deviceNum, boolean reportError) {
+		long start = System.currentTimeMillis();
 		try {
 			return new I2CNativeLinuxBacking().configure(deviceNum);
 		} catch (Throwable t) {
@@ -159,6 +160,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			}
 			//avoid non error case that is used to detect which hardware is running.
 			return null;
+		} finally {
+			logger.info("duration of getI2CBacking {} ", System.currentTimeMillis()-start);
 		}
 	}
 

@@ -48,6 +48,8 @@ import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
+import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -126,7 +128,15 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
 
 		super(gm, args);
-		
+				
+		this.pcm.addConfig(new PipeConfig<HTTPRequestSchema>(HTTPRequestSchema.instance, 
+									                   		 2, //only a few requests when FogLight  
+									                         MAXIMUM_INCOMMING_REST_SIZE));
+
+		this.pcm.addConfig(new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,
+															2, //only a few requests when FogLight 
+															MINIMUM_TLS_BLOB_SIZE)); 		
+	
 		this.i2cBacking = i2cBacking;
 
 		this.configI2C = configI2C; //may be removed.
@@ -140,11 +150,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.getTempPipeOfStartupSubscriptions().initBuffers();
 	}
 
-	public static I2CBacking getI2CBacking(byte deviceNum) {
+	public static I2CBacking getI2CBacking(byte deviceNum, boolean reportError) {
 		try {
 			return new I2CNativeLinuxBacking().configure(deviceNum);
 		} catch (Throwable t) {
-			//logger.info("warning could not find the i2c bus", t);
+			if (reportError) {
+				logger.info("warning could not find the i2c bus", t);
+			}
 			//avoid non error case that is used to detect which hardware is running.
 			return null;
 		}

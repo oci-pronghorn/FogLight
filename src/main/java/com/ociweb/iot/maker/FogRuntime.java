@@ -114,10 +114,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			I2CBacking i2cBacking = null;
 			if ((pm = PiModel.detect()) != PiModel.Unknown){
 				logger.trace("Detected running on " + pm);
-				this.builder = new GrovePiHardwareImpl(gm,args,HardwareImpl.getI2CBacking((byte)pm.i2cBus()));
+				this.builder = new GrovePiHardwareImpl(gm,args,HardwareImpl.getI2CBacking((byte)pm.i2cBus(), true));
 			}
 			
-			else if (null != (i2cBacking = HardwareImpl.getI2CBacking(edI2C))) {
+			else if (null != (i2cBacking = HardwareImpl.getI2CBacking(edI2C, false))) {
 				this.builder = new GroveV3EdisonImpl(gm, args, i2cBacking);
 				logger.trace("Detected running on Edison");
 			} 
@@ -357,14 +357,15 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		if (FogRuntime.isRunning){
 			throw new UnsupportedOperationException("An FogApp is already running!");
 		}
+		logger.info("{}ms startup", System.currentTimeMillis());
 		FogRuntime.isRunning = true;
 		FogRuntime runtime = new FogRuntime(args);
 
 		app.declareConfiguration(runtime.getHardware());
 		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());
-
+		logger.info("{}ms finished declare configuration", System.currentTimeMillis());
 		runtime.declareBehavior(app);
-
+		logger.info("{}ms finished declare behavior", System.currentTimeMillis());
 		//TODO: at this point realize the stages in declare behavior
 		//      all updates are done so create the reactors with the right pipes and names
 		//      this change will let us move routes to part of the fluent API plus other benifits..
@@ -375,17 +376,20 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
 		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
-
 		runtime.logStageScheduleRates();
 
+		logger.info("{}ms finished building internal graph", System.currentTimeMillis());
+		
 		if ( runtime.builder.isTelemetryEnabled()) {
 			runtime.gm.enableTelemetry(8098);
+			logger.info("{}ms finished building telemetry", System.currentTimeMillis());
 		}
 		//exportGraphDotFile();
 
 		runtime.scheduler = runtime.builder.createScheduler(runtime);
 		runtime.scheduler.startup();
-
+		logger.info("{}ms finished graph startup", System.currentTimeMillis());
+		
 		return runtime;
 	}
 

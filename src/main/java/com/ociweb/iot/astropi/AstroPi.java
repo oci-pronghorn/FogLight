@@ -8,7 +8,6 @@ package com.ociweb.iot.astropi;
 import com.ociweb.iot.astropi.listeners.JoyStickListener;
 import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -43,7 +42,7 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
      * @param g integer from 0 to 63, intensity of green
      * @param b integer from 0 to 63, intensity of blue
      */
-    private void setPixel(int row,int col,int r,int g,int b){
+    public void setPixel(int row,int col,int r,int g,int b){
         row = ensureRange(row,0,7);
         col = ensureRange(col,0,7);
         int redAddr = 24*row + col;
@@ -111,7 +110,7 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
      * Clear the screen
      * @return an 8x8x3 3-dimension array of 0s.
      */
-    public int[][][] clear(){
+    public void clear(){
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(AstroPi_Constants.LED_I2C_ADDR);
         
         i2cPayloadWriter.writeByte(0);
@@ -120,14 +119,6 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
         }
         target.i2cCommandClose();
         target.i2cFlushBatch();
-        for(int ver = 0;ver<8;ver++){
-            for(int color = 0;color<3;color++){
-                for(int hor = 0;hor<8;hor++){
-                    bitmap[ver][hor][color] = 0;
-                }
-            }
-        }
-        return bitmap;
     }
     /**
      * Flips the image on the LED matrix horizontally.
@@ -155,7 +146,10 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
         }
         drawPixels(bitmapToList(bitmap));
     }
-    
+    /**
+     * Rotate the screen by 90,180 or 270 degrees
+     * @param angle 90,180 or 270 
+     */
     public void setRotation(int angle){
         switch (angle) {
             case 90:
@@ -172,13 +166,10 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
         }
         
         drawPixels(bitmapToList(bitmap));
-    }
-    
+    }    
     private int ensureRange(int value, int min, int max) {
         return Math.min(Math.max(value, min), max);
-    }
-    
-    
+    }    
     private int[] bitmapToList(int[][][] map){
         int [] list = new int[192];
         int idx = 0;
@@ -191,8 +182,12 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
             }
         }
         return list;
-    }
-    
+    } 
+    /**
+     * rotate a matrix by 90 degrees clockwise
+     * @param matrix
+     * @return rotated matrix
+     */
     private int[][][] rotateCW90(int[][][] matrix) {
         
         int low =0,high = 7;
@@ -223,6 +218,11 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
         }
         return bitmap;
     }
+    /**
+     * draw one pixel
+     * @param addr address of the pixel
+     * @param intensity R,G,B values of the pixel
+     */
     private void drawPixel(int[] addr,int[] intensity){
         for(int i = 0;i<3;i++){
             DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(AstroPi_Constants.LED_I2C_ADDR);

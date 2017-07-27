@@ -20,22 +20,20 @@ import com.ociweb.iot.transducer.I2CListenerTransducer;
 public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer,I2CListenerTransducer {    
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
-    private ACT_TAP_STATUS_RegListener acttaplistener;
-    private INT_SOURCE_RegListener interrlistener;
-    public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch){
-        this.target = ch;
-    }
+    private ActTapListener acttaplistener;
+    private FreeFallListener interrlistener;
+
     public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener ... l){
         this.target = ch;
         for(ThreeAxisAccelerometer_16gListener item:l){
             if(item instanceof AccelValsListener){
                 this.accellistener = (AccelValsListener) item;
             }
-            if(item instanceof ACT_TAP_STATUS_RegListener){
-                this.acttaplistener = (ACT_TAP_STATUS_RegListener) item;
+            if(item instanceof ActTapListener){
+                this.acttaplistener = (ActTapListener) item;
             }
-            if(item instanceof INT_SOURCE_RegListener){
-                this.interrlistener =  (INT_SOURCE_RegListener) item;
+            if(item instanceof FreeFallListener){
+                this.interrlistener =  (FreeFallListener) item;
             }
         }
     }
@@ -46,11 +44,11 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      */
     public void begin() {
         
-        writeSingleByteToRegister(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,0);
+        axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,0);
         
-        writeSingleByteToRegister(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,16);
+        axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,16);
         
-        writeSingleByteToRegister(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,8);
+        axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,8);
         
     }
     /**
@@ -75,11 +73,9 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
             default:
                 _s = 0b00001011;
         }
-        writeSingleByteToRegister(ADXL345_DATA_FORMAT,_s);
+        axWriteByte(ADXL345_DATA_FORMAT,_s);
         
-    }
-    
-    
+    } 
     /**
      * Sets the OFSX, OFSY and OFSZ bytes
      * x, y and z are user offset adjustments in twos complement format with
@@ -90,11 +86,11 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      */
     public void setAxisOffset(int x, int y, int z) {
         
-        writeSingleByteToRegister(ADXL345_OFSX,(byte) x);
+        axWriteByte(ADXL345_OFSX,(byte) x);
         
-        writeSingleByteToRegister(ADXL345_OFSY,(byte) y);
+        axWriteByte(ADXL345_OFSY,(byte) y);
         
-        writeSingleByteToRegister(ADXL345_OFSZ,(byte) z);
+        axWriteByte(ADXL345_OFSZ,(byte) z);
     }
     /**
      * Set the output data rate from the accelerometer (in Hz)
@@ -136,7 +132,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
             default:
                 _s = ADXL345_RATE_400;
         }
-        writeSingleByteToRegister(ADXL345_DATA_FORMAT,_s);
+        axWriteByte(ADXL345_DATA_FORMAT,_s);
         
         
     }
@@ -148,9 +144,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param tapThreshold integer between 0 and 255
      */
     public void setTapThreshold(int tapThreshold){
-        writeSingleByteToRegister(ADXL345_THRESH_TAP,tapThreshold);
-    }
-    
+        axWriteByte(ADXL345_THRESH_TAP,tapThreshold);
+    }    
     /**
      * Sets the DUR byte
      * The DUR byte contains an unsigned time value representing the maximum time
@@ -158,12 +153,10 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * The scale factor is 625µs/LSB
      * A value of 0 disables the tap/double tap functions. Max value is 255.
      * @param tapDuration integer between 0 and 255
-     */
-    
+     */    
     public void setTapDuration(int tapDuration){
-        writeSingleByteToRegister(ADXL345_DUR,tapDuration);
-    }
-    
+        axWriteByte(ADXL345_DUR,tapDuration);
+    }   
     /**
      *
      *  Sets the latency (latent register) which contains an unsigned time value
@@ -174,7 +167,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param doubleTapLatency integer between 0 and 255
      */
     public void setDoubleTapLatency(int doubleTapLatency){
-        writeSingleByteToRegister(ADXL345_LATENT,doubleTapLatency);
+        axWriteByte(ADXL345_LATENT,doubleTapLatency);
     }
     /**
      *      Sets the Window register, which contains an unsigned time value representing
@@ -184,9 +177,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param doubleTapWindow integer between 0 and 255
      */
     public void setDoubleTapWindow(int doubleTapWindow){
-        writeSingleByteToRegister(ADXL345_WINDOW,doubleTapWindow);
-    }
-    
+        axWriteByte(ADXL345_WINDOW,doubleTapWindow);
+    }    
     /**
      *     Sets the THRESH_ACT byte which holds the threshold value for detecting activity.
      *The data format is unsigned, so the magnitude of the activity event is compared
@@ -196,9 +188,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param activityThreshold integer between 0 and 255
      */
     public void setActivityThreshold(int activityThreshold){
-        writeSingleByteToRegister(ADXL345_THRESH_ACT,activityThreshold);
-    }
-    
+        axWriteByte(ADXL345_THRESH_ACT,activityThreshold);
+    }   
     /**
      *      Sets the THRESH_INACT byte which holds the threshold value for detecting inactivity.
      * The data format is unsigned, so the magnitude of the inactivity event is compared
@@ -208,9 +199,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param inactivityThreshold integer between 0 and 255
      */
     public void setInactivityThreshold(int inactivityThreshold){
-        writeSingleByteToRegister(ADXL345_THRESH_INACT,inactivityThreshold);
-    }
-    
+        axWriteByte(ADXL345_THRESH_INACT,inactivityThreshold);
+    }  
     /**
      *      Sets the TIME_INACT register, which contains an unsigned time value representing the
      *amount of time that acceleration must be less than the value in the THRESH_INACT
@@ -219,10 +209,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param timeInactivity integer between 0 and 255
      */
     public void setTimeInactivity(int timeInactivity){
-        writeSingleByteToRegister(ADXL345_TIME_INACT,timeInactivity);
-    }
-    
-    
+        axWriteByte(ADXL345_TIME_INACT,timeInactivity);
+    }    
     /**
      *      Sets the THRESH_FF register which holds the threshold value, in an unsigned format, for
      * free-fall detection. The root-sum-square (RSS) value of all axes is calculated and
@@ -232,7 +220,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param freeFallThreshold integer between 0 and 255
      */
     public void setFreeFallThreshold(int freeFallThreshold){
-        writeSingleByteToRegister(ADXL345_THRESH_FF,freeFallThreshold);
+        axWriteByte(ADXL345_THRESH_FF,freeFallThreshold);
     }
     /**
      *      Sets the TIME_FF register, which holds an unsigned time value representing the minimum
@@ -242,7 +230,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param freeFallDuration integer between 0 and 255
      */
     public void setFreeFallDuration(int freeFallDuration){
-        writeSingleByteToRegister(ADXL345_TIME_FF,freeFallDuration);
+        axWriteByte(ADXL345_TIME_FF,freeFallDuration);
     }
     /**
      * Write a byte to the ADXL345_ACT_INACT_CTL register to enable/disable ACT/INACT on X,Y or Z axis
@@ -250,7 +238,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param _b 
      */
     public void setACT_INACT_CTL_Reg(int _b){
-        writeSingleByteToRegister(ADXL345_ACT_INACT_CTL,_b);
+        axWriteByte(ADXL345_ACT_INACT_CTL,_b);
     }
     /**
      * Write a byte to the ADXL345_TAP_AXES register to enable/disable Tap detection on X,Y or Z axis
@@ -258,9 +246,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param _b 
      */
     public void setTAP_AXES_Reg(int _b){
-        writeSingleByteToRegister(ADXL345_TAP_AXES,_b);
-    }
-    
+        axWriteByte(ADXL345_TAP_AXES,_b);
+    }    
     /**
      * Write a byte to the ADXL345_INT_ENABLE register
      * Setting bits in this register to a value of 1 enables their respective functions to 
@@ -270,7 +257,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param _b 
      */
     public void setINT_ENABLE_Reg(int _b){
-        writeSingleByteToRegister(ADXL345_INT_ENABLE,_b);
+        axWriteByte(ADXL345_INT_ENABLE,_b);
     }
     /**
      * Write a byte to the ADXL345_INT_MAP register
@@ -280,14 +267,14 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param _b 
      */
     public void setINT_MAP_Reg(int _b){
-        writeSingleByteToRegister(ADXL345_INT_MAP,_b);
+        axWriteByte(ADXL345_INT_MAP,_b);
     }
     /**
      * Write a byte to ADXL345_FIFO_CTL register
      * @param _b 
      */
     public void setFIFO_CTL_Reg(int _b){
-        writeSingleByteToRegister(ADXL345_FIFO_CTL,_b);
+        axWriteByte(ADXL345_FIFO_CTL,_b);
     }
 /**
      * Convert the 6 bytes from I2C read to the correct two's complement representation of X,Y,Z
@@ -313,7 +300,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * @param register register to write to
      * @param value byte to write
      */
-    private void writeSingleByteToRegister(int register, int value) {
+    private void axWriteByte(int register, int value) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(ADXL345_DEVICE);
         
         i2cPayloadWriter.writeByte(register);
@@ -334,7 +321,6 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
                 acttaplistener.ACT_TAP_RegStatus(backing[position]);
             }
             if(register == ADXL345_INT_SOURCE){
-                interrlistener.INT_SOURCE_RegStatus(backing[position]);
                 int freefall = (backing[position] & 0b00000100)>>2;
                 interrlistener.freefallStatus(freefall);
             }

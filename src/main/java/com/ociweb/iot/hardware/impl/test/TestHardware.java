@@ -19,6 +19,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -53,10 +54,16 @@ public class TestHardware extends HardwareImpl {
     public TestHardware(GraphManager gm, String[] args) {
         super(gm, args, 1);
         //logger.trace("You are running on the test hardware.");
-        
-        i2cBackingInternal = new TestI2CBacking().configure((byte) 1);
+
     }
 	
+	public I2CBacking getI2CBacking() {
+		if (null == i2cBackingInternal) {
+			i2cBackingInternal = new TestI2CBacking().configure((byte) 1);
+		}
+		return i2cBackingInternal;		
+	}
+    
     public void enableTelemetry(boolean enable) {
     	if (!isInUnitTest && enable) {
     		super.enableTelemetry();

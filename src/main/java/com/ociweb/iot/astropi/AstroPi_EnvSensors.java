@@ -10,7 +10,6 @@ import com.ociweb.iot.astropi.listeners.PressureListener;
 import com.ociweb.iot.astropi.listeners.TemperatureListener;
 import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -25,7 +24,7 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
     
     public AstroPi_EnvSensors(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
-        target.ensureI2CWriting(200,10);
+        //target.ensureI2CWriting(200,10);
         for(AstroPiListener item:l){
             if(item instanceof TemperatureListener){
                 this.tempListener = (TemperatureListener) item;
@@ -40,8 +39,8 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
         }
     }
     
-    int CTRL_REG1_PVal = 0;
-    int CTRL_REG1_HUMVal = 0;
+    int CTRL_REG1_PVal = 0b00010100; //by default, ODR =1 Hz, turn on Block Data Update
+    int CTRL_REG1_HUMVal = 0b00000101; //by default, ODR = 1 Hz, turn on Block Data Update
     /**
      * Power up the humidity and/or the pressure sensor
      * Set the output data rate (ODR) of the pressure sensor to 1 Hz
@@ -52,17 +51,59 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
     public void begin(boolean humiditySensor,boolean pressureSensor){
         if(pressureSensor){
             CTRL_REG1_PVal |= AstroPi_Constants.POWER_UP_P;
-            CTRL_REG1_PVal |= AstroPi_Constants.ODR0_SET_P;
             LPS25HWriteByte(AstroPi_Constants.CTRL_REG1_P,CTRL_REG1_PVal);
         }
         if(humiditySensor){
             CTRL_REG1_HUMVal |= AstroPi_Constants.POWER_UP_HUM;
-            CTRL_REG1_HUMVal |= AstroPi_Constants.ODR0_SET_HUM;
             HTS221WriteByte(AstroPi_Constants.CTRL_REG1_HUM,CTRL_REG1_HUMVal);
         }
     }
-    
-            /**
+    /**
+     * Set the ODR of the pressure/temperature sensor
+     * @param odr 1 = 1 Hz; 2 = 7 Hz, 3 = 12.5 Hz, 4 = 25 Hz
+     */
+    public void setPressureSensorODR(int odr){
+        switch(odr){
+            case 1: 
+                CTRL_REG1_PVal |= 0x10;
+                break;
+            case 2:
+                CTRL_REG1_PVal |= 0x20;
+                break;
+            case 3:
+                CTRL_REG1_PVal |= 0x30;
+                break;
+            case 4:
+                CTRL_REG1_PVal |= 0x40;
+                break;
+            default:
+                CTRL_REG1_PVal |= 0x10;
+                break;
+        }
+                
+    }
+    /**
+     * Set the ODR of the pressure/temperature sensor
+     * @param odr 1 = 1 Hz; 2 = 7 Hz, 3 = 12.5 Hz, 4 = 25 Hz
+     */
+    public void setHumiditySensorODR(int odr){
+        switch(odr){
+            case 1: 
+                CTRL_REG1_HUMVal |= 0x10;
+                break;
+            case 2:
+                CTRL_REG1_HUMVal |= 0x20;
+                break;
+            case 3:
+                CTRL_REG1_HUMVal |= 0x30;
+                break;
+            default:
+                CTRL_REG1_HUMVal |= 0x10;
+                break;
+        }
+                
+    }    
+     /**
      * Convert the 2 bytes I2C read to the correct representation of the digital value
      * @param backing circular buffer containing data from I2C read
      * @param position index of the first byte
@@ -76,9 +117,8 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
         short temp = (short)(((backing[(position+1)&mask] & 0xFF) << 8) | (backing[(position)&mask] & 0xFF));
         
         return temp;
-    }
-    
-                /**
+    }    
+     /**
      * Convert the 3 bytes I2C read to the correct representation of the digital value
      * @param backing circular buffer containing data from I2C read
      * @param position index of the first byte

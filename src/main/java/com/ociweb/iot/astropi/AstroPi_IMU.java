@@ -11,7 +11,6 @@ import com.ociweb.iot.astropi.listeners.GyroListener;
 import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import static com.ociweb.iot.astropi.AstroPi_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -61,7 +60,9 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         GyroSettings.enabled = gyro;
         AccelSettings.enabled = accel;
         MagSettings.enabled = mag;
-                
+        if(!mag){
+            MagSettings.operatingMode = 2; //power down the magnetometer
+        }        
         initGyro();
         initAccel();
         initMag();
@@ -90,6 +91,14 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
     }
     private void initGyro(){
         GyroSettings.CTRL_REG1_GVal = 0;
+        // CTRL_REG1_G (Default value: 0x00)
+	// [ODR_G2][ODR_G1][ODR_G0][FS_G1][FS_G0][0][BW_G1][BW_G0]
+	// ODR_G[2:0] - Output data rate selection
+	// FS_G[1:0] - Gyroscope full-scale selection
+	// BW_G[1:0] - Gyroscope bandwidth selection
+	
+	// To disable gyro, set sample rate bits to 0. We'll only set sample
+	// rate if the gyro is enabled.
         if(GyroSettings.enabled){
             GyroSettings.CTRL_REG1_GVal = (GyroSettings.sampleRate & 0x07) << 5;
         }
@@ -321,18 +330,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
      * @param gScl the scale can be 245,500 or 2000 dps
      */
     public void setGyroScale(int gScl){
-        switch (gScl)
-        {
-            case 500:
-                GyroSettings.scale = 500;
-                break;
-            case 2000:
-                GyroSettings.scale = 2000;
-                break;
-            default: // Otherwise we'll set it to 245 dps (0x0 << 4)
-                GyroSettings.scale = 245;
-                break;
-        }        
+        GyroSettings.scale = gScl;        
         calcgRes();
     }
     /**
@@ -341,21 +339,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
      */
     public void setAccelScale(int aScl)
     {
-        switch (aScl)
-        {
-            case 4:
-                AccelSettings.scale = 4;
-                break;
-            case 8:
-                AccelSettings.scale = 8;
-                break;
-            case 16:
-                AccelSettings.scale = 16;
-                break;
-            default: // Otherwise it'll be set to 2g (0x0 << 3)
-                AccelSettings.scale = 2;
-                break;
-        }
+        AccelSettings.scale = aScl;
         // Then calculate a new aRes, which relies on aScale being set correctly:
         calcaRes();
     }
@@ -365,21 +349,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
      */
     public void setMagScale(int mScl)
     {
-        switch (mScl)
-        {
-            case 8:
-                MagSettings.scale = 8;
-                break;
-            case 12:
-                MagSettings.scale = 12;
-                break;
-            case 16:
-                MagSettings.scale = 16;
-                break;
-            default: // Otherwise we'll default to 4 gauss (00)
-                MagSettings.scale = 4;
-                break;
-        }      
+        MagSettings.scale = mScl;     
         // Calculate a new mRes, which relies on mScale being set correctly:
         calcmRes();
     }
@@ -478,39 +448,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
                 break;
         }
     }
-    
-//    private int CTRL_REG9Val;
-//    public void sleepGyro(boolean enable)
-//    {
-//        if (enable){
-//            CTRL_REG9Val |= (1<<6);
-//        }
-//        else {
-//            CTRL_REG9Val &= ~(1<<6);
-//        }
-//        agWriteByte(CTRL_REG9, CTRL_REG9Val);
-//        target.i2cFlushBatch();
-//    }
-//    
-//    public void enableFIFO(boolean enable)
-//    {
-//        if (enable) {
-//            CTRL_REG9Val |= (1<<1);
-//        }
-//        else {
-//            CTRL_REG9Val &= ~(1<<1);
-//        }
-//        agWriteByte(CTRL_REG9, CTRL_REG9Val);
-//        target.i2cFlushBatch();
-//    }
-//    
-//    public void setFIFO(fifoMode_type fifoMode, uint8_t fifoThs)
-//    {
-//        // Limit threshold - 0x1F (31) is the maximum. If more than that was asked
-//        // limit it to the maximum.
-//        int threshold = fifoThs <= 0x1F ? fifoThs : 0x1F;
-//        agWriteByte(FIFO_CTRL, ((fifoMode & 0x7) << 5) | (threshold & 0x1F));
-//    }
+
     private void setMagOffset(int axis,int offset){
         int msb,lsb;
         msb = (offset & 0xff00)>>8;
@@ -538,6 +476,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         
         target.i2cCommandClose();
     }
+    
     /**
      * Convert the 6 bytes of X,Y,Z values to the correct two's complement representation
      * @param backing array containing 6 bytes

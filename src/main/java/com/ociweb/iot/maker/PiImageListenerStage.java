@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 
 /**
  * Time-based image listener backing for Raspberry Pi hardware.
@@ -40,11 +39,14 @@ public class PiImageListenerStage extends PronghornStage {
 
     private static final Logger logger = LoggerFactory.getLogger(PiImageListenerStage.class);
 
+    // File name prefix.
+    private final String fileNamePrefix = new File(".").getAbsolutePath() + File.separator;
+
     // Output pipe for image data.
     private final Pipe<ImageSchema> output;
 
     // Image buffer information; we only process one image at a time.
-    private byte[] fileBytes = null;
+    private byte[] fileNameBytes = null;
     private int fileBytesReadIndex = -1;
 
     /**
@@ -59,16 +61,16 @@ public class PiImageListenerStage extends PronghornStage {
      * @param fileName Name of the file (without extensions) to save
      *                 the image to.
      *
-     * @return A reference to the created image file.
+     * @return The full path name to the created file.
      */
-    private File takePicture(String fileName) {
+    private String takePicture(String fileName) {
         try {
             Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
         } catch (IOException e) {
             logger.error("Unable to take picture from Raspberry Pi Camera due to error [{}].", e.getMessage(), e);
         }
 
-        return new File(fileName + ".jpg"); //TODO: rewrite to be GC free
+        return fileNamePrefix + fileName + ".jpg"; //TODO: rewrite to be GC free
     }
 
     public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
@@ -101,31 +103,25 @@ public class PiImageListenerStage extends PronghornStage {
                 // TODO: rewrite to be GC free
                 // TODO: RandomAccessFile may be the best choice once it's available to us...
                 // Take a picture and load the byte information.
-                File imageFile = takePicture("Pronghorn-Image-Capture-" + System.currentTimeMillis());
-                try {
-                    fileBytes = Files.readAllBytes(imageFile.toPath());
-                    fileBytesReadIndex = 0;
-                } catch (IOException e) {
-                    // TODO: Exception or just a log error and no write?
-                    throw new RuntimeException(e.getMessage(), e);
-                }
+                fileNameBytes = takePicture("Pronghorn-Image-Capture-" + System.currentTimeMillis()).getBytes();
+                fileBytesReadIndex = 0;
             }
 
             // Load byte buffers from the pipe so we have somewhere to put the image data.
             ByteBuffer[] buffers = Pipe.wrappedWritingBuffers(output);
 
             // Determine maximum write size.
-            final int maximumToWrite = Math.min(buffers[0].remaining(), fileBytes.length - fileBytesReadIndex);
+            final int maximumToWrite = Math.min(buffers[0].remaining(), fileNameBytes.length - fileBytesReadIndex);
 
             // Fill the buffers as much as possible.
-            System.arraycopy(fileBytes, fileBytesReadIndex,
+            System.arraycopy(fileNameBytes, fileBytesReadIndex,
                              buffers[0].array(), buffers[0].position(), maximumToWrite);
 
             // Progress index by the number of bytes written.
             fileBytesReadIndex += maximumToWrite;
 
             // If the index exceeds our bounds, we're done writing.
-            if (fileBytesReadIndex >= fileBytes.length) {
+            if (fileBytesReadIndex >= fileNameBytes.length) {
                 fileBytesReadIndex = -1;
             }
 

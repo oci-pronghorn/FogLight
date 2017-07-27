@@ -2,6 +2,7 @@ package com.ociweb.iot.maker;
 
 import java.util.ArrayList;
 
+import com.ociweb.pronghorn.iot.schema.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +22,6 @@ import com.ociweb.iot.hardware.impl.grovepi.PiModel;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
-import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
-import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -214,20 +211,22 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	}
 
 	public ListenerFilterIoT addImageListener(ImageListener listener) {
-		//NOTE: this is an odd approach, this level of configuration is normally hidden on this layer.
-		//      TODO: images should have their own internal time and not hijack the application level timer.
-		if (builder.getTriggerRate() < 1250) {
-			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
-		}
+//		if (builder.getTriggerRate() < 1250) {
+//			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
+//		}
+//
+//		switch (builder.getPlatformType()) {
+//		case GROVE_PI:
+//			return registerListener(new PiImageListenerBacking(listener));
+//		default:
+//			throw new UnsupportedOperationException("Image listeners are not supported for [" +
+//					builder.getPlatformType() +
+//					"] hardware");
+//		}
 
-		switch (builder.getPlatformType()) {
-		case GROVE_PI:
-			return registerListener(new PiImageListenerBacking(listener));
-		default:
-			throw new UnsupportedOperationException("Image listeners are not supported for [" +
-					builder.getPlatformType() +
-					"] hardware");
-		}
+		// TODO: Add a reactive listener.
+
+		return null;
 	}
 
 	public ListenerFilterIoT addI2CListener(I2CListener listener) {

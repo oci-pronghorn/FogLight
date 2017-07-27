@@ -107,8 +107,7 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
         return bitmap[row][col];
     }
     /**
-     * Clear the screen
-     * @return an 8x8x3 3-dimension array of 0s.
+     * Clear the screen  an 8x8x3 3-dimension array of 0s.
      */
     public void clear(){
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(AstroPi_Constants.LED_I2C_ADDR);

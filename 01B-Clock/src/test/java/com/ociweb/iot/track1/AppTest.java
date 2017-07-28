@@ -21,7 +21,7 @@ public class AppTest {
 
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
-	    	TestI2CBacking backing = (TestI2CBacking)hardware.i2cBacking;
+	    	TestI2CBacking backing = (TestI2CBacking)hardware.getI2CBacking();
 	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
 	    	scheduler.startup();

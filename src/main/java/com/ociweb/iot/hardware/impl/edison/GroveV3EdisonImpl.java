@@ -37,7 +37,8 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 
 	public GroveV3EdisonImpl(GraphManager gm, String[] args, int i2cBus) {
 		super(gm, args, i2cBus);
-		System.out.println("You are running on the Edison hardware.");
+		//can't print "you are running on Edison" here because we create an unstable intance of this object upon start-up to
+		//determine if we are indeed running on the Edison.
 	}
 
 	@Override

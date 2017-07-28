@@ -120,6 +120,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			}			
 			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
 				logger.trace("Detected running on Edison");
+				System.out.println("You are running on the Edison hardware.");
 			}
 			else {
 				this.builder = new TestHardware(gm, args);

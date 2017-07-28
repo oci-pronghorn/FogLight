@@ -13,10 +13,9 @@
 
 package com.ociweb.iot.project.lightblink;
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.LED;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.D5;
 
-import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -48,7 +47,7 @@ public class IoTApp implements FogApp {
 
 		    boolean value = payload.readBoolean();
 		    blinkerChannel.setValueAndBlock(LED_PORT, value, PAUSE);               
-		    boolean ignored = blinkerChannel.publishTopic(TOPIC, w->{
+		    /*boolean ignored =*/ blinkerChannel.publishTopic(TOPIC, w->{
 		    	w.writeBoolean(!value);
 		    });
 		    return true;
@@ -59,7 +58,7 @@ public class IoTApp implements FogApp {
 			    DYNAMIC_MESSAGING); 
         runtime.addStartupListener(
                 ()->{
-                	boolean ignored =  startupChannel.publishTopic(TOPIC, w->{
+                	 startupChannel.publishTopic(TOPIC, w->{
                 		w.writeBoolean(true);             		
                 	});
                 });        

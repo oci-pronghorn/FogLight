@@ -32,11 +32,10 @@ public enum RTCTwig {
                 public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
                     byte[] REG_ADDR = {RTC_Constants.TIME_REG};
                     //byte[] ACC_SETUP = {ADXL345_POWER_CTL,0x08};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = RTC_Constants.DS1307_I2C_ADDRESS;
                     byte BYTESTOREAD = 7;
                     byte REG_ID = RTC_Constants.TIME_REG; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
                 
                 

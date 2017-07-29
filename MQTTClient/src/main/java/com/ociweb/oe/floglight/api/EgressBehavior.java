@@ -1,6 +1,5 @@
 package com.ociweb.oe.floglight.api;
 
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.pronghorn.pipe.BlobReader;
 

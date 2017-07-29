@@ -20,19 +20,29 @@ public class TimeBehavior implements TimeListener {
 	@Override
 	public void timeEvent(long time, int iteration) {
 
-		// On the timer event create a payload with a string encoded timestamp
-		PubSubWritable writable = new PubSubWritable() {
-			@Override
-			public void write(BlobWriter writer) {	
-				Date d =new Date(System.currentTimeMillis());
-				
-				System.err.println("sent "+d);
-				writer.writeUTF8Text("egress body "+d);
-				
+		int i = 1;//iterations
+		while (--i>=0) {
+		
+			Date d =new Date(System.currentTimeMillis());
+			
+			// On the timer event create a payload with a string encoded timestamp
+			PubSubWritable writable = new PubSubWritable() {
+				@Override
+				public void write(BlobWriter writer) {	
+					
+					writer.writeUTF8Text("egress body "+d);
+					
+				}
+			};
+					
+			// Send out the payload with thre MQTT topic "topic/egress"
+			boolean ok = cmdChnl.publishTopic("topic/egress", writable);
+			if (ok) {
+				//System.err.println("sent "+d);
+			} else {
+				System.err.println("The system is backed up and can not send any more messages");
 			}
-		};
-		// Send out the payload with thre MQTT topic "topic/egress"
-		cmdChnl.publishTopic("topic/egress", writable);
+		}
 	}
 
 }

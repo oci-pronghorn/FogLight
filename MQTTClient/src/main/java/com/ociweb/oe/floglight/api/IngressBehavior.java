@@ -1,9 +1,7 @@
 package com.ociweb.oe.floglight.api;
 
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.PubSubWritable;
-import com.ociweb.gl.api.PubSubWriter;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobReader;

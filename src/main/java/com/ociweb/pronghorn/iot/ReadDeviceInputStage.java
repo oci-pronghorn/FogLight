@@ -63,8 +63,6 @@ public class ReadDeviceInputStage extends PronghornStage {
 		this.adConnections = hardware.combinedADConnections();
 		this.schedule = hardware.buildADPollSchedule();
 		
-		System.out.println("Direct schedule: "+this.schedule);
-		
 		assert(null!=schedule) : "should not have been called, there are no inputs configured";
 
 		if (null != this.schedule) {

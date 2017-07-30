@@ -17,7 +17,7 @@ public class HTTPGetBehaviorChained implements StartupListener {
 	@Override
 	public void startup() {
 		
-		cmd.httpGet("www.google.com", "/", responseId);
+		cmd.httpGet("www.objectcomputing.com", "/", responseId);
 		
 	}
 

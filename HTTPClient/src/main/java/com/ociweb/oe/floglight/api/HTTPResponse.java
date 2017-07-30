@@ -9,21 +9,20 @@ import com.ociweb.pronghorn.pipe.BlobReader;
 public class HTTPResponse implements HTTPResponseListener {
 
 	@Override
-	public boolean responseHTTP(short statusCode, HTTPContentType type, HTTPResponseReader reader) {
+	public boolean responseHTTP(HTTPResponseReader reader) {
 		
-		System.out.println(" status:"+statusCode);
-		System.out.println("   type:"+type);
-		
-		//TODO: this is not yet implemented.. Under active work...
+		System.out.println(" status:"+reader.getStatus());
+		System.out.println("   type:"+reader.getContentType());
+
 		Payloadable payload = new Payloadable() {
 			@Override
 			public void read(BlobReader reader) {
 				System.out.println(reader.readUTFOfLength(reader.available()));
 			}
 		};
-		//TODO: This index location does not appear to be right
-		reader.openPayloadData(payload );
+		boolean hadAbody = reader.openPayloadData(payload );
 
+		
 		return true;
 	}
 

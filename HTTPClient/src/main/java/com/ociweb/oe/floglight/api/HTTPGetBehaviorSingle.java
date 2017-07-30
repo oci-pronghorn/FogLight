@@ -20,26 +20,23 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 
 	@Override
 	public void startup() {
-		cmd.httpGet("www.google.com","/");//"objectcomputing.com", "/");
+		cmd.httpGet("www.objectcomputing.com", "/");
 	}
 
 	@Override
-	public boolean responseHTTP(short statusCode, 
-			                    HTTPContentType type, HTTPResponseReader 
-			                    reader) {
+	public boolean responseHTTP(HTTPResponseReader reader) {
 		
-		System.out.println(" status:"+statusCode);
-		System.out.println("   type:"+type);
+		System.out.println(" status:"+reader.getStatus());
+		System.out.println("   type:"+reader.getContentType());
 		
-//		//TODO: this is not yet implemented.. Under active work...
-//		Payloadable payload = new Payloadable() {
-//			@Override
-//			public void read(BlobReader reader) {
-//				System.out.println(reader.readUTFOfLength(reader.available()));
-//			}
-//		};
-//		//TODO: This index location does not appear to be right
-//		reader.openPayloadData(payload );
+		Payloadable payload = new Payloadable() {
+			@Override
+			public void read(BlobReader reader) {
+				System.out.println(reader.readUTFOfLength(reader.available()));
+			}
+		};
+
+		reader.openPayloadData( payload );
 		
 		return true;
 	}

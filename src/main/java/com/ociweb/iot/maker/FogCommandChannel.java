@@ -211,29 +211,6 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
         return aBool.compareAndSet(true, false);
     }
 
- 
-    /**
-     * Causes this channel to delay processing any actions on a given {@link Port}
-     * until the specified amount of time has elapsed.
-     *
-     * @param port Port to temporarily stop processing actions on.
-     * @param durationMilli Milliseconds until the port will process actions again.
-     *
-     * @return True if blocking was successful, and false otherwise.
-     */
-    public abstract boolean block(Port port, long durationMilli);
-
-    /**
-     * Causes this channel to delay processing any actions on a given {@link Port}
-     * until the specified UNIX time is reached.
-     *
-     * @param port Port to temporarily stop processing actions on.
-     * @param time Time, in milliseconds, since the UNIX epoch that indicates
-     *             when actions should resume processing.
-     *
-     * @return True if blocking was successful, and false otherwise.
-     */
-    public abstract boolean blockUntil(Port port, long time);
 
     /**
      * Sets the value of an analog/digital port on this command channel.

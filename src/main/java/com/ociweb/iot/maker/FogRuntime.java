@@ -165,7 +165,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		PipeConfigManager pcm = new PipeConfigManager();
 		pcm.addConfig(customChannelLength,0,GroveRequestSchema.class);
-		pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload,I2CCommandSchema.class);
+		pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload, I2CCommandSchema.class);
 		pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload, MessagePubSub.class );
 		pcm.addConfig(customChannelLength,0,TrafficOrderSchema.class);
 

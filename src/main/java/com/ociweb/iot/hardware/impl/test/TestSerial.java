@@ -15,7 +15,7 @@ public class TestSerial implements RS232Clientable {
 	
 	public TestSerial() {
 		
-		pipe = RawDataSchema.instance.newPipe(100, 500);
+		pipe = RawDataSchema.instance.newPipe(1000, 4096);
 		pipe.initBuffers();
 		
 	}

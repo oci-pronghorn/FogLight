@@ -23,7 +23,7 @@ public class AppTest {
 	    	
 	    	scheduler.startup();
 	    	
-	    	final long testStop = System.currentTimeMillis()+1200;
+	    	final long testStop = System.currentTimeMillis()+4000;
 	    	
 			while (System.currentTimeMillis()<testStop) {				    		
 					scheduler.run();

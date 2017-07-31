@@ -3,7 +3,7 @@ package com.ociweb.oe.foglight.api;
 import com.ociweb.gl.api.HTTPFieldReader;
 import com.ociweb.gl.api.HTTPRequestReader;
 import com.ociweb.gl.api.NetResponseWriter;
-import com.ociweb.gl.api.NetWritable;
+import com.ociweb.gl.api.Writable;
 import com.ociweb.gl.api.Payloadable;
 import com.ociweb.gl.api.RestListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -32,7 +32,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	};
 
 
-	NetWritable writableA = new NetWritable() {
+	Writable writableA = new Writable() {
 		
 		@Override
 		public void write(BlobWriter writer) {
@@ -41,7 +41,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 		
 	};
 	
-	NetWritable writableB = new NetWritable() {
+	Writable writableB = new Writable() {
 		
 		@Override
 		public void write(BlobWriter writer) {

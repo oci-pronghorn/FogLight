@@ -9,10 +9,17 @@ import com.ociweb.iot.maker.Hardware;
 public class SerialListener implements FogApp
 {
 
-    @Override
+	private Appendable builder;
+	
+    public SerialListener(Appendable builder) {
+		this.builder = builder;
+	}
+
+
+	@Override
     public void declareConnections(Hardware c) {
         c.useSerial(Baud.B_____9600); //optional device can be set as the second argument       
-        c.setTimerPulseRate(50);
+        c.setTimerPulseRate(200);
         c.limitThreads();//pics optimal threads based on core detection
   
         c.enableTelemetry();
@@ -22,7 +29,7 @@ public class SerialListener implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
     	
-    	runtime.addSerialListener(new SerialListenerBehavior(runtime));
+    	runtime.addSerialListener(new SerialListenerBehavior(builder,runtime));
     	
     	runtime.addTimePulseListener(new SerialWriterBehavior(runtime));
 

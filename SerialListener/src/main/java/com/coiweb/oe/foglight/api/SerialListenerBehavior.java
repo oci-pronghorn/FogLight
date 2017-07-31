@@ -5,11 +5,10 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.iot.maker.SerialReader;
 import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.util.Appendables;
 
 public class SerialListenerBehavior implements SerialListener {
 
@@ -18,9 +17,11 @@ public class SerialListenerBehavior implements SerialListener {
 	
 	private byte[] myBuffer = new byte[10];
 	private int timeToLive = 10;
+	private final Appendable builder;
 	
-	SerialListenerBehavior(FogRuntime runtime) {
+	SerialListenerBehavior(Appendable builder, FogRuntime runtime) {
 		this.runtime = runtime;
+		this.builder = builder;
 	}
 
 	@Override
@@ -32,8 +33,8 @@ public class SerialListenerBehavior implements SerialListener {
 						
 			int consumed = reader.read(myBuffer);
 		
-			logger.info("consumed data {} ", Arrays.toString(myBuffer));
-			
+			Appendables.appendArray(builder, '[', myBuffer, ']');
+	
 			if (--timeToLive <= 0) {
 				runtime.shutdownRuntime();
 			}

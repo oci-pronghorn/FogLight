@@ -120,6 +120,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			}			
 			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
 				logger.trace("Detected running on Edison");
+				System.out.println("You are running on the Edison hardware.");
 			}
 			else {
 				this.builder = new TestHardware(gm, args);
@@ -164,7 +165,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		PipeConfigManager pcm = new PipeConfigManager();
 		pcm.addConfig(customChannelLength,0,GroveRequestSchema.class);
-		pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload,I2CCommandSchema.class);
+		pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload, I2CCommandSchema.class);
 		pcm.addConfig(customChannelLength, defaultCommandChannelMaxPayload, MessagePubSub.class );
 		pcm.addConfig(customChannelLength,0,TrafficOrderSchema.class);
 
@@ -342,11 +343,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		
 		FogRuntime.isRunning = true;
 		FogRuntime runtime = new FogRuntime(args);
-
 		
 		logger.info("{} ms startup", lastTime = System.currentTimeMillis());
 		Hardware hardware = runtime.getHardware();
-
+		//this default for Fog is slower due to the expected minimum hardware of iot devices
+		hardware.setDefaultRate(20_000); // 1/50 of 1 ms
 		
 		app.declareConfiguration(hardware);
 		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());

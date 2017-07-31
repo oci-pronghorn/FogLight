@@ -18,8 +18,8 @@ public class SerialDataReaderStage extends PronghornStage{
 	private final Pipe<SerialInputSchema> output;
 	private Logger logger = LoggerFactory.getLogger(SerialDataReaderStage.class);
 	
-	public static void newInstance(GraphManager gm, Pipe<SerialInputSchema> output, RS232Clientable client) {
-		new SerialDataReaderStage(gm, output, client);
+	public static SerialDataReaderStage newInstance(GraphManager gm, Pipe<SerialInputSchema> output, RS232Clientable client) {
+		return new SerialDataReaderStage(gm, output, client);
 		
 	}
 	public SerialDataReaderStage(GraphManager gm, Pipe<SerialInputSchema> output, RS232Clientable client) {

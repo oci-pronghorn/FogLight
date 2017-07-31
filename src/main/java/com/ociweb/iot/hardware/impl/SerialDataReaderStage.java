@@ -37,7 +37,8 @@ public class SerialDataReaderStage extends PronghornStage{
 	@Override
 	public void run() {
 		
-	    while (Pipe.hasRoomForWrite(output)) {
+		int maxIter = 1000;//must allow for shutdown checks periodically.
+	    while (--maxIter>0 && Pipe.hasRoomForWrite(output)) {
 		
 	    	int readCount = copy(Pipe.wrappedWritingBuffers(output));			
 	    	

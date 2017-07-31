@@ -30,7 +30,7 @@ public class MQTTClient implements FogApp {
 							.keepAliveSeconds(10); 
 
 		// Timer rate
-		builder.setTimerPulseRate(20); 
+		builder.setTimerPulseRate(10); 
 		builder.enableTelemetry();
 		
 				

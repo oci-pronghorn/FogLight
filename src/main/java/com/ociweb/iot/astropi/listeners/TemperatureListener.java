@@ -3,12 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.ociweb.iot.astropi;
+package com.ociweb.iot.astropi.listeners;
 
 /**
  *
  * @author huydo
  */
-public interface AstroPiListener {
-    
+public interface TemperatureListener extends AstroPiListener{
+    void tempValFromPressureSensor(double temp);
+    void tempValFromHumiditySensor(double temp);
 }

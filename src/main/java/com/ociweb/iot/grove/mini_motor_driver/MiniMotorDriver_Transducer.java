@@ -87,7 +87,7 @@ public class MiniMotorDriver_Transducer implements IODeviceTransducer,I2CListene
      * @param register register to write to
      * @param value byte to write
      */
-    public void writeSingleByteToRegister(int address, int register, int value) {
+    private void writeSingleByteToRegister(int address, int register, int value) {
         
         
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);

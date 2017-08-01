@@ -279,7 +279,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 
 	
 	private void consumeSerialMessage(SerialListenerBase serial, Pipe<SerialInputSchema> p) {
-
+		
 		while (PipeReader.tryReadFragment(p)) {
 		    int msgIdx = PipeReader.getMsgIdx(p);
 		    int consumed = 0;

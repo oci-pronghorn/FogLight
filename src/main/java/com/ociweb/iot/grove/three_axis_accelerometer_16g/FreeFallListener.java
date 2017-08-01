@@ -9,7 +9,6 @@ package com.ociweb.iot.grove.three_axis_accelerometer_16g;
  *
  * @author huydo
  */
-public interface INT_SOURCE_RegListener extends ThreeAxisAccelerometer_16gListener {
-    void INT_SOURCE_RegStatus(int byteRead); //byteRead is the 8 bit stored in INT_SOURCR register
+public interface FreeFallListener extends ThreeAxisAccelerometer_16gListener {
     void freefallStatus(int status); // status is 1 if device detects a free fall
 }

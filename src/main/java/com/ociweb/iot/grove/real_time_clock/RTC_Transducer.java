@@ -115,7 +115,7 @@ public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer 
      * second, minute, hour, dayofWeek, dateofMonth, month, year
      */
     
-    public int[] interpretData(byte[] backing, int position, int length, int mask){
+    private int[] interpretData(byte[] backing, int position, int length, int mask){
         assert(length==7) : "Non-Accelerometer data passed into the NunchuckTwig class";
         int[] temp = {0,0,0,0,0,0,0};
         
@@ -147,7 +147,7 @@ public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer 
      * @param register register to write to
      * @param value byte to write
      */
-    public void writeSingleByteToRegister(int register, int value) {
+    private void writeSingleByteToRegister(int register, int value) {
         
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DS1307_I2C_ADDRESS);
         i2cPayloadWriter.writeByte(register);
@@ -157,7 +157,7 @@ public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer 
         target.i2cFlushBatch();
     }
     
-    public void writeMultipleBytesToRegister(int register, int[] values) {
+    private void writeMultipleBytesToRegister(int register, int[] values) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DS1307_I2C_ADDRESS);
         
         i2cPayloadWriter.writeByte(register);

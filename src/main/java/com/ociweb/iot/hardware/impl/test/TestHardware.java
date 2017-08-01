@@ -19,6 +19,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
@@ -51,10 +52,18 @@ public class TestHardware extends HardwareImpl {
     private RS232Clientable testSerial = new TestSerial();
     
     public TestHardware(GraphManager gm, String[] args) {
-        super(gm, args, new TestI2CBacking().configure((byte) 1));
+        super(gm, args, 1);
         //logger.trace("You are running on the test hardware.");
+
     }
 	
+	public I2CBacking getI2CBacking() {
+		if (null == i2cBackingInternal) {
+			i2cBackingInternal = new TestI2CBacking().configure((byte) 1);
+		}
+		return i2cBackingInternal;		
+	}
+    
     public void enableTelemetry(boolean enable) {
     	if (!isInUnitTest && enable) {
     		super.enableTelemetry();
@@ -68,27 +77,36 @@ public class TestHardware extends HardwareImpl {
     }
     
     public void setI2CValueToRead(byte address, byte[] data, int length) {
-    	TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+    	TestI2CBacking testBacking = (TestI2CBacking)getI2CBacking();
     	testBacking.setValueToRead(address, data, length);
     }
     
     public void clearI2CWriteCount() {
-        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        TestI2CBacking testBacking = (TestI2CBacking)getI2CBacking();
         testBacking.clearWriteCount();
     }
     
     public int getI2CWriteCount() {
-        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        TestI2CBacking testBacking = (TestI2CBacking)getI2CBacking();
         return testBacking.getWriteCount();
     }
     
     public <A extends Appendable>A outputLastI2CWrite(A target, int back) {
         assert(back>0);
         assert(back<TestI2CBacking.MAX_BACK_MASK);
-        TestI2CBacking testBacking = (TestI2CBacking)i2cBacking;
+        TestI2CBacking testBacking = (TestI2CBacking)getI2CBacking();
         testBacking.outputLastI2CWrite(target, back);
         return target;
         
+    }
+    
+    public <A extends Appendable> A outputLastSerialWrite(A target, int back){
+    	byte[] output = new byte[100];
+    	testSerial.readInto(output, 0, 20, output, 0, 0);
+    	for (byte b: output){
+    		System.out.println(b + ", ");
+    	}
+    	return target;
     }
     
     
@@ -122,6 +140,8 @@ public class TestHardware extends HardwareImpl {
     public long getLastTime(Port port) {
         return lastTime[port.port];
     }
+    
+    
 
     @Override
     public HardwarePlatformType getPlatformType() {
@@ -136,7 +156,6 @@ public class TestHardware extends HardwareImpl {
 
     @Override
     public void write(Port port, int value) {
-    	
         pinHighValues[port.port] = Math.max(pinHighValues[port.port], value);
         pinData[port.port]=value;
         lastTime[port.port] = lastProvidedTime;
@@ -192,7 +211,6 @@ public class TestHardware extends HardwareImpl {
         		                               inputPipes, outputPipes, 
         		                               consumers, this, parallelInstance);
     }
-
 	public final boolean isTestHardware() {
 		return true;
 	}

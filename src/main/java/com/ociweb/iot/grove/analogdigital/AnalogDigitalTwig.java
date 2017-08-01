@@ -30,9 +30,12 @@ public enum AnalogDigitalTwig implements ADIODevice {
 
 		@Override
 		public int response() {
-			return 30;
+			return 200;
 		}
-
+		@Override
+		public int range() {
+			return 1024;
+		}
 
 	},
 	LightSensor() {
@@ -43,7 +46,12 @@ public enum AnalogDigitalTwig implements ADIODevice {
 
 		@Override
 		public int response() {
-			return 100;
+			return 200;
+		}
+		
+		@Override
+		public int range() {
+			return 1024;
 		}
 	},
 	SoundSensor() {
@@ -55,6 +63,11 @@ public enum AnalogDigitalTwig implements ADIODevice {
 		@Override
 		public int response() {
 			return 2;
+		}
+		
+		@Override
+		public int range() {
+			return 1024;
 		}
 	},
 	AngleSensor() {
@@ -76,6 +89,11 @@ public enum AnalogDigitalTwig implements ADIODevice {
 		@Override
 		public boolean isInput() {
 			return true;
+		}
+		
+		@Override
+		public int range() {
+			return 1024;
 		}
 	},
 	Button() {

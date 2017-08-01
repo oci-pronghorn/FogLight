@@ -10,11 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
-import com.ociweb.gl.api.ListenerTransducer;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.impl.BuilderImpl;
 import com.ociweb.gl.impl.ChildClassScanner;
-import com.ociweb.gl.impl.ChildClassScannerVisitor;
 import com.ociweb.gl.impl.schema.IngressMessages;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
@@ -29,6 +27,20 @@ import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
+import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.impl.DigitalListenerBase;
+import com.ociweb.iot.impl.I2CListenerBase;
+import com.ociweb.iot.impl.RotaryListenerBase;
+import com.ociweb.iot.impl.SerialListenerBase;
+import com.ociweb.iot.maker.Baud;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
+import com.ociweb.iot.transducer.AnalogListenerTransducer;
+import com.ociweb.iot.transducer.DigitalListenerTransducer;
+import com.ociweb.iot.transducer.I2CListenerTransducer;
+import com.ociweb.iot.transducer.RotaryListenerTransducer;
+import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
@@ -36,6 +48,8 @@ import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
+import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
+import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -56,7 +70,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	protected boolean configCamera = false;
 	protected boolean configI2C;       //Humidity, LCD need I2C address so..
-	protected int i2cBus;
+
 	protected long debugI2CRateLastTime;
 
 	protected HardwareConnection[] digitalInputs; //Button, Motion
@@ -72,7 +86,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
 
 
-	public final I2CBacking i2cBacking;
+	private int i2cBus;
+	protected I2CBacking i2cBackingInternal;
 
 	protected static final long MS_TO_NS = 1_000_000;
 
@@ -107,19 +122,25 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     	return deviceOnPort[p.ordinal()];
     }
 
-	public HardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking) {
-		this(gm, args, i2cBacking, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+	public HardwareImpl(GraphManager gm, String[] args, int i2cBus) {
+		this(gm, args, i2cBus, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
 	}
 
-	protected HardwareImpl(GraphManager gm, String[] args, I2CBacking i2cBacking, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
+	protected HardwareImpl(GraphManager gm, String[] args, int i2cBus, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
 			HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
 
 		super(gm, args);
-		
-		this.i2cBacking = i2cBacking;
+
+		this.pcm.addConfig(new PipeConfig<HTTPRequestSchema>(HTTPRequestSchema.instance,
+									                   		 2, //only a few requests when FogLight
+									                         MAXIMUM_INCOMMING_REST_SIZE));
+
+		this.pcm.addConfig(new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,
+															2, //only a few requests when FogLight
+															MINIMUM_TLS_BLOB_SIZE));
+		this.i2cBus = i2cBus;
 
 		this.configI2C = configI2C; //may be removed.
-		this.i2cBus = -1; // TODO: Should this be initialized in some more complexicated way?
 
 		this.digitalInputs = digitalInputs;
 		this.digitalOutputs = digitalOutputs;
@@ -129,13 +150,25 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.getTempPipeOfStartupSubscriptions().initBuffers();
 	}
 
-	public static I2CBacking getI2CBacking(byte deviceNum) {
+	public I2CBacking getI2CBacking() {
+		if (null == i2cBackingInternal) {
+			i2cBackingInternal = getI2CBacking((byte)i2cBus, false);
+		}
+		return i2cBackingInternal;
+	}
+
+	private static I2CBacking getI2CBacking(byte deviceNum, boolean reportError) {
+		long start = System.currentTimeMillis();
 		try {
 			return new I2CNativeLinuxBacking().configure(deviceNum);
 		} catch (Throwable t) {
-			//logger.info("warning could not find the i2c bus", t);
+			if (reportError) {
+				logger.info("warning could not find the i2c bus", t);
+			}
 			//avoid non error case that is used to detect which hardware is running.
 			return null;
+		} finally {
+			logger.info("duration of getI2CBacking {} ", System.currentTimeMillis()-start);
 		}
 	}
 
@@ -249,7 +282,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.configCamera = true;
 		return this;
 	}
-	
+
 	@Deprecated //would be nice if we did not have to do this.
 	public Hardware useI2C(int bus) {
 		this.configI2C = true;
@@ -375,7 +408,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return listener instanceof ImageListenerBase
 				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, ImageListenerTransducer.class);
 	}
-	
+
 	public boolean isListeningToI2C(Object listener) {
 		return listener instanceof I2CListenerBase
 				 || !ChildClassScanner.visitUsedByClass(listener, deepListener, I2CListenerTransducer.class);
@@ -568,21 +601,24 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	public void buildStages(IntHashTable subscriptionPipeLookup2, IntHashTable netPipeLookup2, GraphManager gm2) {
 		
-		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfType(gm2, GroveResponseSchema.instance);
-		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfType(gm2, I2CResponseSchema.instance);
-		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfType(gm2, NetResponseSchema.instance);
-		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfType(gm2, TrafficOrderSchema.instance);
-		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfType(gm2, GroveRequestSchema.instance);
-		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfType(gm2, I2CCommandSchema.instance);
-		Pipe<ClientHTTPRequestSchema>[] httpClientRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
-		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfType(gm2, SerialOutputSchema.instance);		
-		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfType(gm2, SerialInputSchema.instance);
-		Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfType(gm2, ImageSchema.instance);
+
+		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, I2CResponseSchema.instance);
+		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, GroveResponseSchema.instance);
+
+		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, SerialOutputSchema.instance);
+		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, I2CCommandSchema.instance);
+		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, GroveRequestSchema.instance);
+		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, SerialInputSchema.instance);Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfType(gm2, ImageSchema.instance);
 		
-		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfType(gm2, MessageSubscription.instance);
-		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfType(gm2, MessagePubSub.instance);
-		Pipe<IngressMessages>[] ingressMessagePipes = GraphManager.allPipesOfType(gm2, IngressMessages.instance);
+		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, NetResponseSchema.instance);
+		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, MessageSubscription.instance);
 		
+		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, TrafficOrderSchema.instance);
+		Pipe<ClientHTTPRequestSchema>[] httpClientRequestPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, ClientHTTPRequestSchema.instance);
+		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfTypeWithNoConsumer(gm2, MessagePubSub.instance);
+		Pipe<IngressMessages>[] ingressMessagePipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, IngressMessages.instance);
+
+
 		//TODO: must pull out those pubSub Pipes for direct connections
 		//TODO: new MessageSchema for direct messages from point to point
 		//      create the pipe instead of pub sub and attach?
@@ -591,7 +627,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		
 		
 		int commandChannelCount = orderPipes.length;
-		logger.trace("total order pipes {} ",orderPipes.length);//this is too small TODO: this must be fixed.
 
 		int eventSchemas = 0;
 		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;
@@ -703,8 +738,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
 		if (i2cResponsePipes.length>0) {
 			masterI2CResponsePipe =  I2CResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
-			new ReplicatorStage<I2CResponseSchema>(gm, masterI2CResponsePipe, i2cResponsePipes);   
+			ReplicatorStage.newInstance(gm, masterI2CResponsePipe, i2cResponsePipes);
 		}
+
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
 			createI2COutputInputStage(i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
 		}
@@ -714,7 +750,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//////////////
 		if (responsePipes.length>1) {
 			Pipe<GroveResponseSchema> masterResponsePipe = GroveResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
-			new ReplicatorStage<GroveResponseSchema>(gm, masterResponsePipe, responsePipes);      
+			ReplicatorStage.newInstance(gm, masterResponsePipe, responsePipes);
 			createADInputStage(masterResponsePipe);
 		} else {
 			if (responsePipes.length==1) {
@@ -741,6 +777,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		} else {
 			if (serialInputPipes.length==1) {
 				createUARTInputStage(serialInputPipes[0]);
+			} else {
+
+
 			}
 		}
 

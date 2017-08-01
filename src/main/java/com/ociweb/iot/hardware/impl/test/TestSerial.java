@@ -5,6 +5,7 @@ import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 
 public class TestSerial implements RS232Clientable {
@@ -14,7 +15,7 @@ public class TestSerial implements RS232Clientable {
 	
 	public TestSerial() {
 		
-		pipe = RawDataSchema.instance.newPipe(100, 500);
+		pipe = RawDataSchema.instance.newPipe(1000, 4096);
 		pipe.initBuffers();
 		
 	}
@@ -66,14 +67,26 @@ public class TestSerial implements RS232Clientable {
 
 	@Override
 	public int writeFrom(byte[] backing, int pos, int length) {
-		RawDataSchema.publishChunkedStream(pipe, backing, pos, length);
-		return length; //must be length to indicate all consumed
+				
+		if (PipeWriter.tryWriteFragment(pipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+			PipeWriter.writeBytes(pipe,RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2, backing, pos, length);
+			PipeWriter.publishWrites(pipe);
+			return length; //must be length to indicate all consumed
+		} else {
+			return 0;//did nothing since we can not write
+		}
 	}
 
 	@Override
 	public int write(byte[] data) {		
-		RawDataSchema.publishChunkedStream(pipe, data, 0, data.length);
-		return data.length;
+		
+		if (PipeWriter.tryWriteFragment(pipe, RawDataSchema.MSG_CHUNKEDSTREAM_1)) {
+			PipeWriter.writeBytes(pipe,RawDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2, data, 0, data.length);
+			PipeWriter.publishWrites(pipe);
+			return data.length;
+		} else {
+			return 0;
+		}
 	}
 
 }

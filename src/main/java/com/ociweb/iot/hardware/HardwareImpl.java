@@ -2,6 +2,10 @@ package com.ociweb.iot.hardware;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.ociweb.iot.impl.*;
+import com.ociweb.iot.maker.*;
+import com.ociweb.iot.transducer.*;
+import com.ociweb.pronghorn.iot.schema.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,35 +29,12 @@ import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
-import com.ociweb.iot.impl.AnalogListenerBase;
-import com.ociweb.iot.impl.DigitalListenerBase;
-import com.ociweb.iot.impl.I2CListenerBase;
-import com.ociweb.iot.impl.RotaryListenerBase;
-import com.ociweb.iot.impl.SerialListenerBase;
-import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.Baud;
-import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.I2CListener;
-import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.RotaryListener;
-import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.iot.transducer.AnalogListenerTransducer;
-import com.ociweb.iot.transducer.DigitalListenerTransducer;
-import com.ociweb.iot.transducer.I2CListenerTransducer;
-import com.ociweb.iot.transducer.RotaryListenerTransducer;
-import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
-import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
-import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -73,6 +54,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	private static final HardwareConnection[] EMPTY = new HardwareConnection[0];
 
+	protected boolean configCamera = false;
 	protected boolean configI2C;       //Humidity, LCD need I2C address so..
 	protected int i2cBus;
 	protected long debugI2CRateLastTime;
@@ -262,6 +244,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		this.configI2C = true;
 		return this;
 	}
+
+	public Hardware useCamera() {
+		this.configCamera = true;
+		return this;
+	}
 	
 	@Deprecated //would be nice if we did not have to do this.
 	public Hardware useI2C(int bus) {
@@ -382,6 +369,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	public boolean isListeningToSerial(Object listener) {
 		return listener instanceof SerialListenerBase
 			   || !ChildClassScanner.visitUsedByClass(listener, deepListener, SerialListenerTransducer.class);
+	}
+
+	public boolean isListeningToCamera(Object listener) {
+		return listener instanceof ImageListenerBase
+				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, ImageListenerTransducer.class);
 	}
 	
 	public boolean isListeningToI2C(Object listener) {
@@ -585,6 +577,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<ClientHTTPRequestSchema>[] httpClientRequestPipes = GraphManager.allPipesOfType(gm2, ClientHTTPRequestSchema.instance);			
 		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfType(gm2, SerialOutputSchema.instance);		
 		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfType(gm2, SerialInputSchema.instance);
+		Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfType(gm2, ImageSchema.instance);
 		
 		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfType(gm2, MessageSubscription.instance);
 		Pipe<MessagePubSub>[] messagePubSub = GraphManager.allPipesOfType(gm2, MessagePubSub.instance);
@@ -750,7 +743,18 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 				createUARTInputStage(serialInputPipes[0]);
 			}
 		}
-		
+
+		///////////////
+		//only build image input if the data is consumed
+		///////////////
+		final int triggerRate = 1000; // TODO: Un-hardcode!
+		if (imageInputPipes.length > 1) {
+			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
+			new PiImageListenerStage(gm, masterImagePipe, triggerRate);
+		} else if (serialInputPipes.length == 1){
+			new PiImageListenerStage(gm, imageInputPipes[0], triggerRate);
+		}
 				
 		///////////////
 		//only build direct pin output when we detected its use

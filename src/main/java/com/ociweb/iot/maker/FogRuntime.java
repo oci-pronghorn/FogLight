@@ -48,6 +48,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
 	private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x();
 	private final PipeConfig<SerialInputSchema> serialInputConfig = new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
+	private final PipeConfig<ImageSchema> imageInputConfig = new PipeConfig<ImageSchema>(ImageSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
 
 	private static final byte piI2C = 1;
 	private static final byte edI2C = 6;
@@ -210,23 +211,19 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return registerListenerImpl(listener);
 	}
 
-	public ListenerFilterIoT addImageListener(ImageListener listener) {
-//		if (builder.getTriggerRate() < 1250) {
-//			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
-//		}
-//
-//		switch (builder.getPlatformType()) {
-//		case GROVE_PI:
-//			return registerListener(new PiImageListenerBacking(listener));
-//		default:
-//			throw new UnsupportedOperationException("Image listeners are not supported for [" +
-//					builder.getPlatformType() +
-//					"] hardware");
-//		}
+	public ListenerFilterIoT addImageListener(ImageListener listener, int triggerRate) {
+		if (triggerRate < 1250) {
+			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS.");
+		}
 
-		// TODO: Add a reactive listener.
-
-		return null;
+		switch (builder.getPlatformType()) {
+			case GROVE_PI:
+				return registerListener(listener);
+			default:
+				throw new UnsupportedOperationException("Image listeners are not supported for [" +
+						builder.getPlatformType() +
+						"] hardware");
+		}
 	}
 
 	public ListenerFilterIoT addI2CListener(I2CListener listener) {
@@ -253,6 +250,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			pipesCount++;
 		}
 
+		if (this.builder.isListeningToCamera(listener)) {
+			pipesCount++;
+		}
+
 		pipesCount = addGreenPipesCount(listener, pipesCount);
 
 		Pipe<?>[] inputPipes = new Pipe<?>[pipesCount];
@@ -266,6 +267,15 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		}
 		if (this.builder.isListeningToSerial(listener) ) {
 			inputPipes[--pipesCount] = newSerialInputPipe(serialInputConfig);
+		}
+		if (this.builder.isListeningToCamera(listener)) {
+			inputPipes[--pipesCount] = new Pipe<ImageSchema>(imageInputConfig) {
+				@SuppressWarnings("unchecked")
+				@Override
+				protected DataInputBlobReader<ImageSchema> createNewBlobReader() {
+					return new DataInputBlobReader<ImageSchema>(this);
+				}
+			};
 		}
 
 		populateGreenPipes(listener, pipesCount, inputPipes);

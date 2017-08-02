@@ -110,31 +110,31 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			PiModel pm = null;
 			I2CBacking i2cBacking = null;
 			if ((pm = PiModel.detect()) != PiModel.Unknown){
-				logger.trace("Detected running on " + pm);
+				logger.info("Detected running on " + pm);
 				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
 			}
 			else if(WindowsModel.detect() != WindowsModel.Unknown) {
 				this.builder = new TestHardware(gm, args);
-				logger.trace("Detected running on Windows, test mock hardware will be used");
+				logger.info("Detected running on Windows, test mock hardware will be used");
 			}
 			
 			else if(MacModel.detect() != MacModel.Unknown) {
 				this.builder = new TestHardware(gm, args);
-				logger.trace("Detected running on Mac, test mock hardware will be used");
+				logger.info("Detected running on Mac, test mock hardware will be used");
 
 			}
 			else if(LinuxModel.detect() != LinuxModel.Unknown) {
 				this.builder = new TestHardware(gm, args);
-				logger.trace("Detected Running on Linux, test mock hardware will be used");
+				logger.info("Detected Running on Linux, test mock hardware will be used");
 
 			}
 			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
-				logger.trace("Detected running on Edison");
+				logger.info("Detected running on Edison");
 				System.out.println("You are running on the Edison hardware.");
 			}
 			else {
 				this.builder = new TestHardware(gm, args);
-				logger.trace("Unrecognized hardware, test mock hardware will be used");
+				logger.info("Unrecognized hardware, test mock hardware will be used");
 			}
 		}
 		return this.builder;

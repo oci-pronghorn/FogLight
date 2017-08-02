@@ -11,13 +11,12 @@ import com.ociweb.iot.grove.three_axis_accelerometer_16g.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import static com.ociweb.iot.maker.FogRuntime.*;
-import com.ociweb.iot.maker.I2CListener;
 
 /**
  *
  * @author huydo
  */
-public class AccelerometerBehavior implements StartupListener,FreeFallListener,AccelValsListener {
+public class AccelerometerBehavior implements StartupListener,AccelInterruptListener,AccelValsListener {
     
     private final FogCommandChannel c;
     private final ThreeAxisAccelerometer_16g_Transducer accSensor;
@@ -29,13 +28,11 @@ public class AccelerometerBehavior implements StartupListener,FreeFallListener,A
     
     @Override
     public void startup() {
-        accSensor.begin();
+        accSensor.powerOn();
         accSensor.setRange(4);
         accSensor.setFreeFallDuration(4);
         accSensor.setFreeFallThreshold(9);
-        accSensor.setINT_ENABLE_Reg(0b00000100);
-        
-        
+        accSensor.enableFreeFallInterrupt();
     }
 
     @Override
@@ -44,8 +41,8 @@ public class AccelerometerBehavior implements StartupListener,FreeFallListener,A
     }
 
     @Override
-    public void freefallStatus(int status) {
-        System.out.println("free fall: "+status);
+    public void AccelInterruptStatus(int singletap, int doubletap, int activity, int inactivity, int freefall) {
+        System.out.println("free fall: "+freefall);
     }
 
 

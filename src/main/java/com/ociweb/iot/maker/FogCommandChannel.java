@@ -134,6 +134,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
 				   logger.trace("created pipes for serial write");
 				   serialOutput = newSerialOutputPipe(pcm.getConfig(SerialOutputSchema.class), builder);
 			   } else {
+				   
 				   serialOutput = null;
 			   }
 			   
@@ -312,7 +313,8 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
         	PipeWriter.tryWriteFragment(serialOutput, SerialDataSchema.MSG_CHUNKEDSTREAM_1)) {
   	
         	SerialWriter pw = (SerialWriter) Pipe.outputStream(serialOutput);
-            pw.openField(SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2, this);            
+        	//logger.warn("pw is {}", pw);
+        	pw.openField(SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2, this);            
             writable.write(pw);//TODO: cool feature, writable to return false to abandon write.. 
             
             pw.closeHighLevelField(SerialDataSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);

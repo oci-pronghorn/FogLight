@@ -100,7 +100,7 @@ public class RS232Client implements RS232Clientable {
             return -1;
         }
     }
-
+    
     /**
      * Returns the number of unsent bytes in the serial output buffer.
      *

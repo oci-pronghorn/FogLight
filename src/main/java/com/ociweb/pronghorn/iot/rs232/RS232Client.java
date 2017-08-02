@@ -36,7 +36,7 @@ public class RS232Client implements RS232Clientable {
             backing = new RS232NativeLinuxBacking();
             fd = backing.open(device, baud.code());
 
-            if (fd == -1) {
+            if (fd != -1) {
                 connected = true;
                 logger.info("Backing FD is: {}", fd);
             } else {

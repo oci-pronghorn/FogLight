@@ -29,7 +29,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		public void write(BlobWriter writer){
 			for (int b: output_array){
 				writer.writeByte(b);	
-				System.out.print(Integer.toHexString(b) + " ");
+				System.out.print("0x " + Integer.toHexString(b) + " ");
 			}
 			System.out.println();//RAY's PRINTING
 		}
@@ -62,7 +62,18 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[6] = 0x00;
 		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
-	
+	public boolean sendZeros(){
+		output_array[0] = 0;
+		output_array[1] = 0;
+		output_array[2] = 0;
+		output_array[3] = 0;
+		output_array[4] = 0;
+		output_array[5] = 0;
+		output_array[6] = 0;
+		output_array[7] = 0;
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
+		
+	}
 	public boolean specifyMusic(int index){
 		output_array[3] = playSpecificSong;
 		output_array[4] = 0x00;	

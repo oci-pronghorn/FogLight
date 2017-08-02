@@ -24,6 +24,7 @@ public enum MP3_V2Twig implements SerialIODevice{
 		@Override
 		public MP3_V2_Transducer newTransducer(FogCommandChannel... ch) {
 			return new MP3_V2_Transducer(ch[0]);
+			
 		}
 		
 	};

@@ -131,7 +131,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         return;
                     }
                     
-                    if(connection.readBytesAtStartUp > 0){ //not doing i2c read at start up
+                    if(connection.readBytesAtStartUp > 0){ // doing i2c read at start up
                         
                         long delayAfterRequestNS = connection.delayAfterRequestNS;
                         if (delayAfterRequestNS>0) {
@@ -147,9 +147,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         
                         workingBuffer[0] = -2;
                         byte[] temp = i2cBacking.read(connection.address, workingBuffer, connection.readBytesAtStartUp);
-                        
-                        //logger.info("i2c reading result {} delay before read {} ",Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )),this.inputs[inProgressIdx].delayAfterRequestNS);
-                        
+                                                
                         PipeWriter.presumeWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
                         PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, connection.address);
                         PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());

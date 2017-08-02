@@ -19,14 +19,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 public class MotorDriver_Transducer implements IODeviceTransducer,StartupListener{
     private final FogCommandChannel target;
     public int DRIVER_I2C_ADD = 0x0f; //default address of the driver
-    private int motor1Vel = 0;
-    private int motor2Vel = 0;
 
-    public enum Channel {
-        CH1,
-        CH2
-    }
-    
     public MotorDriver_Transducer(FogCommandChannel ch){
         this.target = ch;
     }
@@ -39,8 +32,7 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
     @Override
     public void startup() { //set registers on the driver to 0
         direction(0x00);
-        setVelocity(1,0);
-        setVelocity(2,0);
+        setPower(0,0);
     }
     
     private void direction(int _direction){
@@ -65,50 +57,32 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
     }
 
     /**
-     * Set the velocity of the motor on specified channel
-     * @param chan either CH1 or CH2
-     * @param velocity integer between -255 and 255
-     */
-    public void setVelocity(Channel chan,int velocity) {
-        switch (chan) {
-            case CH1:
-                setVelocity(velocity, this.motor2Vel);
-                break;
-            case CH2:
-                setVelocity(this.motor1Vel, velocity);
-                break;
-        }
-    }
-
-    /**
      * Set the velocity of the motor on both channel
-     * @param motorAVel integer between -255 and 255
-     * @param motorBVel integer between -255 and 255
+     * @param channel1Power integer between -255 and 255
+     * @param channel2Power integer between -255 and 255
      */
-    public void setVelocity(int motorAVel,int motorBVel){
-        this.motor1Vel = motorAVel;
-        this.motor2Vel = motorBVel;
+    public void setPower(int channel1Power,int channel2Power){
         
-        if(motor1Vel >= 0 && motor2Vel >= 0){
+        if(channel1Power >= 0 && channel2Power >= 0){
             direction(M1CW_M2CW);
-        }else if(motor1Vel < 0 && motor2Vel<0){
+        }else if(channel1Power < 0 && channel2Power<0){
             direction(M1ACW_M2ACW);
-        }else if(motor1Vel >= 0 && motor2Vel < 0){
+        }else if(channel1Power >= 0 && channel2Power < 0){
             direction(M1CW_M2ACW);
-        }else if(motor1Vel < 0 && motor2Vel >= 0){
+        }else if(channel1Power < 0 && channel2Power >= 0){
             direction(M1ACW_M2CW);
         }
 
-        int actualMotor1Vel = Math.abs(motor1Vel);
-        int actualMotor2Vel = Math.abs(motor2Vel);
-        if (actualMotor1Vel > 255) actualMotor1Vel = 255;
-        if (actualMotor2Vel > 255) actualMotor2Vel = 255;
+        int actualchannel1Power = Math.abs(channel1Power);
+        int actualchannel2Power = Math.abs(channel2Power);
+        if (actualchannel1Power > 255) actualchannel1Power = 255;
+        if (actualchannel2Power > 255) actualchannel2Power = 255;
         
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
         
         i2cPayloadWriter.writeByte(SPEED_REG);
-        i2cPayloadWriter.writeByte(actualMotor1Vel);
-        i2cPayloadWriter.writeByte(actualMotor2Vel);
+        i2cPayloadWriter.writeByte(actualchannel1Power);
+        i2cPayloadWriter.writeByte(actualchannel2Power);
         
         target.i2cCommandClose();
         target.i2cFlushBatch();

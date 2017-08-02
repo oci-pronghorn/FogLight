@@ -21,7 +21,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
     private ActTapListener acttaplistener;
-    private FreeFallListener interrlistener;
+    private AccelInterruptListener interrlistener;
 
     public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener ... l){
         this.target = ch;
@@ -32,8 +32,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
             if(item instanceof ActTapListener){
                 this.acttaplistener = (ActTapListener) item;
             }
-            if(item instanceof FreeFallListener){
-                this.interrlistener =  (FreeFallListener) item;
+            if(item instanceof AccelInterruptListener){
+                this.interrlistener =  (AccelInterruptListener) item;
             }
         }
     }
@@ -41,14 +41,18 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
     
     /**
      * Start the device in measurement mode, with auto-sleep disabled and sleep mode disabled
+     * The range of values is +/- 16g , with 4mg/LSB scale factor
      */
-    public void begin() {
+    public void powerOn() {
         
         axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,0);
         
         axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,16);
         
         axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,8);
+        
+        this.setRange(16);
+        this.setRate(800);
         
     }
     /**
@@ -78,8 +82,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
     } 
     /**
      * Sets the OFSX, OFSY and OFSZ bytes
-     * x, y and z are user offset adjustments in twos complement format with
-     * a scale factor of 15,6mg/LSB
+     * x, y and z are user offset adjustments in 8-bit twos complement format with
+     * a scale factor of 15.6mg/LSB
      * @param x
      * @param y
      * @param z
@@ -132,7 +136,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
             default:
                 _s = ADXL345_RATE_400;
         }
-        axWriteByte(ADXL345_DATA_FORMAT,_s);
+        axWriteByte(ADXL345_BW_RATE,_s);
         
         
     }
@@ -171,8 +175,8 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
     }
     /**
      *      Sets the Window register, which contains an unsigned time value representing
-     *the amount of time after the expiration of the latency time (Latent register)
-     *during which a second value tap can begin. The scale factor is 1.25ms/LSB. A
+the amount of time after the expiration of the latency time (Latent register)
+during which a second value tap can powerOn. The scale factor is 1.25ms/LSB. A
      *value of 0 disables the double tap function. The maximum value is 255.
      * @param doubleTapWindow integer between 0 and 255
      */
@@ -232,22 +236,79 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
     public void setFreeFallDuration(int freeFallDuration){
         axWriteByte(ADXL345_TIME_FF,freeFallDuration);
     }
+    
+    private int ACT_INACT_CTLVal = 0b00000000;
     /**
-     * Write a byte to the ADXL345_ACT_INACT_CTL register to enable/disable ACT/INACT on X,Y or Z axis
-     * Details are specified in the datasheet
-     * @param _b 
+     * Specify activity detection behavior on x,y,z
+     * @param AC true = ac-coupled operation, false = dc-coupled operation
+     * @param actx enable activity detection on x axis
+     * @param acty enable activity detection on y axis 
+     * @param actz enable activity detection on z axis
      */
-    public void setACT_INACT_CTL_Reg(int _b){
-        axWriteByte(ADXL345_ACT_INACT_CTL,_b);
+    public void configureActivityDetection(boolean AC,boolean actx,boolean acty,boolean actz){
+        ACT_INACT_CTLVal |= AC?0b10000000:ACT_INACT_CTLVal;
+        ACT_INACT_CTLVal |= actx?0b01000000:ACT_INACT_CTLVal;
+        ACT_INACT_CTLVal |= acty?0b00100000:ACT_INACT_CTLVal;
+        ACT_INACT_CTLVal |= actz?0b00010000:ACT_INACT_CTLVal;
+        axWriteByte(ADXL345_ACT_INACT_CTL,ACT_INACT_CTLVal);
     }
     /**
-     * Write a byte to the ADXL345_TAP_AXES register to enable/disable Tap detection on X,Y or Z axis
-     * Details are specified in the datasheet
-     * @param _b 
+     * Specify inactivity detection behavior on x,y,z
+     * @param AC true = ac-coupled operation, false = dc-coupled operation
+     * @param inactx true = enable inactivity detection on x axis
+     * @param inacty true = enable inactivity detection on y axis 
+     * @param inactz true = enable inactivity detection on z axis
      */
-    public void setTAP_AXES_Reg(int _b){
-        axWriteByte(ADXL345_TAP_AXES,_b);
-    }    
+    public void configureInactivityDetection(boolean AC,boolean inactx,boolean inacty,boolean inactz){
+        ACT_INACT_CTLVal |= AC?0b00001000:ACT_INACT_CTLVal;
+        ACT_INACT_CTLVal |= inactx?0b00000100:ACT_INACT_CTLVal;
+        ACT_INACT_CTLVal |= inacty?0b00000010:ACT_INACT_CTLVal;
+        ACT_INACT_CTLVal |= inactz?0b00000001:ACT_INACT_CTLVal;
+        axWriteByte(ADXL345_ACT_INACT_CTL,ACT_INACT_CTLVal);
+    }
+
+    private int TAP_AXESVal = 0;
+    /**
+     * Specify tap detection behavior on x,y,z
+     * @param suppress true = set the suppress bit
+     * @param tapx true = enable tap detection on x
+     * @param tapy true = enable tap detection on y
+     * @param tapz true = enable tap detection on z 
+     */
+    public void configureTapDetection(boolean suppress,boolean tapx,boolean tapy,boolean tapz){
+        TAP_AXESVal |= suppress?0b00001000:TAP_AXESVal;
+        TAP_AXESVal |= tapx?0b00000100:TAP_AXESVal;
+        TAP_AXESVal |= tapy?0b00000010:TAP_AXESVal;
+        TAP_AXESVal |= tapz?0b00000001:TAP_AXESVal;
+        axWriteByte(ADXL345_TAP_AXES,TAP_AXESVal);
+    }
+    private int INT_ENABLEVal = 0;
+    
+    public void enableSingleTapInterrupt(){
+        INT_ENABLEVal |= 0b01000000;
+        writeINT_ENABLE_Reg(INT_ENABLEVal);
+    }
+    
+    public void enableDoubleTapInterrupt(){
+        INT_ENABLEVal |= 0b00100000;
+        writeINT_ENABLE_Reg(INT_ENABLEVal);
+    }
+    
+    public void enableActivityInterrupt(){
+        INT_ENABLEVal |= 0b00010000;
+        writeINT_ENABLE_Reg(INT_ENABLEVal);
+    }
+    
+    public void enableInactivityInterrupt(){
+        INT_ENABLEVal |= 0b00001000;
+        writeINT_ENABLE_Reg(INT_ENABLEVal);
+    }
+    
+    public void enableFreeFallInterrupt(){
+        INT_ENABLEVal |= 0b00000100;
+        writeINT_ENABLE_Reg(INT_ENABLEVal);
+    }
+    
     /**
      * Write a byte to the ADXL345_INT_ENABLE register
      * Setting bits in this register to a value of 1 enables their respective functions to 
@@ -256,7 +317,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * It is recommended that interrupts be configured before enabling their outputs.
      * @param _b 
      */
-    public void setINT_ENABLE_Reg(int _b){
+    public void writeINT_ENABLE_Reg(int _b){
         axWriteByte(ADXL345_INT_ENABLE,_b);
     }
     /**
@@ -266,16 +327,17 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
      * All selected interrupts for a given pin are OR’ed.
      * @param _b 
      */
-    public void setINT_MAP_Reg(int _b){
+    public void writeINT_MAP_Reg(int _b){
         axWriteByte(ADXL345_INT_MAP,_b);
     }
     /**
      * Write a byte to ADXL345_FIFO_CTL register
      * @param _b 
      */
-    public void setFIFO_CTL_Reg(int _b){
+    public void writeFIFO_CTL_Reg(int _b){
         axWriteByte(ADXL345_FIFO_CTL,_b);
     }
+    
 /**
      * Convert the 6 bytes from I2C read to the correct two's complement representation of X,Y,Z
      * @param backing circular buffer containing data from I2C read
@@ -318,11 +380,22 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
                 accellistener.accelVals(xyzVals[0], xyzVals[1], xyzVals[2]);
             }
             if(register == ADXL345_ACT_TAP_STATUS){
-                acttaplistener.ACT_TAP_RegStatus(backing[position]);
+                int actX = (backing[position] & 0b01000000)>>6;
+                int actY = (backing[position] & 0b00100000)>>5;
+                int actZ = (backing[position] & 0b00010000)>>4;
+                acttaplistener.activityStatus(actX, actY, actZ);
+                int tapX = (backing[position] & 0b00000100)>>2;
+                int tapY = (backing[position] & 0b00000010)>>1;
+                int tapZ = (backing[position] & 0b00000001); 
+                acttaplistener.tapStatus(tapX, tapY, tapZ);
             }
             if(register == ADXL345_INT_SOURCE){
+                int singletap = (backing[position] & 0b01000000)>>6;
+                int doubletap = (backing[position] & 0b00100000)>>5;
+                int activity =  (backing[position] & 0b00010000)>>4;
+                int inactivity =(backing[position] & 0b00001000)>>3;
                 int freefall = (backing[position] & 0b00000100)>>2;
-                interrlistener.freefallStatus(freefall);
+                interrlistener.AccelInterruptStatus(singletap, doubletap, activity, inactivity, freefall);
             }
         }
     }

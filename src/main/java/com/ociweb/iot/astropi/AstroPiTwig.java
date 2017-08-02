@@ -18,10 +18,9 @@ public enum AstroPiTwig {
     ;
         public enum AstroPi implements I2CIODevice{
             GetJoystick(){
-                
                 @Override
                 public int response() {
-                    return 400;
+                    return 300;
                 }
                 @Override
                 public I2CConnection getI2CConnection() {
@@ -62,27 +61,16 @@ public enum AstroPiTwig {
                     return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
             },
-//            GetHumidity(){;
-//            @Override
-//                public I2CConnection getI2CConnection() {
-//                    byte[] REG_ADDR = {AstroPi_Constants.HUMIDITY_L_REG};
-//                    byte I2C_ADDR = AstroPi_Constants.HTS221_ADDRESS;
-//                    byte BYTESTOREAD = 2;
-//                    byte REG_ID = AstroPi_Constants.HUMIDITY_L_REG; //just an identifier
-//                    byte[] SETUP = {AstroPi_Constants.CALIB_START};
-//                    int bytesToReadAtSetUp = 16;
-//                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, bytesToReadAtSetUp,SETUP);
-//                }        
-//            },
-            GetHumidity1(){;
+            GetHumidity(){;
             @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.HUMIDITY_L_REG};
                     byte I2C_ADDR = AstroPi_Constants.HTS221_ADDRESS;
                     byte BYTESTOREAD = 2;
                     byte REG_ID = AstroPi_Constants.HUMIDITY_L_REG; //just an identifier
-
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
+                    byte[] SETUP = {AstroPi_Constants.CALIB_START};
+                    int bytesToReadAtSetUp = 16;
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, bytesToReadAtSetUp,SETUP);
                 }        
             },
             GetTempFromHumiditySensor(){;
@@ -113,21 +101,6 @@ public enum AstroPiTwig {
                     byte BYTESTOREAD = 3;
                     byte REG_ID = AstroPi_Constants.PRESSURE_XL_REG; //just an identifier
                     return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
-                }    
-            },
-            CalibrateHumiditySensor(){
-            @Override
-            public int response(){
-                return 10000;
-            }    
-            @Override
-                public I2CConnection getI2CConnection() {
-                    byte[] REG_ADDR = {AstroPi_Constants.CALIB_START};
-                    byte[] SETUP = {};
-                    byte I2C_ADDR = AstroPi_Constants.HTS221_ADDRESS;
-                    byte BYTESTOREAD = 16;
-                    byte REG_ID = AstroPi_Constants.CALIB_START; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
                 }    
             };
             @Override

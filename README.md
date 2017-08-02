@@ -11,7 +11,8 @@ FogLight is...
 
 ## How It Works ##
 Every FogLight application starts with an `FogApp` implementation which initializes the `FogRuntime` by defining various hardware connections and behaviors for handling state changes in those connections.  
-
+## FogLight-API demos
+- [FogLight-API](https://github.com/oci-pronghorn/FogLight-API/blob/master/README.md)
 A very simple example of a FogLight application is below (omitting boilerplate import statements and so on); this app makes an LED connected to a GrovePi board blink every 500 milliseconds:
 ```
 public class IoTApp implements FogApp {

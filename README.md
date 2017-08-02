@@ -19,6 +19,8 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 - [Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)
 - [Maven](https://maven.apache.org/install.html)
 - [Git](https://git-scm.com/)
+### Hardware Examples
+- [Foglight-Grove](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/README.md)
 ## Starting Your Maven Project
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 ## Information and Demos 

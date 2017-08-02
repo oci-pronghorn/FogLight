@@ -69,4 +69,30 @@ public class MotorDriverBehavior implements StartupListener, PubSubListener {
         controller.setVelocity(channel1Power, channel2Power);
         return true;
     }
+
+    /*
+        If the controller ports must be operated independently
+        use the behavior to synchronize the state.
+        We use getMaxVelocity() to hide the controller's integer range.
+        Publishers pass in a normalized -1.0...1.0 value.
+     */
+    @Override
+    public boolean message(CharSequence charSequence, BlobReader blobReader) {
+        int idx = blobReader.readInt();
+        double value = blobReader.readDouble();
+        Port port = MotorDriverBehavior.Port.values()[idx];
+        int ranged = (int)(value * controller.getMaxVelocity());
+        switch (port) {
+            case A:
+                if (channel1Power == ranged) return true;
+                channel1Power = ranged;
+                break;
+            case B:
+                if (channel2Power == ranged) return true;
+                channel2Power = ranged;
+                break;
+        }
+        controller.setVelocity(channel1Power, channel2Power);
+        return true;
+    }
 }

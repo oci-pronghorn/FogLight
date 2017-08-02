@@ -18,20 +18,12 @@ public class IoTApp implements FogApp
     
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////        
-        // // specify each of the connections on the harware, eg which component is plugged into which connection.
-        c.useI2C();
         c.connect(MotorDriver);
     }
     
     
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
         runtime.registerListener(new MotorDriverBehavior(runtime));
     }
 }

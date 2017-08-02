@@ -31,7 +31,7 @@ public class MiniMotorBehavior implements AnalogListener,MiniMotorDriverListener
     public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
         System.out.println("value: "+value);
         int speed = (value-512)/8;
-        
+
         motorController.setVelocity(1, speed);
         motorController.setVelocity(2, speed);
     }

@@ -596,7 +596,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, SerialOutputSchema.instance);		
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, I2CCommandSchema.instance);
 		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, GroveRequestSchema.instance);
-		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, SerialInputSchema.instance);
+		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, SerialInputSchema.instance);
 
 		
 		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, NetResponseSchema.instance);
@@ -766,6 +766,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		} else {
 			if (serialInputPipes.length==1) {
 				createUARTInputStage(serialInputPipes[0]);
+			} else {
+				
+				
 			}
 		}
 		

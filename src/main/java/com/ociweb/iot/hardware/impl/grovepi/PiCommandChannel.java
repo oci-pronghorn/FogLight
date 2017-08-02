@@ -293,27 +293,6 @@ public class PiCommandChannel extends FogCommandChannel{
 	}
 
 
-	@Override
-	public boolean block(long msDuration) {
-		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-		try {            
-
-			if (goHasRoom() && PipeWriter.tryWriteFragment(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22)) {
-
-				PipeWriter.writeLong(i2cOutput, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13, msDuration*MS_TO_NS);
-				PipeWriter.publishWrites(i2cOutput);
-
-				MsgCommandChannel.publishGo(1,HardwareImpl.i2cIndex(builder),this);
-				return true;
-			} else {              
-				return false; 
-			}
-
-		} finally {
-			assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
-		}
-	}
-
 
 
 

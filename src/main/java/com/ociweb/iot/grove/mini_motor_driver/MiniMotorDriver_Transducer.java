@@ -7,7 +7,6 @@ package com.ociweb.iot.grove.mini_motor_driver;
 
 import static com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriver_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -43,7 +42,7 @@ public class MiniMotorDriver_Transducer implements IODeviceTransducer,I2CListene
         //  DRV8830.
         int address = (channel==1)?CH1_ADD:CH2_ADD;
         
-        writeSingleByteToRegister(address,FAULT_REG,CLEAR); // Clear the fault status.
+        channelWriteByte(address,FAULT_REG,CLEAR); // Clear the fault status.
         
         byte regValue = (byte)Math.abs(velocity);      // Find the byte-ish abs value of the input
         if (regValue > 63) {
@@ -56,7 +55,7 @@ public class MiniMotorDriver_Transducer implements IODeviceTransducer,I2CListene
         else{
             regValue |= 0x01;
         }
-        writeSingleByteToRegister(address,CTL_REG,regValue);
+        channelWriteByte(address,CTL_REG,regValue);
         
     }
     
@@ -67,7 +66,7 @@ public class MiniMotorDriver_Transducer implements IODeviceTransducer,I2CListene
     public void stop(int channel)
     {
         int address = (channel==1)?CH1_ADD:CH2_ADD;
-        writeSingleByteToRegister(address,CTL_REG,STOP);
+        channelWriteByte(address,CTL_REG,STOP);
         
     }
     
@@ -78,16 +77,16 @@ public class MiniMotorDriver_Transducer implements IODeviceTransducer,I2CListene
     public void brake(int channel)
     {
         int address = (channel==1)?CH1_ADD:CH2_ADD;
-        writeSingleByteToRegister(address,CTL_REG,BRAKE);
+        channelWriteByte(address,CTL_REG,BRAKE);
         
     }
     /**
-     * write a byte to a register
+     * write a byte to a register on the specified channel
      * @param address
      * @param register register to write to
      * @param value byte to write
      */
-    private void writeSingleByteToRegister(int address, int register, int value) {
+    private void channelWriteByte(int address, int register, int value) {
         
         
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);

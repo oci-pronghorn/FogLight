@@ -28,8 +28,10 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		@Override
 		public void write(BlobWriter writer){
 			for (int b: output_array){
-				writer.writeByte(b);		
+				writer.writeByte(b);	
+				System.out.print(Integer.toHexString(b) + " ");
 			}
+			System.out.println();//RAY's PRINTING
 		}
 	};
 	
@@ -37,6 +39,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 	public MP3_V2_Transducer(FogCommandChannel ch){
 		this.ch = ch;
 		this.ch.ensureSerialWriting();		
+		
 	}
 
 	@Override
@@ -49,7 +52,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;
 		output_array[5] = 0x00;
 		output_array[6] = 0x00;
-		return ch.publishSerial(serialWriter);
+		return ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean  prevSong(){
@@ -57,7 +60,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;
 		output_array[5] = 0x00;
 		output_array[6] = 0x00;
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean specifyMusic(int index){
@@ -65,15 +68,22 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;	
 		output_array[5] = (index>> 8) & 0xFF; 
 		output_array[6] = index & 0xFF; 
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
+	public boolean playSongInMP3Folder(int index){
+		output_array[3] = specifySongInMP3Folder;
+		output_array[4] = 0x00;	
+		output_array[5] = (index>> 8) & 0xFF; 
+		output_array[6] = index & 0xFF; 
+		return ch.publishSerial(serialWriter) && ch.block(20_000_000L);
+	}
 	public boolean pause(){
 		output_array[3] = pauseSong;
 		output_array[4] = 0x00;	
 		output_array[5] = 0x00;
 		output_array[6] = 0x00;
-		return ch.publishSerial(serialWriter);
+		return ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean resume(){
@@ -81,7 +91,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;	
 		output_array[5] = 0x00;
 		output_array[6] = 0x00;
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean volumeUp(){
@@ -89,7 +99,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;	
 		output_array[5] = 0x00;
 		output_array[6] = 0x00;
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean volumeDown(){
@@ -97,7 +107,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;	
 		output_array[5] = 0x00;
 		output_array[6] = 0x00;
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean setVolume(int vol){
@@ -105,7 +115,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;	
 		output_array[5] = 0x00;
 		output_array[6] = vol;
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean specifyFolderToPlay(int folder, int songIndex){
@@ -113,7 +123,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;
 		output_array[5] = folder;
 		output_array[6] = songIndex;
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean selectDevice(AudioStorageDevice a){
@@ -121,8 +131,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;
 		output_array[5] = 0x00;
 		output_array[6] = a.val;
-		
-		return ch.publishSerial(serialWriter);	
+		return  ch.publishSerial(serialWriter) && ch.block(200_000_000L);//delay 200ms for the hardwire to choose th device, as per data sheet's instruction.
 	}
 	
 	public boolean startLooping(){
@@ -130,7 +139,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;
 		output_array[5] = 0x00;
 		output_array[6] = 0x01; //start
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	
 	public boolean stopLooping(){
@@ -138,6 +147,6 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		output_array[4] = 0x00;
 		output_array[5] = 0x00;
 		output_array[6] = 0x00; //top
-		return ch.publishSerial(serialWriter);
+		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 }

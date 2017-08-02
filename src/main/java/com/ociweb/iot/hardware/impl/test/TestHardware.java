@@ -100,6 +100,15 @@ public class TestHardware extends HardwareImpl {
         
     }
     
+    public <A extends Appendable> A outputLastSerialWrite(A target, int back){
+    	byte[] output = new byte[100];
+    	testSerial.readInto(output, 0, 20, output, 0, 0);
+    	for (byte b: output){
+    		System.out.println(b + ", ");
+    	}
+    	return target;
+    }
+    
     
     @Override
     public void coldSetup() {
@@ -131,6 +140,8 @@ public class TestHardware extends HardwareImpl {
     public long getLastTime(Port port) {
         return lastTime[port.port];
     }
+    
+    
 
     @Override
     public HardwarePlatformType getPlatformType() {
@@ -145,7 +156,6 @@ public class TestHardware extends HardwareImpl {
 
     @Override
     public void write(Port port, int value) {
-    	
         pinHighValues[port.port] = Math.max(pinHighValues[port.port], value);
         pinData[port.port]=value;
         lastTime[port.port] = lastProvidedTime;
@@ -201,7 +211,6 @@ public class TestHardware extends HardwareImpl {
         		                               inputPipes, outputPipes, 
         		                               consumers, this, parallelInstance);
     }
-
 	public final boolean isTestHardware() {
 		return true;
 	}

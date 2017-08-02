@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 
 /**
  * Time-based image listener backing for Raspberry Pi hardware.
@@ -40,7 +42,7 @@ public class PiImageListenerStage extends PronghornStage {
     private static final Logger logger = LoggerFactory.getLogger(PiImageListenerStage.class);
 
     // File name prefix.
-    private final String fileNamePrefix = new File(".").getAbsolutePath() + File.separator;
+    private final String fileNamePrefix = new File("").getAbsolutePath() + File.separator;
 
     // Output pipe for image data.
     private final Pipe<ImageSchema> output;
@@ -64,11 +66,12 @@ public class PiImageListenerStage extends PronghornStage {
      * @return The full path name to the created file.
      */
     private String takePicture(String fileName) {
-        try {
-            Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
-        } catch (IOException e) {
-            logger.error("Unable to take picture from Raspberry Pi Camera due to error [{}].", e.getMessage(), e);
-        }
+        // TODO: Commented to support testing. Reverse this when done.
+//        try {
+//            Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
+//        } catch (IOException e) {
+//            logger.error("Unable to take picture from Raspberry Pi Camera due to error [{}].", e.getMessage(), e);
+//        }
 
         return fileNamePrefix + fileName + ".jpg"; //TODO: rewrite to be GC free
     }
@@ -80,7 +83,7 @@ public class PiImageListenerStage extends PronghornStage {
         this.output = output;
 
         // Add this listener to the graph.
-        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMilliseconds, this);
+        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMilliseconds * 1000000, this);
     }
 
     @Override
@@ -103,7 +106,8 @@ public class PiImageListenerStage extends PronghornStage {
                 // TODO: rewrite to be GC free
                 // TODO: RandomAccessFile may be the best choice once it's available to us...
                 // Take a picture and load the byte information.
-                fileNameBytes = takePicture("Pronghorn-Image-Capture-" + System.currentTimeMillis()).getBytes();
+                fileNameBytes = (takePicture(
+                        "Pronghorn-Image-Capture-" + System.currentTimeMillis()) + "\n").getBytes(StandardCharsets.UTF_16);
                 fileBytesReadIndex = 0;
             }
 

@@ -200,9 +200,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			case GROVE_PI:
 				return registerListener(listener);
 			default:
-				throw new UnsupportedOperationException("Image listeners are not supported for [" +
-						builder.getPlatformType() +
-						"] hardware");
+				// TODO: Commented to support testing. Reverse this when done.
+				return registerListener(listener);
+//				throw new UnsupportedOperationException("Image listeners are not supported for [" +
+//						builder.getPlatformType() +
+//						"] hardware");
 		}
 	}
 
@@ -250,7 +252,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		}
 		if (this.builder.isListeningToCamera(listener)) {
 			inputPipes[--pipesCount] = new Pipe<ImageSchema>(imageInputConfig) {
-				@SuppressWarnings("unchecked")
 				@Override
 				protected DataInputBlobReader<ImageSchema> createNewBlobReader() {
 					return new DataInputBlobReader<ImageSchema>(this);

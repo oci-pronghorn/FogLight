@@ -608,7 +608,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<SerialOutputSchema>[] serialOutputPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, SerialOutputSchema.instance);
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, I2CCommandSchema.instance);
 		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, GroveRequestSchema.instance);
-		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, SerialInputSchema.instance);Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfType(gm2, ImageSchema.instance);
+		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, SerialInputSchema.instance);
+		Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, ImageSchema.instance);
 		
 		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, NetResponseSchema.instance);
 		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, MessageSubscription.instance);
@@ -791,7 +792,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
 			new PiImageListenerStage(gm, masterImagePipe, triggerRate);
-		} else if (serialInputPipes.length == 1){
+		} else if (imageInputPipes.length == 1){
 			new PiImageListenerStage(gm, imageInputPipes[0], triggerRate);
 		}
 				

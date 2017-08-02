@@ -176,8 +176,9 @@ public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
         int [] list = new int[192];
         int idx = 0;
         for(int ver = 0;ver<8;ver++){
-            for(int color = 0;color<3;color++){
-                for(int hor = 0;hor<8;hor++){
+            for(int hor = 0;hor<8;hor++){
+                for(int color = 0;color<3;color++){
+                    
                     list[idx] = map[ver][hor][color];
                     idx++;
                 }

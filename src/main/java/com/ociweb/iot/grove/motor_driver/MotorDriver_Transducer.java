@@ -35,6 +35,13 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         this.target = ch;
         this.DRIVER_I2C_ADD = i2cAddress;
     }
+        
+    @Override
+    public void startup() { //set registers on the driver to 0
+        direction(0x00);
+        setVelocity(1,0);
+        setVelocity(2,0);
+    }
     
     private void direction(int _direction){
         
@@ -108,35 +115,6 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);
     }
     
-//    /**
-//     * Set the velocity of both motors. The motor rotates clockwise if velocity > 0 and vice versa
-//     * @param motor1_Vel integer between -255 and 255
-//     * @param motor2_Vel integer between -255 and 255
-//     */
-//    public void setVelocity(int motor1_Vel,int motor2_Vel){
-//        if(motor1_Vel >= 0 && motor2_Vel >= 0){
-//            direction(M1CW_M2CW);
-//        }else if(motor1_Vel < 0 && motor2_Vel<0){
-//            direction(M1ACW_M2ACW);
-//        }else if(motor1_Vel >= 0 && motor2_Vel < 0){
-//            direction(M1CW_M2ACW);
-//        }else if(motor1_Vel < 0 && motor2_Vel >= 0){
-//            direction(M1ACW_M2CW);
-//        }
-//        motor1_Vel = (Math.abs(motor1_Vel)>255)?255:Math.abs(motor1_Vel);
-//        motor2_Vel = (Math.abs(motor2_Vel)>255)?255:Math.abs(motor2_Vel);
-//
-//        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
-//
-//        i2cPayloadWriter.writeByte(SPEED_REG);
-//        i2cPayloadWriter.writeByte(motor1_Vel);
-//        i2cPayloadWriter.writeByte(motor2_Vel);
-//
-//        target.i2cCommandClose();
-//        target.i2cFlushBatch();
-//        target.i2cDelay(DRIVER_I2C_ADD, 4000000);
-//    }
-    
     public void setFrequency(int frequency){
         byte _s;
         switch(frequency){
@@ -171,8 +149,7 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
     /**
      *      Drive a stepper motor
      * _step: -1024~1024, when _step>0, stepper motor runs clockwise; when _step is less than 0,
-     * stepper motor runs anticlockwise; when _step is 512, the stepper motor will
-     * run a complete turn; if step is 1024, the stepper motor will run 2 turns.
+     * stepper motor runs anticlockwise
      * @param _step
      */
     public void StepperRun(int _step) {
@@ -223,11 +200,5 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         }
         
     }
-    
-    @Override
-    public void startup() {
-        direction(0x00);
-        setVelocity(1,0);
-        setVelocity(2,0);
-    }
+
 }

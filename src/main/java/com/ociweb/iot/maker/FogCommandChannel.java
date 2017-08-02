@@ -68,8 +68,9 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	}
     	this.initFeatures |= I2C_WRITER;    
     	PipeConfig<I2CCommandSchema> config = pcm.getConfig(I2CCommandSchema.class);
-		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
-    		this.pcm.addConfig(queueLength, maxMessageSize, I2CCommandSchema.class);   
+		if (isTooSmall(queueLength, maxMessageSize, config)) {
+    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), queueLength),
+			           Math.max(config.maxVarLenSize(), maxMessageSize), I2CCommandSchema.class);   
     	}
     }
     
@@ -86,8 +87,9 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	}
     	this.initFeatures |= PIN_WRITER;    
     	PipeConfig<GroveRequestSchema> config = pcm.getConfig(GroveRequestSchema.class);
-		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
-    		this.pcm.addConfig(queueLength, maxMessageSize, GroveRequestSchema.class);   
+		if (isTooSmall(queueLength, maxMessageSize, config)) {
+    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), queueLength),
+			           Math.max(config.maxVarLenSize(), maxMessageSize), GroveRequestSchema.class);   
     	}
     }
     
@@ -104,8 +106,10 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	}
     	this.initFeatures |= SERIAL_WRITER;    
     	PipeConfig<SerialOutputSchema> config = pcm.getConfig(SerialOutputSchema.class);
-		if (queueLength>config.minimumFragmentsOnPipe() || maxMessageSize>config.maxVarLenSize()) {
-    		this.pcm.addConfig(queueLength, maxMessageSize, SerialOutputSchema.class);   
+		if (isTooSmall(queueLength, maxMessageSize, config)) {
+
+    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), queueLength),
+    				           Math.max(config.maxVarLenSize(), maxMessageSize), SerialOutputSchema.class);   
     	}
     }
     

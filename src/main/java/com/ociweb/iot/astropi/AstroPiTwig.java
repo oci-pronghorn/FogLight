@@ -29,85 +29,90 @@ public enum AstroPiTwig {
                     byte I2C_ADDR = AstroPi_Constants.LED_I2C_ADDR;
                     byte BYTESTOREAD = 1;
                     byte REG_ID = AstroPi_Constants.JOYSTICK_REG_ADDR; //just an identifier
-                    byte[] SETUP = {};
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
             },
             GetGyro(){
                 @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.OUT_X_L_G};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = AstroPi_Constants.LSM9DS1_AG_ADDR;
                     byte BYTESTOREAD = 6;
                     byte REG_ID = AstroPi_Constants.OUT_X_L_G; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
             },
             GetAccel(){
                 @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.OUT_X_L_XL};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = AstroPi_Constants.LSM9DS1_AG_ADDR;
                     byte BYTESTOREAD = 6;
                     byte REG_ID = AstroPi_Constants.OUT_X_L_XL; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
             },
             GetMag(){
                 @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.OUT_X_L_M};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = AstroPi_Constants.LSM9DS1_M_ADDR;
                     byte BYTESTOREAD = 6;
                     byte REG_ID = AstroPi_Constants.OUT_X_L_M; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
             },
-            GetHumidity(){;
+//            GetHumidity(){;
+//            @Override
+//                public I2CConnection getI2CConnection() {
+//                    byte[] REG_ADDR = {AstroPi_Constants.HUMIDITY_L_REG};
+//                    byte I2C_ADDR = AstroPi_Constants.HTS221_ADDRESS;
+//                    byte BYTESTOREAD = 2;
+//                    byte REG_ID = AstroPi_Constants.HUMIDITY_L_REG; //just an identifier
+//                    byte[] SETUP = {AstroPi_Constants.CALIB_START};
+//                    int bytesToReadAtSetUp = 16;
+//                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, bytesToReadAtSetUp,SETUP);
+//                }        
+//            },
+            GetHumidity1(){;
             @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.HUMIDITY_L_REG};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = AstroPi_Constants.HTS221_ADDRESS;
                     byte BYTESTOREAD = 2;
                     byte REG_ID = AstroPi_Constants.HUMIDITY_L_REG; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }        
             },
             GetTempFromHumiditySensor(){;
             @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.TEMP_L_REG_HUM};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = AstroPi_Constants.HTS221_ADDRESS;
                     byte BYTESTOREAD = 2;
                     byte REG_ID = AstroPi_Constants.TEMP_L_REG_HUM; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }        
             },
             GetTempFromPressureSensor(){
             @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.TEMP_L_REG_P};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = AstroPi_Constants.LPS25H_ADDRESS;
                     byte BYTESTOREAD = 2;
                     byte REG_ID = AstroPi_Constants.TEMP_L_REG_P; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }      
             },
             GetPressure(){
             @Override
                 public I2CConnection getI2CConnection() {
                     byte[] REG_ADDR = {AstroPi_Constants.PRESSURE_XL_REG};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = AstroPi_Constants.LPS25H_ADDRESS;
                     byte BYTESTOREAD = 3;
                     byte REG_ID = AstroPi_Constants.PRESSURE_XL_REG; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }    
             },
             CalibrateHumiditySensor(){

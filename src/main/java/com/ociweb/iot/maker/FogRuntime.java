@@ -45,14 +45,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	private static final int i2cDefaultLength = 300;
 	private static final int i2cDefaultMaxPayload = 16;
 
-	private static final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
-	private static final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);
-
-	private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
-	private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x();
-	private final PipeConfig<SerialInputSchema> serialInputConfig = new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x(); 
-
-	private static final byte piI2C = 1;
 	private static final byte edI2C = 6;
 
 	static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
@@ -153,8 +145,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	protected PipeConfigManager buildPipeManager() {
 		PipeConfigManager pcm = super.buildPipeManager();
-		pcm.addConfig(requestPipeConfig);
-		pcm.addConfig(i2cPayloadPipeConfig);
+		pcm.addConfig(new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength));
+		pcm.addConfig(new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload));
 		pcm.addConfig(defaultCommandChannelLength,0,TrafficOrderSchema.class );
 		return pcm;
 	}
@@ -240,13 +232,13 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 
 		if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
-			inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(reponseI2CConfig);
+			inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
 		}
 		if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
-			inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(responsePinsConfig);
+			inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x());
 		}
 		if (this.builder.isListeningToSerial(listener) ) {
-			inputPipes[--pipesCount] = newSerialInputPipe(serialInputConfig);        
+			inputPipes[--pipesCount] = newSerialInputPipe(new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());        
 		}
 
 		populateGreenPipes(listener, pipesCount, inputPipes);

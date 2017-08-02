@@ -136,7 +136,12 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 		this.pcm.addConfig(new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,
 															2, //only a few requests when FogLight 
-															MINIMUM_TLS_BLOB_SIZE)); 		
+															MINIMUM_TLS_BLOB_SIZE)); 
+				
+		this.pcm.addConfig(new PipeConfig<SerialInputSchema>(SerialInputSchema.instance,
+				                                            DEFAULT_LENGTH, 
+				                                            DEFAULT_PAYLOAD_SIZE));
+				
 		this.i2cBus = i2cBus;
 
 		this.configI2C = configI2C; //may be removed.
@@ -760,7 +765,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//only build serial input if the data is consumed
 		//////////////
 		if (serialInputPipes.length>1) {
-			Pipe<SerialInputSchema> masterUARTPipe = SerialDataSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			Pipe<SerialInputSchema> masterUARTPipe = new Pipe<SerialInputSchema>(pcm.getConfig(SerialInputSchema.class));
+					
 			new ReplicatorStage<SerialInputSchema>(gm, masterUARTPipe, serialInputPipes);   
 			createUARTInputStage(masterUARTPipe);
 		} else {

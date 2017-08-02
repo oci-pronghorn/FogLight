@@ -22,22 +22,20 @@ public enum MiniMotorDriverTwig {
                 @Override
                 public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
                     byte[] REG_ADDR = {MiniMotorDriver_Constants.FAULT_REG};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = MiniMotorDriver_Constants.CH1_ADD;
                     byte BYTESTOREAD = 1;
                     byte REG_ID = MiniMotorDriver_Constants.FAULT_REG;  //register identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
             },
             checkFaultCH2(){
                 @Override
                 public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
                     byte[] REG_ADDR = {MiniMotorDriver_Constants.FAULT_REG};
-                    byte[] SETUP = {};
                     byte I2C_ADDR = MiniMotorDriver_Constants.CH2_ADD;
                     byte BYTESTOREAD = 1;
                     byte REG_ID = MiniMotorDriver_Constants.FAULT_REG;  //register identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, SETUP);
+                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
             };
             @Override

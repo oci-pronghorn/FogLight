@@ -16,10 +16,9 @@ First declare the connections in IoTApp.java:
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
-
 import com.ociweb.iot.maker.*;
 
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp {
@@ -57,6 +56,7 @@ Then specify the behavior of the program in the Behavior class:
 package com.ociweb.grove;
 
 import com.ociweb.gl.api.TimeListener;
+
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 
@@ -73,7 +73,7 @@ public class VariableColorLEDBehavior implements TimeListener {
     private final FogCommandChannel ledChannel;
     
     public VariableColorLEDBehavior(FogRuntime runtime){
-        this.ledChannel = runtime.newCommandChannel();
+        this.ledChannel = runtime.newCommandChannel(PIN_WRITER);
     }
     
     @Override

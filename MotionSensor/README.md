@@ -14,11 +14,10 @@ First declare the connections in IoTApp.java:
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.MotionSensor;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.LED;
-
 import com.ociweb.iot.maker.*;
 
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.LED;
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.MotionSensor;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp {
@@ -63,6 +62,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.grove.IoTApp.*;
 
+
 /**
  *
  * @author huydo
@@ -72,7 +72,7 @@ public class MotionSensorBehavior implements DigitalListener{
     private final FogCommandChannel ledChannel;
     
     public MotionSensorBehavior(FogRuntime runtime){
-        this.ledChannel = runtime.newCommandChannel();
+        this.ledChannel = runtime.newCommandChannel(PIN_WRITER);
     }
     
     @Override

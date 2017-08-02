@@ -17,12 +17,12 @@ First declare the connections in IoTApp.java:
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
-
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
@@ -65,7 +65,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.grove.IoTApp.*;
-
+import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 /**
  *
@@ -77,8 +77,8 @@ public class AngleSensorBehavior implements AnalogListener {
     private    final FogCommandChannel led2Channel;
     
     public AngleSensorBehavior(FogRuntime runtime){
-        this.led1Channel = runtime.newCommandChannel();
-        this.led2Channel = runtime.newCommandChannel();
+        this.led1Channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER);
+        this.led2Channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER);
     }
         
     @Override

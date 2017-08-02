@@ -17,12 +17,12 @@ First declare the connections in IoTApp.java:
 package com.ociweb.grove;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
-
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
@@ -53,22 +53,22 @@ Then specify the behavior of the program in the Behavior class:
 package com.ociweb.grove;
 
 import com.ociweb.iot.maker.AnalogListener;
+import static com.ociweb.iot.maker.FogCommandChannel.*;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 
 public class UVSensorBehavior implements AnalogListener {
-
-	public UVSensorBehavior(FogRuntime runtime) {
-		// TODO Auto-generated constructor stub
-	}
-
-	@Override
-	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-		// TODO Auto-generated method stub
+    public UVSensorBehavior(FogRuntime runtime) {   
+    }
+    
+    @Override
+    public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
+        // TODO Auto-generated method stub
         System.out.println("The Illumination intensity is : "+(value/1023*307)+"mW/m^2");
-
-	}
-
+        
+    }
+    
 }
 ```
 

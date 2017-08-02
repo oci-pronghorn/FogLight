@@ -26,6 +26,11 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
     }
    
     @Override
+    public void startup() {
+        accSensor.begin();
+    }
+    
+    @Override
     public void accelVals(int x,int y,int z){
         System.out.println("x: "+x);
         System.out.println("y: "+y);
@@ -40,11 +45,5 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
         System.out.println("heading: "+heading);
         
     }
-
-    @Override
-    public void startup() {
-        accSensor.begin();
-    }
-
     
 }

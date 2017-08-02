@@ -13,10 +13,9 @@ First declare the connections in IoTApp.java:
 ```java
 package com.ociweb.grove;
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
-
 import com.ociweb.iot.maker.*;
 
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 
@@ -61,6 +60,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import static com.ociweb.grove.IoTApp.*;
 
+
 /**
  *
  * @author huydo
@@ -70,7 +70,7 @@ public class LineFinderBehavior implements DigitalListener {
     private final FogCommandChannel ledChannel;
     
     public LineFinderBehavior(FogRuntime runtime){
-        this.ledChannel = runtime.newCommandChannel();
+        this.ledChannel = runtime.newCommandChannel(PIN_WRITER);
     }
     @Override
     public void digitalEvent(Port port, long time, long durationMillis, int value) {

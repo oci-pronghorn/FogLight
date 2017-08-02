@@ -16,8 +16,7 @@ public class SixAxisAccelerometer implements FogApp
         ////////////////////////////
         //Connection specifications
         ///////////////////////////
-        c.useI2C();
-        c.connect(SixAxisAccelerometerTwig.SixAxisAccelerometer.readXYZ);
+        c.connect(SixAxisAccelerometerTwig.SixAxisAccelerometer.readAccel);
         
     }
 

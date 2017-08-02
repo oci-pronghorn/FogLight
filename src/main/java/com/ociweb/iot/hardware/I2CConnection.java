@@ -12,25 +12,31 @@ public class I2CConnection extends HardwareConnection {
 	public final int readBytes;  		//number of bytes to be read on a read
 	public final int register;			//identifier for register you're reading from. Does not have to match device spec.
 	public final byte[] setup;			//setup bytes sent to initialize communications
+        public final int readBytesAtStartUp;            // number of bytes to read at start up
 	public final long delayAfterRequestNS; //delay between read request and i2c.read
 
 	private final static int GROVE_PI_MIN_SCAN_DELAY = 80_000;
+        
+        
 
-	public I2CConnection(I2CConnection original ,int responseMS){// for connectI2C(device,reg,numbytes,response_time)
+	public I2CConnection(I2CConnection original ,int responseMS){// for connectI2C(device,response_time) method
 		this(original.twig, original.address, original.readCmd, original.readBytes, original.register, original.setup, responseMS, -1, original.sendEveryValue);
 	}
 
 	public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup) {
 		this(twig,address,readCmd,readBytes,register,setup,false);
 	}
+        
+        public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, int readBytesAtStartUp, byte[] setup) {
+		this(twig,address,readCmd,readBytes,register,setup,false,readBytesAtStartUp);
+	}
 
 
 	public I2CConnection(I2CConnection original, byte[] newSetup){
 		this(original.twig, original.address, original.readCmd, original.readBytes, original.register, newSetup, original.responseMS, -1, original.sendEveryValue);
 	}
-
-
-	public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, boolean everyValue) {
+        
+        public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, boolean everyValue) {
 		super(twig, -1, twig.response(), HardwareConnection.DEFAULT_AVERAGE, everyValue);
 		this.address = address;
 		this.readCmd = readCmd;
@@ -38,6 +44,18 @@ public class I2CConnection extends HardwareConnection {
 		this.register = register;
 		this.setup = setup;
 		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY+twig.scanDelay();
+                this.readBytesAtStartUp = 0;
+	}
+
+	public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, boolean everyValue,int readBytesAtStartUp) {
+		super(twig, -1, twig.response(), HardwareConnection.DEFAULT_AVERAGE, everyValue);
+		this.address = address;
+		this.readCmd = readCmd;
+		this.readBytes = readBytes;
+		this.register = register;
+		this.setup = setup;
+		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY+twig.scanDelay();
+                this.readBytesAtStartUp = readBytesAtStartUp;
 	}
 
 	public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int responseMS) {
@@ -53,6 +71,7 @@ public class I2CConnection extends HardwareConnection {
 		this.register = register;
 		this.setup = setup;
 		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY+twig.scanDelay();
+                this.readBytesAtStartUp = 0;
 	}  
 
 

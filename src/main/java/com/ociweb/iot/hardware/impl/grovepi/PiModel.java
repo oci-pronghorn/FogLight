@@ -66,7 +66,7 @@ public enum PiModel {
 	static {
 		trie.setUTF8Value("Revision	: %b\n", 1);
 		trie.setUTF8Value("%b: %b\n"       , 2);
-		trie.setUTF8Value("\n", 3);		
+		trie.setUTF8Value("\n", 3);	
 	}
 	
 	public static synchronized PiModel detect() {
@@ -107,6 +107,7 @@ public enum PiModel {
 			do {
 				token = (int)reader.parseNext(reader, trie);		
 			} while (token!=1 && token!=-1);
+			
 			if (1==token) {
 				StringBuilder value = reader.capturedFieldBytesAsUTF8(reader, 0, new StringBuilder());
 				

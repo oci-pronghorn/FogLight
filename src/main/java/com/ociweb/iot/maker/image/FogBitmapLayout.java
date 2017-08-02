@@ -1,11 +1,10 @@
 package com.ociweb.iot.maker.image;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import com.ociweb.iot.maker.FogExternalizable;
+import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.BlobWriter;
 
-public class FogBitmapLayout implements Externalizable {
+public class FogBitmapLayout implements FogExternalizable {
     private int width = 0;
     private int height = 0;
     private byte componentCount = 0;
@@ -25,7 +24,7 @@ public class FogBitmapLayout implements Externalizable {
     // Accessors
 
     @Override
-    public void writeExternal(ObjectOutput writer) throws IOException {
+    public void writeExternal(BlobWriter writer) {
         writer.writeInt(width);
         writer.writeInt(height);
         writer.writeByte(componentCount);
@@ -60,7 +59,7 @@ public class FogBitmapLayout implements Externalizable {
     // Mutators
 
     @Override
-    public void readExternal(ObjectInput reader) throws IOException, ClassNotFoundException {
+    public void readExternal(BlobReader reader) {
         width = reader.readInt();
         height = reader.readInt();
         componentCount = reader.readByte();

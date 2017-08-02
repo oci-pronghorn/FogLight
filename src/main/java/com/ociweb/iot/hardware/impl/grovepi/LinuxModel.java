@@ -13,7 +13,7 @@ public enum LinuxModel {
 	Unknown(),
 	Linux();
 	
-	private static final Logger logger  = LoggerFactory.getLogger(PiModel.class);
+	private static final Logger logger  = LoggerFactory.getLogger(LinuxModel.class);
 	
 	static TrieParser trie = new TrieParser(256,false);
 	static TrieParserReader reader = new TrieParserReader(2,true);
@@ -56,7 +56,7 @@ public enum LinuxModel {
 				//System.out.println("DETECT DATA\n"+new String(buffer,0,lastPos));
 				
 				
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				logger.info("unable to detect model.",e);
 				return Unknown;
 			}

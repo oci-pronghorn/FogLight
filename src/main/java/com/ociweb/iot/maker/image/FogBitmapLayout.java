@@ -82,7 +82,7 @@ public class FogBitmapLayout implements FogExternalizable {
     }
 
     public void setComponentCount(byte componentCount) {
-        assert(componentDepth > 1) : "componentCount must be greater than 1";
+        assert(componentCount > 1) : "componentCount must be greater than 1";
         this.componentCount = componentCount;
         cacheCalculatedValues();
     }
@@ -107,7 +107,7 @@ public class FogBitmapLayout implements FogExternalizable {
         rowWidth = width * pixelWidth;
     }
 
-    // Bitmap Manipulations: TODO move into BitMap class that owns an immutable BitmapLayout and byte[]
+    // Bitmap Manipulations
 
     public byte[] allocateBitmap() {
         return new byte[bmpSize()];

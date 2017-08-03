@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import com.ociweb.iot.impl.*;
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
+import com.ociweb.pronghorn.pipe.RawDataSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -322,37 +323,19 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 		
 	}
 
-	protected void consumeImageMessage(ImageListenerBase listener, Pipe<ImageSchema> p) {
-		while (PipeReader.tryReadFragment(p)) {
-			int msgIdx = PipeReader.getMsgIdx(p);
-			int consumed = 0;
+	protected void consumeImageMessage(ImageListenerBase listener, Pipe<ImageSchema> inputPipe) {
+		while (PipeReader.tryReadFragment(inputPipe)) {
+			int msgIdx = PipeReader.getMsgIdx(inputPipe);
 			switch(msgIdx) {
 				case ImageSchema.MSG_CHUNKEDSTREAM_1:
-					if (null == imageStreamReader) {
-						imageStreamReader = PipeReader.inputStream(p, ImageSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-					} else {
-						imageStreamReader.accumHighLevelAPIField(ImageSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-					}
-					//let the behavior consume some or all of the serial data
-					int originalPosition = imageStreamReader.absolutePosition();
-
-					//System.err.println("reading from position "+originalPosition);
-					String line = imageStreamReader.readLine();
-					listener.onImage(line);
-					//System.err.println("reading total size "+consumed+" now pos "+serialStremReader.absolutePosition());
-
-					//set position for the next call to ensure we are aligned after the consumed bytes
-					//the behavior could read past consumed and choose not to consume it yet.
-					imageStreamReader.absolutePosition(originalPosition + line.getBytes(StandardCharsets.UTF_16).length);
-					assert(consumed>=0) : "can not consume negative value";
-
+					DataInputBlobReader<ImageSchema> fieldByteArray = PipeReader.inputStream(inputPipe, ImageSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+					listener.onImage(fieldByteArray.readLine());
 					break;
 				case -1:
-					requestShutdown();
+					//requestShutdown();
 					break;
 			}
-			PipeReader.readNextWithoutReleasingReadLock(p);
-			PipeReader.releaseAllPendingReadLock(p, consumed);
+			PipeReader.releaseReadLock(inputPipe);
 		}
 	}
     

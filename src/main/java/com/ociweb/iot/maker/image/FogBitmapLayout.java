@@ -7,18 +7,20 @@ import com.ociweb.pronghorn.pipe.BlobWriter;
 public class FogBitmapLayout implements FogExternalizable {
     private int width = 0;
     private int height = 0;
-    private byte componentCount = 0;
-    private byte componentDepth = 0;
+    private byte componentCount = 1;
+    private byte componentDepth = 1;
+    private byte minComponentWidth = 1;
 
-    private byte componentWidth = 0;
-    private double magnitude = 0.0;
-    private int valueMask = 0xFFFFFFFF;
-    private int rowWidth = 0;
-    private int pixelWidth = 0;
+    private byte componentWidth;
+    private double magnitude;
+    private int valueMask;
+    private int rowWidth;
+    private int pixelWidth;
 
     // Construction
 
     public FogBitmapLayout() {
+        cacheCalculatedValues();
     }
 
     // Accessors
@@ -29,6 +31,7 @@ public class FogBitmapLayout implements FogExternalizable {
         writer.writeInt(height);
         writer.writeByte(componentCount);
         writer.writeByte(componentDepth);
+        writer.writeByte(minComponentWidth);
     }
 
     // Pixels wide
@@ -64,6 +67,7 @@ public class FogBitmapLayout implements FogExternalizable {
         height = reader.readInt();
         componentCount = reader.readByte();
         componentDepth = reader.readByte();
+        minComponentWidth = reader.readByte();
         cacheCalculatedValues();
     }
 
@@ -78,20 +82,27 @@ public class FogBitmapLayout implements FogExternalizable {
     }
 
     public void setComponentCount(byte componentCount) {
+        assert(componentDepth > 1) : "componentCount must be greater than 1";
         this.componentCount = componentCount;
         cacheCalculatedValues();
     }
 
     public void setComponentDepth(byte componentDepth) {
-        // TODO: check componentDepth <= 32 if assertions on
+        assert(componentDepth > 1 && componentDepth <= 32) : "componentDepth must be between 1 and 32";
         this.componentDepth = componentDepth;
+        cacheCalculatedValues();
+    }
+
+    public void setMinComponentDepth(byte minComponentWidth) {
+        assert(componentDepth > 1 && componentDepth <= 4) : "minComponentWidth must be between 1 and 4";
+        this.minComponentWidth = minComponentWidth;
         cacheCalculatedValues();
     }
 
     private void cacheCalculatedValues() {
         magnitude = Math.pow(componentDepth, 2.0);
         valueMask = 0xFFFFFFFF >>> (32 - componentDepth);
-        componentWidth = (byte) Math.ceil(componentDepth / 8d);
+        componentWidth = (byte)Math.max( Math.ceil(componentDepth / 8d), minComponentWidth);
         pixelWidth = componentCount * componentWidth;
         rowWidth = width * pixelWidth;
     }
@@ -103,7 +114,9 @@ public class FogBitmapLayout implements FogExternalizable {
     }
 
     public int address(int x, int y, int z) {
-        // TODO: check bounds if assertions on
+        assert(x >= 0 && x < width) : "x must be in 0 indexed range of width";
+        assert(y >= 0 && y < height) : "y must be in 0 indexed range of height";
+        assert(z >= 0 && z < componentCount) : "z must be in 0 indexed range of componentCount";
         return (x * rowWidth) + (y * pixelWidth) + (z * componentWidth);
     }
 

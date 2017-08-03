@@ -7,6 +7,7 @@ package com.ociweb.grove;
 
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
+import static com.ociweb.iot.grove.motor_driver.MotorDriverTwig.MotorDriver;
 import com.ociweb.iot.grove.motor_driver.MotorDriver_Transducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -37,7 +38,7 @@ public class MotorDriverBehavior implements StartupListener, PubSubListener {
 
     @Override
     public void startup() {
-        controller.setVelocity(channel1Power, channel2Power);
+        controller.setPower(channel1Power, channel2Power);
         //set the velocity of both motors
         //to stop the motor, use controller.setVelocity(0,0);
 //        controller.StepperRun(250);
@@ -66,33 +67,8 @@ public class MotorDriverBehavior implements StartupListener, PubSubListener {
                 channel2Power = ranged;
                 break;
         }
-        controller.setVelocity(channel1Power, channel2Power);
+        controller.setPower(channel1Power, channel2Power);
         return true;
     }
 
-    /*
-        If the controller ports must be operated independently
-        use the behavior to synchronize the state.
-        We use getMaxVelocity() to hide the controller's integer range.
-        Publishers pass in a normalized -1.0...1.0 value.
-     */
-    @Override
-    public boolean message(CharSequence charSequence, BlobReader blobReader) {
-        int idx = blobReader.readInt();
-        double value = blobReader.readDouble();
-        Port port = MotorDriverBehavior.Port.values()[idx];
-        int ranged = (int)(value * controller.getMaxVelocity());
-        switch (port) {
-            case A:
-                if (channel1Power == ranged) return true;
-                channel1Power = ranged;
-                break;
-            case B:
-                if (channel2Power == ranged) return true;
-                channel2Power = ranged;
-                break;
-        }
-        controller.setVelocity(channel1Power, channel2Power);
-        return true;
-    }
 }

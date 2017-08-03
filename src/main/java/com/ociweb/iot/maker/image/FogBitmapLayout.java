@@ -8,7 +8,7 @@ public class FogBitmapLayout implements FogExternalizable {
     private int width = 0;
     private int height = 0;
     private byte componentCount = 1;
-    private byte componentDepth = 1;
+    private byte componentDepth = 8;
     private byte minComponentWidth = 1;
 
     private byte componentWidth;

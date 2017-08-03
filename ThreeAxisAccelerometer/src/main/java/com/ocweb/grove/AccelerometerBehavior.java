@@ -30,14 +30,11 @@ public class AccelerometerBehavior implements StartupListener,AccelInterruptList
     public void startup() {
         accSensor.powerOn();
         accSensor.setRange(4);
+        accSensor.setRate(800); //make sure to set the range and rate after power on.
+        
         accSensor.setFreeFallDuration(4);
         accSensor.setFreeFallThreshold(9);
         accSensor.enableFreeFallInterrupt();
-    }
-
-    @Override
-    public void accelVals(int x, int y, int z) {
-        System.out.println("z: "+z);
     }
 
     @Override
@@ -45,6 +42,13 @@ public class AccelerometerBehavior implements StartupListener,AccelInterruptList
         if(freefall == 1){
             System.out.println("free falling..");
         }
+    }
+
+    @Override
+    public void accelVals(int x, int y, int z) {
+        System.out.println("x: "+x);
+        System.out.println("y: "+y);
+        System.out.println("z: "+z);
     }
 
 

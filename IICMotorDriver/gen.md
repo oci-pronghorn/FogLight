@@ -20,7 +20,7 @@ Then specify the behavior of the program in the Behavior class:
 
 When executed, the stepper motor will turn 250 steps in the forward direction, then turn 250 steps backwards.
 
- For more information about the device's methods, refer to its javadocs [here].(https://github.com/oci-pronghorn/FogLight/blob/master/src/main/java/com/ociweb/iot/grove/motor_driver/MotorDriver_Transducer.java) 
+ For more information about the device's methods, refer to its javadocs [here](https://github.com/oci-pronghorn/FogLight/blob/master/src/main/java/com/ociweb/iot/grove/motor_driver/MotorDriver_Transducer.java) .
  
  
  

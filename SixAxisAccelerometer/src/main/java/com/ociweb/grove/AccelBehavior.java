@@ -22,20 +22,21 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
     
     AccelBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);     
-        accSensor = new SixAxisAccelerometer_Transducer(ch,this,this);
+        accSensor = new SixAxisAccelerometer_Transducer(ch,this);
     }
    
     @Override
     public void startup() {
+        accSensor.setAccelScale(6);
+        accSensor.setMagScale(8);
         accSensor.begin();
     }
-    
+
     @Override
-    public void accelVals(int x,int y,int z){
+    public void accelVals(int x, int y, int z) {
         System.out.println("x: "+x);
         System.out.println("y: "+y);
         System.out.println("z: "+z);
-     
     }
 
     @Override
@@ -43,7 +44,6 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
         double heading = 180*Math.atan2(y, x)/3.14;
         heading = (heading<0)?(heading+360):heading;
         System.out.println("heading: "+heading);
-        
     }
     
 }

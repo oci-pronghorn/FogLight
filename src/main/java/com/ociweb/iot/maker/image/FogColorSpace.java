@@ -16,7 +16,8 @@ public enum FogColorSpace {
             layout.setComponentCount((byte)3);
             return layout;
         }
-    },
+    };
+    /*
     rgba {
         @Override
         public FogBitmapLayout createDefaultLayout() {
@@ -42,6 +43,7 @@ public enum FogColorSpace {
             return layout;
         }
     };
+        */
 
     public abstract FogBitmapLayout createDefaultLayout();
 }

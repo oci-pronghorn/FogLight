@@ -25,6 +25,12 @@ public class FogBitmap implements FogExternalizable {
         this.bmp = this.layout.allocateBitmap();
     }
 
+    public FogBitmap(FogColorSpace colorSpace, FogBitmapLayout layout) {
+        this.colorSpace = colorSpace;
+        this.layout = layout;
+        this.bmp = this.layout.allocateBitmap();
+    }
+
     public FogBitmap(BlobReader in) {
         readExternal(in);
     }

@@ -1,6 +1,9 @@
 package com.ociweb.iot.grove.oled;
 
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmap;
+import com.ociweb.iot.maker.image.FogBitmapLayout;
+import com.ociweb.iot.maker.image.FogColorSpace;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -22,6 +25,14 @@ public abstract class BinaryOLED {
 		ch.ensureI2CWriting(16, BATCH_SIZE);
 		
 	
+	}
+
+	public abstract FogColorSpace getColorSpace();
+
+	public abstract FogBitmapLayout createBmpLayout();
+
+	public FogBitmap createEmptyBmp() {
+		return new FogBitmap(getColorSpace(), createBmpLayout());
 	}
 	
 	/**

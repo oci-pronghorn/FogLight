@@ -5,6 +5,8 @@ import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
 import com.ociweb.iot.grove.gps.GPS_Consts;
 import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmapLayout;
+import com.ociweb.iot.maker.image.FogColorSpace;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceTransducer;
@@ -25,6 +27,20 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		this.chip = SSD1327;
 		
 	}
+
+	public FogColorSpace getColorSpace() {
+		return FogColorSpace.gray;
+	}
+
+	public FogBitmapLayout createBmpLayout() {
+		FogBitmapLayout bmpLayout = getColorSpace().createDefaultLayout();
+		bmpLayout.setMinComponentDepth((byte) 1);
+		bmpLayout.setComponentDepth((byte) 4);
+		bmpLayout.setWidth(OLED_96x96_Consts.COL_COUNT);
+		bmpLayout.setHeight(OLED_96x96_Consts.ROW_COUNT);
+		return bmpLayout;
+	}
+
 	@Deprecated
 	public void setIteration(int iteration){
 		this.iteration = iteration;

@@ -66,12 +66,11 @@ public class PiImageListenerStage extends PronghornStage {
      * @return The full path name to the created file.
      */
     private String takePicture(String fileName) {
-        // TODO: Commented to support testing. Reverse this when done.
-//        try {
-//            Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
-//        } catch (IOException e) {
-//            logger.error("Unable to take picture from Raspberry Pi Camera due to error [{}].", e.getMessage(), e);
-//        }
+        try {
+            Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
+        } catch (IOException e) {
+            logger.error("Unable to take picture from Raspberry Pi Camera due to error [{}].", e.getMessage(), e);
+        }
 
         return fileNamePrefix + fileName + ".jpg"; //TODO: rewrite to be GC free
     }

@@ -27,6 +27,7 @@ public class PiCamTest implements FogApp {
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
+        runtime.setImageTriggerRate(2500);
         runtime.addImageListener(new ImageListener() {
             @Override
             public void onImage(String imagePath) {
@@ -42,8 +43,6 @@ public class PiCamTest implements FogApp {
                     f.delete();
                 }
             }
-        }, 1250);
+        });
     }
-
-
 }

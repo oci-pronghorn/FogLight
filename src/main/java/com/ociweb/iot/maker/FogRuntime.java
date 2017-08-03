@@ -53,6 +53,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	private static final byte piI2C = 1;
 	private static final byte edI2C = 6;
 
+	private int imageTriggerRateMillis = 1250;
+
 	static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
 
 
@@ -191,20 +193,22 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return registerListenerImpl(listener);
 	}
 
-	public ListenerFilterIoT addImageListener(ImageListener listener, int triggerRate) {
-		if (triggerRate < 1250) {
+	public void setImageTriggerRate(int triggerRateMillis) {
+		if (triggerRateMillis < 1250) {
 			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS.");
 		}
 
+		this.imageTriggerRateMillis = triggerRateMillis;
+	}
+
+	public ListenerFilterIoT addImageListener(ImageListener listener) {
 		switch (builder.getPlatformType()) {
 			case GROVE_PI:
 				return registerListener(listener);
 			default:
-				// TODO: Commented to support testing. Reverse this when done.
-				return registerListener(listener);
-//				throw new UnsupportedOperationException("Image listeners are not supported for [" +
-//						builder.getPlatformType() +
-//						"] hardware");
+				throw new UnsupportedOperationException("Image listeners are not supported for [" +
+						builder.getPlatformType() +
+						"] hardware");
 		}
 	}
 
@@ -324,6 +328,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
+		runtime.builder.setImageTriggerRateMillis(runtime.imageTriggerRateMillis);
 		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
 
 		runtime.logStageScheduleRates();

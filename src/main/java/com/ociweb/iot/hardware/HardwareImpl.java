@@ -117,6 +117,12 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     private int IDX_PIN = -1;
     private int IDX_I2C = -1;
     private int IDX_SER = -1;
+
+	private int imageTriggerRateMillis = 1250;
+
+	public void setImageTriggerRateMillis(int imageTriggerRateMillis) {
+		this.imageTriggerRateMillis = imageTriggerRateMillis;
+	}
 	
     public IODevice getConnectedDevice(Port p) {    	
     	return deviceOnPort[p.ordinal()];
@@ -787,13 +793,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		///////////////
 		//only build image input if the data is consumed
 		///////////////
-		final int triggerRate = 1000; // TODO: Un-hardcode!
+		// TODO: Is this where we determine what kind of platform to listen on (e.g., Edison, Pi)?
 		if (imageInputPipes.length > 1) {
 			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
-			new PiImageListenerStage(gm, masterImagePipe, triggerRate);
+			new PiImageListenerStage(gm, masterImagePipe, imageTriggerRateMillis);
 		} else if (imageInputPipes.length == 1){
-			new PiImageListenerStage(gm, imageInputPipes[0], triggerRate);
+			new PiImageListenerStage(gm, imageInputPipes[0], imageTriggerRateMillis);
 		}
 				
 		///////////////

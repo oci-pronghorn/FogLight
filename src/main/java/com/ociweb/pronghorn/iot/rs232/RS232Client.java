@@ -24,8 +24,6 @@ public class RS232Client implements RS232Clientable {
     private boolean connected = false;
     private int fd = -1;
 
-
-
     private int failCount = 25;
     /**
      * @param device Port identifier to open.
@@ -40,6 +38,7 @@ public class RS232Client implements RS232Clientable {
 
             if (fd != -1) {
                 connected = true;
+                logger.info("Backing FD is: {}", fd);
             } else {
                 logger.error("Could not connect RS232 due to an unknown error.");
                 logger.error("Switching to NO-OP mode.");
@@ -93,15 +92,15 @@ public class RS232Client implements RS232Clientable {
         	logger.trace("call write {}",message.length);
             int result = backing.write(fd, message);
             logger.trace("did write {}",result);
-            if (0==result && --failCount<=0) {
-            	System.exit(-1);
+            if ( 0 != message.length && 0 !=result && --failCount<=0) {
+            	logger.warn("Unable to write to serial port");  	
             }
             return result;
         } else {
             return -1;
         }
     }
-
+    
     /**
      * Returns the number of unsent bytes in the serial output buffer.
      *
@@ -184,8 +183,11 @@ public class RS232Client implements RS232Clientable {
         	logger.trace("call write {}",maxLength);
             int result = backing.writeFrom(fd, buffer, start, maxLength);
             logger.trace("did write {}",result);
-            if (0==result && --failCount<=0) {
-            	System.exit(-1);
+            if (0 != maxLength && 0==result && --failCount<=0) {
+            	logger.warn("Unable to write to serial port");  	
+            }
+            else {
+            	failCount = 25;
             }
             return result;
         } else {
@@ -213,9 +215,7 @@ public class RS232Client implements RS232Clientable {
             int result = backing.writeFromTwo(fd, buffer1, start1, maxLength1,
                                             buffer2, start2, maxLength2);
             logger.trace("write results {} ", result);
-            if (0==result && --failCount<=0) {
-            	System.exit(-1);
-            }
+           
             return result;
         } else {
         	logger.trace("not connected");

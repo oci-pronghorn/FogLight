@@ -28,6 +28,8 @@ import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.iot.maker.SerialReader;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -71,9 +73,8 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     /////////////////////
     private Number stageRate;
     
-    private SerialReader serialStremReader; //must be held as we accumulate serial data.
+    private DataInputBlobReader serialStremReader; //must be held as we accumulate serial data.
     private DataInputBlobReader<ImageSchema> imageStreamReader;
-
     public static void initOperators() {
     	
     	//Add more supported operators to the system
@@ -94,7 +95,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 				 ((ReactiveListenerStageIOT) r).consumeImageMessage((ImageListenerBase) target, input);
 			 }
 		 })
-        .addOperator(AnalogListenerBase.class, 
+        .addOperator(AnalogListenerBase.class,
         		GroveResponseSchema.instance,
 	       		 new ReactiveOperator() {
 				@Override
@@ -296,7 +297,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 		    switch(msgIdx) {
 		        case SerialInputSchema.MSG_CHUNKEDSTREAM_1:
 		        	if (null==serialStremReader) {
-		        		serialStremReader = (SerialReader)PipeReader.inputStream(p, SerialInputSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
+		        		serialStremReader = PipeReader.inputStream(p, SerialInputSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 		        	} else {
 		        		serialStremReader.accumHighLevelAPIField(SerialInputSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
 		        	}		 

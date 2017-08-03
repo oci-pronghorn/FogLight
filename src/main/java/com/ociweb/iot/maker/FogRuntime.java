@@ -18,7 +18,10 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
+import com.ociweb.iot.hardware.impl.grovepi.LinuxModel;
+import com.ociweb.iot.hardware.impl.grovepi.MacModel;
 import com.ociweb.iot.hardware.impl.grovepi.PiModel;
+import com.ociweb.iot.hardware.impl.grovepi.WindowsModel;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -42,15 +45,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	private static final int i2cDefaultLength = 300;
 	private static final int i2cDefaultMaxPayload = 16;
 
-	private static final PipeConfig<GroveRequestSchema> requestPipeConfig = new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength);
-	private static final PipeConfig<I2CCommandSchema> i2cPayloadPipeConfig = new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload);
-
-	private final PipeConfig<I2CResponseSchema> reponseI2CConfig = new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
-	private final PipeConfig<GroveResponseSchema> responsePinsConfig = new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x();
-	private final PipeConfig<SerialInputSchema> serialInputConfig = new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
-	private final PipeConfig<ImageSchema> imageInputConfig = new PipeConfig<ImageSchema>(ImageSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x();
-
-	private static final byte piI2C = 1;
 	private static final byte edI2C = 6;
 
 	private int imageTriggerRateMillis = 1250;
@@ -115,16 +109,30 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			PiModel pm = null;
 			I2CBacking i2cBacking = null;
 			if ((pm = PiModel.detect()) != PiModel.Unknown){
-				logger.trace("Detected running on " + pm);
+				logger.info("Detected running on " + pm);
 				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
+			}			else if(WindowsModel.detect() != WindowsModel.Unknown) {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Detected running on Windows, test mock hardware will be used");
+			}
+
+			else if(MacModel.detect() != MacModel.Unknown) {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Detected running on Mac, test mock hardware will be used");
+
+			}
+			else if(LinuxModel.detect() != LinuxModel.Unknown) {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Detected Running on Linux, test mock hardware will be used");
+
 			}
 			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
-				logger.trace("Detected running on Edison");
+				logger.info("Detected running on Edison");
 				System.out.println("You are running on the Edison hardware.");
 			}
 			else {
 				this.builder = new TestHardware(gm, args);
-				logger.trace("Unrecognized hardware, test mock hardware will be used");
+				logger.info("Unrecognized hardware, test mock hardware will be used");
 			}
 		}
 		return this.builder;
@@ -153,8 +161,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	protected PipeConfigManager buildPipeManager() {
 		PipeConfigManager pcm = super.buildPipeManager();
-		pcm.addConfig(requestPipeConfig);
-		pcm.addConfig(i2cPayloadPipeConfig);
+		pcm.addConfig(new PipeConfig<GroveRequestSchema>(GroveRequestSchema.instance, defaultCommandChannelLength));
+		pcm.addConfig(new PipeConfig<I2CCommandSchema>(I2CCommandSchema.instance, i2cDefaultLength,i2cDefaultMaxPayload));
 		pcm.addConfig(defaultCommandChannelLength,0,TrafficOrderSchema.class );
 		return pcm;
 	}
@@ -246,21 +254,16 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 
 		if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
-			inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(reponseI2CConfig);
+			inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
 		}
 		if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
-			inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(responsePinsConfig);
+			inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x());
 		}
 		if (this.builder.isListeningToSerial(listener) ) {
-			inputPipes[--pipesCount] = newSerialInputPipe(serialInputConfig);
+			inputPipes[--pipesCount] = newSerialInputPipe(new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
 		}
 		if (this.builder.isListeningToCamera(listener)) {
-			inputPipes[--pipesCount] = new Pipe<ImageSchema>(imageInputConfig) {
-				@Override
-				protected DataInputBlobReader<ImageSchema> createNewBlobReader() {
-					return new DataInputBlobReader<ImageSchema>(this);
-				}
-			};
+			inputPipes[--pipesCount] = new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
 		}
 
 		populateGreenPipes(listener, pipesCount, inputPipes);

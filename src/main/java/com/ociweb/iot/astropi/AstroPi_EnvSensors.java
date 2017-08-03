@@ -195,7 +195,8 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
                     _H1_T0 = (short) ((backing[(position+10)&mask]&0xFF) | ((backing[(position+11)&mask]&0xFF)<<8));
                     _T0_OUT = (short) ((backing[(position+12)&mask]&0xFF) | ((backing[(position+13)&mask]&0xFF)<<8));
                     _T1_OUT = (short) ((backing[(position+14)&mask]&0xFF) | ((backing[(position+15)&mask]&0xFF)<<8));
-
+                    System.out.println("_T1_degC: "+_T1_degC);
+                    System.out.println("_T0_degC: "+_T0_degC);
                     System.out.println("Humidity sensor calibration complete.");
                     calibrateHumidity = false;
                 }

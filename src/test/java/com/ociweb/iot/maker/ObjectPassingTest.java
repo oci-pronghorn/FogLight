@@ -1,17 +1,17 @@
 package com.ociweb.iot.maker;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
+import com.ociweb.gl.api.WaitFor;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
@@ -31,7 +31,8 @@ public class ObjectPassingTest {
 		    FogRuntime runtime = FogRuntime.test(new FogApp() {
 	
 				@Override
-				public void declareConnections(Hardware builder) {					
+				public void declareConnections(Hardware builder) {
+					//builder.enableTelemetry();
 				}
 				
 				@Override
@@ -42,7 +43,7 @@ public class ObjectPassingTest {
 
 						@Override
 						public boolean message(CharSequence topic, BlobReader payload) {
-							
+					
 							try {
 								
 								Object object1 = payload.readObject();
@@ -63,11 +64,13 @@ public class ObjectPassingTest {
 								fail("failed after "+count.get());
 							}
 							
-							return cc1.publishTopic("test\\topic", w -> {
+							boolean pub =  cc1.publishTopic("test\\topic", w -> {
 								w.writeObject(serialized1);
 								w.writeObject(serialized2);							
 							});
-							
+						
+							assertTrue(pub);
+							return pub;
 							
 						}}).addSubscription("test\\topic");
 					
@@ -78,12 +81,15 @@ public class ObjectPassingTest {
 						@Override
 						public void startup() {
 						
+							//System.err.println("start startup");
 							cc2.publishTopic("test\\topic",w -> {
 
 								w.writeObject(serialized1);
 								w.writeObject(serialized2);
 								
-							});							
+							}, WaitFor.All);
+							//System.err.println("done startup");
+							
 						}						
 					});									
 				}

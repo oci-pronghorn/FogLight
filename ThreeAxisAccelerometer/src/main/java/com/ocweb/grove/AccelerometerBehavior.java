@@ -42,7 +42,9 @@ public class AccelerometerBehavior implements StartupListener,AccelInterruptList
 
     @Override
     public void AccelInterruptStatus(int singletap, int doubletap, int activity, int inactivity, int freefall) {
-        System.out.println("free fall: "+freefall);
+        if(freefall == 1){
+            System.out.println("free falling..");
+        }
     }
 
 

@@ -11,6 +11,8 @@ import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation.
 import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction;
 import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmapLayout;
+import com.ociweb.iot.maker.image.FogColorSpace;
 
 /**
  * IODeviceTransducer object that holds on to the FogCommandChannel, data_output array, and cmd_output array.
@@ -48,6 +50,19 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 		cmd_out[6] = SET_DISPLAY_OFFSET;
 		cmd_out[7] = 0x00;
 		return sendCommands(0, 8);
+	}
+
+	public FogColorSpace getColorSpace() {
+		return FogColorSpace.gray;
+	}
+
+	public FogBitmapLayout createBmpLayout() {
+		FogBitmapLayout bmpLayout = getColorSpace().createDefaultLayout();
+		bmpLayout.setMinComponentDepth((byte) 1);
+		bmpLayout.setComponentDepth((byte) 1);
+		bmpLayout.setWidth(colCount);
+		bmpLayout.setHeight(rowCount);
+		return bmpLayout;
 	}
 
 	/**

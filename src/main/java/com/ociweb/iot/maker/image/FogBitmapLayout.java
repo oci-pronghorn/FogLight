@@ -100,6 +100,7 @@ public class FogBitmapLayout implements FogExternalizable {
     }
 
     private void cacheCalculatedValues() {
+        assert(minComponentWidth*8 >= componentDepth) : "minComponentWidth must be able to contain componentDepth";
         magnitude = Math.pow(componentDepth, 2.0);
         valueMask = 0xFFFFFFFF >>> (32 - componentDepth);
         componentWidth = (byte)Math.max( Math.ceil(componentDepth / 8d), minComponentWidth);

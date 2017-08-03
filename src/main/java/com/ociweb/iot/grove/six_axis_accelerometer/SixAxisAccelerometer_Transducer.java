@@ -42,62 +42,91 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * 50Hz magnetic data rate; +/- 2 gauss, continuous conversion mode
      */
     public void begin(){
-        axWriteByte(CTRL_REG1,0x57); // 0x57 = ODR=50hz, all accel axes on
-        axWriteByte(CTRL_REG2,0b11000000); // set full-scale
+        axWriteByte(CTRL_REG1,CTRL_REG1Val); 
+        axWriteByte(CTRL_REG2,CTRL_REG2Val); // set full-scale
         axWriteByte(CTRL_REG3,0x00); //no interrupt
         axWriteByte(CTRL_REG4,0x00); //no interrupt
-        axWriteByte(CTRL_REG5,0b10010000); //0x10 = magnetic 50 Hz output rate, enable temperature
-        axWriteByte(CTRL_REG6,MAG_SCALE_2); //magnetic scale = +/- 2 Gauss
-        axWriteByte(CTRL_REG7,0x80); 
+        axWriteByte(CTRL_REG5,CTRL_REG5Val); //0x10 = magnetic 50 Hz output rate, enable temperature
+        axWriteByte(CTRL_REG6,CTRL_REG6Val); //magnetic scale = +/- 2 Gauss
+        axWriteByte(CTRL_REG7,0b10000000); 
     }
+    
+    private int CTRL_REG1Val = 0b01011111; //by default, ODR = 50 Hz, enable BDU, all accel axes enabled
     /**
-     * write a byte to CTRL_REG1
-     * @param _b 
+     * Set accelerometer output data rate 
+     * @param aRate 
+     * 1 = 3Hz, 2 = 6Hz, 3 =12 Hz,  4 = 25 Hz, 5 = 50Hz
+     * 6 = 100 Hz, 7 = 200 Hz, 8 = 400 Hz
+     * 9 = 800 Hz, 10 = 1600 Hz
      */
-    public void setCTRL_REG1(int _b){
-        axWriteByte(CTRL_REG1,_b);
+    public void setAccelODR(int aRate){
+        if(aRate != 0){
+            CTRL_REG1Val |= (aRate<<4);
+        }
     }
+    
+    private int accelScale = 2;
+    private int CTRL_REG2Val = 0b00000000; //by default, acceleration full scale = +/- 2g
     /**
-     * write a byte to CTRL_REG2
-     * @param _b 
+     * Set the full scale of acceleration data
+     * @param aScale 2,4,6,8 or 16 (gauss)
+     * 
      */
-    public void setCTRL_REG2(int _b){
-        axWriteByte(CTRL_REG2,_b);
+    public void setAccelScale(int aScale){
+        accelScale = aScale;
+        switch(aScale){
+            case 2:
+                CTRL_REG2Val |= (0<<3);
+                break;
+            case 4:
+                CTRL_REG2Val |= (1<<3);
+                break;
+            case 6:
+                CTRL_REG2Val |= (2<<3);
+                break;
+            case 8:
+                CTRL_REG2Val |= (3<<3);
+                break;
+            case 16:
+                CTRL_REG2Val |= (4<<3);
+                break;
+        }
     }
+    
+    private int CTRL_REG5Val = 0b10010000; //by default, enable temperature sensor, magnetic data low resolution, ODR = 50 Hz
     /**
-     * write a byte to CTRL_REG3
-     * @param _b 
+     * Set the output data rate of the magnetometer
+     * @param mRate 
+     * 0 = 3Hz, 1 = 6 Hz, 2 = 12 Hz
+     * 3 = 25 Hz, 4 = 50 Hz
      */
-    public void setCTRL_REG3(int _b){
-        axWriteByte(CTRL_REG3,_b);
+    public void setMagODR(int mRate){
+        CTRL_REG5Val |= (mRate << 2);
     }
+    
+    private int magScale = 2;
+    private int CTRL_REG6Val = 0x00;
     /**
-     * write a byte to CTRL_REG4
-     * @param _b 
+     * Set the full scale of magnetometer data
+     * @param mScale 2,4,8 or 12 (gauss)
      */
-    public void setCTRL_REG4(int _b){
-        axWriteByte(CTRL_REG4,_b);
-    }
-    /**
-     * write a byte to CTRL_REG5
-     * @param _b 
-     */
-    public void setCTRL_REG5(int _b){
-        axWriteByte(CTRL_REG5,_b);
-    }
-    /**
-     * write a byte to CTRL_REG6
-     * @param _b 
-     */
-    public void setCTRL_REG6(int _b){
-        axWriteByte(CTRL_REG6,_b);
-    }
-    /**
-     * write a byte to CTRL_REG7
-     * @param _b 
-     */
-    public void setCTRL_REG7(int _b){
-        axWriteByte(CTRL_REG7,_b);
+    public void setMagScale(int mScale){
+        magScale = mScale;
+        switch(mScale){
+            case 2:
+                CTRL_REG6Val |= (0<<5);
+                break;
+            case 4:
+                CTRL_REG6Val |= (1<<5);
+                break;
+            case 8:
+                CTRL_REG6Val |= (2<<5);
+                break;
+            case 12:
+                CTRL_REG6Val |= (3<<5);
+                break;
+
+        }
     }
     
     /**
@@ -141,6 +170,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
         if(addr == LSM303D_ADDR){
             if(register == OUT_X_L_A){
                 short[] xyz_accel = this.interpretData(backing, position, length, mask);
+                System.out.println(xyz_accel[2]);
                 accellistener.accelVals(xyz_accel[0], xyz_accel[1], xyz_accel[2]);
             }
             if(register == OUT_X_L_M){

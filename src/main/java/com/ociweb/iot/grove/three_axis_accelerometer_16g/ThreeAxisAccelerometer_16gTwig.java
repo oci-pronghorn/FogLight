@@ -64,10 +64,9 @@ public enum ThreeAxisAccelerometer_16gTwig {
                 return 1000;
             }
             
-            @SuppressWarnings("unchecked")
             @Override
-            public ThreeAxisAccelerometer_16g_Transducer newTransducer(FogCommandChannel...ch){
-                return new ThreeAxisAccelerometer_16g_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+            public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
             /**
              *

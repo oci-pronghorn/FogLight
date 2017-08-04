@@ -4,10 +4,10 @@ import com.ociweb.iot.maker.FogExternalizable;
 import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
-import static com.ociweb.iot.maker.image.FogColorSpace.*;
-
+/**
+ * FogBitmap combines a FogBitmapLayout with a backstore
+ */
 public class FogBitmap implements FogExternalizable {
-    private FogColorSpace colorSpace;
     private FogBitmapLayout layout;
     private byte[] bmp;
 
@@ -17,16 +17,15 @@ public class FogBitmap implements FogExternalizable {
     }
 
     public FogBitmap(FogColorSpace colorSpace, byte componentDepth, int width, int height) {
-        this.colorSpace = colorSpace;
-        this.layout = colorSpace.createDefaultLayout();
-        this.layout.setComponentDepth(componentDepth);
+        this.layout = new FogBitmapLayout();
+        this.layout.setColorSpace(colorSpace);
         this.layout.setWidth(width);
         this.layout.setHeight(height);
+        this.layout.setComponentDepth(componentDepth);
         this.bmp = this.layout.allocateBitmap();
     }
 
-    public FogBitmap(FogColorSpace colorSpace, FogBitmapLayout layout) {
-        this.colorSpace = colorSpace;
+    public FogBitmap(FogBitmapLayout layout) {
         this.layout = layout;
         this.bmp = this.layout.allocateBitmap();
     }
@@ -37,7 +36,6 @@ public class FogBitmap implements FogExternalizable {
 
     @Override
     public void readExternal(BlobReader in) {
-        colorSpace = values()[in.readInt()];
         layout.readExternal(in);
         bmp = this.layout.allocateBitmap();
         in.read(bmp);
@@ -45,7 +43,6 @@ public class FogBitmap implements FogExternalizable {
 
     @Override
     public void writeExternal(BlobWriter out) {
-        out.writeInt(colorSpace.ordinal());
         layout.writeExternal(out);
         out.write(bmp);
     }

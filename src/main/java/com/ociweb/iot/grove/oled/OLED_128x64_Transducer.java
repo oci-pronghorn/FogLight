@@ -53,18 +53,17 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 		return sendCommands(0, 8);
 	}
 
-	public FogColorSpace getColorSpace() {
-		return FogColorSpace.gray;
-	}
-
+	@Override
 	public FogBitmapLayout createBmpLayout() {
-		FogBitmapLayout bmpLayout = getColorSpace().createDefaultLayout();
+		FogBitmapLayout bmpLayout = new FogBitmapLayout();
+		bmpLayout.setColorSpace(FogColorSpace.gray);
 		bmpLayout.setComponentDepth((byte) 1);
 		bmpLayout.setWidth(colCount);
 		bmpLayout.setHeight(rowCount);
 		return bmpLayout;
 	}
 
+	@Override
 	public void display(FogPixelScanner scanner) {
 		while (scanner.next((bmp, i, x, y) -> {
 			byte gray = (byte) bmp.getComponent(x, y, 0);

@@ -4,6 +4,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.image.FogBitmap;
 import com.ociweb.iot.maker.image.FogBitmapLayout;
 import com.ociweb.iot.maker.image.FogColorSpace;
+import com.ociweb.iot.maker.image.FogPixelScanner;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -23,17 +24,15 @@ public abstract class BinaryOLED {
 		this.cmd_out = cmd_out;
 		this.i2c_address = i2c_address;
 		ch.ensureI2CWriting(16, BATCH_SIZE);
-		
-	
 	}
-
-	public abstract FogColorSpace getColorSpace();
 
 	public abstract FogBitmapLayout createBmpLayout();
 
 	public FogBitmap createEmptyBmp() {
-		return new FogBitmap(getColorSpace(), createBmpLayout());
+		return new FogBitmap(createBmpLayout());
 	}
+
+	public abstract void display(FogPixelScanner scanner);
 	
 	/**
 	 * Sends a "data" identifier byte followed by the user-supplied byte over the i2c.

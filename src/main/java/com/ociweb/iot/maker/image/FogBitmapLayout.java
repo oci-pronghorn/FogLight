@@ -4,13 +4,20 @@ import com.ociweb.iot.maker.FogExternalizable;
 import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
+import static com.ociweb.iot.maker.image.FogColorSpace.values;
+
+/**
+ * FogBitmapLayout defines the structure of a device dependent bitmap.
+ */
 public class FogBitmapLayout implements FogExternalizable {
+
     private int width = 0;
     private int height = 0;
-    private byte componentCount = 1;
+    private FogColorSpace colorSpace;
     private byte componentDepth = 8;
     private byte minComponentWidth = 1;
 
+    private byte componentCount;
     private byte componentWidth;
     private double magnitude;
     private int valueMask;
@@ -29,7 +36,7 @@ public class FogBitmapLayout implements FogExternalizable {
     public void writeExternal(BlobWriter writer) {
         writer.writeInt(width);
         writer.writeInt(height);
-        writer.writeByte(componentCount);
+        writer.writeInt(colorSpace.ordinal());
         writer.writeByte(componentDepth);
         writer.writeByte(minComponentWidth);
     }
@@ -44,9 +51,9 @@ public class FogBitmapLayout implements FogExternalizable {
         return height;
     }
 
-    // 3 for RGB, 4 for RGBA, 1 for Grayscale, etc
-    public byte getComponentCount() {
-        return componentCount;
+    // RGB, RGBA, Grayscale, etc
+    public FogColorSpace getColorSpace() {
+        return colorSpace;
     }
 
     // For each component how many bits are used
@@ -65,7 +72,7 @@ public class FogBitmapLayout implements FogExternalizable {
     public void readExternal(BlobReader reader) {
         width = reader.readInt();
         height = reader.readInt();
-        componentCount = reader.readByte();
+        colorSpace = values()[reader.readInt()];
         componentDepth = reader.readByte();
         minComponentWidth = reader.readByte();
         cacheCalculatedValues();
@@ -81,9 +88,8 @@ public class FogBitmapLayout implements FogExternalizable {
         cacheCalculatedValues();
     }
 
-    public void setComponentCount(byte componentCount) {
-        assert(componentCount > 0) : "componentCount must be greater than 0";
-        this.componentCount = componentCount;
+    public void setColorSpace(FogColorSpace colorSpace) {
+        this.colorSpace = colorSpace;
         cacheCalculatedValues();
     }
 
@@ -105,6 +111,7 @@ public class FogBitmapLayout implements FogExternalizable {
 
     private void cacheCalculatedValues() {
         assert(minComponentWidth*8 >= componentDepth) : "minComponentWidth must be able to contain componentDepth";
+        componentCount = colorSpace.getComponentCount();
         magnitude = Math.pow(componentDepth, 2.0);
         valueMask = 0xFFFFFFFF >>> (32 - componentDepth);
         componentWidth = (byte)Math.max( Math.ceil(componentDepth / 8d), minComponentWidth);

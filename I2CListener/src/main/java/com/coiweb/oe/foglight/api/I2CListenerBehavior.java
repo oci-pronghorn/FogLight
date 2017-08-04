@@ -31,7 +31,7 @@ public class I2CListenerBehavior implements I2CListener, StartupListener {
 		// length is the number of bytes of i2c data read event
 		if(addr == ADDR_ADC121 && register == REG_ADDR_RESULT){
 			short temp = (short)(((backing[(position)&mask]&0x0F) << 8) | (backing[(position+1)&mask]&0xFF));
-			System.out.println("The conversion reading is: "+ temp);   
+			System.out.println("The conversion reading is: "+ temp);  
 	     }
 	}
 

@@ -22,7 +22,6 @@ public class SerialListener implements FogApp
         c.setTimerPulseRate(200);
         c.limitThreads();//picks optimal threads based on core detection
   
-        c.enableTelemetry();
     }
 
 

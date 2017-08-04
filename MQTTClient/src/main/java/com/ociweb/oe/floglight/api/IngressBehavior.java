@@ -1,7 +1,7 @@
 package com.ociweb.oe.floglight.api;
 
 import com.ociweb.gl.api.PubSubListener;
-import com.ociweb.gl.api.PubSubWritable;
+import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobReader;
@@ -27,7 +27,7 @@ public class IngressBehavior implements PubSubListener {
 		System.out.println();
 
 		// Create the on-demand mqtt payload writer
-		PubSubWritable mqttPayload = new PubSubWritable() {
+		Writable mqttPayload = new Writable() {
 
 			@Override
 			public void write(BlobWriter writer) {

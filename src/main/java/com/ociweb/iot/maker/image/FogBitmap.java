@@ -58,10 +58,6 @@ public class FogBitmap implements FogExternalizable {
         return layout.getHeight();
     }
 
-    public int address(int x, int y, int z) {
-        return layout.address(x, y, z);
-    }
-
     public double getValue(int x, int y, int z) {
         return layout.getValue(bmp, x, y, z);
     }

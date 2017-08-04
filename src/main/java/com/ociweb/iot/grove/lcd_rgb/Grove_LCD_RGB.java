@@ -4,9 +4,7 @@ import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.image.FogBitmap;
-import com.ociweb.iot.maker.image.FogBitmapLayout;
-import com.ociweb.iot.maker.image.FogColorSpace;
+import com.ociweb.iot.maker.image.*;
 import com.ociweb.pronghorn.iot.i2c.I2CStage;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -34,7 +32,6 @@ public class Grove_LCD_RGB implements IODevice {
 
     public FogBitmapLayout createBmpLayout() {
         FogBitmapLayout bmpLayout = getColorSpace().createDefaultLayout();
-        bmpLayout.setMinComponentDepth((byte) 1);
         bmpLayout.setComponentDepth((byte) 6);
         bmpLayout.setWidth(8);
         bmpLayout.setHeight(8);
@@ -43,6 +40,15 @@ public class Grove_LCD_RGB implements IODevice {
 
     public FogBitmap createEmptyBmp() {
         return new FogBitmap(getColorSpace(), createBmpLayout());
+    }
+
+    public void display(FogPixelScanner scanner) {
+        while (scanner.next((bmp, i, x, y) -> {
+            int red = bmp.getComponent(x, y, 0);
+            int green = bmp.getComponent(x, y, 1);
+            int blue = bmp.getComponent(x, y, 2);
+            // set pixel on device
+        }));
     }
 
     /**

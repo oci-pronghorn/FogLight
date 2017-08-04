@@ -7,6 +7,7 @@ import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.image.FogBitmapLayout;
 import com.ociweb.iot.maker.image.FogColorSpace;
+import com.ociweb.iot.maker.image.FogPixelScanner;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceTransducer;
@@ -34,11 +35,17 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 
 	public FogBitmapLayout createBmpLayout() {
 		FogBitmapLayout bmpLayout = getColorSpace().createDefaultLayout();
-		bmpLayout.setMinComponentDepth((byte) 1);
 		bmpLayout.setComponentDepth((byte) 4);
 		bmpLayout.setWidth(OLED_96x96_Consts.COL_COUNT);
 		bmpLayout.setHeight(OLED_96x96_Consts.ROW_COUNT);
 		return bmpLayout;
+	}
+
+	public void display(FogPixelScanner scanner) {
+		while (scanner.next((bmp, i, x, y) -> {
+			byte gray = (byte) bmp.getComponent(x, y, 0);
+			// set pixel on device
+		}));
 	}
 
 	@Deprecated

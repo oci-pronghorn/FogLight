@@ -10,5 +10,5 @@ package com.ociweb.iot.grove.real_time_clock;
  * @author huydo
  */
 public interface RTCListener {
-    void clockVals(int[] vals);
+    void clockVals(int second,int minute,int hour,String dayOfWeek,int dayOfMonth,int month,int year);
 }

@@ -36,16 +36,6 @@ public enum ADCTwig {
             byte REG_ID = ADC_Constants.REG_ADDR_ALERT; //just an identifier
             return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
         }  
-    },
-    ReadMax(){
-      @Override
-        public I2CConnection getI2CConnection() {
-            byte[] REG_ADDR = {ADC_Constants.REG_ADDR_CONVH};
-            byte I2C_ADDR = ADC_Constants.ADDR_ADC121;
-            byte BYTESTOREAD = 2;
-            byte REG_ID = ADC_Constants.REG_ADDR_CONVH; //just an identifier
-            return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
-        }  
     };            
         @Override
         public int response() {

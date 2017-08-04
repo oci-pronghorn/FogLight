@@ -24,13 +24,11 @@ public class MQTTClient implements FogApp {
 		// Create a single mqtt client
 		mqttConfig = builder.useMQTT(//"172.16.10.28", 1883, "NathansPC")
 				                      "127.0.0.1", 1883, "my name",200) //default of 10 in flight
-							.cleanSession(true)
-							.transmissionOoS(1)
-							.subscriptionQoS(1)							
+							.cleanSession(true)						
 							.keepAliveSeconds(10); 
 
 		// Timer rate
-		builder.setTimerPulseRate(10); 
+		builder.setTimerPulseRate(30); 
 		builder.enableTelemetry();
 		
 				
@@ -40,9 +38,9 @@ public class MQTTClient implements FogApp {
 	public void declareBehavior(final FogRuntime runtime) {
 
 		// Subscribe to the mqtt client given "topic/ingress" - produced by mosquitto_pub
-		runtime.bridgeSubscription("topic/ingress", "topic/ingress", mqttConfig); //optional 2 topics, optional transform lambda
+		runtime.bridgeSubscription("topic/ingress", "topic/ingress", mqttConfig).setQoS(1);
 		// Publish to the mqtt client given "topic/egress" - produced by TimeBehavior
-		runtime.bridgeTransmission("topic/egress", "topic/egress", mqttConfig); //optional 2 topics, optional transform lambda
+		runtime.bridgeTransmission("topic/egress", "topic/egress", mqttConfig).setQoS(1);
 
 		// Inject the timer
 		runtime.addTimePulseListener(new TimeBehavior(runtime));

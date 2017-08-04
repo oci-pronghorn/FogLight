@@ -1,6 +1,7 @@
 package com.ociweb.oe.floglight.api;
 
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.WaitFor;
 import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -38,7 +39,7 @@ public class IngressBehavior implements PubSubListener {
 		};
 
 		// On the 'localtest' topic publish the mqtt payload
-		cmd.publishTopic("localtest", mqttPayload);
+		cmd.publishTopic("localtest", mqttPayload, WaitFor.None);
 
 		// We consumed the message
 		return true;

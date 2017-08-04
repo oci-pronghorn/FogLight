@@ -28,9 +28,26 @@ public class ClockBehavior implements RTCListener,Behavior{
     }
 
     @Override
-    public void clockVals(int[] vals) {
-        clock.printTime(vals);
-
+    public void clockVals(int second, int minute, int hour, String dayOfWeek, int dayOfMonth, int month, int year) {
+        StringBuilder indicator = new StringBuilder();
+        
+        indicator.append("The current time is:  ");
+        indicator.append(dayOfWeek);
+        indicator.append(", ");
+        indicator.append(month);
+        indicator.append("/");
+        indicator.append(dayOfMonth);
+        indicator.append("/");
+        indicator.append(year);
+        
+        indicator.append("  ");
+        indicator.append(hour);
+        indicator.append(":");
+        indicator.append(minute);
+        indicator.append(":");
+        indicator.append(second);
+        
+        System.out.println(indicator);
     }
 
 }

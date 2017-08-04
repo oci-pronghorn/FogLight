@@ -19,38 +19,33 @@ import com.ociweb.iot.maker.I2CListener;
 public class AnalogToIICBehavior implements StartupListener,AlertStatusListener,ConversionResultListener{
     private final FogCommandChannel ch;
     private final ADC_Transducer sensor;
-    private int check;
-    private final int upperLimit = 1100;
+    private final int upperLimit = 400;
     public AnalogToIICBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel(I2C_WRITER);
         sensor = new ADC_Transducer(ch,this);
     }
     @Override
     public void startup() {
-        sensor.begin();
-        sensor.setCONFIG_REG(0b00111000);
-        //sensor.setHysteresis(100);
+        sensor.setRate(1);
+        sensor.setAlertHoldBit(true);
+        sensor.setAlertFlagEnableBit(true);
         sensor.setUpperLimit(upperLimit);
-//        int[] start = {0,0};
-//        sensor.writeTwoBytesToRegister(ADC_Constants.REG_ADDR_CONVH,start);
+        sensor.begin();
     }
 
 
     @Override
     public void conversionResult(int result) {
-        if(check == 1){
-            if(result < upperLimit){
-                System.out.println("if you're happy and you know it,");
-                sensor.setCONFIG_REG(0b00101000);
-                sensor.setCONFIG_REG(0b00111000);
-            }
-        }
+
     }
 
     @Override
-    public void alertStatus(int status) {
-        check = status;
-        
+    public void alertStatus(int overRange, int underRange) {
+        if(overRange == 1){
+            System.out.println("clap detected");
+            sensor.setAlertHoldBit(false);
+            sensor.setAlertHoldBit(true);
+        }
     }
-    
+
 }

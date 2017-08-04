@@ -1,25 +1,15 @@
 package com.ociweb.grove;
 
-
-import static com.ociweb.iot.grove.AnalogDigitalTwig.SoundSensor;
 import static com.ociweb.iot.grove.adc.ADCTwig.*;
 
 import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.A0;
 
 public class AnalogToIIC implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
-
 
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-        c.useI2C();
+
         c.connect(ADC.ReadConversionResult);
         c.connect(ADC.ReadAlertStatus);
     }

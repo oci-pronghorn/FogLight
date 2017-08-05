@@ -37,6 +37,10 @@ public class FogBitmapLayout implements FogExternalizable {
 
     // Accessors
 
+    public int messageSize() {
+        return 14; // I want garbage free sizeof(this.width)!
+    }
+
     @Override
     public void writeExternal(BlobWriter writer) {
         writer.writeInt(width);

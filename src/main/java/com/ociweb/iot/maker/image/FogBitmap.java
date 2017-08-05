@@ -46,6 +46,10 @@ public class FogBitmap implements FogExternalizable {
         out.write(bmp);
     }
 
+    public int messageSize() {
+        return layout.bmpSize() + layout.messageSize();
+    }
+
     public int getWidth() {
         return layout.getWidth();
     }

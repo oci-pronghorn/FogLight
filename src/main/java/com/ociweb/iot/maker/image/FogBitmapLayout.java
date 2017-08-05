@@ -11,9 +11,9 @@ import static com.ociweb.iot.maker.image.FogColorSpace.values;
  */
 public class FogBitmapLayout implements FogExternalizable {
 
-    private int width = 0;
-    private int height = 0;
     private FogColorSpace colorSpace;
+    private int width = 1;
+    private int height = 1;
     private byte componentDepth = 8;
     private byte minComponentWidth = 1;
 
@@ -26,8 +26,13 @@ public class FogBitmapLayout implements FogExternalizable {
 
     // Construction
 
-    public FogBitmapLayout() {
+    public FogBitmapLayout(FogColorSpace colorSpace) {
+        this.colorSpace = colorSpace;
         cacheCalculatedValues();
+    }
+
+    public FogBitmapLayout(BlobReader in) {
+        readExternal(in);
     }
 
     // Accessors

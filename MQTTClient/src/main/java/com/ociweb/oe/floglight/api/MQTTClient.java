@@ -24,7 +24,8 @@ public class MQTTClient implements FogApp {
 		// Create a single mqtt client
 		mqttConfig = builder.useMQTT(//"172.16.10.28", 1883, "NathansPC")
 				                      "127.0.0.1", 1883, "my name",200) //default of 10 in flight
-							.cleanSession(true)						
+							.cleanSession(true)	
+							.transmissionRetain(true)
 							.keepAliveSeconds(10); 
 
 		// Timer rate

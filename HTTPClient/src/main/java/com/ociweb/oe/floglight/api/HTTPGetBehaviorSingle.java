@@ -26,8 +26,8 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 	@Override
 	public boolean responseHTTP(HTTPResponseReader reader) {
 		
-		System.out.println(" status:"+reader.getStatus());
-		System.out.println("   type:"+reader.getContentType());
+		System.out.println(" status:"+reader.statusCode());
+		System.out.println("   type:"+reader.contentType());
 		
 		Payloadable payload = new Payloadable() {
 			@Override

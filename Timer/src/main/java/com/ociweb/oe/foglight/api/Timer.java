@@ -19,7 +19,7 @@ public class Timer implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
     	
-    	runtime.addTimeListener(new firstTimeBehavior(runtime));
+    	runtime.addTimePulseListener(new firstTimeBehavior(runtime));
     	//runtime.addTimeListener(new secondTimeBehavior(runtime));
     	
     }

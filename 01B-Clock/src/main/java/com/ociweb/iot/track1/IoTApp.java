@@ -99,7 +99,7 @@ public class IoTApp implements FogApp
     	
 
     	final FogCommandChannel lcdTextChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
-    	runtime.addTimeListener((time, instance)->{ 
+    	runtime.addTimePulseListener((time, instance)->{ 
     		
     		  LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), zone);
     		

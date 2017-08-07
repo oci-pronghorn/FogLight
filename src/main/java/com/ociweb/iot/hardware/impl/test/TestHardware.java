@@ -214,5 +214,9 @@ public class TestHardware extends HardwareImpl {
 	public final boolean isTestHardware() {
 		return true;
 	}
+	
+	public void setSerialEcho(boolean on){
+		((TestSerial)testSerial).setEcho(on);//TODO: is this hard cast okay?
+	}
     
 }

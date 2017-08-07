@@ -64,11 +64,12 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	}
 
 	@Override
-	public void display(FogPixelScanner scanner) {
+	public boolean display(FogPixelScanner scanner) {
 		while (scanner.next((bmp, i, x, y) -> {
 			byte gray = (byte) bmp.getComponent(x, y, 0);
 			// set pixel on device
 		}));
+		return false;
 	}
 
 	/**
@@ -96,7 +97,7 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	}
 
 	/**
-	 * Sets the display in horizontal mode, necessary for  {@link #displayImage(int[][])}
+	 * Sets the display in horizontal mode, necessary for  {@link #display(int[][])}
 	 * Note that both {drawBitmap(FogCommandChannel, int[], int[])} and {displayImage(int[][])} already automatically set the display in
 	 * horizontal mode.
 	 * @return true if all three bytes needed were sent, false otherwise.
@@ -491,12 +492,12 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	}
 
 	@Override
-	public boolean displayImage(int[][] raw_image){
-		return displayImage(raw_image,1);
+	public boolean display(int[][] raw_image){
+		return display(raw_image,1);
 	}
 
 	@Override
-	public boolean displayImage(int[][] raw_image, int pixelDepth) {
+	public boolean display(int[][] raw_image, int pixelDepth) {
 		int counter = 0;
 		int pageLimit = rowCount >> 3;
 		for (int page = 0; page < pageLimit; page++){

@@ -5,6 +5,7 @@
  */
 package com.ociweb.iot.astropi;
 
+import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import com.ociweb.iot.astropi.listeners.HumidityListener;
 import com.ociweb.iot.astropi.listeners.PressureListener;
 import com.ociweb.iot.astropi.listeners.TemperatureListener;
@@ -19,12 +20,12 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransducer{
+public class EnvSensorTransducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer{
     private final FogCommandChannel target;
     
-    public AstroPi_EnvSensors(FogCommandChannel ch,AstroPiListener... l){
+    public EnvSensorTransducer(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
-        //target.ensureI2CWriting(200,10);
+        target.ensureI2CWriting(50,4);
         for(AstroPiListener item:l){
             if(item instanceof TemperatureListener){
                 this.tempListener = (TemperatureListener) item;
@@ -37,6 +38,10 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
             }
         
         }
+    }
+    @Override
+    public void startup() {
+        this.begin(true, true);
     }
     
     int CTRL_REG1_PVal = 0b00010100; //by default, ODR =1 Hz, turn on Block Data Update

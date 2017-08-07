@@ -17,8 +17,7 @@ public class FogBitmap implements FogExternalizable {
     }
 
     public FogBitmap(FogColorSpace colorSpace, byte componentDepth, int width, int height) {
-        this.layout = new FogBitmapLayout();
-        this.layout.setColorSpace(colorSpace);
+        this.layout = new FogBitmapLayout(colorSpace);
         this.layout.setWidth(width);
         this.layout.setHeight(height);
         this.layout.setComponentDepth(componentDepth);
@@ -45,6 +44,10 @@ public class FogBitmap implements FogExternalizable {
     public void writeExternal(BlobWriter out) {
         layout.writeExternal(out);
         out.write(bmp);
+    }
+
+    public int messageSize() {
+        return layout.bmpSize() + layout.messageSize();
     }
 
     public int getWidth() {

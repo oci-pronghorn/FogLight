@@ -1,24 +1,26 @@
 package com.ociweb.iot.maker.image;
 
-public class FogPixelLinearScanner implements FogPixelScanner {
+public class FogPixelProgressiveScanner implements FogPixelScanner {
     private final FogBitmap bmp;
-    private final FogPixelConsumer consumer;
     private final int width;
     private final int height;
     private int x = 0;
     private int y = 0;
     private int i = 0;
 
-    public FogPixelLinearScanner(FogBitmap bmp, FogPixelConsumer consumer) {
+    public FogPixelProgressiveScanner(FogBitmap bmp) {
         this.bmp = bmp;
         this.width = bmp.getWidth();
         this.height = bmp.getHeight();
-        this.consumer = consumer;
+    }
+
+    public void reset() {
+        x = y = i = 0;
     }
 
     @Override
     public boolean next(FogPixelConsumer consumer) {
-        this.consumer.consume(bmp, i, x, y);
+        consumer.consume(bmp, i, x, y);
         x++;
         if (x == width) {
             x = 0;
@@ -31,4 +33,6 @@ public class FogPixelLinearScanner implements FogPixelScanner {
         return true;
     }
 }
+
+
 

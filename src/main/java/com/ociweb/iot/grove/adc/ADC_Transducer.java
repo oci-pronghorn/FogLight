@@ -47,7 +47,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
      * Polarity = 0.
      */
     public void begin(){
-        writeSingleByteToRegister(REG_ADDR_CONFIG,0x20);
+        writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
     }
     /**
      * Write a byte to the CONFIG_REG register
@@ -56,6 +56,44 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
     public void setCONFIG_REG(int _b){
         writeSingleByteToRegister(REG_ADDR_CONFIG,_b);
     }
+    
+    private int REG_ADDR_CONFIGVal = 0x20; // default configuration
+    /**
+     * Set the conversion rate of the device. 
+     * 1 = 27 ksps, 2 = 13.5 ksps, 3 = 6.7 ksps
+     * 4 = 3.4 ksps, 5 = 1.7 ksps, 6 = 0.9 ksps, 7 = 0.4 ksps
+     * @param rate 
+     */
+    public void setRate(int rate){
+        if(rate > 0){
+            REG_ADDR_CONFIGVal |= (rate<<5); 
+        }
+    }
+    /**
+     * Set/ Clear the alert hold bit
+     * @param alertHold true : set the bit; false: clear the bit 
+     */
+    public void setAlertHoldBit(boolean alertHold){
+        if(alertHold){
+            REG_ADDR_CONFIGVal |= (1<<4);
+        }else{
+            REG_ADDR_CONFIGVal &= 0b11101111;
+        }
+        writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
+    }
+    /**
+     * Set/ Clear the alert flag enable bit
+     * @param alertFlag true : set the bit; false: clear the bit 
+     */
+    public void setAlertFlagEnableBit(boolean alertFlag){
+        if(alertFlag){
+            REG_ADDR_CONFIGVal |= (1<<3);
+        }else{
+            REG_ADDR_CONFIGVal &= 0b11110111;
+        }
+        writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
+    }
+    
     /**
      * Set the lower limit threshold used to determine the alert condition
      * @param _b positive integer between 0 and 4095
@@ -94,25 +132,14 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
      * @param mask 
      * @return The converted digital value. 
      */
-    private short interpretData(byte[] backing, int position, int length, int mask){
+    public short interpretData(byte[] backing, int position, int length, int mask){
         //format the data from the circular buffer backing[]
         
         short temp = (short)(((backing[(position)&mask]&0x0F) << 8) | (backing[(position+1)&mask]&0xFF));
         
         return temp;
     }
-    /**
-     * Method returns a 1 if there's an alert, 0 otherwise
-     * @param backing
-     * @param position
-     * @param length
-     * @param mask
-     * @return return a 1 if there's an alert, 0 otherwise
-     */
-    private int readAlertFlag(byte[] backing, int position, int length, int mask){
-        
-        return ((backing[position]) & 0x03 )>0?1:0;
-    }
+
     /**
      * write a byte to a register
      * @param register register to write to
@@ -151,7 +178,9 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
                 resultListener.conversionResult(this.interpretData(backing, position, length, mask));
             }
             if(register == REG_ADDR_ALERT && null!=alertListener){
-                alertListener.alertStatus(this.readAlertFlag(backing, position, length, mask));
+                int overRange = (backing[position] & 2)>>1;
+                int underRange = (backing[position]& 1);
+                alertListener.alertStatus(overRange, underRange);
             }
         }
     }

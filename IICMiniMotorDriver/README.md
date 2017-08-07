@@ -9,7 +9,7 @@
 The following sketch demonstrates a simple application to control the velocity of two motors using an Angle Sensor.
 
 Demo code (copy and paste this to a FogLighter project):
-First declare the connections in IoTApp.java . In order to perform I2C read, specify what to read in the connect() method. The i2c data read will then be passed to the listener interface's abstract methods.
+First declare the connections in IoTApp.java . In order to perform I2C read, specify what to read in the connect() method. Then specify the corresponding listener for the Behavior class to implement. The i2c data read will then be passed to the listener interface's abstract methods.
 
 
 ```java
@@ -104,9 +104,9 @@ public class MiniMotorBehavior implements AnalogListener,MiniMotorDriverListener
 
 The motors are controlled by the setVelocity() method. Turning the knob on the angle sensor will drive the motors forward/ backward with the adjustable speed.
 
-By implementing MiniMotorDriverListener, the fault status of each channel can be checked. ch1Status/ch2Status returns a 1 when there's fault on the corresponding channel.
+By implementing the MiniMotorDriverListener interface, the fault status of each channel can be checked. ch1Status/ch2Status passes a 1 when there's fault on the corresponding channel.
 
-For more information about the device's methods, refer to its javadocs [here].(https://github.com/oci-pronghorn/FogLight/blob/master/src/main/java/com/ociweb/iot/grove/mini_motor_driver/MiniMotorDriver_Transducer.java)
+For more information about the device's methods, refer to its javadocs [here](https://github.com/oci-pronghorn/FogLight/blob/master/src/main/java/com/ociweb/iot/grove/mini_motor_driver/MiniMotorDriver_Transducer.java).
 
 
 

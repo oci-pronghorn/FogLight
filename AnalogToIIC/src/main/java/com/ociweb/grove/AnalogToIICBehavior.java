@@ -10,7 +10,6 @@ import com.ociweb.iot.grove.adc.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import static com.ociweb.iot.maker.FogRuntime.*;
-import com.ociweb.iot.maker.I2CListener;
 
 /**
  *
@@ -26,11 +25,9 @@ public class AnalogToIICBehavior implements StartupListener,AlertStatusListener,
     }
     @Override
     public void startup() {
-        sensor.setRate(1);
         sensor.setAlertHoldBit(true);
         sensor.setAlertFlagEnableBit(true);
         sensor.setUpperLimit(upperLimit);
-        sensor.begin();
     }
 
 

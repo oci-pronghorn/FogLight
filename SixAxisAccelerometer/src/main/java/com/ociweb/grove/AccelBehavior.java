@@ -29,7 +29,6 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
     public void startup() {
         accSensor.setAccelScale(6);
         accSensor.setMagScale(8);
-        accSensor.begin();
     }
 
     @Override

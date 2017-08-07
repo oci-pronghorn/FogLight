@@ -25,6 +25,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
 
     public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener ... l){
         this.target = ch;
+        target.ensureI2CWriting(50, 4);
         for(ThreeAxisAccelerometer_16gListener item:l){
             if(item instanceof AccelValsListener){
                 this.accellistener = (AccelValsListener) item;

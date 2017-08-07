@@ -18,11 +18,10 @@ import com.ociweb.iot.transducer.I2CListenerTransducer;
 public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer {
     private final FogCommandChannel target;
     private RTCListener listener;
-    public RTC_Transducer(FogCommandChannel ch){
-        this.target = ch;
-    }
+    
     public RTC_Transducer(FogCommandChannel ch,RTCListener l){
         this.target = ch;
+        target.ensureI2CWriting(50 , 4);
         this.listener = l;
     }
     /**

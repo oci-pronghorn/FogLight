@@ -24,6 +24,7 @@ public class MiniMotorDriver_Transducer implements IODeviceTransducer,I2CListene
     }
     public MiniMotorDriver_Transducer(FogCommandChannel ch,MiniMotorDriverListener l){
         this.target = ch;
+        target.ensureI2CWriting(50, 4);
         this.listener = l;
     }
     

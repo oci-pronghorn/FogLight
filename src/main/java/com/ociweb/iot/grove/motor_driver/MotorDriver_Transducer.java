@@ -22,10 +22,12 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
 
     public MotorDriver_Transducer(FogCommandChannel ch){
         this.target = ch;
+        target.ensureI2CWriting(30000, 5);
     }
     
     public MotorDriver_Transducer(FogCommandChannel ch,int i2cAddress){
         this.target = ch;
+        target.ensureI2CWriting(30000, 5);
         this.DRIVER_I2C_ADD = i2cAddress;
     }
         

@@ -25,6 +25,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
 
     public SixAxisAccelerometer_Transducer(FogCommandChannel ch, SixAxisAccelerometer_16gListener... l ){
         this.target = ch;
+        target.ensureI2CWriting(50, 4);
         for(SixAxisAccelerometer_16gListener item:l){
             if(item instanceof AccelValsListener){
                 this.accellistener = (AccelValsListener) item;

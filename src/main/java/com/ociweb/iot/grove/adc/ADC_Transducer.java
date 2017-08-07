@@ -32,7 +32,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer,
     public ADC_Transducer(FogCommandChannel ch, ADCListener... l){
     	
         this.target = ch;
-        target.ensureI2CWriting();
+        target.ensureI2CWriting(50, 5);
         for(ADCListener item:l){
             if(item instanceof AlertStatusListener){
                 this.alertListener = (AlertStatusListener) item;

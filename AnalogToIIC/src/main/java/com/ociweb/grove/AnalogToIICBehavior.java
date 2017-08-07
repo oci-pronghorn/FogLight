@@ -26,11 +26,9 @@ public class AnalogToIICBehavior implements StartupListener,AlertStatusListener,
     }
     @Override
     public void startup() {
-        sensor.setRate(1);
         sensor.setAlertHoldBit(true);
         sensor.setAlertFlagEnableBit(true);
         sensor.setUpperLimit(upperLimit);
-        sensor.begin();
     }
 
 

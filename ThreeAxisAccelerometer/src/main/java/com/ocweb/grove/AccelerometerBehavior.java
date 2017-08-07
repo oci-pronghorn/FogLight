@@ -28,10 +28,6 @@ public class AccelerometerBehavior implements StartupListener,AccelInterruptList
     
     @Override
     public void startup() {
-        accSensor.powerOn();
-        accSensor.setRange(4);
-        accSensor.setRate(800); //make sure to set the range and rate after power on.
-        
         accSensor.setFreeFallDuration(4);
         accSensor.setFreeFallThreshold(9);
         accSensor.enableFreeFallInterrupt();

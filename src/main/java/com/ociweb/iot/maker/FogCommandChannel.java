@@ -63,6 +63,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
+    	growCommandCountRoom(queueLength);
     	this.initFeatures |= I2C_WRITER;    
     	PipeConfig<I2CCommandSchema> config = pcm.getConfig(I2CCommandSchema.class);
 		if (isTooSmall(commandCountCapcity, maxMessageSize, config)) {
@@ -82,6 +83,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
+    	growCommandCountRoom(queueLength);
     	this.initFeatures |= PIN_WRITER;    
     	PipeConfig<GroveRequestSchema> config = pcm.getConfig(GroveRequestSchema.class);
 		if (isTooSmall(commandCountCapacity, maxMessageSize, config)) {
@@ -101,6 +103,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
+    	growCommandCountRoom(queueLength);
     	this.initFeatures |= SERIAL_WRITER;    
     	PipeConfig<SerialOutputSchema> config = pcm.getConfig(SerialOutputSchema.class);
 		if (isTooSmall(commandCountCapacity, maxMessageSize, config)) {

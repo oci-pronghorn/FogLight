@@ -23,8 +23,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		//A nibble determines pixel. A byte is therefore two horizontally adjascent pixels.
 		//96x96 divided 2. Since each pixel takes a nibble to send
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);
-		ch.ensureI2CWriting(300, BATCH_SIZE);
-		ch.ensureCommandCountRoom(300);
+		ch.ensureI2CWriting(100, BATCH_SIZE);
 		this.chip = SSD1327;
 		
 	}

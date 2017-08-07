@@ -1,13 +1,14 @@
 package com.ociweb.iot.maker.image;
 
-import com.ociweb.iot.maker.FogExternalizable;
-import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * FogBitmap combines a FogBitmapLayout with a backstore
  */
-public class FogBitmap implements FogExternalizable {
+public class FogBitmap implements Externalizable {
     private FogBitmapLayout layout;
     private byte[] bmp;
 
@@ -29,19 +30,15 @@ public class FogBitmap implements FogExternalizable {
         this.bmp = this.layout.allocateBitmap();
     }
 
-    public FogBitmap(BlobReader in) {
-        readExternal(in);
-    }
-
     @Override
-    public void readExternal(BlobReader in) {
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         layout.readExternal(in);
         bmp = this.layout.allocateBitmap();
         in.read(bmp);
     }
 
     @Override
-    public void writeExternal(BlobWriter out) {
+    public void writeExternal(ObjectOutput out) throws IOException {
         layout.writeExternal(out);
         out.write(bmp);
     }

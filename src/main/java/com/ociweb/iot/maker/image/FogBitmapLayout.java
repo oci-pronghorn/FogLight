@@ -1,15 +1,16 @@
 package com.ociweb.iot.maker.image;
 
-import com.ociweb.iot.maker.FogExternalizable;
-import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import static com.ociweb.iot.maker.image.FogColorSpace.values;
 
 /**
  * FogBitmapLayout defines the structure of a device dependent bitmap.
  */
-public class FogBitmapLayout implements FogExternalizable {
+public class FogBitmapLayout implements Externalizable {
 
     private FogColorSpace colorSpace;
     private int width = 1;
@@ -31,10 +32,6 @@ public class FogBitmapLayout implements FogExternalizable {
         cacheCalculatedValues();
     }
 
-    public FogBitmapLayout(BlobReader in) {
-        readExternal(in);
-    }
-
     // Accessors
 
     public int messageSize() {
@@ -42,12 +39,12 @@ public class FogBitmapLayout implements FogExternalizable {
     }
 
     @Override
-    public void writeExternal(BlobWriter writer) {
-        writer.writeInt(width);
-        writer.writeInt(height);
-        writer.writeInt(colorSpace.ordinal());
-        writer.writeByte(componentDepth);
-        writer.writeByte(minComponentWidth);
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeInt(width);
+        out.writeInt(height);
+        out.writeInt(colorSpace.ordinal());
+        out.writeByte(componentDepth);
+        out.writeByte(minComponentWidth);
     }
 
     // Pixels wide
@@ -78,12 +75,12 @@ public class FogBitmapLayout implements FogExternalizable {
     // Mutators
 
     @Override
-    public void readExternal(BlobReader reader) {
-        width = reader.readInt();
-        height = reader.readInt();
-        colorSpace = values()[reader.readInt()];
-        componentDepth = reader.readByte();
-        minComponentWidth = reader.readByte();
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        width = in.readInt();
+        height = in.readInt();
+        colorSpace = values()[in.readInt()];
+        componentDepth = in.readByte();
+        minComponentWidth = in.readByte();
         cacheCalculatedValues();
     }
 

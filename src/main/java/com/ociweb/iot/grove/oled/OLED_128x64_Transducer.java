@@ -28,7 +28,6 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	public OLED_128x64_Transducer(FogCommandChannel ch){
 		super(ch, new int[1024], new int[32], OLEDADDRESS);
 		ch.ensureI2CWriting(100, BATCH_SIZE);
-		ch.ensureCommandCountRoom(100);//TODO: should consider putting the 100 as a constant.
 		//the most amount of data we can ever send at once as this is one entire frame worth of data
 		//the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
 	}

@@ -4,14 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.MsgCommandChannel;
-import com.ociweb.gl.api.PubSubWriter;
-import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;

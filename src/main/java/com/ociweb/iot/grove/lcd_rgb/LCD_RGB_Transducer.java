@@ -14,8 +14,7 @@ public class LCD_RGB_Transducer {
 	}
 
 	public FogBitmapLayout createBmpLayout() {
-		FogBitmapLayout bmpLayout = new FogBitmapLayout();
-		bmpLayout.setColorSpace(FogColorSpace.rgb);
+		FogBitmapLayout bmpLayout = new FogBitmapLayout(FogColorSpace.rgb);
 		bmpLayout.setComponentDepth((byte) 6);
 		bmpLayout.setWidth(8);
 		bmpLayout.setHeight(8);

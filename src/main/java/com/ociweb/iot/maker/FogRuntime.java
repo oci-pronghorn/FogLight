@@ -339,7 +339,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		runtime.logStageScheduleRates();
 
 		if ( runtime.builder.isTelemetryEnabled()) {
-			runtime.gm.enableTelemetry(8098);
+			runtime.gm.enableTelemetry(runtime.builder.telemetryHost(),8098);
 		}
 		//exportGraphDotFile();
 
@@ -394,7 +394,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		lastTime = nowTime;
 				
 		if ( runtime.builder.isTelemetryEnabled()) {
-			runtime.gm.enableTelemetry(8098);
+			runtime.gm.enableTelemetry(runtime.builder.telemetryHost(),8098);
 			logger.info("{} ms duration {} ms finished building telemetry", lastTime = nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		}
 		//exportGraphDotFile();

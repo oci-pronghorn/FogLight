@@ -2,6 +2,8 @@ package com.ociweb.iot.grove.oled;
 
 import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
 
+import com.ociweb.gl.api.StartupListener;
+import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import com.ociweb.iot.grove.gps.GPS_Consts;
 import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -12,7 +14,7 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceTransducer;
 
-public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransducer{
+public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransducer, StartupListenerTransducer{
 
 	private int lowPixelLevel = 0x0F;
 	private int highPixelLevel = 0xF0;
@@ -31,8 +33,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 
 	@Override
 	public FogBitmapLayout createBmpLayout() {
-		FogBitmapLayout bmpLayout = new FogBitmapLayout();
-		bmpLayout.setColorSpace(FogColorSpace.gray);
+		FogBitmapLayout bmpLayout = new FogBitmapLayout(FogColorSpace.gray);
 		bmpLayout.setComponentDepth((byte) 4);
 		bmpLayout.setWidth(OLED_96x96_Consts.COL_COUNT);
 		bmpLayout.setHeight(OLED_96x96_Consts.ROW_COUNT);
@@ -40,11 +41,18 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 
 	@Override
-	public void display(FogPixelScanner scanner) {
-		while (scanner.next((bmp, i, x, y) -> {
-			byte gray = (byte) bmp.getComponent(x, y, 0);
-			// set pixel on device
-		}));
+	public boolean display(FogPixelScanner scanner) {
+//		int mask = 0xF;
+//		while (scanner.next((bmp, i, x, y) -> {
+//			int b = (raw_image[i][j] & mask) << 4;
+//			b |= raw_image[i][j+1] & mask;
+//			data_out[index++] = b;
+//			
+//			
+//			
+//		}));
+//		//return sendData(0,)
+		return false;
 	}
 
 	@Deprecated
@@ -358,9 +366,9 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 	
 	/**
-	 * This function should be used over {@link #displayImage(int[][], int)} with the pixelDepth set to 1 if the
+	 * This function should be used over {@link #display(int[][], int)} with the pixelDepth set to 1 if the
 	 * input data map is a one dimensional compact array where each bit corresponds to a pixel. If each int corresponds
-	 * to a pixel, {@link #displayImage(int[][], int)} should be the go-to method.
+	 * to a pixel, {@link #display(int[][], int)} should be the go-to method.
 	 * @param map
 	 * @return true
 	 */
@@ -450,12 +458,12 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 
 	@Override
-	public boolean displayImage(int[][] raw_image) {
-		return displayImage(raw_image, 4);
+	public boolean display(int[][] raw_image) {
+		return display(raw_image, 4);
 	}
 	
 	@Override
-	public boolean displayImage(int[][] raw_image, int pixelDepth){
+	public boolean display(int[][] raw_image, int pixelDepth){
 		switch (chip){
 		case SSD1327:
 			if (!setHorizontalMode()){
@@ -553,4 +561,11 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		return sendData(data, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 	 */
+
+	@Override
+	public void startup() {
+		logger.info("Transducer startup listener");
+		this.init();
+		this.clear();
+	}
 }

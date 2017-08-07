@@ -162,7 +162,7 @@ public abstract class BinaryOLED {
 		return sendCommands(cmd, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 	
-	public abstract boolean init();
+	protected abstract boolean init();
 	public abstract boolean clear();
 	public abstract boolean cleanClear();
 	public abstract boolean displayOn();

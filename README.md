@@ -3,11 +3,11 @@
 ## What you will need before you start:
 #### [Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) 
 #### [Maven](https://maven.apache.org/install.html)
-,which downloads and manages the libraries and APIs needed to get the Grove device working.
+- which downloads and manages the libraries and APIs needed to get the Grove device working.
 #### [Git](https://git-scm.com/)
-, which clones a template Maven project with the necessary dependencies already set up.
+- which clones a template Maven project with the necessary dependencies already set up.
 #### [PuTTY](http://www.putty.org/)
-, which allows you to interact and control your device
+- which allows you to interact and control your device
 
 ## Starting Your Own Project
 

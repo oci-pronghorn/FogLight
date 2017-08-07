@@ -5,6 +5,7 @@
 */
 package com.ociweb.iot.grove.three_axis_accelerometer_16g;
 
+import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -16,7 +17,7 @@ import com.ociweb.iot.transducer.I2CListenerTransducer;
  *
  * @author huydo
  */
-public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer,I2CListenerTransducer {    
+public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer {    
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
     private ActTapListener acttaplistener;
@@ -37,7 +38,12 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
         }
     }
     
-    
+    @Override
+    public void startup() { //by default, the accelerometer start with range = +/- 2g, ODR = 800 Hz
+        this.powerOn();
+        this.setRange(2);
+        this.setRate(800);
+    }
     /**
      * Start the device in measurement mode, with auto-sleep disabled and sleep mode disabled
      */

@@ -5,6 +5,7 @@
 */
 package com.ociweb.iot.grove.six_axis_accelerometer;
 
+import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import static com.ociweb.iot.grove.six_axis_accelerometer.SixAxisAccelerometer_Constants.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
@@ -17,7 +18,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CListenerTransducer {
+public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer {
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
     private MagValsListener maglistener;
@@ -33,6 +34,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
             }
         }
     }
+    
     /**
      * Start the accelerometer sensor with the following configurations:
      * 50Hz accelerometer data rate, all acceleration axis enabled, normal mode
@@ -41,7 +43,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * enable temperature
      * 50Hz magnetic data rate; +/- 2 gauss, continuous conversion mode
      */
-    public void begin(){
+    private void begin(){
         axWriteByte(CTRL_REG1,CTRL_REG1Val); 
         axWriteByte(CTRL_REG2,CTRL_REG2Val); // set full-scale
         axWriteByte(CTRL_REG3,0x00); //no interrupt
@@ -50,6 +52,12 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
         axWriteByte(CTRL_REG6,CTRL_REG6Val); //magnetic scale = +/- 2 Gauss
         axWriteByte(CTRL_REG7,0b10000000); 
     }
+    
+    @Override 
+    public void startup() {
+        this.begin();
+    }
+
     
     private int CTRL_REG1Val = 0b01011111; //by default, ODR = 50 Hz, enable BDU, all accel axes enabled
     /**
@@ -63,6 +71,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
         if(aRate != 0){
             CTRL_REG1Val |= (aRate<<4);
         }
+        axWriteByte(CTRL_REG1,CTRL_REG1Val); 
     }
     
     private int accelScale = 2;
@@ -91,6 +100,8 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
                 CTRL_REG2Val |= (4<<3);
                 break;
         }
+        axWriteByte(CTRL_REG2,CTRL_REG2Val);
+        
     }
     
     private int CTRL_REG5Val = 0b10010000; //by default, enable temperature sensor, magnetic data low resolution, ODR = 50 Hz
@@ -102,6 +113,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      */
     public void setMagODR(int mRate){
         CTRL_REG5Val |= (mRate << 2);
+        axWriteByte(CTRL_REG5,CTRL_REG5Val);
     }
     
     private int magScale = 2;
@@ -127,6 +139,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
                 break;
 
         }
+        axWriteByte(CTRL_REG6,CTRL_REG6Val);
     }
     
     /**

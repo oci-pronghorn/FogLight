@@ -13,6 +13,7 @@ import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_LIMITH;
 import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_LIMITL;
 import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_RESULT;
 
+import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
@@ -23,10 +24,11 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
+public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer{
     private final FogCommandChannel target;
     private AlertStatusListener alertListener;
     private ConversionResultListener resultListener;
+    
     public ADC_Transducer(FogCommandChannel ch, ADCListener... l){
     	
         this.target = ch;
@@ -40,13 +42,19 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
             }
         }
     }
+    
+    @Override
+    public void startup() { 
+        this.begin();
+    }
+    
     /**
      * Begin the ADC with the default configuration :
      * f_convert = 27 ksps; Alert Hold = 0;
      * Alert Flag Enable = 0; Alert Pin Enable = 0;
      * Polarity = 0.
      */
-    public void begin(){
+    private void begin(){
         writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
     }
     /**
@@ -68,6 +76,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
         if(rate > 0){
             REG_ADDR_CONFIGVal |= (rate<<5); 
         }
+        writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
     }
     /**
      * Set/ Clear the alert hold bit

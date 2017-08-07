@@ -9,7 +9,6 @@ import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.grove.adc.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import static com.ociweb.iot.maker.FogRuntime.*;
 
 /**
  *
@@ -20,7 +19,7 @@ public class AnalogToIICBehavior implements StartupListener,AlertStatusListener,
     private final ADC_Transducer sensor;
     private final int upperLimit = 400;
     public AnalogToIICBehavior(FogRuntime runtime){
-        this.ch = runtime.newCommandChannel(I2C_WRITER);
+        this.ch = runtime.newCommandChannel();
         sensor = new ADC_Transducer(ch,this);
     }
     @Override

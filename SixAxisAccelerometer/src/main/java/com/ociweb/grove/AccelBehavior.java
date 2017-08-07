@@ -9,7 +9,6 @@ import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.grove.six_axis_accelerometer.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import static com.ociweb.iot.maker.FogRuntime.*;
 
 /**
  *
@@ -21,7 +20,7 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
     private final SixAxisAccelerometer_Transducer accSensor;
     
     AccelBehavior(FogRuntime runtime){
-        this.ch = runtime.newCommandChannel(I2C_WRITER);     
+        this.ch = runtime.newCommandChannel();     
         accSensor = new SixAxisAccelerometer_Transducer(ch,this);
     }
    

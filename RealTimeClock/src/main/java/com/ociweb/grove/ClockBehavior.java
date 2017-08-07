@@ -10,9 +10,7 @@ import com.ociweb.gl.api.Behavior;
 import com.ociweb.iot.grove.real_time_clock.RTCListener;
 import com.ociweb.iot.grove.real_time_clock.RTC_Transducer;
 import com.ociweb.iot.maker.FogCommandChannel;
-import static com.ociweb.iot.maker.FogRuntime.*;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.I2CListener;
 
 /**
  *
@@ -23,7 +21,7 @@ public class ClockBehavior implements RTCListener,Behavior{
     private FogCommandChannel ch;
     RTC_Transducer clock;
     public ClockBehavior(FogRuntime runtime){
-        this.ch = runtime.newCommandChannel(I2C_WRITER);
+        this.ch = runtime.newCommandChannel();
         clock = new RTC_Transducer(ch,this);
     }
 

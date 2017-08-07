@@ -32,7 +32,7 @@ public class MotorDriverBehavior implements StartupListener, PubSubListener {
     }
 
     public MotorDriverBehavior(FogRuntime runtime) {
-        this.ch = runtime.newCommandChannel(I2C_WRITER, 30000); //need long command channel length to send Stepper Run commands (24 bytes per step)
+        this.ch = runtime.newCommandChannel(); //need long command channel length to send Stepper Run commands (24 bytes per step)
         this.controller = MotorDriver.newTransducer(ch);
     }
 

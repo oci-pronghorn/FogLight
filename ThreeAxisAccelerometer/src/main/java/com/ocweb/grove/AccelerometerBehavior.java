@@ -10,7 +10,6 @@ import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.grove.three_axis_accelerometer_16g.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import static com.ociweb.iot.maker.FogRuntime.*;
 
 /**
  *
@@ -22,7 +21,7 @@ public class AccelerometerBehavior implements StartupListener,AccelInterruptList
     private final ThreeAxisAccelerometer_16g_Transducer accSensor;
     
     public AccelerometerBehavior(FogRuntime runtime){
-        this.c = runtime.newCommandChannel(I2C_WRITER);
+        this.c = runtime.newCommandChannel();
         accSensor = new ThreeAxisAccelerometer_16g_Transducer(c,this);
     }
     

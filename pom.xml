@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ociweb</groupId>
-  <artifactId>FogLight-Archetype</artifactId>
+  <artifactId>FogLighter</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <name>FogLight-Archetype</name>
   <url>http://maven.apache.org</url>
@@ -11,9 +11,9 @@
   </properties>
   
   <scm>
-    <connection>scm:git:git://github.com/oci-pronghorn/FogLight-Archetype.git</connection>
-    <url>https://github.com/oci-pronghorn/FogLight-Archetype</url>
-    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/FogLight-Archetype.git</developerConnection>
+    <connection>scm:git:git://github.com/oci-pronghorn/FogLighter.git</connection>
+    <url>https://github.com/oci-pronghorn/FogLighter</url>
+    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/FogLighter.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
   

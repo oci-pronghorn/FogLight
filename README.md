@@ -27,7 +27,7 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 - AnalogListener
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/AnalogListener/AnalogListener.md)
 - AnalogTransducer
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/AnalogTransducer/README.md)
 - CommandChannel
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/CommandChannel/CommandChannel.md)
 - CustomDevice

@@ -19,10 +19,9 @@ Demo code:
 package com.ociweb.oe.foglight.api;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
 
 public class Startup implements FogApp
 {
@@ -42,4 +41,5 @@ public class Startup implements FogApp
 ```
 
 
-When executed, the above code will send the string ```"Hello, this message will display once at start"``` as soon as the program begins running. 
+When executed, the above code will send the string ```"Hello, this message will display once at start"`` as soon as the program begins running. NOTE: while it was not performed here, 
+if a transducer uses a startup method, then the startup listener of the transducer will execute before the startup method in the behavior class. Also, if multiple transducers use startup a method, do not worry about an order, it will be done automatically.

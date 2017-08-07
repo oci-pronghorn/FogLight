@@ -132,7 +132,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
      * @param mask 
      * @return The converted digital value. 
      */
-    public short interpretData(byte[] backing, int position, int length, int mask){
+    private short interpretData(byte[] backing, int position, int length, int mask){
         //format the data from the circular buffer backing[]
         
         short temp = (short)(((backing[(position)&mask]&0x0F) << 8) | (backing[(position+1)&mask]&0xFF));

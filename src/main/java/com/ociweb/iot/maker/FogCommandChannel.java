@@ -59,14 +59,14 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	this.initFeatures |= I2C_WRITER;
     }
     
-    public void ensureI2CWriting(int queueLength, int maxMessageSize) {
+    public void ensureI2CWriting(int commandCountCapcity, int maxMessageSize) {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= I2C_WRITER;    
     	PipeConfig<I2CCommandSchema> config = pcm.getConfig(I2CCommandSchema.class);
-		if (isTooSmall(queueLength, maxMessageSize, config)) {
-    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), queueLength),
+		if (isTooSmall(commandCountCapcity, maxMessageSize, config)) {
+    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), commandCountCapcity),
 			           Math.max(config.maxVarLenSize(), maxMessageSize), I2CCommandSchema.class);   
     	}
     }
@@ -78,14 +78,14 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	this.initFeatures |= PIN_WRITER;
     }
     
-    public void ensurePinWriting(int queueLength, int maxMessageSize) {
+    public void ensurePinWriting(int commandCountCapacity, int maxMessageSize) {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= PIN_WRITER;    
     	PipeConfig<GroveRequestSchema> config = pcm.getConfig(GroveRequestSchema.class);
-		if (isTooSmall(queueLength, maxMessageSize, config)) {
-    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), queueLength),
+		if (isTooSmall(commandCountCapacity, maxMessageSize, config)) {
+    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), commandCountCapacity),
 			           Math.max(config.maxVarLenSize(), maxMessageSize), GroveRequestSchema.class);   
     	}
     }
@@ -97,15 +97,15 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	this.initFeatures |= SERIAL_WRITER;
     }
     
-    public void ensureSerialWriting(int queueLength, int maxMessageSize) {
+    public void ensureSerialWriting(int commandCountCapacity, int maxMessageSize) {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= SERIAL_WRITER;    
     	PipeConfig<SerialOutputSchema> config = pcm.getConfig(SerialOutputSchema.class);
-		if (isTooSmall(queueLength, maxMessageSize, config)) {
+		if (isTooSmall(commandCountCapacity, maxMessageSize, config)) {
 
-    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), queueLength),
+    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), commandCountCapacity),
     				           Math.max(config.maxVarLenSize(), maxMessageSize), SerialOutputSchema.class);   
     	}
     }
@@ -116,7 +116,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	buildFogPipes();
     	return super.getOutputPipes();
     }
-    
+        
 	private void buildFogPipes() {
 		
 		   if (maxCommands<0) { //this block will set maxCommands

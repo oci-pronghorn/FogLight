@@ -9,7 +9,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.I2CListener;
 
-public class I2CListenerBehavior implements I2CListener, StartupListener {
+public class I2CListenerBehavior implements I2CListener {
 
     private final ADC_Transducer sensor;
         
@@ -17,10 +17,7 @@ public class I2CListenerBehavior implements I2CListener, StartupListener {
         sensor = new ADC_Transducer(runtime.newCommandChannel());
 
 	}
-	@Override
-	public void startup() {
-       		sensor.begin();		
-	}
+
 	@Override
 	public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
 		// i2cEvent triggers when there's data from an i2c read of a device

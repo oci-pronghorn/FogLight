@@ -1,20 +1,18 @@
 package com.ociweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
-
 import com.ociweb.gl.api.TimeListener;
 import static com.ociweb.iot.grove.oled.OLEDTwig.*;
-
 import com.ociweb.iot.maker.FogRuntime;
-
 import com.ociweb.iot.grove.oled.OLED_96x96_Transducer;
 import static com.ociweb.grove.OCI_Logo.*;
 import static com.ociweb.grove.Grumpy.*;
 import static com.ociweb.grove.PiLogo.*;
 import static com.ociweb.grove.DexterLogo.*;
-import static com.ociweb.iot.maker.FogRuntime.*;
+import static com.ociweb.grove.QR.OCI_LINK;
 
-public class OLED_96x96Behavior implements StartupListener, TimeListener{
+public class OLED_96x96Behavior implements TimeListener, StartupListener{
+	
 	private final OLED_96x96_Transducer display;
 	public OLED_96x96Behavior(FogRuntime rt){
 		display = OLED_96x96.newTransducer(rt.newCommandChannel()); 
@@ -23,33 +21,33 @@ public class OLED_96x96Behavior implements StartupListener, TimeListener{
 	@Override
 	public void timeEvent(long time, int iteration) {
 		
-		int remainder = iteration % 5;
-		
-		switch (remainder){
-		case 0:
-			display.displayImage(OCI_LOGO);
-			break;
-		case 1:
-			display.displayImage(GRUMPY);
-			break;
-		case 2:
-			display.displayImage(PI_LOGO);
-			break;
-		case 3:
-			display.displayImage(DEX_LOGO);
-			break;
-		case 4:
-			display.displayImage(Huy.HUY);
-		}
+//		int remainder = iteration % 5;
+//		
+//		switch (remainder){
+//		case 0:
+//			display.display(OCI_LOGO);
+//			break;
+//		case 1:
+//			display.display(GRUMPY);
+//			break;
+//		case 2:
+//			display.display(PI_LOGO);
+//			break;
+//		case 3:
+//			display.display(DEX_LOGO);
+//			break;
+//		case 4:
+//			display.display(Huy.HUY);
+//		}
+//		System.out.println("Switching to image " + remainder);
 		//display.setTextRowCol(0, 0);
 		//display.printCharSequence("hello world");
 		
 		
 	}
-
+	
 	@Override
 	public void startup() {
-		display.init();
-		display.cleanClear();
+		display.display(OCI_LINK);
 	}
 }

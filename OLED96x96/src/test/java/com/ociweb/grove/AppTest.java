@@ -46,19 +46,19 @@ public class AppTest {
 	public void testInit(){
 		
 	}
-	
+	@Deprecated
 	public void testImageSerialization(){
-		/*
+		
 		try {
 			int[][] map = null;
 			map = ImageGenerator.convertToGrayScale(4, 0, 0, 96, 96);
-			FileOutputStream fos = new FileOutputStream("/Users/ray/Documents/workspace/FogLight-Grove/OLED96x96/src/main/resources/oci.dat");
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject(map);
+			//FileOutputStream fos = new FileOutputStream("/Users/ray/Documents/workspace/FogLight-Grove/OLED96x96/src/main/resources/oci.dat");
+			//ObjectOutputStream oos = new ObjectOutputStream(fos);
+			//oos.writeObject(map);
 		} catch (IOException e) {
 			
 			e.printStackTrace();
 		}
-		*/
+		
 	}
 }

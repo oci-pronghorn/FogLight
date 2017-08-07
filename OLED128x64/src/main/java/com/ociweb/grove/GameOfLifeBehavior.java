@@ -51,7 +51,7 @@ public class GameOfLifeBehavior implements StartupListener, TimeListener {
 			ageUniverse();
 			//System.out.println("Iteration: " + iteration + ", Time: " + time);
 			
-			display.displayImage(curState);
+			display.display(curState);
 
 			if (enableMonitoring) {
 				monitorInConsole();

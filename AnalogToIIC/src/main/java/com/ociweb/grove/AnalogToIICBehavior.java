@@ -10,7 +10,6 @@ import com.ociweb.iot.grove.adc.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import static com.ociweb.iot.maker.FogRuntime.*;
-import com.ociweb.iot.maker.I2CListener;
 
 /**
  *

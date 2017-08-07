@@ -20,7 +20,7 @@ When executed, the program will print out the x,y,z acceleration values and noti
 
 [1] The ThreeAxisAccelerometer source code supports 3 Listener interfaces:
 1. AccelValsListener
-This listener has accelVals() abstract method which returns x,y,z acceleration values in units of mg (1000 mg = 9.8 m/s^2)
+This listener has accelVals() abstract method which passes x,y,z acceleration values in units of mg (1000 mg = 9.8 m/s^2)
 2. AccelInterruptListener
 The AccelInterruptStatus() abstract method has 5 fields corresponding to 5 types of interrupt. The int of the field will be 1 if the corresponding action is detected. 
 3. ActTapListener

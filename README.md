@@ -77,10 +77,10 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - I2C Mini Motor Driver
   - [wiki](http://wiki.seeed.cc/Grove-Mini_I2C_Motor_Driver_v1.0/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/IICMiniMotorDriver/README.md)
 - I2C Motor Driver
   - [wiki](http://wiki.seeed.cc/Grove-I2C_Motor_Driver_V1.3/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/IICMotorDriver/README.md)
 - LCD RGB Backlight
   - [wiki](http://wiki.seeed.cc/Grove-LCD_RGB_Backlight/)
   - demo - Coming Soon!

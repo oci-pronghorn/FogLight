@@ -2,14 +2,15 @@ package com.ociweb.iot.grove.simple_analog;
 
 import java.util.ArrayList;
 
-import com.ociweb.iot.maker.AnalogListener;
+
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.Port;
+import com.ociweb.iot.transducer.AnalogListenerTransducer;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 import static com.ociweb.pronghorn.util.ma.MAvgRollerLong.*;
 
-public class SimpleAnalogTransducer implements IODeviceTransducer, AnalogListener{
+public class SimpleAnalogTransducer implements IODeviceTransducer, AnalogListenerTransducer{
 	private FogCommandChannel ch;
 	private Port p;
 

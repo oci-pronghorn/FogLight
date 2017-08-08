@@ -9,37 +9,17 @@ import com.ociweb.gl.api.MsgCommandChannel;
 
 public class IoTApp implements FogApp
 {
-	private static final Port THUMBJOYSTICK_PORT_X = A0;
-	private static final Port THUMBJOYSTICK_PORT_Y = A1;
-	private static final String GroveTwig = null;
+	private static final Port THUMBJOYSTICK_PORT = A0;
 
 	@Override
 	public void declareConnections(Hardware c) {
-
-		
 		//TODO: pinUsed() is not automatically allowing user to automatically connect both ports once one port is connected
-		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT_X);
-		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT_Y);
+		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT);
 	}
 
 
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
-		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-			if ( port == THUMBJOYSTICK_PORT_X){
-				//the X value should be roughly between 200 to 800 unless pressed
-				if (value != 1023){
-					System.out.println("X: "+value);
-				}
-				else {
-					System.out.println("Pressed");
-				}
-			}
-			
-			else if (port == THUMBJOYSTICK_PORT_Y){
-				System.out.println("Y: "+value);
-
-			}
-		});
+		runtime.registerListener(new ThumbJoystickBehavior(THUMBJOYSTICK_PORT));
 	}
 }

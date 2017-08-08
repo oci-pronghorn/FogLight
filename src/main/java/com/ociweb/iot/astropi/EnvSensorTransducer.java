@@ -5,10 +5,10 @@
  */
 package com.ociweb.iot.astropi;
 
-import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import com.ociweb.iot.astropi.listeners.HumidityListener;
 import com.ociweb.iot.astropi.listeners.PressureListener;
 import com.ociweb.iot.astropi.listeners.TemperatureListener;
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;

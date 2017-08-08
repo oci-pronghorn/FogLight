@@ -15,7 +15,7 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 	private ArrayList <ThumbJoystickListener> listeners = new ArrayList<ThumbJoystickListener>();
 
 	public ThumbJoystickTransducer(){
-
+		
 	}
 
 	public ThumbJoystickTransducer registerThumbJoystickListener(ThumbJoystickListener... ls){

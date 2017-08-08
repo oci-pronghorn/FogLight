@@ -5,8 +5,9 @@
 */
 package com.ociweb.iot.grove.six_axis_accelerometer;
 
-import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import static com.ociweb.iot.grove.six_axis_accelerometer.SixAxisAccelerometer_Constants.*;
+
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;

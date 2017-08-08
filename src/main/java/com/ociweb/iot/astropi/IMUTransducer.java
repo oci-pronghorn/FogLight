@@ -5,12 +5,13 @@
 */
 package com.ociweb.iot.astropi;
 
-import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import com.ociweb.iot.astropi.listeners.MagListener;
 import com.ociweb.iot.astropi.listeners.AccelListener;
 import com.ociweb.iot.astropi.listeners.GyroListener;
 import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import static com.ociweb.iot.astropi.AstroPi_Constants.*;
+
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;

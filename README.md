@@ -25,38 +25,38 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 ## Information and Demos 
 - AnalogListener
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/AnalogListener/AnalogListener.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/AnalogListener/README.md)
 - AnalogTransducer
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/AnalogTransducer/README.md)
 - CommandChannel
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/CommandChannel/CommandChannel.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/CommandChannel/README.md)
 - CustomDevice
   - demo - Coming Soon!
 - DeclareConnections
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/DeclareConnections/DeclareConnections.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/DeclareConnections/README.md)
 - DigitalListener
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/DigitalListener/DigitalListener.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/DigitalListener/README.md)
 - HTTPClient
   - demo - Coming Soon!
 - HTTPServer
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/HTTPServer/README.md)
 - I2CListener
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/I2CListener/I2CListener.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/I2CListener/README.md)
 - ImageListener
   - demo - Coming Soon!
 - MQTTClient
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/MQTTClient/MQTTClient.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/MQTTClient/README.md)
 - PubSub
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/PubSub/PubSub.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/PubSub/README.md)
 - PubSubStructured
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/PubSubStructured/PubSubStructured.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/PubSubStructured/README.md)
 - SerialListener
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/SerialListener/SerialListener.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/SerialListener/README.md)
 - Shutdown
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Shutdown/Shutdown.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Shutdown/README.md)
 - Startup
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Startup/Startup.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Startup/README.md)
 - StateMachine
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/StateMachine/StateMachine.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/StateMachine/README.md)
 - Timer
-  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Timer/Timer.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Timer/README.md)

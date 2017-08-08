@@ -59,7 +59,7 @@ Of course, this is just a simple example; for more interesting examples that dem
 ## Information and Demos for Grove Devices
 - Analog TollC
   - [wiki](http://wiki.seeed.cc/Grove-I2C_ADC/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AnalogToIIC/README.md)
 - Angle Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Rotary_Angle_Sensor/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AngleSensor/README.md)
@@ -77,10 +77,10 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - I2C Mini Motor Driver
   - [wiki](http://wiki.seeed.cc/Grove-Mini_I2C_Motor_Driver_v1.0/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/IICMiniMotorDriver/README.md)
 - I2C Motor Driver
   - [wiki](http://wiki.seeed.cc/Grove-I2C_Motor_Driver_V1.3/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/IICMotorDriver/README.md)
 - LCD RGB Backlight
   - [wiki](http://wiki.seeed.cc/Grove-LCD_RGB_Backlight/)
   - demo - Coming Soon!
@@ -110,7 +110,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - Real Time Clock
   - [wiki](http://wiki.seeed.cc/Grove-RTC/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/RealTimeClock/README.md)
 - Relay
   - [wiki](http://wiki.seeed.cc/Grove-Relay/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Relay/Relay.md)
@@ -122,13 +122,13 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - SixAxisAccelerometer
   - [wiki](http://wiki.seeed.cc/Grove-6-Axis_AccelerometerAndCompass_V2.0/)
-  - demo -Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/SixAxisAccelerometer/README.md)
 - Temperature Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Temperature_Sensor/)
   - demo - Coming Soon!
 - Three Axis Acceleromter
   - [wiki](http://wiki.seeed.cc/Grove-3-Axis_Digital_Accelerometer-1.5g/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/ThreeAxisAccelerometer/README.md)
 - Thumb Joystick
   - [wiki](http://wiki.seeed.cc/Grove-Thumb_Joystick/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/ThumbJoystick/readme.md)

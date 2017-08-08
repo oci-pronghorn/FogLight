@@ -10,5 +10,5 @@ package com.ociweb.iot.astropi.listeners;
  * @author huydo
  */
 public interface AccelListener extends AstroPiListener {
-    void accelEvent(double x,double y,double z);
+    void accelerationValues(double x,double y,double z);
 }

@@ -10,5 +10,5 @@ package com.ociweb.iot.astropi.listeners;
  * @author huydo
  */
 public interface PressureListener extends AstroPiListener{
-    void pressureVal(int pressure);
+    void pressureValues(int pressure);
 }

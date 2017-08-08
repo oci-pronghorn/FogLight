@@ -10,5 +10,5 @@ package com.ociweb.iot.astropi.listeners;
  * @author huydo
  */
 public interface GyroListener extends AstroPiListener{
-    void gyroEvent(double x,double y,double z);
+    void gyroscopeValues(double x,double y,double z);
 }

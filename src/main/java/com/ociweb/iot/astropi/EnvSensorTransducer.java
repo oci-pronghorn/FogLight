@@ -50,8 +50,8 @@ public class EnvSensorTransducer implements IODeviceTransducer,I2CListenerTransd
      * Power up the humidity and/or the pressure sensor
      * Set the output data rate (ODR) of the pressure sensor to 1 Hz
      * Set the output data rate (ODR) of the humidity sensor to 1 Hz
-     * @param humiditySensor
-     * @param pressureSensor 
+     * @param humiditySensor true/false to enable/disable the sensor
+     * @param pressureSensor true/false to enable/disable the sensor
      */
     public void begin(boolean humiditySensor,boolean pressureSensor){
         if(pressureSensor){
@@ -177,7 +177,7 @@ public class EnvSensorTransducer implements IODeviceTransducer,I2CListenerTransd
             if(register == AstroPi_Constants.PRESSURE_XL_REG){
                 int data = this.interpretThreeBytes(backing, position, length, mask);
                 int pressure = data/4096;
-                pressureListener.pressureVal(pressure);
+                pressureListener.pressureValues(pressure);
             }
         }
         if(addr == AstroPi_Constants.HTS221_ADDRESS){
@@ -212,7 +212,7 @@ public class EnvSensorTransducer implements IODeviceTransducer,I2CListenerTransd
                     double hum = (_h1_rH - _h0_rH)/2.0;
                     double h_temp = (double)((data - _H0_T0) * hum) / (double)(_H1_T0 - _H0_T0);
                     hum =  _h0_rH / 2.0;
-                    humidityListener.humidityVal(hum+h_temp);
+                    humidityListener.humidityValues(hum+h_temp);
                 }
             }
             if(register == AstroPi_Constants.TEMP_L_REG_HUM){

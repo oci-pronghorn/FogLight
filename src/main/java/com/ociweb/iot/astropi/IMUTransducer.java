@@ -73,7 +73,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
         initGyro();
         initAccel();
         initMag();
-        
+        System.out.println("Calibrating the sensors...");
     }
     
     private void constrainScales()
@@ -541,7 +541,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
                     calibrateGyro++;
                 }else{
                     int[] temp = this.interpretData(backing, position, length, mask);
-                    gyroListener.gyroEvent(calcGyro(temp[0]-GyroSettings.gBiasRaw[0]), calcGyro(temp[1]-GyroSettings.gBiasRaw[1]), calcGyro(temp[2]-GyroSettings.gBiasRaw[2]));
+                    gyroListener.gyroscopeValues(calcGyro(temp[0]-GyroSettings.gBiasRaw[0]), calcGyro(temp[1]-GyroSettings.gBiasRaw[1]), calcGyro(temp[2]-GyroSettings.gBiasRaw[2]));
                 }
             }
             if(register == AstroPi_Constants.OUT_X_L_XL){
@@ -563,7 +563,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
                     calibrateAccel++;
                 }else{
                     int[] temp = this.interpretData(backing, position, length, mask);
-                    accelListener.accelEvent(calcAccel(temp[0]-AccelSettings.aBiasRaw[0]), calcAccel(temp[1]-AccelSettings.aBiasRaw[1]), calcAccel(temp[2]-AccelSettings.aBiasRaw[2]));
+                    accelListener.accelerationValues(calcAccel(temp[0]-AccelSettings.aBiasRaw[0]), calcAccel(temp[1]-AccelSettings.aBiasRaw[1]), calcAccel(temp[2]-AccelSettings.aBiasRaw[2]));
                 }
             }
         }
@@ -589,7 +589,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
                     System.out.println("Magnetometer Calibration Complete.");
                 }else{
                     int[] temp = this.interpretData(backing, position, length, mask);
-                    magListener.magEvent(calcMag(temp[0]), calcMag(temp[1]),calcMag(temp[2]));
+                    magListener.magneticValues(calcMag(temp[0]), calcMag(temp[1]),calcMag(temp[2]));
                 }
             }
         }

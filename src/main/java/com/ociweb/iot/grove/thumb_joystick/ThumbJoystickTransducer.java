@@ -12,7 +12,7 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 	private int y = -1;
 	private Z z = Z.NotPressed;
 	private final int PRESSED_X_VALUE = 1023;
-	private ArrayList <ThumbJoystickListener> listeners;
+	private ArrayList <ThumbJoystickListener> listeners = new ArrayList<ThumbJoystickListener>();
 
 	public ThumbJoystickTransducer(){
 

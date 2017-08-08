@@ -39,7 +39,7 @@ Every FogLight application starts with an `FogApp` implementation which initiali
 - HTTPClient
   - demo - Coming Soon!
 - HTTPServer
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/HTTPServer/README.md)
 - I2CListener
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/I2CListener/I2CListener.md)
 - ImageListener

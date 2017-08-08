@@ -19,6 +19,10 @@ public enum ThumbJoystickTwig implements ADIODevice{
 		public int pinsUsed(){
 			return 2;
 		}
+		@Override
+		public ThumbJoystickTransducer newTransducer(FogCommandChannel... ch){
+			return new ThumbJoystickTransducer();
+		}
 	},
 	;
 

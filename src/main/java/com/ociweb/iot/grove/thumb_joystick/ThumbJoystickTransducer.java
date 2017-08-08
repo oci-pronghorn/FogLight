@@ -1,11 +1,12 @@
 package com.ociweb.iot.grove.thumb_joystick;
 
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.transducer.AnalogListenerTransducer;
 import static com.ociweb.iot.maker.Port.*;
 
 import java.util.ArrayList;
-public class ThumbJoystickTransducer implements AnalogListenerTransducer{
+public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODeviceTransducer{
 	private Port port = A1; //we default to A1 for X and A2 for Y
 	private int x = -1;
 	private int y = -1;
@@ -17,18 +18,20 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer{
 
 	}
 
-	public void registerThumbJoystickListener(ThumbJoystickListener... ls){
+	public ThumbJoystickTransducer registerThumbJoystickListener(ThumbJoystickListener... ls){
 		for (ThumbJoystickListener l: ls){
 			listeners.add(l);
 		}
+		return this;
 	}
 
 	/**
 	 * This port and its upper neighbour port (although not physically plugged in) will be the ports where X and Y are reported.
 	 * @param p
 	 */
-	public void setPort(Port p){
+	public ThumbJoystickTransducer setPort(Port p){
 		port = p;
+		return this;
 	}
 
 	/**

@@ -10,5 +10,5 @@ package com.ociweb.iot.astropi.listeners;
  * @author huydo
  */
 public interface MagListener extends AstroPiListener {
-    void magEvent(double x,double y,double z);
+    void magneticValues(double x,double y,double z);
 }

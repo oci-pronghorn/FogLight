@@ -21,12 +21,13 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class AstroPi implements IODeviceTransducer,I2CListenerTransducer {
+public class LEDScreenTransducer implements IODeviceTransducer,I2CListenerTransducer {
     private final FogCommandChannel target;
     private int[][][] bitmap = new int [8][8][3];
     
-    public AstroPi(FogCommandChannel ch,AstroPiListener... l){
+    public LEDScreenTransducer(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
+        target.ensureI2CWriting(50000, 150);
         for(AstroPiListener item:l){
             if(item instanceof JoyStickListener){
                 this.joysticklistener = (JoyStickListener) item;

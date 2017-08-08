@@ -5,6 +5,7 @@
 */
 package com.ociweb.iot.astropi;
 
+import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import com.ociweb.iot.astropi.listeners.MagListener;
 import com.ociweb.iot.astropi.listeners.AccelListener;
 import com.ociweb.iot.astropi.listeners.GyroListener;
@@ -20,11 +21,12 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
+public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer{
     FogCommandChannel target;
     
-    public AstroPi_IMU(FogCommandChannel ch,AstroPiListener... l){
+    public IMUTransducer(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
+        target.ensureI2CWriting(5000, 50);
         for(AstroPiListener item:l){
             if(item instanceof GyroListener){
                 this.gyroListener = (GyroListener) item;
@@ -39,6 +41,11 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         }
     }
 
+    @Override
+    public void startup() {
+        this.begin(true, true, true);
+    }
+    
     /**
      * Begin the IMU with the following settings:
      * Gyroscope, Accelerometer and Magnetometer are enabled, with all x,y,z enabled
@@ -46,7 +53,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
      * Accelerometer: scale = 2, sampleRate = 952 Hz
      * Magnetometer: scale = 4, sampleRate = 80 Hz
      * @param gyro either true or false to enable/disable gyroscope
-     * @param accel either true or false to enable/disable acclerometer
+     * @param accel either true or false to enable/disable accelerometer
      * @param mag either true or false to enable/disable magnetometer
      */
     public void begin(boolean gyro,boolean accel,boolean mag){
@@ -154,9 +161,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         if (GyroSettings.flipY) GyroSettings.ORIENT_CFG_GVal |= (1<<4);
         if (GyroSettings.flipZ) GyroSettings.ORIENT_CFG_GVal |= (1<<3);
         agWriteByte(AstroPi_Constants.ORIENT_CFG_G, GyroSettings.ORIENT_CFG_GVal);
-        
-        target.i2cFlushBatch();
-        
+                
         
     }
         
@@ -222,7 +227,6 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         }
         agWriteByte(CTRL_REG7_XL, AccelSettings.CTRL_REG7_XLVal);
         
-        target.i2cFlushBatch();
     }
     
     private void initMag()
@@ -292,7 +296,6 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         //	0:continuous, 1:not updated until MSB/LSB are read
         MagSettings.CTRL_REG5_MVal = 0;
         mWriteByte(CTRL_REG5_M, MagSettings.CTRL_REG5_MVal);
-        target.i2cFlushBatch();
     }
     /**
      * Convert raw data
@@ -454,9 +457,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         msb = (offset & 0xff00)>>8;
         lsb = (offset & 0xff);
         mWriteByte(AstroPi_Constants.OFFSET_X_REG_L_M +(2*axis),lsb);
-        target.i2cFlushBatch();
         mWriteByte(AstroPi_Constants.OFFSET_X_REG_H_M +(2*axis),msb);
-        target.i2cFlushBatch();
     }
 
     private void agWriteByte(int register, int value) {
@@ -466,6 +467,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         i2cPayloadWriter.writeByte(value);
         
         target.i2cCommandClose();
+        target.i2cFlushBatch();
     }
 
     private void mWriteByte(int register, int value) {
@@ -475,6 +477,7 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
         i2cPayloadWriter.writeByte(value);
         
         target.i2cCommandClose();
+        target.i2cFlushBatch();
     }
     
     /**
@@ -545,7 +548,6 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
                 if(calibrateAccel < 9){
                     if(calibrateAccel !=0){
                         int[] temp = this.interpretData(backing, position, length, mask);
-                        System.out.println("z raw: "+temp[2]);
                         aBiasRawTemp[0] += temp[0];
                         aBiasRawTemp[1] += temp[1];
                         aBiasRawTemp[2] += temp[2] - (int)(1/AccelSettings.aRes);
@@ -561,7 +563,6 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
                     calibrateAccel++;
                 }else{
                     int[] temp = this.interpretData(backing, position, length, mask);
-                    System.out.println("z raw: "+temp[2]);
                     accelListener.accelEvent(calcAccel(temp[0]-AccelSettings.aBiasRaw[0]), calcAccel(temp[1]-AccelSettings.aBiasRaw[1]), calcAccel(temp[2]-AccelSettings.aBiasRaw[2]));
                 }
             }
@@ -593,5 +594,5 @@ public class AstroPi_IMU implements IODeviceTransducer,I2CListenerTransducer{
             }
         }
     }
-    
+
 }

@@ -8,27 +8,22 @@ import static com.ociweb.iot.maker.Port.*;
 
 public class TransducerDemo implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
+   
+	private static final Port LIGHT_SENSOR_PORT = A1;
 
 
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-
         
+    	c.connect(LightSensor, LIGHT_SENSOR_PORT);
+        c.setTimerPulseRate(2000);
     }
 
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
-
+        
+    	runtime.registerListener(new CustomSumTransducerBehavior());
     }
           
 }

@@ -13,7 +13,7 @@ import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_LIMITH;
 import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_LIMITL;
 import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_RESULT;
 
-import com.ociweb.gl.api.facade.StartupListenerTransducer;
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;

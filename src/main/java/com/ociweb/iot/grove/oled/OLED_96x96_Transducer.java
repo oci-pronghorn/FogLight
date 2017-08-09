@@ -2,7 +2,7 @@ package com.ociweb.iot.grove.oled;
 
 import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
 
-import com.ociweb.gl.api.facade.StartupListenerTransducer;
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.image.FogBitmapLayout;

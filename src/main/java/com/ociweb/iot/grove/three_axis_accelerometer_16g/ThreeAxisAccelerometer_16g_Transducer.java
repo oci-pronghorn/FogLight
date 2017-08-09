@@ -5,11 +5,12 @@
 */
 package com.ociweb.iot.grove.three_axis_accelerometer_16g;
 
-import com.ociweb.gl.api.facade.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16g_Constants.*;
+
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 

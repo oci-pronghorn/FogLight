@@ -22,4 +22,7 @@ public class IoTApp implements FogApp
 	public void declareBehavior(FogRuntime runtime) {
 		runtime.registerListener(new ThumbJoystickBehavior(THUMBJOYSTICK_PORT));
 	}
+	public static void main (String[] args){
+		FogRuntime.run(new IoTApp());
+	}
 }

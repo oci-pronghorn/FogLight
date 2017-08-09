@@ -20,14 +20,10 @@ public class ThumbJoystickBehavior implements Behavior, PressableJoystickListene
 		System.out.println("X: " + x + ", Y: " + y);
 	}
 
-	@Override
-	public void pressed() {
-		System.out.println("PRESSED!");
-	}
 
 	@Override
-	public void released() {
-		System.out.println("RELEASED!");
+	public void buttonStateChange(boolean pressed, long time,long previousDuration){
+		
 	}
 
 }

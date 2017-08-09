@@ -63,10 +63,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		super(args);
         
 		disableHardwareDetection = this.hasArgument("disableHardwareDetection", "--dhd");
-				
-        //adds all the operators for the FogRuntime
-		ReactiveListenerStageIOT.initOperators();
-        
+		
 	}
 
 

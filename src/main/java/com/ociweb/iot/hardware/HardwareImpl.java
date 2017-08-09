@@ -18,7 +18,6 @@ import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.TrafficCopStage;
 import com.ociweb.iot.hardware.impl.DirectHardwareAnalogDigitalOutputStage;
 import com.ociweb.iot.hardware.impl.SerialDataReaderStage;
-import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialDataWriterStage;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
@@ -37,6 +36,7 @@ import com.ociweb.iot.transducer.DigitalListenerTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.iot.transducer.RotaryListenerTransducer;
 import com.ociweb.iot.transducer.SerialListenerTransducer;
+import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
@@ -130,6 +130,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 		super(gm, args);
 				
+		ReactiveListenerStageIOT.initOperators(operators);
+		
 		this.pcm.addConfig(new PipeConfig<HTTPRequestSchema>(HTTPRequestSchema.instance, 
 									                   		 2, //only a few requests when FogLight  
 									                         MAXIMUM_INCOMMING_REST_SIZE));
@@ -360,12 +362,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	}
 
 
-
 	private void createUARTInputStage(Pipe<SerialInputSchema> masterUARTPipe) {
 		RS232Clientable client = buildSerialClient();
 		new SerialDataReaderStage(this.gm, masterUARTPipe, client);
 	}
-
 
 	
 	protected RS232Clientable buildSerialClient() {

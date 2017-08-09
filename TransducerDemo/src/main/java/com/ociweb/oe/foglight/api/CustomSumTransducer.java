@@ -9,7 +9,7 @@ public class CustomSumTransducer implements AnalogListenerTransducer {
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
 		
 			sum +=value;
-			System.out.println(sum);
+			System.out.println("Current sum: " + sum);
 		
 	}
 

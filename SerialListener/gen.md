@@ -15,10 +15,11 @@ The following sketch will demonstrate a simple use of the ```addSerialListener()
 Demo code:
 Main Class
 
-.include "./src/main/java/com/ociweb/oe/foglight/api/SerialListener.java"
+.include "./src/main/java/com/coiweb/oe/foglight/api/SerialListener.java"
 
 Behavior classes 
 
-.include "./src/main/java/com/ociweb/oe/foglight/api/SerialListenerBehavior.java"
+.include "./src/main/java/com/coiweb/oe/foglight/api/SerialListenerBehavior.java"
 
-.include "./src/main/java/com/ociweb/oe/foglight/api/SerialWriterBehavior.java"
+.include "./src/main/java/com/coiweb/oe/foglight/api/SerialWriterBehavior.java"
+

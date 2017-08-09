@@ -21,7 +21,7 @@ public class TimeBehavior implements TimeListener {
 	@Override
 	public void timeEvent(long time, int iteration) {
 
-		int i = 10;//iterations
+		int i = 1;//iterations
 		while (--i>=0) {
 		
 			Date d =new Date(System.currentTimeMillis());

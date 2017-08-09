@@ -37,7 +37,29 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
                 this.interrlistener =  (AccelInterruptListener) item;
             }
         }
+        
     }
+    public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch){
+        this.target = ch;
+        target.ensureI2CWriting(50, 4);
+    }
+    
+    
+    public void registerListener(ThreeAxisAccelerometer_16gListener ... l){
+        for(ThreeAxisAccelerometer_16gListener item:l){
+            if(item instanceof AccelValsListener){
+                this.accellistener = (AccelValsListener) item;
+            }
+            if(item instanceof ActTapListener){
+                this.acttaplistener = (ActTapListener) item;
+            }
+            if(item instanceof AccelInterruptListener){
+                this.interrlistener =  (AccelInterruptListener) item;
+            }
+        }
+    }
+    
+    
     
     @Override
     public void startup() { //by default, the accelerometer start with range = +/- 2g, ODR = 800 Hz
@@ -378,7 +400,7 @@ during which a second value tap can powerOn. The scale factor is 1.25ms/LSB. A
         if(addr == ADXL345_DEVICE){
             if(register == ADXL345_DATAX0){
                 short[] xyzVals = this.interpretData(backing, position, length, mask);
-                accellistener.accelVals(xyzVals[0]*4, xyzVals[1]*4, xyzVals[2]*4);
+                accellistener.accelerationValues(xyzVals[0]*4, xyzVals[1]*4, xyzVals[2]*4);
             }
             if(register == ADXL345_ACT_TAP_STATUS){
                 int actX = (backing[position] & 0b01000000)>>6;

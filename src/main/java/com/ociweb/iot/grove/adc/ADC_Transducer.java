@@ -43,6 +43,26 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer,
         }
     }
     
+    public ADC_Transducer(FogCommandChannel ch){
+    	
+        this.target = ch;
+        target.ensureI2CWriting(50, 5);
+        
+    }
+    
+    public void registerListener(ADCListener... l){
+        for(ADCListener item:l){
+            if(item instanceof AlertStatusListener){
+                this.alertListener = (AlertStatusListener) item;
+            }
+            if(item instanceof ConversionResultListener){
+                this.resultListener = (ConversionResultListener) item;
+            }
+        }
+    }
+    
+    
+    
     @Override
     public void startup() { 
         this.begin();

@@ -505,7 +505,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
     
     private int calibrateGyro = 0;
     private int calibrateAccel = 0;
-    private int calibrateMag = 0;
+    private int calibrateMag = 10;
     
     private int[] gBiasRawTemp = new int[3];
     private int[] aBiasRawTemp = new int[3];

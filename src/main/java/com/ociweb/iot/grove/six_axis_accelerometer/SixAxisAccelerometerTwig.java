@@ -54,10 +54,11 @@ public enum SixAxisAccelerometerTwig {
             public int response() {
                 return 1000;
             }
-            @Override
-            public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
+            @SuppressWarnings("unchecked")
+		@Override
+		public SixAxisAccelerometer_Transducer newTransducer(FogCommandChannel... ch) {
+			return new SixAxisAccelerometer_Transducer(ch[0]);
+		}
             /**
              *
              *

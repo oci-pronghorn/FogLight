@@ -36,6 +36,20 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
         }
     }
     
+    public SixAxisAccelerometer_Transducer(FogCommandChannel ch ){
+        this.target = ch;
+        target.ensureI2CWriting(50, 4);
+    }
+    public void registerListener(SixAxisAccelerometer_16gListener... l){
+        for(SixAxisAccelerometer_16gListener item:l){
+            if(item instanceof AccelValsListener){
+                this.accellistener = (AccelValsListener) item;
+            }
+            if(item instanceof MagValsListener){
+                this.maglistener = (MagValsListener) item;
+            }
+        }
+    }
     /**
      * Start the accelerometer sensor with the following configurations:
      * 50Hz accelerometer data rate, all acceleration axis enabled, normal mode
@@ -185,11 +199,11 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
             if(register == OUT_X_L_A){
                 short[] xyz_accel = this.interpretData(backing, position, length, mask);
                 System.out.println(xyz_accel[2]);
-                accellistener.accelVals(xyz_accel[0], xyz_accel[1], xyz_accel[2]);
+                accellistener.accelerationValues(xyz_accel[0], xyz_accel[1], xyz_accel[2]);
             }
             if(register == OUT_X_L_M){
                 short[] xyz_mag = this.interpretData(backing, position, length, mask);
-                maglistener.magVals(xyz_mag[0], xyz_mag[1], xyz_mag[2]);
+                maglistener.magneticValues(xyz_mag[0], xyz_mag[1], xyz_mag[2]);
             }
         }
 

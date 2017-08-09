@@ -38,7 +38,7 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	 * @return true if the commands were sent, returns false if any single command was not sent.
 	 */
 	@Override
-	public boolean init(){
+	protected boolean init(){
 		cmd_out[0] = PUT_DISPLAY_TO_SLEEP;
 		cmd_out[1] = WAKE_DISPLAY;
 		cmd_out[2] = TURN_OFF_INVERSE_DISPLAY;

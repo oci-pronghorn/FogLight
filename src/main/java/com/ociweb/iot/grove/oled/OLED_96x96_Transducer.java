@@ -39,17 +39,15 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 
 	@Override
 	public boolean display(FogPixelScanner scanner) {
-//		int mask = 0xF;
-//		while (scanner.next((bmp, i, x, y) -> {
-//			int b = (raw_image[i][j] & mask) << 4;
-//			b |= raw_image[i][j+1] & mask;
-//			data_out[index++] = b;
-//			
-//			
-//			
-//		}));
-//		//return sendData(0,)
-		return false;
+		// Assume progressive scanner for now...
+		while (scanner.next((bmp, i, x, y) -> {
+			if (x % 2 == 0) {
+				byte v1 = (byte)bmp.getComponent(x , y, 0);
+				byte v2 = (byte)bmp.getComponent(x + 1, y, 0);
+				byte packet = (byte)((v1 << 4) | v2);
+			}
+		}));
+		return true;
 	}
 
 	@Deprecated
@@ -161,7 +159,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 
 	@Override
-	public boolean init() {
+	protected boolean init() {
 		//determineChip();
 		System.out.println("Artificially chose: " + chip);
 		int length = generateInitCommands(); //could have done this in the return line but this is clearer.

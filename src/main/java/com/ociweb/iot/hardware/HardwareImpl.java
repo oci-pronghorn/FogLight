@@ -507,92 +507,45 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS, int customAvgWindowMS, boolean everyValue) {
+		
+		int portsLeft = t.pinsUsed();
 
-		deviceOnPort[port.ordinal()] = t;
+		while (--portsLeft >= 0){			
+			deviceOnPort[port.ordinal()] = t;
 
-		if (0 != (port.mask&Port.IS_ANALOG)) {
-			return internalConnectAnalog(t, port.port, customRateMS, customAvgWindowMS, everyValue);			
+			if (0 != (port.mask&Port.IS_ANALOG)) {
+				internalConnectAnalog(t, port.port, customRateMS, customAvgWindowMS, everyValue);			
+			}
+			else if (0 != (port.mask&Port.IS_DIGITAL)) {
+				internalConnectDigital(t, port.port, customRateMS, customAvgWindowMS, everyValue);			
+			}		
+			port = Port.nextPort(port);
 		}
-
-		if (0 != (port.mask&Port.IS_DIGITAL)) {
-			return internalConnectDigital(t, port.port, customRateMS, customAvgWindowMS, everyValue);			
-		}
-
 		return this;
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS, int customAvgWindowMS) {
 
-		deviceOnPort[port.ordinal()] = t;
-
-		if (0 != (port.mask&Port.IS_ANALOG)) {
-			return internalConnectAnalog(t, port.port, customRateMS, customAvgWindowMS, false);			
-		}
-
-		if (0 != (port.mask&Port.IS_DIGITAL)) {
-			return internalConnectDigital(t, port.port, customRateMS, customAvgWindowMS, false);			
-		}
-
-		return this;
+		return connect(t,port,customRateMS, customAvgWindowMS ,false);
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS) {
-
-		deviceOnPort[port.ordinal()] = t;
-
-		if (port.isAnalog()) {
-			return internalConnectAnalog(t, port.port, customRateMS, -1, false);			
-		} else {
-			return internalConnectDigital(t, port.port, customRateMS, -1, false);			
-		}
-
+		return connect(t,port,customRateMS, -1 ,false);
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS, boolean everyValue) {
-
-		deviceOnPort[port.ordinal()] = t;
-
-		if (port.isAnalog()) {
-			return internalConnectAnalog(t, port.port, customRateMS, -1, everyValue);			
-		} else {
-			return internalConnectDigital(t, port.port, customRateMS, -1, everyValue);			
-		}
-
+		return connect(t,port,customRateMS, -1 ,everyValue);
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port) {
-
-		int portsLeft = t.pinsUsed();
-		
-		while (--portsLeft >= 0){			
-			deviceOnPort[port.ordinal()] = t;
-
-			if (0 != (port.mask&Port.IS_ANALOG)) {
-				internalConnectAnalog(t, port.port, -1, -1, false);			
-			}
-			else if (0 != (port.mask&Port.IS_DIGITAL)) {
-				internalConnectDigital(t, port.port, -1, -1, false);			
-			}
-			System.out.println("BEFORE: " + port);
-			port = Port.nextPort(port);
-			System.out.println("AFTER: " + port);
-			
-		}
-		return this;
+		return connect (t, port, -1,-1,false);
 	}
 
-	private Hardware connect(int pinsLeft, ADIODevice t, Port port){
-		if (pinsLeft == 0){
-			return this;
-		}
-
-
-		return this;
-	}
+	
 
 	public void releasePinOutTraffic(int count, MsgCommandChannel<?> gcc) {		
 		MsgCommandChannel.publishGo(count, IDX_PIN, gcc);		

@@ -3,6 +3,12 @@ package com.ociweb.iot.grove.mp3_v2;
 import com.ociweb.iot.maker.SerialWritable;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public class SerialWritableWithArgs implements SerialWritable {
 		private String[] args;
 		

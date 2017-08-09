@@ -7,6 +7,13 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.Port;
 
+
+
+/**
+ * 
+ * @author Ray Lo
+ *
+ */
 public class SimpleDigitalTransducer implements IODeviceTransducer, DigitalListener {
 	private final FogCommandChannel ch;
 	private final Port p;

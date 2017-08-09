@@ -1,5 +1,11 @@
 package com.ociweb.iot.grove.mp3_v2;
 
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public class MP3_V2_Consts {
 	
 	//Message Format：$S VER Length Command Feedback para1 para2 $o

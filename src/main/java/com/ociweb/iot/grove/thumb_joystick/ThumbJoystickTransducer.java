@@ -50,13 +50,13 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 	@Override
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
 		if (x == PRESSED_X_VALUE && z == Z.NotPressed){
-			fireButtonStateChangeEvents(time - lastButtonStateChangeTime);
+			fireButtonStateChangeEvents(true, time, time - lastButtonStateChangeTime);
 			lastButtonStateChangeTime = time;
 			z = Z.Pressed;
 			return; //we will not be triggering joystickValues listeners events because x is 1023.
 		}
 		else if (x != PRESSED_X_VALUE && z == Z.Pressed){
-			fireButtonStateChangeEvents(time - lastButtonStateChangeTime);
+			fireButtonStateChangeEvents(false, time, time - lastButtonStateChangeTime);
 			lastButtonStateChangeTime = time;
 			z = Z.NotPressed;
 
@@ -78,10 +78,12 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 		}
 	}
 
-	private void fireButtonStateChangeEvents(long duration){
+	private void fireButtonStateChangeEvents(boolean pressed, long duration, long time){
 		int i = listeners.size();
 		while (--i >= 0){
-			listeners.get(i);
+			if (listeners.get(i) instanceof PressableJoystickListener){
+				((PressableJoystickListener) listeners.get(i)).buttonStateChange(pressed, duration, time);
+			}
 		}
 	}
 	private enum Z {Pressed, NotPressed};

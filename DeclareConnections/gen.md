@@ -14,6 +14,6 @@ The following sketch will demonstrate how to declare connections to different ty
  
 Demo code:
 
-.include "./src/main/java/com/ociweb/oe/foglight/api/DeclareConnections.java
+.include "./src/main/java/com/ociweb/oe/foglight/api/DeclareConnections.java"
 
 This class is a demonstration of how to declare connections to analog and digital devices, I2C devices, and serial devices. Anything that has been identified as optional is not needed to declare a connection, but can give added utility. 

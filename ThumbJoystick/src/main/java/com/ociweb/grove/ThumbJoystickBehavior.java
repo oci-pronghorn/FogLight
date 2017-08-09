@@ -10,8 +10,8 @@ public class ThumbJoystickBehavior implements Behavior, PressableJoystickListene
 	private ThumbJoystickTransducer tj;
 	
 	public ThumbJoystickBehavior(Port p){
-		tj = ThumbJoystick.newTransducer();
-		tj.setPort(p).registerThumbJoystickListener(this); //can act as 'fluent' API
+		tj = ThumbJoystick.newTransducer(p);
+		tj.registerThumbJoystickListener(this);
 	}
 	
 
@@ -20,10 +20,10 @@ public class ThumbJoystickBehavior implements Behavior, PressableJoystickListene
 		System.out.println("X: " + x + ", Y: " + y);
 	}
 
-
+	
 	@Override
 	public void buttonStateChange(boolean pressed, long time,long previousDuration){
-		
+		System.out.println("Pressed:" + pressed + ", Duration: " + previousDuration);
 	}
 
 }

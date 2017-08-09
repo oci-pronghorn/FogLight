@@ -20,4 +20,5 @@ Main Class
 Behavior classes 
 
 .include "./src/main/java/com/ociweb/oe/foglight/api/SerialListenerBehavior.java"
+
 .include "./src/main/java/com/ociweb/oe/foglight/api/SerialWriterBehavior.java"

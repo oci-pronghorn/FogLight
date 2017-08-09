@@ -35,9 +35,6 @@ public class GameOfLifeBehavior implements StartupListener, TimeListener {
 	
 	@Override
 	public void startup() {
-		display.init(); 
-		display.clear();
-		
 		display.setTextRowCol(3, 4);
 		display.printCharSequence("Conway's");
 		

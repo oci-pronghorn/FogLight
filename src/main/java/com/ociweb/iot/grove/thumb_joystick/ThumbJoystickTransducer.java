@@ -18,12 +18,10 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 	private final int PRESSED_X_VALUE = 1023;
 
 	private ArrayList <ThumbJoystickListener> listeners = new ArrayList<ThumbJoystickListener>();
-	
-	
-	
+
 	public ThumbJoystickTransducer(){
 	}
-	
+
 	public ThumbJoystickTransducer(Port p){
 		port = p;
 	}
@@ -49,22 +47,22 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 
 	@Override
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-		if (x == PRESSED_X_VALUE && z == Z.NotPressed){
-			fireButtonStateChangeEvents(true, time, time - lastButtonStateChangeTime);
-			lastButtonStateChangeTime = time;
-			z = Z.Pressed;
-			return; //we will not be triggering joystickValues listeners events because x is 1023.
-		}
-		else if (x != PRESSED_X_VALUE && z == Z.Pressed){
-			fireButtonStateChangeEvents(false, time, time - lastButtonStateChangeTime);
-			lastButtonStateChangeTime = time;
-			z = Z.NotPressed;
-
-		}
-
-
 		if (port.port == (this.port.port)){
 			x = value;
+			if (x == PRESSED_X_VALUE){
+				if (z == Z.NotPressed){
+					fireButtonStateChangeEvents(true, time, time - lastButtonStateChangeTime);
+					lastButtonStateChangeTime = time;
+					z = Z.Pressed;
+				}
+				return; //we will not be triggering joystickValues listeners events because x is 1023.
+			}
+			else if (x != PRESSED_X_VALUE && z == Z.Pressed){
+				fireButtonStateChangeEvents(false, time, time - lastButtonStateChangeTime);
+				lastButtonStateChangeTime = time;
+				z = Z.NotPressed;
+			}
+
 		}
 		else if (port.port == (this.port.port + 1)){
 			y = value;

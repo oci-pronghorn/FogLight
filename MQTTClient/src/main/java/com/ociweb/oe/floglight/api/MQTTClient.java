@@ -1,6 +1,7 @@
 package com.ociweb.oe.floglight.api;
 
 import com.ociweb.gl.api.MQTTBridge;
+import com.ociweb.gl.impl.MQTTQOS;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -39,9 +40,9 @@ public class MQTTClient implements FogApp {
 	public void declareBehavior(final FogRuntime runtime) {
 
 		// Subscribe to the mqtt client given "topic/ingress" - produced by mosquitto_pub
-		runtime.bridgeSubscription("topic/ingress", "topic/ingress", mqttConfig).setQoS(1);
+		runtime.bridgeSubscription("topic/ingress", "topic/ingress", mqttConfig).setQoS(MQTTQOS.atLeastOnce);
 		// Publish to the mqtt client given "topic/egress" - produced by TimeBehavior
-		runtime.bridgeTransmission("topic/egress", "topic/egress", mqttConfig).setQoS(1);
+		runtime.bridgeTransmission("topic/egress", "topic/egress", mqttConfig).setQoS(MQTTQOS.atLeastOnce);
 
 		// Inject the timer
 		runtime.addTimePulseListener(new TimeBehavior(runtime));

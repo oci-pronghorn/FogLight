@@ -82,7 +82,7 @@ public class PiImageListenerStage extends PronghornStage {
         this.output = output;
 
         // Add this listener to the graph.
-        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMilliseconds * 1000000, this);
+        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMilliseconds * 1000000L, this);
     }
 
     @Override

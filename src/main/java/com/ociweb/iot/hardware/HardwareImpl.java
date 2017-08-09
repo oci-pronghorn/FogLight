@@ -122,9 +122,15 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	
     private int imageTriggerRateMillis = 1250;
 
-	public void setImageTriggerRateMillis(int imageTriggerRateMillis) {
-		this.imageTriggerRateMillis = imageTriggerRateMillis;
-	}public IODevice getConnectedDevice(Port p) {
+	public void setImageTriggerRate(int triggerRateMillis) {
+		if (triggerRateMillis < 1250) {
+			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS.");
+		}
+
+		this.imageTriggerRateMillis = triggerRateMillis;
+	}
+
+	public IODevice getConnectedDevice(Port p) {
     	return deviceOnPort[p.ordinal()];
     }
 

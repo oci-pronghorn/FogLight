@@ -48,8 +48,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	private static final byte edI2C = 6;
 
-	private int imageTriggerRateMillis = 1250;
-
 	static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
 
 	private boolean disableHardwareDetection;
@@ -207,14 +205,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return registerListenerImpl(listener);
 	}
 
-	public void setImageTriggerRate(int triggerRateMillis) {
-		if (triggerRateMillis < 1250) {
-			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS.");
-		}
-
-		this.imageTriggerRateMillis = triggerRateMillis;
-	}
-
 	public ListenerFilterIoT addImageListener(ImageListener listener) {
 		switch (builder.getPlatformType()) {
 			case GROVE_PI:
@@ -337,7 +327,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
-		runtime.builder.setImageTriggerRateMillis(runtime.imageTriggerRateMillis);
 		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
 
 		runtime.logStageScheduleRates();

@@ -4,6 +4,7 @@ import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.maker.Port;
 
 public enum ThumbJoystickTwig implements ADIODevice{
 	ThumbJoystick(){
@@ -15,9 +16,20 @@ public enum ThumbJoystickTwig implements ADIODevice{
 		public int range(){
 			return 1024;
 		}
+		
 		@Override
 		public int pinsUsed(){
 			return 2;
+		}
+		
+		@Override
+		public ThumbJoystickTransducer newTransducer(FogCommandChannel... ch){
+			return new ThumbJoystickTransducer();
+		}
+		
+		@Override
+		public ThumbJoystickTransducer newTransducer(Port p, FogCommandChannel... ch) {
+			return new ThumbJoystickTransducer(p);
 		}
 	},
 	;

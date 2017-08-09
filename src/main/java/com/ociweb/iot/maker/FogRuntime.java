@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.MsgRuntime;
+import com.ociweb.gl.impl.BuilderImpl;
 import com.ociweb.gl.impl.ChildClassScanner;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
@@ -51,6 +52,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
 
+	private boolean disableHardwareDetection;
 
 	public FogRuntime() {
 		this(new String[0]);
@@ -58,17 +60,16 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	public FogRuntime(String[] args) {
 		super(args);
-
-        //adds all the operators for the FogRuntime
-		ReactiveListenerStageIOT.initOperators();
-
+        
+        disableHardwareDetection = this.hasArgument("disableHardwareDetection", "--dhd");
+        
 	}
 
 
 	public Hardware getHardware(){
 		if(this.builder==null){
 
-			///////////////
+			if (!disableHardwareDetection) {///////////////
 			//setup system for binary binding in case Zulu is found on Arm
 			//must populate os.arch as "arm" instead of "aarch32" or "aarch64" in that case, JIFFI is dependent on this value.
 			if (System.getProperty("os.arch", "unknown").contains("aarch")) {
@@ -111,7 +112,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			if ((pm = PiModel.detect()) != PiModel.Unknown){
 				logger.info("Detected running on " + pm);
 				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
-			}			else if(WindowsModel.detect() != WindowsModel.Unknown) {
+			}
+			else if(WindowsModel.detect() != WindowsModel.Unknown) {
 				this.builder = new TestHardware(gm, args);
 				logger.info("Detected running on Windows, test mock hardware will be used");
 			}
@@ -132,8 +134,12 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			}
 			else {
 				this.builder = new TestHardware(gm, args);
-				logger.info("Unrecognized hardware, test mock hardware will be used");
+				logger.info("Unrecognized hardware, test mock hardware will be used");}
+			} else {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Hardware detection disabled on the command line, now using mock hardware.");
 			}
+
 		}
 		return this.builder;
 	}
@@ -337,7 +343,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		runtime.logStageScheduleRates();
 
 		if ( runtime.builder.isTelemetryEnabled()) {
-			runtime.gm.enableTelemetry(8098);
+			runtime.gm.enableTelemetry(runtime.builder.telemetryHost(),8098);
 		}
 		//exportGraphDotFile();
 
@@ -392,7 +398,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		lastTime = nowTime;
 
 		if ( runtime.builder.isTelemetryEnabled()) {
-			runtime.gm.enableTelemetry(8098);
+			runtime.gm.enableTelemetry(runtime.builder.telemetryHost(),8098);
 			logger.info("{} ms duration {} ms finished building telemetry", lastTime = nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		}
 		//exportGraphDotFile();

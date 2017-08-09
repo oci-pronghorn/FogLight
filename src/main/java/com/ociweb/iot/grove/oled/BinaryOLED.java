@@ -1,10 +1,25 @@
 package com.ociweb.iot.grove.oled;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmap;
+import com.ociweb.iot.maker.image.FogBitmapLayout;
+import com.ociweb.iot.maker.image.FogColorSpace;
+import com.ociweb.iot.maker.image.FogPixelScanner;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
+
+/**
+ * 
+ * @author Ray Lo
+ *
+ */
 public abstract class BinaryOLED {
+	
+	Logger logger = LoggerFactory.getLogger((BinaryOLED.class));
 	protected final FogCommandChannel ch;
 	protected final int[] data_out;
 	protected final int[] cmd_out;
@@ -20,9 +35,13 @@ public abstract class BinaryOLED {
 		this.cmd_out = cmd_out;
 		this.i2c_address = i2c_address;
 		ch.ensureI2CWriting(16, BATCH_SIZE);
-		
-	
 	}
+
+	
+	public FogBitmap createEmptyBmp() {
+		return new FogBitmap(createBmpLayout());
+	}
+
 	
 	/**
 	 * Sends a "data" identifier byte followed by the user-supplied byte over the i2c.
@@ -135,6 +154,7 @@ public abstract class BinaryOLED {
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		length = length / 2; //we need to send two bytes for each command
 		int i;
+		
 		for (i = start; i < Math.min(start + length, finalTargetIndex); i++){
 			i2cPayloadWriter.write(COMMAND_MODE);
 			i2cPayloadWriter.write(cmd[i]);
@@ -148,7 +168,7 @@ public abstract class BinaryOLED {
 		return sendCommands(cmd, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 	
-	public abstract boolean init();
+	protected abstract boolean init();
 	public abstract boolean clear();
 	public abstract boolean cleanClear();
 	public abstract boolean displayOn();
@@ -162,9 +182,11 @@ public abstract class BinaryOLED {
 	public abstract boolean activateScroll();
 	public abstract boolean deactivateScroll();
 	public abstract boolean setUpScroll();
-	public abstract boolean displayImage(int[][] raw_image);
-	public abstract boolean displayImage(int[][] raw_image, int pixelDepth);
+	public abstract boolean display(int[][] raw_image);
+	public abstract boolean display(int[][] raw_image, int pixelDepth);
 	public abstract boolean setHorizontalMode();
 	public abstract boolean setVerticalMode();
-	
+	public abstract boolean display(FogPixelScanner scanner);
+	public abstract FogBitmapLayout createBmpLayout();
+
 }

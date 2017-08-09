@@ -134,7 +134,8 @@ public class GrovePiConstants {
     public static final int[] ANALOG_PORT_TO_REGISTER = new int[] {
     		14,
     		15,
-    		16	
+    		16,
+    		17//TODO: "Now whether or not it works, i have no idea"(Tippy, 2017).
     };
     
     public static final int[] REGISTER_TO_PORT = new int[] {

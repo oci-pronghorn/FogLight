@@ -3,14 +3,16 @@ package com.ociweb.iot.grove.oled;
 import com.ociweb.iot.maker.IODeviceTransducer;
 
 import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.*;
-import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction.Left;
-import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction.Right;
-import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation.Vertical_Left;
-import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation.Vertical_Right;
+import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction.*;
+import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation.*;
 
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction;
 import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmapLayout;
+import com.ociweb.iot.maker.image.FogColorSpace;
+import com.ociweb.iot.maker.image.FogPixelScanner;
 
 /**
  * IODeviceTransducer object that holds on to the FogCommandChannel, data_output array, and cmd_output array.
@@ -18,7 +20,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
  * @author Ray Lo, Nathan Tippy
  *
  */
-public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransducer{
+public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransducer, StartupListenerTransducer{
 	/**
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
 	 * @param ch FogCommandChannel used for the i2c write.
@@ -27,7 +29,6 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	public OLED_128x64_Transducer(FogCommandChannel ch){
 		super(ch, new int[1024], new int[32], OLEDADDRESS);
 		ch.ensureI2CWriting(100, BATCH_SIZE);
-		ch.ensureCommandCountRoom(100);//TODO: should consider putting the 100 as a constant.
 		//the most amount of data we can ever send at once as this is one entire frame worth of data
 		//the static Grove_OLED_128x64 class requires that we send out no more than 10 bytes at once. 32 bytes are allocated for safety.
 	}
@@ -38,7 +39,7 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	 * @return true if the commands were sent, returns false if any single command was not sent.
 	 */
 	@Override
-	public boolean init(){
+	protected boolean init(){
 		cmd_out[0] = PUT_DISPLAY_TO_SLEEP;
 		cmd_out[1] = WAKE_DISPLAY;
 		cmd_out[2] = TURN_OFF_INVERSE_DISPLAY;
@@ -48,6 +49,24 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 		cmd_out[6] = SET_DISPLAY_OFFSET;
 		cmd_out[7] = 0x00;
 		return sendCommands(0, 8);
+	}
+
+	@Override
+	public FogBitmapLayout createBmpLayout() {
+		FogBitmapLayout bmpLayout = new FogBitmapLayout(FogColorSpace.gray);
+		bmpLayout.setComponentDepth((byte) 1);
+		bmpLayout.setWidth(colCount);
+		bmpLayout.setHeight(rowCount);
+		return bmpLayout;
+	}
+
+	@Override
+	public boolean display(FogPixelScanner scanner) {
+		while (scanner.next((bmp, i, x, y) -> {
+			byte gray = (byte) bmp.getComponent(x, y, 0);
+			// set pixel on device
+		}));
+		return false;
 	}
 
 	/**
@@ -75,7 +94,7 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	}
 
 	/**
-	 * Sets the display in horizontal mode, necessary for  {@link #displayImage(int[][])}
+	 * Sets the display in horizontal mode, necessary for  {@link #display(int[][])}
 	 * Note that both {drawBitmap(FogCommandChannel, int[], int[])} and {displayImage(int[][])} already automatically set the display in
 	 * horizontal mode.
 	 * @return true if all three bytes needed were sent, false otherwise.
@@ -470,12 +489,12 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	}
 
 	@Override
-	public boolean displayImage(int[][] raw_image){
-		return displayImage(raw_image,1);
+	public boolean display(int[][] raw_image){
+		return display(raw_image,1);
 	}
 
 	@Override
-	public boolean displayImage(int[][] raw_image, int pixelDepth) {
+	public boolean display(int[][] raw_image, int pixelDepth) {
 		int counter = 0;
 		int pageLimit = rowCount >> 3;
 		for (int page = 0; page < pageLimit; page++){
@@ -509,6 +528,12 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	@Override
 	public boolean setUpScroll() {
 		return false;
+	}
+
+	@Override
+	public void startup() {
+		init(); 
+		clear();	
 	}
 }
 

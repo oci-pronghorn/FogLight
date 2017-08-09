@@ -13,6 +13,7 @@ import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_LIMITH;
 import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_LIMITL;
 import static com.ociweb.iot.grove.adc.ADC_Constants.REG_ADDR_RESULT;
 
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
@@ -23,14 +24,15 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
+public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer{
     private final FogCommandChannel target;
     private AlertStatusListener alertListener;
     private ConversionResultListener resultListener;
+    
     public ADC_Transducer(FogCommandChannel ch, ADCListener... l){
     	
         this.target = ch;
-        target.ensureI2CWriting();
+        target.ensureI2CWriting(50, 5);
         for(ADCListener item:l){
             if(item instanceof AlertStatusListener){
                 this.alertListener = (AlertStatusListener) item;
@@ -40,14 +42,40 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
             }
         }
     }
+    
+    public ADC_Transducer(FogCommandChannel ch){
+    	
+        this.target = ch;
+        target.ensureI2CWriting(50, 5);
+        
+    }
+    
+    public void registerListener(ADCListener... l){
+        for(ADCListener item:l){
+            if(item instanceof AlertStatusListener){
+                this.alertListener = (AlertStatusListener) item;
+            }
+            if(item instanceof ConversionResultListener){
+                this.resultListener = (ConversionResultListener) item;
+            }
+        }
+    }
+    
+    
+    
+    @Override
+    public void startup() { 
+        this.begin();
+    }
+    
     /**
      * Begin the ADC with the default configuration :
      * f_convert = 27 ksps; Alert Hold = 0;
      * Alert Flag Enable = 0; Alert Pin Enable = 0;
      * Polarity = 0.
      */
-    public void begin(){
-        writeSingleByteToRegister(REG_ADDR_CONFIG,0x20);
+    private void begin(){
+        writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
     }
     /**
      * Write a byte to the CONFIG_REG register
@@ -56,6 +84,45 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
     public void setCONFIG_REG(int _b){
         writeSingleByteToRegister(REG_ADDR_CONFIG,_b);
     }
+    
+    private int REG_ADDR_CONFIGVal = 0x20; // default configuration
+    /**
+     * Set the conversion rate of the device. 
+     * 1 = 27 ksps, 2 = 13.5 ksps, 3 = 6.7 ksps
+     * 4 = 3.4 ksps, 5 = 1.7 ksps, 6 = 0.9 ksps, 7 = 0.4 ksps
+     * @param rate 
+     */
+    public void setRate(int rate){
+        if(rate > 0){
+            REG_ADDR_CONFIGVal |= (rate<<5); 
+        }
+        writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
+    }
+    /**
+     * Set/ Clear the alert hold bit
+     * @param alertHold true : set the bit; false: clear the bit 
+     */
+    public void setAlertHoldBit(boolean alertHold){
+        if(alertHold){
+            REG_ADDR_CONFIGVal |= (1<<4);
+        }else{
+            REG_ADDR_CONFIGVal &= 0b11101111;
+        }
+        writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
+    }
+    /**
+     * Set/ Clear the alert flag enable bit
+     * @param alertFlag true : set the bit; false: clear the bit 
+     */
+    public void setAlertFlagEnableBit(boolean alertFlag){
+        if(alertFlag){
+            REG_ADDR_CONFIGVal |= (1<<3);
+        }else{
+            REG_ADDR_CONFIGVal &= 0b11110111;
+        }
+        writeSingleByteToRegister(REG_ADDR_CONFIG,REG_ADDR_CONFIGVal);
+    }
+    
     /**
      * Set the lower limit threshold used to determine the alert condition
      * @param _b positive integer between 0 and 4095
@@ -101,18 +168,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
         
         return temp;
     }
-    /**
-     * Method returns a 1 if there's an alert, 0 otherwise
-     * @param backing
-     * @param position
-     * @param length
-     * @param mask
-     * @return return a 1 if there's an alert, 0 otherwise
-     */
-    private int readAlertFlag(byte[] backing, int position, int length, int mask){
-        
-        return ((backing[position]) & 0x03 )>0?1:0;
-    }
+
     /**
      * write a byte to a register
      * @param register register to write to
@@ -151,7 +207,9 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer{
                 resultListener.conversionResult(this.interpretData(backing, position, length, mask));
             }
             if(register == REG_ADDR_ALERT && null!=alertListener){
-                alertListener.alertStatus(this.readAlertFlag(backing, position, length, mask));
+                int overRange = (backing[position] & 2)>>1;
+                int underRange = (backing[position]& 1);
+                alertListener.alertStatus(overRange, underRange);
             }
         }
     }

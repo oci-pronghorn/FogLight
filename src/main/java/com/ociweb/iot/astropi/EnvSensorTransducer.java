@@ -8,6 +8,7 @@ package com.ociweb.iot.astropi;
 import com.ociweb.iot.astropi.listeners.HumidityListener;
 import com.ociweb.iot.astropi.listeners.PressureListener;
 import com.ociweb.iot.astropi.listeners.TemperatureListener;
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.astropi.listeners.AstroPiListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
@@ -19,12 +20,12 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  *
  * @author huydo
  */
-public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransducer{
+public class EnvSensorTransducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer{
     private final FogCommandChannel target;
     
-    public AstroPi_EnvSensors(FogCommandChannel ch,AstroPiListener... l){
+    public EnvSensorTransducer(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
-        //target.ensureI2CWriting(200,10);
+        target.ensureI2CWriting(500,10);
         for(AstroPiListener item:l){
             if(item instanceof TemperatureListener){
                 this.tempListener = (TemperatureListener) item;
@@ -38,6 +39,10 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
         
         }
     }
+    @Override
+    public void startup() {
+        this.begin(true, true);
+    }
     
     int CTRL_REG1_PVal = 0b00010100; //by default, ODR =1 Hz, turn on Block Data Update
     int CTRL_REG1_HUMVal = 0b00000101; //by default, ODR = 1 Hz, turn on Block Data Update
@@ -45,8 +50,8 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
      * Power up the humidity and/or the pressure sensor
      * Set the output data rate (ODR) of the pressure sensor to 1 Hz
      * Set the output data rate (ODR) of the humidity sensor to 1 Hz
-     * @param humiditySensor
-     * @param pressureSensor 
+     * @param humiditySensor true/false to enable/disable the sensor
+     * @param pressureSensor true/false to enable/disable the sensor
      */
     public void begin(boolean humiditySensor,boolean pressureSensor){
         if(pressureSensor){
@@ -172,7 +177,7 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
             if(register == AstroPi_Constants.PRESSURE_XL_REG){
                 int data = this.interpretThreeBytes(backing, position, length, mask);
                 int pressure = data/4096;
-                pressureListener.pressureVal(pressure);
+                pressureListener.pressureValues(pressure);
             }
         }
         if(addr == AstroPi_Constants.HTS221_ADDRESS){
@@ -207,7 +212,7 @@ public class AstroPi_EnvSensors implements IODeviceTransducer,I2CListenerTransdu
                     double hum = (_h1_rH - _h0_rH)/2.0;
                     double h_temp = (double)((data - _H0_T0) * hum) / (double)(_H1_T0 - _H0_T0);
                     hum =  _h0_rH / 2.0;
-                    humidityListener.humidityVal(hum+h_temp);
+                    humidityListener.humidityValues(hum+h_temp);
                 }
             }
             if(register == AstroPi_Constants.TEMP_L_REG_HUM){

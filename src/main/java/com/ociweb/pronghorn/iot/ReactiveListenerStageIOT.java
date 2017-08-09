@@ -15,6 +15,7 @@ import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.gl.impl.stage.ReactiveOperator;
+import com.ociweb.gl.impl.stage.ReactiveOperators;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
@@ -23,12 +24,8 @@ import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.RotaryListener;
-import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.iot.maker.SerialReader;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -75,7 +72,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     
     private DataInputBlobReader serialStremReader; //must be held as we accumulate serial data.
     private DataInputBlobReader<ImageSchema> imageStreamReader;
-    public static void initOperators() {
+    public static void initOperators(ReactiveOperators operators) {
     	
     	//Add more supported operators to the system
     	operators

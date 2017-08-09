@@ -2,14 +2,17 @@ package com.ociweb.iot.grove.oled;
 
 import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
 
-import com.ociweb.iot.grove.gps.GPS_Consts;
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmapLayout;
+import com.ociweb.iot.maker.image.FogColorSpace;
+import com.ociweb.iot.maker.image.FogPixelScanner;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceTransducer;
 
-public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransducer{
+public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransducer, StartupListenerTransducer{
 
 	private int lowPixelLevel = 0x0F;
 	private int highPixelLevel = 0xF0;
@@ -21,10 +24,32 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		//96x96 divided 2. Since each pixel takes a nibble to send
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);
 		ch.ensureI2CWriting(100, BATCH_SIZE);
-		ch.ensureCommandCountRoom(100);
 		this.chip = SSD1327;
 		
 	}
+
+	@Override
+	public FogBitmapLayout createBmpLayout() {
+		FogBitmapLayout bmpLayout = new FogBitmapLayout(FogColorSpace.gray);
+		bmpLayout.setComponentDepth((byte) 4);
+		bmpLayout.setWidth(OLED_96x96_Consts.COL_COUNT);
+		bmpLayout.setHeight(OLED_96x96_Consts.ROW_COUNT);
+		return bmpLayout;
+	}
+
+	@Override
+	public boolean display(FogPixelScanner scanner) {
+		// Assume progressive scanner for now...
+		while (scanner.next((bmp, i, x, y) -> {
+			if (x % 2 == 0) {
+				byte v1 = (byte)bmp.getComponent(x , y, 0);
+				byte v2 = (byte)bmp.getComponent(x + 1, y, 0);
+				byte packet = (byte)((v1 << 4) | v2);
+			}
+		}));
+		return true;
+	}
+
 	@Deprecated
 	public void setIteration(int iteration){
 		this.iteration = iteration;
@@ -134,7 +159,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 
 	@Override
-	public boolean init() {
+	protected boolean init() {
 		//determineChip();
 		System.out.println("Artificially chose: " + chip);
 		int length = generateInitCommands(); //could have done this in the return line but this is clearer.
@@ -336,9 +361,9 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 	
 	/**
-	 * This function should be used over {@link #displayImage(int[][], int)} with the pixelDepth set to 1 if the
+	 * This function should be used over {@link #display(int[][], int)} with the pixelDepth set to 1 if the
 	 * input data map is a one dimensional compact array where each bit corresponds to a pixel. If each int corresponds
-	 * to a pixel, {@link #displayImage(int[][], int)} should be the go-to method.
+	 * to a pixel, {@link #display(int[][], int)} should be the go-to method.
 	 * @param map
 	 * @return true
 	 */
@@ -428,12 +453,12 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 
 	@Override
-	public boolean displayImage(int[][] raw_image) {
-		return displayImage(raw_image, 4);
+	public boolean display(int[][] raw_image) {
+		return display(raw_image, 4);
 	}
 	
 	@Override
-	public boolean displayImage(int[][] raw_image, int pixelDepth){
+	public boolean display(int[][] raw_image, int pixelDepth){
 		switch (chip){
 		case SSD1327:
 			if (!setHorizontalMode()){
@@ -531,4 +556,11 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		return sendData(data, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 	 */
+
+	@Override
+	public void startup() {
+		logger.info("Transducer startup listener");
+		this.init();
+		this.clear();
+	}
 }

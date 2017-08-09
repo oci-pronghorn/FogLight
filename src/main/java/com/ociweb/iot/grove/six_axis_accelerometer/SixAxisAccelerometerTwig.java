@@ -40,50 +40,7 @@ public enum SixAxisAccelerometerTwig {
                     byte REG_ID = SixAxisAccelerometer_Constants.OUT_X_L_M; //just an identifier
                     return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
                 }
-            },
-            readINT_SRC_M(){
-                @Override
-                public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-                    byte[] REG_ADDR = {SixAxisAccelerometer_Constants.INT_SRC_M};
-                    byte I2C_ADDR = SixAxisAccelerometer_Constants.LSM303D_ADDR;
-                    byte BYTESTOREAD = 1;
-                    byte REG_ID = SixAxisAccelerometer_Constants.INT_SRC_M; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
-                }
-            },
-            readIG_SRC1(){
-                @Override
-                public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-                    byte[] REG_ADDR = {SixAxisAccelerometer_Constants.IG_SRC1};
-                    byte I2C_ADDR = SixAxisAccelerometer_Constants.LSM303D_ADDR;
-                    byte BYTESTOREAD = 1;
-                    byte REG_ID = SixAxisAccelerometer_Constants.IG_SRC1; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
-                }
-            },
-            readIG_SRC2(){
-                @Override
-                public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-                    byte[] REG_ADDR = {SixAxisAccelerometer_Constants.IG_SRC2};
-                    byte I2C_ADDR = SixAxisAccelerometer_Constants.LSM303D_ADDR;
-                    byte BYTESTOREAD = 1;
-                    byte REG_ID = SixAxisAccelerometer_Constants.IG_SRC2; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
-                }
-            },
-            readCLICK_SRC(){
-                @Override
-                public I2CConnection getI2CConnection() { //putting getI2CConnection in i2cOutput twigs allows setup commands to be sent
-                    byte[] REG_ADDR = {SixAxisAccelerometer_Constants.CLICK_SRC};
-                    byte I2C_ADDR = SixAxisAccelerometer_Constants.LSM303D_ADDR;
-                    byte BYTESTOREAD = 1;
-                    byte REG_ID = SixAxisAccelerometer_Constants.CLICK_SRC; //just an identifier
-                    return new I2CConnection(this, I2C_ADDR, REG_ADDR, BYTESTOREAD, REG_ID, null);
-                }
             };
-            
-            
-            ;
             @Override
             public boolean isInput() {
                 return true;
@@ -97,12 +54,11 @@ public enum SixAxisAccelerometerTwig {
             public int response() {
                 return 1000;
             }
-            
             @SuppressWarnings("unchecked")
-            @Override
-            public SixAxisAccelerometer_Transducer newTransducer(FogCommandChannel...ch){
-                return new SixAxisAccelerometer_Transducer(ch[0]);
-            }
+		@Override
+		public SixAxisAccelerometer_Transducer newTransducer(FogCommandChannel... ch) {
+			return new SixAxisAccelerometer_Transducer(ch[0]);
+		}
             /**
              *
              *

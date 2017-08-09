@@ -1,6 +1,10 @@
 package com.ociweb.iot.grove.lcd_rgb;
 
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmap;
+import com.ociweb.iot.maker.image.FogBitmapLayout;
+import com.ociweb.iot.maker.image.FogColorSpace;
+import com.ociweb.iot.maker.image.FogPixelScanner;
 
 public class LCD_RGB_Transducer {
 	private final FogCommandChannel ch;
@@ -8,6 +12,28 @@ public class LCD_RGB_Transducer {
 	public LCD_RGB_Transducer(FogCommandChannel ch){
 		this.ch = ch;
 	}
+
+	public FogBitmapLayout createBmpLayout() {
+		FogBitmapLayout bmpLayout = new FogBitmapLayout(FogColorSpace.rgb);
+		bmpLayout.setComponentDepth((byte) 6);
+		bmpLayout.setWidth(8);
+		bmpLayout.setHeight(8);
+		return bmpLayout;
+	}
+
+	public FogBitmap createEmptyBmp() {
+		return new FogBitmap(createBmpLayout());
+	}
+
+	public void display(FogPixelScanner scanner) {
+		while (scanner.next((bmp, i, x, y) -> {
+			int red = bmp.getComponent(x, y, 0);
+			int green = bmp.getComponent(x, y, 1);
+			int blue = bmp.getComponent(x, y, 2);
+			// set pixel on device
+		}));
+	}
+
 	public boolean begin(){
 		return Grove_LCD_RGB.begin(ch);
 	}

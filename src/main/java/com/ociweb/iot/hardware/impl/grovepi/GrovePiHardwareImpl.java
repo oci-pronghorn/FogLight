@@ -14,16 +14,13 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.Baud;
-import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
-import com.ociweb.pronghorn.iot.i2c.I2CBacking;
-import com.ociweb.pronghorn.iot.rs232.RS232Client;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.pipe.MessageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -42,7 +39,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	public GrovePiHardwareImpl(GraphManager gm, String[] args, int i2cBus) {
 		super(gm, args, i2cBus);
-		
+
 		model = PiModel.detect();
 		rs232ClientDevice = model.serialDevice();
 		rs232ClientBaud = Baud.B___921600;
@@ -53,6 +50,16 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 
 
+	@Override
+	public MessageSchema schemaMapper(MessageSchema schema) {
+
+		if (schema != GroveResponseSchema.instance) {
+			return schema;
+		} else {
+			return I2CResponseSchema.instance;
+		}
+
+	}
 
 	@Override
 	public PiCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {
@@ -113,22 +120,21 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 		if (t.isInput()) {
 
-			int i = t.pinsUsed();
-			while (--i>=0) {
-				int register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection+i]; 
 
-				//NOTE: may need to add additional "special cases" here
-				byte groveOperation = AnalogDigitalTwig.UltrasonicRanger == t ?
-						GrovePiConstants.ULTRASONIC_RANGER : 
-							GrovePiConstants.ANALOG_READ;
+			int register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection]; 
+
+			//NOTE: may need to add additional "special cases" here
+			byte groveOperation = AnalogDigitalTwig.UltrasonicRanger == t ?
+					GrovePiConstants.ULTRASONIC_RANGER : 
+						GrovePiConstants.ANALOG_READ;
 
 
-				byte[] readCmd = {GrovePiConstants.START_BYTE,groveOperation,(byte)register,0x00,0x00};
-				byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)register,GrovePiConstants.INPUT,0x00};				
-				i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,
-						GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,register, setup, customRate, customAverageMS, everyValue)); 
-				super.internalConnectAnalog(t, register, customRate, customAverageMS, everyValue);
-			}
+			byte[] readCmd = {GrovePiConstants.START_BYTE,groveOperation,(byte)register,0x00,0x00};
+			byte[] setup = {GrovePiConstants.START_BYTE, GrovePiConstants.PIN_MODE, (byte)register,GrovePiConstants.INPUT,0x00};				
+			i2cInputs = growI2CConnections(i2cInputs, new I2CConnection(t,
+					GrovePiConstants.BOARD_ADDR,readCmd,(byte)3,register, setup, customRate, customAverageMS, everyValue)); 
+			super.internalConnectAnalog(t, register, customRate, customAverageMS, everyValue);
+
 
 			//logger.debug("added device {} to inputs we now have {}",t, i2cInputs.length);
 
@@ -177,9 +183,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 		else {
 			return super.connect(t, port);
 		}
-		
+
 	}
-	
+
 	/**
 	 * This private method exists so that we can make I2C connections for fake-digital-actually-I2C devices we are hiding as digital.
 	 * @param t the special IO device that is actually I2C underneath

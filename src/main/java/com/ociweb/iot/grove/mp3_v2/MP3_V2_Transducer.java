@@ -10,8 +10,15 @@ import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTransducer {
 	private final FogCommandChannel ch;
+	private int testByte = 0x00;
 	private int[] output_array = 
 		{		
 				msgStartByte,
@@ -29,9 +36,19 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		public void write(BlobWriter writer){
 			for (int b: output_array){
 				writer.writeByte(b);	
-				System.out.print("0x " + Integer.toHexString(b) + " ");
+				System.out.print("0x" + Integer.toHexString(b) + " ");
 			}
 			System.out.println();//RAY's PRINTING
+		}
+	};
+	
+	private SerialWritable testWriter = new SerialWritable() {
+		@Override
+		public void write(BlobWriter writer){
+			for (int i = 0; i < 500; i ++){
+				writer.writeByte(testByte);	
+				System.out.println("Test byte: " + Integer.toHexString(testByte));		
+			}		
 		}
 	};
 	
@@ -63,15 +80,14 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
 	}
 	public boolean sendZeros(){
-		output_array[0] = 0;
-		output_array[1] = 0;
-		output_array[2] = 0;
-		output_array[3] = 0;
-		output_array[4] = 0;
-		output_array[5] = 0;
-		output_array[6] = 0;
-		output_array[7] = 0;
-		return  ch.publishSerial(serialWriter) && ch.block(20_000_000L);
+		testByte = 0x00;
+		return  ch.publishSerial(testWriter);
+		
+	}
+	
+	public boolean sendOnes(){
+		testByte = 0xFF;
+		return  ch.publishSerial(testWriter);
 		
 	}
 	public boolean specifyMusic(int index){

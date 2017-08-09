@@ -4,6 +4,7 @@ package com.ociweb.iot.grove.analogdigital;
 import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.FogCommandChannel;
 import static com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay.*;
 import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayTransducer;
@@ -378,6 +379,10 @@ public enum AnalogDigitalTwig implements ADIODevice {
 	}
 
 	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
+		return null;
+	}
+	@Override
+	public <F extends IODeviceTransducer> F newTransducer(Port p, FogCommandChannel... ch){
 		return null;
 	}
 }

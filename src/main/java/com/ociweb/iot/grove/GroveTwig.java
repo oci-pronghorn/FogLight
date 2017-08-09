@@ -7,6 +7,7 @@ import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.FogCommandChannel;
 import static com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay.*;
 
@@ -400,6 +401,10 @@ public enum GroveTwig implements IODevice, ADIODevice, I2CIODevice {
 
 	@Override
 	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
+		return null;
+	}
+	@Override
+	public <F extends IODeviceTransducer> F newTransducer(Port p, FogCommandChannel... ch){
 		return null;
 	}
 }

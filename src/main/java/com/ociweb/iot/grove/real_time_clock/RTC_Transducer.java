@@ -9,7 +9,6 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.real_time_clock.RTC_Constants.*;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 /**
@@ -19,11 +18,19 @@ import com.ociweb.iot.transducer.I2CListenerTransducer;
 public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer {
     private final FogCommandChannel target;
     private RTCListener listener;
+    
     public RTC_Transducer(FogCommandChannel ch){
         this.target = ch;
+        target.ensureI2CWriting(50 , 4);
     }
+    
     public RTC_Transducer(FogCommandChannel ch,RTCListener l){
         this.target = ch;
+        target.ensureI2CWriting(50 , 4);
+        this.listener = l;
+    }
+    
+    public void registerListener(RTCListener l){
         this.listener = l;
     }
     /**
@@ -57,31 +64,6 @@ public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer 
         
         writeMultipleBytesToRegister(TIME_REG,time);
         
-    }
-    /**
-     * Print the time interpreted from the backing[] array.
-     * @param temp 
-     */
-    public void printTime(int[] temp){
-        StringBuilder indicator = new StringBuilder();
-        
-        indicator.append("The current time is:  ");
-        indicator.append(parseWeekday(temp[3]));
-        indicator.append(", ");
-        indicator.append(temp[5]);
-        indicator.append("/");
-        indicator.append(temp[4]);
-        indicator.append("/");
-        indicator.append(2000+temp[6]);
-        
-        indicator.append("  ");
-        indicator.append(temp[2]);
-        indicator.append(":");
-        indicator.append(temp[1]);
-        indicator.append(":");
-        indicator.append(temp[0]);
-        
-        System.out.println(indicator);
     }
     
     private String parseWeekday(int day){
@@ -171,6 +153,9 @@ public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer 
 
     @Override
     public void i2cEvent(int addr, int register, long time, byte[] backing, int position, int length, int mask) {
-        listener.clockVals(this.interpretData(backing, position, length, mask));
+        int[] temp = this.interpretData(backing, position, length, mask);
+        listener.clockVals(temp[0],temp[1],temp[2],parseWeekday(temp[3]),temp[4],temp[5],2000+temp[6]);
+        
+        
     }
 }

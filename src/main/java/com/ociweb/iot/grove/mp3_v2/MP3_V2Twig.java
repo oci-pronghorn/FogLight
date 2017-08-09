@@ -5,6 +5,12 @@ import com.ociweb.iot.hardware.SerialIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public enum MP3_V2Twig implements SerialIODevice{
 	
 	MP3_V2(){

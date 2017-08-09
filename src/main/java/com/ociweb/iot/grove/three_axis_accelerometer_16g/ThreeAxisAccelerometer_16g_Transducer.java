@@ -9,7 +9,8 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16g_Constants.*;
-import com.ociweb.iot.maker.I2CListener;
+
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 
@@ -17,7 +18,7 @@ import com.ociweb.iot.transducer.I2CListenerTransducer;
  *
  * @author huydo
  */
-public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer,I2CListenerTransducer {    
+public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer {    
     private final FogCommandChannel target;
     private AccelValsListener accellistener;
     private ActTapListener acttaplistener;
@@ -25,6 +26,27 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
 
     public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch, ThreeAxisAccelerometer_16gListener ... l){
         this.target = ch;
+        target.ensureI2CWriting(50, 4);
+        for(ThreeAxisAccelerometer_16gListener item:l){
+            if(item instanceof AccelValsListener){
+                this.accellistener = (AccelValsListener) item;
+            }
+            if(item instanceof ActTapListener){
+                this.acttaplistener = (ActTapListener) item;
+            }
+            if(item instanceof AccelInterruptListener){
+                this.interrlistener =  (AccelInterruptListener) item;
+            }
+        }
+        
+    }
+    public ThreeAxisAccelerometer_16g_Transducer(FogCommandChannel ch){
+        this.target = ch;
+        target.ensureI2CWriting(50, 4);
+    }
+    
+    
+    public void registerListener(ThreeAxisAccelerometer_16gListener ... l){
         for(ThreeAxisAccelerometer_16gListener item:l){
             if(item instanceof AccelValsListener){
                 this.accellistener = (AccelValsListener) item;
@@ -39,9 +61,15 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
     }
     
     
+    
+    @Override
+    public void startup() { //by default, the accelerometer start with range = +/- 2g, ODR = 800 Hz
+        this.powerOn();
+        this.setRange(2);
+        this.setRate(800);
+    }
     /**
      * Start the device in measurement mode, with auto-sleep disabled and sleep mode disabled
-     * The range of values is +/- 16g , with 4mg/LSB scale factor
      */
     public void powerOn() {
         
@@ -49,11 +77,7 @@ public class ThreeAxisAccelerometer_16g_Transducer implements IODeviceTransducer
         
         axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,16);
         
-        axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,8);
-        
-        this.setRange(16);
-        this.setRate(800);
-        
+        axWriteByte(ThreeAxisAccelerometer_16g_Constants.ADXL345_POWER_CTL,8);        
     }
     /**
      * Set the range of acceleration data to be +/- 2,4,8 or 16g
@@ -377,7 +401,7 @@ during which a second value tap can powerOn. The scale factor is 1.25ms/LSB. A
         if(addr == ADXL345_DEVICE){
             if(register == ADXL345_DATAX0){
                 short[] xyzVals = this.interpretData(backing, position, length, mask);
-                accellistener.accelVals(xyzVals[0], xyzVals[1], xyzVals[2]);
+                accellistener.accelerationValues(xyzVals[0]*4, xyzVals[1]*4, xyzVals[2]*4);
             }
             if(register == ADXL345_ACT_TAP_STATUS){
                 int actX = (backing[position] & 0b01000000)>>6;

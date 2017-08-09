@@ -1,5 +1,11 @@
 package com.ociweb.iot.grove.oled;
 
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public class SH1107G_Consts {
 	public static final int DISPLAY_OFF =  0xAE;
 	public static final int DISPLAY_ON = 0xAF;

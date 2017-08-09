@@ -71,8 +71,4 @@ public class SixAxisAccelerometer_Constants {
     public static final int	ACT_THS			= 0x3E;
     public static final int	ACT_DUR			= 0x3F;
     
-    public static final int MAG_SCALE_2 	= 0x00; //full-scale is +/-2Gauss
-    public static final int MAG_SCALE_4 	= 0x20; //+/-4Gauss
-    public static final int MAG_SCALE_8 	= 0x40; //+/-8Gauss
-    public static final int MAG_SCALE_12 	= 0x60; //+/-12Gauss
 }

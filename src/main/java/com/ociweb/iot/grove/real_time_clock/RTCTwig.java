@@ -44,11 +44,6 @@ public enum RTCTwig {
                     return 1000;
                     
                 }
-                @SuppressWarnings("unchecked")
-                @Override
-                public RTC_Transducer newTransducer(FogCommandChannel...ch){
-                    return new RTC_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
-                }
                 /**
                  * @return Delay, in milliseconds, for scan. TODO: What's scan?
                  */
@@ -107,6 +102,12 @@ public enum RTCTwig {
                 public int pinsUsed() {
                     return 1;
                 }
+                
+                @SuppressWarnings("unchecked")
+		@Override
+		public RTC_Transducer newTransducer(FogCommandChannel... ch) {
+			return new RTC_Transducer(ch[0]);
+		}
             }
         };
 }

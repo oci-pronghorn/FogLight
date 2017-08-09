@@ -1,5 +1,12 @@
 package com.ociweb.iot.grove.oled;
 
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
+
 public class SSD1327_Consts {
 
 	//commands

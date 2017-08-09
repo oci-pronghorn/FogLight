@@ -14,7 +14,8 @@ The following sketch will demonstrate a basic demo for using a PubSub Structured
 
 Demo code:
 
-```
+
+```java
 package com.ociweb.oe.foglight.api;
 
 import com.ociweb.iot.maker.FogApp;
@@ -41,11 +42,13 @@ public class PubSubStructured implements FogApp
         // The prcocess loop will end when value reaches 0 and a shutdown command is issued
     }
 }
-
 ```
+
+
 Behavior class:
 
-```
+
+```java
 package com.ociweb.oe.foglight.api;
 
 import com.ociweb.gl.api.StartupListener;
@@ -72,9 +75,11 @@ public class KickoffBehavior implements StartupListener {
 		});
 	}
 }
+```
 
-```
-```
+
+
+```java
 package com.ociweb.oe.foglight.api;
 
 import com.ociweb.gl.api.PubSubListener;
@@ -134,9 +139,11 @@ public class DecrementValueBehavior implements PubSubListener {
 		}
 	}
 }
+```
 
-```
-```
+
+
+```java
 package com.ociweb.oe.foglight.api;
 
 import com.ociweb.gl.api.PubSubListener;
@@ -207,6 +214,8 @@ public class ThingBehavior implements PubSubListener {
 	}
 
 }
-
 ```
+
+
+
 This class is a simple demonstration of PubSub Structured. While similar to the normal PubSub, PubSub Structured is meant for larger messages instead of just simpler ones. 

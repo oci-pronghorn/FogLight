@@ -5,6 +5,7 @@
 
 -[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
 
+-[Mosquitto](https://mosquitto.org/download/), which is an MQTT message broker
 
 # Starting your Maven project: 
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)

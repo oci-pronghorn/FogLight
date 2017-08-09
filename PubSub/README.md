@@ -18,66 +18,37 @@ Demo code:
 ```java
 package com.ociweb.oe.foglight.api;
 
-import static com.ociweb.iot.grove.GroveTwig.*;
 import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
 
-import java.util.ArrayList;
-import java.util.Random;
 
 public class PubSub implements FogApp
 {
-	ArrayList<Integer> luckyNums = new ArrayList<>();
-	Random rand = new Random();
+	private final Appendable target;
+	private final int seed;
 	
-	public static int count = 0;
-
+	public PubSub(Appendable target, int seed) {
+		this.target = target;
+		this.seed = seed;
+	}
 	
     @Override
     public void declareConnections(Hardware c) {
-        
+        //no connections are needed
     }
 
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
 
-    	final FogCommandChannel channel0 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-    	
-    	runtime.addStartupListener(()->{
-    		System.out.println("Your lucky numbers are ...");
-    		channel0.publishTopic("Starter", writable->{});
-    	});
+    	runtime.addStartupListener(new KickoffBehavior(runtime, target));
+    	runtime.addPubSubListener(new GenerateBehavior(runtime, "Count", target, seed)).addSubscription("Next");
+    	runtime.addPubSubListener(new CountBehavior(runtime, "Next")).addSubscription("Count");
     	
     	
-    	final FogCommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-    	
-    	runtime.addPubSubListener((topic, payload)-> {
-    		
-    		int n = rand.nextInt(101);
-    		luckyNums.add(n);
-    		
-    		channel1.publishTopic("Gen", writable->{});
-    		channel1.block(500);
-
-    		return true;
-    	}).addSubscription("Print").addSubscription("Starter");
-    	
-    	
-    	final FogCommandChannel channel2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-    	
-    	runtime.addPubSubListener((topic, payload) -> {
-    		System.out.print(luckyNums.get(count) + " ");
-    		count++;
-    		if(count<7){
-    			channel2.publishTopic("Print", writable->{});
-    		}
-    		
-    		return true;	
-    	}).addSubscription("Gen");
     }
           
 }
 ```
-The above code will generate seven random, lucky numbers. The first ```addPubSubListener()``` will generate a random number and add it to ArrayList ```luckyNums```. Once that has occured, it will publish a message uner the topic of "Gen", which the second PubSubListener is subscribed to, meaning that is is always listening for any publication under that topic. The second PubSubListener will simply print out the newest lucky number, then publish a message under the topic of "Print", which the first PubSubListener is subscribed to, restarting the process for a total of seven rounds.
 
+
+The above code will generate seven random, lucky numbers. The first ```addPubSubListener()``` will generate a random number and add it to ArrayList ```luckyNums```. Once that has occured, it will publish a message uner the topic of "Gen", which the second PubSubListener is subscribed to, meaning that it is always listening for any publication under that topic. The second PubSubListener will simply print out the newest lucky number, then publish a message under the topic of "Print", which the first PubSubListener is subscribed to, restarting the process for a total of seven rounds.

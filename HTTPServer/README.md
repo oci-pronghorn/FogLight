@@ -5,14 +5,12 @@
 
 -[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
 
-
 # Starting your Maven project: 
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
 
 Demo code:
-
 
 ```java
 package com.ociweb.oe.foglight.api;
@@ -69,9 +67,11 @@ public class HTTPServer implements FogApp
 }
 ```
 
-
+1
+2
+3
+4
 Behavior class:
-
 
 ```java
 package com.ociweb.oe.foglight.api;
@@ -137,7 +137,6 @@ public class RestBehaviorEmptyResponse implements RestListener {
 
 }
 ```
-
 
 
 ```java
@@ -232,7 +231,6 @@ public class RestBehaviorLargeResponse implements RestListener {
 ```
 
 
-
 ```java
 package com.ociweb.oe.foglight.api;
 
@@ -302,5 +300,5 @@ public class RestBehaviorSmallResponse implements RestListener {
 
 }
 ```
-This class is a simple demonstration of HTTPServer. HTTP Server will listen for an HTTP Client to send it a request. It will try to process the request, however, if it is unable to process it at that time, it will be reattempted later.
 
+This class is a simple demonstration of HTTPServer. HTTP Server will listen for an HTTP Client to send it a request. It will try to process the request, however, if it is unable to process it at that time, it will be reattempted later

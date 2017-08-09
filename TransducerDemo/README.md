@@ -100,4 +100,4 @@ public class CustomSumTransducerBehavior implements Behavior {
 ```
 
 
-This class is a simple demonstration of a transducer.
+

@@ -15,63 +15,14 @@ The following sketch will demonstrate a simple use of the ```addAnalogListener()
 Demo code:
 Main Class
 
-```
-package com.coiweb.oe.foglight.api;
+#### ERROR:  could not read file .srcmainjavacomcoiweboefoglightapiAnalogListener.java
 
-
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
-
-public class AnalogListener implements FogApp
-{
-	private static Port LIGHT_SENSOR_PORT = A2;
-
-    @Override
-    public void declareConnections(Hardware c) {
-        
-    	c.connect(LightSensor, LIGHT_SENSOR_PORT);
-        
-    }
-
-    @Override
-    public void declareBehavior(FogRuntime runtime) {
-        
-    	runtime.addAnalogListener(new AnalogListenerBehavior(runtime)).includePorts(LIGHT_SENSOR_PORT).excludePorts(DIGITALS);
-    }
-          
-}
-
-```
 Behavior class 
 
-```
-package com.coiweb.oe.foglight.api;
+#### ERROR:  could not read file .srcmainjavacomcoiweboefoglightapiAnalogListenerBehavior.java
 
-import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.Port;
-
-public class AnalogListenerBehavior implements AnalogListener {
-
-	
-	public AnalogListenerBehavior(FogRuntime runtime) {
-		
-	}
-
-	@Override
-	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-
-		System.out.println("value: " + value);
-	}
-
-}
-
-```
-
-These classes are a basic demo of how to use the ```AnalogListener() method```. Following it with the ```includePorts()```method will cuase that listener to only listen to the ports listed. Similarly, the ```ecludePorts()``` will make that listener ignore anything coming from any ports listed. Without either of those methods, the AnalogListener will listen and to any analog devices connected to any analog compatibale ports. 
-In the behavior class, the overridden method will provide you with five variables, ```port```, - ```time```, ```durationMillis```, ```average```, and ```value```. 
+These classes are a basic demo of how to use the ```AnalogListener() method```. Following it with the ```includePorts()```method will cause that listener to only listen to the ports listed. Similarly, the ```ecludePorts()``` will make that listener ignore anything coming from any ports listed. Without either of those methods, the AnalogListener will listen to any analog devices connected to any analog compatible ports. 
+In the behavior class, the overridden method will provide you with five variables, ```port```,  ```time```, ```durationMillis```, ```average```, and ```value```. 
 - ```port``` will give you the port from which the change in value came from.
 - ```time``` will give the length of time in milliseconds that the ```value``` has been/was at that specifc value. 
 - ```durationMillis``` will give ... 

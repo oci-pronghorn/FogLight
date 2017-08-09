@@ -25,5 +25,6 @@
     <module>ImageListener</module>
     <module>MQTTClient</module>
     <module>AnalogTransducer</module>
+    <module>TransducerDemo</module>
   </modules>
 </project>

@@ -60,3 +60,5 @@ Every FogLight application starts with an `FogApp` implementation which initiali
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/StateMachine/README.md)
 - Timer
   - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/Timer/README.md)
+- Transducer
+  - [demo](https://github.com/oci-pronghorn/FogLight-API/blob/master/TransducerDemo/README.md)

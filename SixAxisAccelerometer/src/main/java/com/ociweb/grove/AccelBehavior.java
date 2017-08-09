@@ -31,14 +31,14 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
     }
 
     @Override
-    public void accelVals(int x, int y, int z) {
+    public void accelerationValues(int x, int y, int z) {
         System.out.println("x: "+x);
         System.out.println("y: "+y);
         System.out.println("z: "+z);
     }
 
     @Override
-    public void magVals(int x, int y, int z) {
+    public void magneticValues(int x, int y, int z) {
         double heading = 180*Math.atan2(y, x)/3.14;
         heading = (heading<0)?(heading+360):heading;
         System.out.println("heading: "+heading);

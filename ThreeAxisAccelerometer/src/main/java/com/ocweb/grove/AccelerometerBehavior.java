@@ -6,6 +6,7 @@
 package com.ocweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
+import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16gTwig.*;
 
 import com.ociweb.iot.grove.three_axis_accelerometer_16g.*;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -22,7 +23,7 @@ public class AccelerometerBehavior implements StartupListener,AccelInterruptList
     
     public AccelerometerBehavior(FogRuntime runtime){
         this.c = runtime.newCommandChannel();
-        accSensor = new ThreeAxisAccelerometer_16g_Transducer(c,this);
+        accSensor = ThreeAxisAccelerometer_16g.GetInterrupt.newTransducer(c);
     }
     
     @Override
@@ -40,7 +41,7 @@ public class AccelerometerBehavior implements StartupListener,AccelInterruptList
     }
 
     @Override
-    public void accelVals(int x, int y, int z) {
+    public void accelerationValues(int x, int y, int z) {
         System.out.println("x: "+x);
         System.out.println("y: "+y);
         System.out.println("z: "+z);

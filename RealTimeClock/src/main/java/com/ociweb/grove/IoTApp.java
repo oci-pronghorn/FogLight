@@ -23,6 +23,7 @@ public class IoTApp implements FogApp
         
         // // specify each of the connections on the harware, eg which component is plugged into which connection.
         c.connect(RTC.ReadTime);
+        c.enableTelemetry();
         if(c instanceof TestHardware){
             byte[] dummy ={0};
             ((TestHardware) c).setI2CValueToRead((byte)104,dummy,1);

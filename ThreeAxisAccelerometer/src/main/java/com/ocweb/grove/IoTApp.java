@@ -14,6 +14,7 @@ public class IoTApp implements FogApp
     } 
     @Override
     public void declareConnections(Hardware c) {
+        c.enableTelemetry();
         c.connect(ThreeAxisAccelerometer_16g.GetXYZ);
         c.connect(ThreeAxisAccelerometer_16g.GetInterrupt);
     }

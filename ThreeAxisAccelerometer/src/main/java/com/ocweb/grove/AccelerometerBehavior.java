@@ -24,6 +24,7 @@ public class AccelerometerBehavior implements StartupListener,AccelInterruptList
     public AccelerometerBehavior(FogRuntime runtime){
         this.c = runtime.newCommandChannel();
         accSensor = ThreeAxisAccelerometer_16g.GetInterrupt.newTransducer(c);
+        accSensor.registerListener(this);
     }
     
     @Override

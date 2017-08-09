@@ -83,7 +83,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	private static final int DEFAULT_LENGTH = 16;
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
-
+	private static final int DEFAULT_CUSTOM_RATE_MS = -1;
+	private static final int DEFAULT_CUSTOM_AVG_WINDOW_MS = -1;
+	private static final boolean DEFAULT_EVERY_VALUE = false;
 
 	private int i2cBus;
 	protected I2CBacking i2cBackingInternal;
@@ -526,26 +528,23 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS, int customAvgWindowMS) {
-
-		return connect(t,port,customRateMS, customAvgWindowMS ,false);
+		return connect(t,port,customRateMS, customAvgWindowMS ,DEFAULT_EVERY_VALUE);
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS) {
-		return connect(t,port,customRateMS, -1 ,false);
+		return connect(t,port,customRateMS, DEFAULT_CUSTOM_AVG_WINDOW_MS ,false);
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS, boolean everyValue) {
-		return connect(t,port,customRateMS, -1 ,everyValue);
+		return connect(t,port,customRateMS, DEFAULT_CUSTOM_AVG_WINDOW_MS ,everyValue);
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port) {
-		return connect (t, port, -1,-1,false);
+		return connect (t, port, DEFAULT_CUSTOM_RATE_MS,DEFAULT_CUSTOM_AVG_WINDOW_MS,false);
 	}
-
-	
 
 	public void releasePinOutTraffic(int count, MsgCommandChannel<?> gcc) {		
 		MsgCommandChannel.publishGo(count, IDX_PIN, gcc);		

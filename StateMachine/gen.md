@@ -15,12 +15,12 @@ The following sketch will demonstrate a simple use of the ```StateChangeListener
 Demo code:
 Main Class
 
-.includeFile ".\src\main\java\com\ociweb\oe\foglight\api\StateMachine.java"
+.includeFile "./src/main/java/com/ociweb/oe/foglight/api/StateMachine.java"
 
 Behavior classes
 
-.includeFile ".\src\main\java\com\coiweb\oe\foglight\api\TimingBehavior.java"
+.includeFile "./src/main/java/com/coiweb/oe/foglight/api/TimingBehavior.java"
 
-.includeFile ".\src\main\java\com\coiweb\oe\foglight\api\StateChangeBehavior.java"
+.includeFile "./src/main/java/com/coiweb/oe/foglight/api/StateChangeBehavior.java"
 
-These classes are a basic demo of how to use the ```StateChangeListener``` method. In the main class, a stop light is simulated with 3 different states, ```Go```, ```Caution```, and ```Stop```. In the ```declareConnections``` section, the stop light is initialized to the ```Stop``` state to beging with. If a state is initilized there, you use a ```changeState()``` in a StartupListener as the two will clash when starting the program, so you must use one or the other. In the ```TimeBehavior``` class, a TimeListener is being used to change the state the state of the stop light. Every 5 seconds, the state is changed to the next state in the pregression. In the ```StateChangeBehavior``` class, there is a StateChangeListener. Whenever it hears a change in state, it will print the new states color and will return true.
+These classes are a basic demo of how to use the ```StateChangeListener``` method. In the main class, a stop light is simulated with 3 different states, ```Go```, ```Caution```, and ```Stop```. In the ```declareConnections``` section, the stop light is initialized to the ```Stop``` state to begin with. If a state is initialized there, you use a ```changeState()``` in a StartupListener as the two will clash when starting the program, so you must use one or the other. In the ```TimeBehavior``` class, a TimeListener is being used to change the state the state of the stop light. Every 5 seconds, the state is changed to the next state in the progression. In the ```StateChangeBehavior``` class, there is a StateChangeListener. Whenever it hears a change in state, it will print the new states color and will return true.

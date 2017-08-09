@@ -27,7 +27,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
     
     public IMUTransducer(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
-        target.ensureI2CWriting(5000, 50);
+        target.ensureI2CWriting(5000, 100);
         for(AstroPiListener item:l){
             if(item instanceof GyroListener){
                 this.gyroListener = (GyroListener) item;
@@ -453,7 +453,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
         }
     }
 
-    private void setMagOffset(int axis,int offset){
+    private void setMagOffset(int axis,short offset){
         int msb,lsb;
         msb = (offset & 0xff00)>>8;
         lsb = (offset & 0xff);
@@ -506,7 +506,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
     
     private int calibrateGyro = 0;
     private int calibrateAccel = 0;
-    private int calibrateMag = 10;
+    private int calibrateMag = 0;
     
     private int[] gBiasRawTemp = new int[3];
     private int[] aBiasRawTemp = new int[3];
@@ -582,8 +582,9 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
                 }
                 else if(calibrateMag == 9){
                     for(int i=0;i<3;i++){
-                        MagSettings.mBiasRaw[i] = (magMax[i]+magMin[i])/2;
+                        MagSettings.mBiasRaw[i] = (short) ((magMax[i]+magMin[i])/2);
                         MagSettings.mBias[i] = calcMag(MagSettings.mBiasRaw[i]);
+                        System.out.println("calibration: "+MagSettings.mBiasRaw[i]);
                         setMagOffset(i,MagSettings.mBiasRaw[i]);
                     }
                     calibrateMag++;

@@ -7,6 +7,8 @@ import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.maker.Port;
+
 import  static com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay.*;
 
 import com.ociweb.iot.grove.oled.OLED_128x64_Transducer;
@@ -401,6 +403,10 @@ public enum AnalogDigitalTwig implements IODevice, ADIODevice, I2CIODevice {
 	@Override
 	public <F extends IODeviceTransducer> F newTransducer(FogCommandChannel... ch) {
 		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public <F extends IODeviceTransducer> F newTransducer(Port p, FogCommandChannel... ch){
 		return null;
 	}
 }

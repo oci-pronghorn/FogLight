@@ -6,18 +6,27 @@ import com.ociweb.iot.transducer.AnalogListenerTransducer;
 import static com.ociweb.iot.maker.Port.*;
 
 import java.util.ArrayList;
+
 public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODeviceTransducer{
+
 	private Port port = A1; //we default to A1 for X and A2 for Y
 	private int x = -1;
 	private int y = -1;
+	private long lastButtonStateChangeTime = -1L;
 	private Z z = Z.NotPressed;
+
 	private final int PRESSED_X_VALUE = 1023;
+
 	private ArrayList <ThumbJoystickListener> listeners = new ArrayList<ThumbJoystickListener>();
-
+	
+	
+	
 	public ThumbJoystickTransducer(){
-		
 	}
-
+	
+	public ThumbJoystickTransducer(Port p){
+		port = p;
+	}
 	public ThumbJoystickTransducer registerThumbJoystickListener(ThumbJoystickListener... ls){
 		for (ThumbJoystickListener l: ls){
 			listeners.add(l);
@@ -40,18 +49,17 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 
 	@Override
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-		if (x == PRESSED_X_VALUE){
-			if (z == Z.NotPressed){
-				firePressedJoystickEvents();
-				z = Z.Pressed;
-			}
+		if (x == PRESSED_X_VALUE && z == Z.NotPressed){
+			fireButtonStateChangeEvents(time - lastButtonStateChangeTime);
+			lastButtonStateChangeTime = time;
+			z = Z.Pressed;
 			return; //we will not be triggering joystickValues listeners events because x is 1023.
 		}
-		else {
-			if (z == Z.Pressed){
-				fireReleasedJoystickEvents();
-				z = Z.NotPressed;
-			}
+		else if (x != PRESSED_X_VALUE && z == Z.Pressed){
+			fireButtonStateChangeEvents(time - lastButtonStateChangeTime);
+			lastButtonStateChangeTime = time;
+			z = Z.NotPressed;
+
 		}
 
 
@@ -61,6 +69,7 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 		else if (port.port == (this.port.port + 1)){
 			y = value;
 		}
+
 		if (x != -1 && y != -1){
 			for (ThumbJoystickListener l: listeners){
 				((ThumbJoystickListener) l).joystickValues(x, y);
@@ -69,21 +78,11 @@ public class ThumbJoystickTransducer implements AnalogListenerTransducer, IODevi
 		}
 	}
 
-	private void firePressedJoystickEvents(){
-		for (ThumbJoystickListener l:listeners){
-			if ( l instanceof PressableJoystickListener){
-				((PressableJoystickListener) l).pressed();
-			}
+	private void fireButtonStateChangeEvents(long duration){
+		int i = listeners.size();
+		while (--i >= 0){
+			listeners.get(i);
 		}
 	}
-
-	private void fireReleasedJoystickEvents(){
-		for (ThumbJoystickListener l:listeners){
-			if ( l instanceof PressableJoystickListener){
-				((PressableJoystickListener) l).released();
-			}
-		}
-	}
-
 	private enum Z {Pressed, NotPressed};
 }

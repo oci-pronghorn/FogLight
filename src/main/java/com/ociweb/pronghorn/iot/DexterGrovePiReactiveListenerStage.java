@@ -7,24 +7,17 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
-import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiConstants;
 import com.ociweb.iot.impl.AnalogListenerBase;
 import com.ociweb.iot.impl.DigitalListenerBase;
 import com.ociweb.iot.impl.I2CListenerBase;
 import com.ociweb.iot.impl.RotaryListenerBase;
-import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.DigitalListener;
-import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-//import com.ociweb.pronghorn.util.ma.MAAvgRollerLongTest;
-import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
 public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStageIOT{
 
@@ -37,8 +30,8 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStageIOT
 			                                  HardwareImpl hardware, int parallelInstance) {
 		super(graphManager, listener, inputPipes, outputPipes, consumers, hardware, parallelInstance);
 	}
-
-
+    
+    
 	@Override
 	protected void processI2CMessage(Object listener, Pipe<I2CResponseSchema> p) {
 		if (listener instanceof I2CListenerBase 

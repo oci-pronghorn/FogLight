@@ -18,6 +18,9 @@ import com.ociweb.iot.maker.Baud;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.DexterGrovePiReactiveListenerStage;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.pipe.MessageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -47,6 +50,16 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 
 
+	@Override
+	public MessageSchema schemaMapper(MessageSchema schema) {
+		
+		if (schema != GroveResponseSchema.instance) {
+			return schema;
+		} else {
+			return I2CResponseSchema.instance;
+		}
+		
+	}
 
 	@Override
 	public PiCommandChannel newCommandChannel(int features, int instance, PipeConfigManager pcm) {

@@ -19,12 +19,14 @@ public class RestfulWaterSensorBehavior implements AnalogListener, RestListener 
 	public boolean restRequest(HTTPRequestReader reader) {
 		return ch.publishHTTPResponse(reader, 200, HTTPFieldReader.END_OF_RESPONSE | HTTPFieldReader.CLOSE_CONNECTION, HTTPContentTypeDefaults.HTML,
 				(writer)->{
-					try {
-						writer.append(Integer.toString(this.val));
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					
+						try {
+							writer.append(Integer.toString(this.val));
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+				
 				});
 	}
 

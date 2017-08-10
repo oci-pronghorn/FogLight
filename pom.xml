@@ -25,5 +25,6 @@
     <module>400-IoTGateway</module>
     <module>600-HZDemo</module>
     <module>650-CassandraDemo</module>
+    <module>006-Snake</module>
   </modules>
 </project>

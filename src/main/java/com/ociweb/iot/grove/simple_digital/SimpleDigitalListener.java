@@ -8,5 +8,5 @@ import com.ociweb.iot.maker.Port;
  *
  */
 public interface SimpleDigitalListener {
-	void SimpleDigitalEvent(Port port, long time, long durationMillis, int value);
+	void simpleDigitalEvent(Port port, long time, long durationMillis, int value);
 }

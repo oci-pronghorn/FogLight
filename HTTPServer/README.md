@@ -67,10 +67,6 @@ public class HTTPServer implements FogApp
 }
 ```
 
-1
-2
-3
-4
 Behavior class:
 
 ```java

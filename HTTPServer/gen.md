@@ -12,10 +12,6 @@
  
 Demo code:
 .include "./src/main/java/com/ociweb/oe/foglight/api/HTTPServer.java"
-1
-2
-3
-4
 Behavior class:
 .include "./src/main/java/com/ociweb/oe/foglight/api/RestBehaviorEmptyResponse.java"
 .include "./src/main/java/com/ociweb/oe/foglight/api/RestBehaviorLargeResponse.java"

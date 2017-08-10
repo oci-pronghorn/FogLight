@@ -16,50 +16,26 @@ Demo code:
 
 
 ```java
-package com.ociweb.grove;
-
-
-import com.ociweb.iot.maker.*;
-
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
-import static com.ociweb.iot.maker.Port.*;
-import com.ociweb.gl.api.MsgCommandChannel;
-
-public class IoTApp implements FogApp
-{
-	private static final Port THUMBJOYSTICK_PORT_X = A0;
-	private static final Port THUMBJOYSTICK_PORT_Y = A1;
-	private static final String GroveTwig = null;
+public class ThumbJoystickBehavior implements Behavior, PressableJoystickListener{
+	private ThumbJoystickTransducer tj;
+	
+	public ThumbJoystickBehavior(Port p){
+		tj = ThumbJoystick.newTransducer(p);
+		tj.registerThumbJoystickListener(this);
+	}
+	
 
 	@Override
-	public void declareConnections(Hardware c) {
-
-		
-		//TODO: pinUsed() is not automatically allowing user to automatically connect both ports once one port is connected
-		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT_X);
-		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT_Y);
+	public void joystickValues(int x, int y) {
+		System.out.println("X: " + x + ", Y: " + y);
 	}
 
-
+	
 	@Override
-	public void declareBehavior(FogRuntime runtime) {
-		runtime.addAnalogListener((port, time, durationMillis, average, value)->{
-			if ( port == THUMBJOYSTICK_PORT_X){
-				//the X value should be roughly between 200 to 800 unless pressed
-				if (value != 1023){
-					System.out.println("X: "+value);
-				}
-				else {
-					System.out.println("Pressed");
-				}
-			}
-			
-			else if (port == THUMBJOYSTICK_PORT_Y){
-				System.out.println("Y: "+value);
-
-			}
-		});
+	public void buttonStateChange(boolean pressed, long time,long previousDuration){
+		System.out.println("Pressed:" + pressed + ", Duration: " + previousDuration);
 	}
+
 }
 ```
 
@@ -67,8 +43,11 @@ public class IoTApp implements FogApp
 
 The Joystick is made out of two potentiometers rotating in two orthogonal (X and Y) planes. They are physically constrained so that their values would read between around 200 to 800. When the joystick is pressed, the X value will read 1023 and can be used to detect presses.
 
-The lambda passed into ```runtime.addAnalogListener()``` first identifies which Port (the X or Y port) triggered the analog event, and prints out the value accordingly. There is an addition conditional logic for X to determine whether the joystick was pressed.
+All of that logic has already been implemented for you in the ThumbJoyStickTransducer. Initialize an instance of the ThumbJoystickTransducer, passing in the port. Keep in mind that the joystick actually takes up two "pins," hence, if one was to plug the joystick into A0. A0 is now X an A1 is now Y. Although nothing will be plugged into A1 physically, it is occupied by the joystick.
 
+In order to listen to the JoyStick, register either a PressableJoystickListener or a ThumbJoystickListener on the transducer created. In the example, we have simply implemented the PressableJoystickListener in our Behavior class. Hence, we register "this" onto the transducer, as "this" is the ThumbJoystickBehavior class, which is also an implementation of PressableJoystickListener.
+
+Upon a button press or release, the buttonStateChange callback method will tell us whether the new state is pressed or not, and how long the previous state was maintined. This will be useful for detecting double clicks.
 
 
 

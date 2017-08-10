@@ -16,7 +16,7 @@ import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.util.Appendables;
 
 
-public class MP3Behavior implements Behavior, StartupListener, TimeListener{
+public class MP3Behavior implements Behavior, StartupListener{
 	Logger logger = LoggerFactory.getLogger(MP3Behavior.class);
 	
 	private final MP3_V2_Transducer s;
@@ -27,35 +27,10 @@ public class MP3Behavior implements Behavior, StartupListener, TimeListener{
 
 	@Override
 	public void startup() {
-		//logger.warn("Selecting device {} ",s.selectDevice(SD_Card));
-		//logger.warn("Setting volume {}",s.setVolume(28));
-		//logger.warn("Playing song in MP3 folder {}" , s.playSongInMP3Folder(0001));
-	//	logger.warn("Resuming {}" ,s.resume());
+		logger.warn("Selecting device {} ",s.selectDevice(SD_Card));
+		logger.warn("Setting volume {}",s.setVolume(28));
+		logger.warn("Playing song in MP3 folder {}" , s.playSongInMP3Folder(0001));
+		logger.warn("Resuming {}" ,s.resume());
 		
 	}
-
-	@Override
-	public void timeEvent(long time, int iteration) {
-		s.sendOnes();
-		s.sendZeros();
-		System.out.println("Sending 0s and 1s to try and get this to blink :(");
-	}
-
-	//	@Override
-	//	public int message(BlobReader reader) {
-	//		System.out.println("Reading serial messages");
-	//		if (reader.available() > 0){
-	//			int consumed = 0;
-	//			while (reader.hasRemainingBytes()){
-	//				System.out.print("Input:" + Integer.toHexString( reader.read()));
-	//				consumed++;
-	//			}
-	//			System.out.println();
-	//			return consumed;
-	//		}
-	//		return 0;
-	//	}
-
-
-
 }

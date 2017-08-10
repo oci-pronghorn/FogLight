@@ -18,6 +18,10 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
  */
 public class AppTest { 
 
+	/////////////////
+	// IF YOU'D LIKE TO GENERATE YOUR OWN IMAGE VIA A GUI, TURN THIS BOOLEAN ON.
+	/////////////////
+	private boolean askToGenerateImage = false;
 
 	@Test
 	public void testApp()
@@ -28,14 +32,14 @@ public class AppTest {
 
 		scheduler.startup();
 
-		
+
 		int iterations = 10;
 		while (--iterations >= 0) {
 
 			scheduler.run();
 
 			//test application here
-			
+
 		}
 
 
@@ -44,21 +48,23 @@ public class AppTest {
 	}
 	@Test
 	public void testInit(){
-		
+
 	}
-	@Deprecated
+	@Test
 	public void testImageSerialization(){
-		
-		try {
-			int[][] map = null;
-			map = ImageGenerator.convertToGrayScale(4, 0, 0, 96, 96);
-			//FileOutputStream fos = new FileOutputStream("/Users/ray/Documents/workspace/FogLight-Grove/OLED96x96/src/main/resources/oci.dat");
-			//ObjectOutputStream oos = new ObjectOutputStream(fos);
-			//oos.writeObject(map);
-		} catch (IOException e) {
-			
-			e.printStackTrace();
+		if (askToGenerateImage){
+			try {
+				int[][] map = null;
+				map = ImageGenerator.convertToGrayScale(4, 0, 0, 96, 96);
+				
+				//Uncomment if you would like to generate an image and serialize it to disk.
+				//FileOutputStream fos = new FileOutputStream("/YOUR/PATH/HERE");
+				//ObjectOutputStream oos = new ObjectOutputStream(fos);
+				//oos.writeObject(map);
+			} catch (IOException e) {
+
+				e.printStackTrace();
+			}
 		}
-		
 	}
 }

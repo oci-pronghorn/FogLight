@@ -11,7 +11,7 @@ FogLight is...
 ## How It Works ##
 Every FogLight application starts with an `FogApp` implementation which initializes the `FogRuntime` by defining various hardware connections and behaviors for handling state changes in those connections.  
 
-## What You Need Befor You Start:
+## What You Need Before You Start:
 ### Hardware
 - [Raspberry Pi](https://www.raspberrypi.org/)
 - [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)

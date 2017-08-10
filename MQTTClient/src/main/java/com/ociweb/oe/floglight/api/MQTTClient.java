@@ -12,16 +12,18 @@ import com.ociweb.oe.floglight.api.behaviors.TimeBehavior;
 public class MQTTClient implements FogApp {
 	private MQTTBridge mqttConfig;
 	
-	//install mosquitto
+	//install mosquitto - replace 127.0.0.1 if using a different broker
 	//
 	//to monitor call >    mosquitto_sub -v -t '#' -h 127.0.0.1
 	//to test call >       mosquitto_pub -h 127.0.0.1 -t 'external/topic/ingress' -m 'hello'
 
 	@Override
 	public void declareConnections(Hardware builder) {
+		//final String brokerHost = "127.0.0.1";
+		//final String brokerHost = "172.16.10.28"; // Nathan's PC
+		final String brokerHost = "thejoveexpress.local"; // Raspberry Pi0
 		// Create a single mqtt client
-		mqttConfig = builder.useMQTT(//"172.16.10.28", 1883, "NathansPC")
-				                      "127.0.0.1", 1883, "my name",200) //default of 10 in flight
+		mqttConfig = builder.useMQTT(brokerHost, 1883, "MQTTClientTest",200) //default of 10 in flight
 							.cleanSession(true)	
 							.keepAliveSeconds(10);
 
@@ -40,14 +42,17 @@ public class MQTTClient implements FogApp {
 		final String externalIngressTopic = "external/topic/ingress";
 		final String localTestTopic = "localtest";
 
+		final MQTTQOS transQos = MQTTQOS.atLeastOnce;
+		final MQTTQOS subscribeQos = MQTTQOS.atLeastOnce;
+
 		// Inject the timer that publishes topic/egress
 		TimeBehavior internalEgressTopicProducer = new TimeBehavior(runtime, internalEgressTopic);
 		runtime.addTimePulseListener(internalEgressTopicProducer);
 		// Convert the internal topic/egress to external for mqtt
-		runtime.bridgeTransmission(internalEgressTopic, externalEgressTopic, mqttConfig).setQoS(MQTTQOS.atLeastOnce);
+		runtime.bridgeTransmission(internalEgressTopic, externalEgressTopic, mqttConfig).setQoS(transQos);
 ;
 		// Subscribe to MQTT topic/ingress (created by mosquitto_pub example in comment above)
-		runtime.bridgeSubscription(internalIngressTopic, externalIngressTopic, mqttConfig).setQoS(MQTTQOS.atLeastOnce);
+		runtime.bridgeSubscription(internalIngressTopic, externalIngressTopic, mqttConfig).setQoS(subscribeQos);
 		// Listen to internal/topic/ingress and publish localtest
 		IngressBehavior mqttBrokerListener = new IngressBehavior(runtime, localTestTopic);
 		runtime.registerListener(mqttBrokerListener)

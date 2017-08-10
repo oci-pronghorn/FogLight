@@ -5,53 +5,56 @@ import com.ociweb.gl.impl.MQTTQOS;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
+import com.ociweb.oe.floglight.api.behaviors.EgressBehavior;
+import com.ociweb.oe.floglight.api.behaviors.IngressBehavior;
+import com.ociweb.oe.floglight.api.behaviors.TimeBehavior;
 
 public class MQTTClient implements FogApp {
-
 	private MQTTBridge mqttConfig;
 	
 	//install mosquitto
 	//
 	//to monitor call >    mosquitto_sub -v -t '#' -h 127.0.0.1
-	//to test call >       mosquitto_pub -h 127.0.0.1 -t 'topic/ingress' -m 'hello'
-	
-	public static void main( String[] args ) {
-		FogRuntime.run(new MQTTClient());
-    }
-		
+	//to test call >       mosquitto_pub -h 127.0.0.1 -t 'external/topic/ingress' -m 'hello'
+
 	@Override
 	public void declareConnections(Hardware builder) {
-
 		// Create a single mqtt client
 		mqttConfig = builder.useMQTT(//"172.16.10.28", 1883, "NathansPC")
 				                      "127.0.0.1", 1883, "my name",200) //default of 10 in flight
 							.cleanSession(true)	
-							.transmissionRetain(true)
-							.keepAliveSeconds(10); 
+							.keepAliveSeconds(10);
 
 		// Timer rate
 		builder.setTimerPulseRate(300); 
 		builder.enableTelemetry();
-		
-				
 	}
 
 	@Override
 	public void declareBehavior(final FogRuntime runtime) {
+		// The external/internal topic translation is not necessary.
+		// The bridge calls may be made with one topic specified
+		final String internalEgressTopic = "internal/topic/egress";
+		final String externalEgressTopic = "external/topic/egress";
+		final String internalIngressTopic = "internal/topic/ingress";
+		final String externalIngressTopic = "external/topic/ingress";
+		final String localTestTopic = "localtest";
 
-		// Subscribe to the mqtt client given "topic/ingress" - produced by mosquitto_pub
-		runtime.bridgeSubscription("topic/ingress", "topic/ingress", mqttConfig).setQoS(MQTTQOS.atLeastOnce);
-		// Publish to the mqtt client given "topic/egress" - produced by TimeBehavior
-		runtime.bridgeTransmission("topic/egress", "topic/egress", mqttConfig).setQoS(MQTTQOS.atLeastOnce);
+		// Inject the timer that publishes topic/egress
+		TimeBehavior internalEgressTopicProducer = new TimeBehavior(runtime, internalEgressTopic);
+		runtime.addTimePulseListener(internalEgressTopicProducer);
+		// Convert the internal topic/egress to external for mqtt
+		runtime.bridgeTransmission(internalEgressTopic, externalEgressTopic, mqttConfig).setQoS(MQTTQOS.atLeastOnce);
+;
+		// Subscribe to MQTT topic/ingress (created by mosquitto_pub example in comment above)
+		runtime.bridgeSubscription(internalIngressTopic, externalIngressTopic, mqttConfig).setQoS(MQTTQOS.atLeastOnce);
+		// Listen to internal/topic/ingress and publish localtest
+		IngressBehavior mqttBrokerListener = new IngressBehavior(runtime, localTestTopic);
+		runtime.addPubSubListener(mqttBrokerListener)
+				.addSubscription(internalIngressTopic);
 
-		// Inject the timer
-		runtime.addTimePulseListener(new TimeBehavior(runtime));
-
-		// Inject a listener for "topic/ingress" - produced by mosquitto_pub
-		runtime.addPubSubListener(new IngressBehavior(runtime)).addSubscription("topic/ingress");
-
-		// Inject the listener for "localtest" - produced by IngressBehavior on reception of "topic/ingress"
-		runtime.addPubSubListener(new EgressBehavior() ).addSubscription("localtest");
+		// Inject the listener for "localtest"
+		runtime.addPubSubListener(new EgressBehavior() )
+				.addSubscription(localTestTopic);
 	}
-
 }

@@ -1,4 +1,4 @@
-package com.ociweb.oe.floglight.api;
+package com.ociweb.oe.floglight.api.behaviors;
 
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.WaitFor;
@@ -6,20 +6,17 @@ import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.pipe.BlobWriter;
 
 public class IngressBehavior implements PubSubListener {
+	private final FogCommandChannel cmd;
+	private final String publishTopic;
 
-	final FogCommandChannel cmd;
-	public IngressBehavior(FogRuntime runtime) {
-				
-		 cmd = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-
+	public IngressBehavior(FogRuntime runtime, String publishTopic) {
+		cmd = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+		this.publishTopic = publishTopic;
 	}
 
-
 	public boolean message(CharSequence topic,  BlobReader payload) {
-
 		// this received when mosquitto_pub is invoked - see MQTTClient
 		System.out.print("\ningress body: ");
 
@@ -28,21 +25,12 @@ public class IngressBehavior implements PubSubListener {
 		System.out.println();
 
 		// Create the on-demand mqtt payload writer
-		Writable mqttPayload = new Writable() {
-
-			@Override
-			public void write(BlobWriter writer) {
-
-				writer.writeUTF("\nsecond step test message");
-			}
-
-		};
+		Writable mqttPayload = writer -> writer.writeUTF("\nsecond step test message");
 
 		// On the 'localtest' topic publish the mqtt payload
-		cmd.publishTopic("localtest", mqttPayload, WaitFor.None);
+		cmd.publishTopic(publishTopic, mqttPayload, WaitFor.None);
 
 		// We consumed the message
 		return true;
 	}
-
 }

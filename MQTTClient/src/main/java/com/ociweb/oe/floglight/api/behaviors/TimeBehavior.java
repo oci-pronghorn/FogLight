@@ -1,4 +1,4 @@
-package com.ociweb.oe.floglight.api;
+package com.ociweb.oe.floglight.api.behaviors;
 
 import java.util.Date;
 
@@ -9,40 +9,34 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
-
 public class TimeBehavior implements TimeListener {
-
 	private int droppedCount = 0;
-	final FogCommandChannel cmdChnl;
-	public TimeBehavior(FogRuntime runtime) {
-		cmdChnl = runtime.newCommandChannel(DYNAMIC_MESSAGING);	
+    private final FogCommandChannel cmdChnl;
+	private final String publishTopic;
+
+	public TimeBehavior(FogRuntime runtime, String publishTopic) {
+		cmdChnl = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+		this.publishTopic = publishTopic;
 	}
 
 	@Override
 	public void timeEvent(long time, int iteration) {
-
 		int i = 1;//iterations
 		while (--i>=0) {
-		
-			Date d =new Date(System.currentTimeMillis());
+			Date d = new Date(System.currentTimeMillis());
 			
 			// On the timer event create a payload with a string encoded timestamp
-			Writable writable = new Writable() {
-				@Override
-				public void write(BlobWriter writer) {
-					writer.writeUTF8Text("egress body "+d);
-				}
-			};
+			Writable writable = writer -> writer.writeUTF8Text("'MQTT egress body " + d + "'");
 					
 			// Send out the payload with thre MQTT topic "topic/egress"
-			boolean ok = cmdChnl.publishTopic("topic/egress", writable, WaitFor.None);
+			boolean ok = cmdChnl.publishTopic(publishTopic, writable, WaitFor.None);
 			if (ok) {
 				//System.err.println("sent "+d);
-			} else {
+			}
+			else {
 				droppedCount++;
 				System.err.println("The system is backed up, dropped "+droppedCount);
 			}
 		}
 	}
-
 }

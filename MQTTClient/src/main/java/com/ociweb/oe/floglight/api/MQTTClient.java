@@ -50,11 +50,12 @@ public class MQTTClient implements FogApp {
 		runtime.bridgeSubscription(internalIngressTopic, externalIngressTopic, mqttConfig).setQoS(MQTTQOS.atLeastOnce);
 		// Listen to internal/topic/ingress and publish localtest
 		IngressBehavior mqttBrokerListener = new IngressBehavior(runtime, localTestTopic);
-		runtime.addPubSubListener(mqttBrokerListener)
+		runtime.registerListener(mqttBrokerListener)
 				.addSubscription(internalIngressTopic);
 
 		// Inject the listener for "localtest"
-		runtime.addPubSubListener(new EgressBehavior() )
+		EgressBehavior doTheBusiness = new EgressBehavior();
+		runtime.registerListener(doTheBusiness)
 				.addSubscription(localTestTopic);
 	}
 }

@@ -1,13 +1,13 @@
 package com.ociweb.oe.floglight.api.behaviors;
 
-import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.PubSubMethodListener;
 import com.ociweb.gl.api.WaitFor;
 import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.BlobReader;
 
-public class IngressBehavior implements PubSubListener {
+public class IngressBehavior implements PubSubMethodListener {
 	private final FogCommandChannel cmd;
 	private final String publishTopic;
 
@@ -16,7 +16,7 @@ public class IngressBehavior implements PubSubListener {
 		this.publishTopic = publishTopic;
 	}
 
-	public boolean message(CharSequence topic,  BlobReader payload) {
+	public boolean receiveMqttMessage(CharSequence topic,  BlobReader payload) {
 		// this received when mosquitto_pub is invoked - see MQTTClient
 		System.out.print("\ningress body: ");
 

@@ -12,13 +12,13 @@
 
 The following sketch will turn the buzzer on whenever the button is pressed down.
 
-Demo code: 
-
+Demo code:
 
 ```java
 package com.ociweb.grove;
 import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
+
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
@@ -35,14 +35,44 @@ public class IoTApp implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
   
-        final FogCommandChannel channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-        runtime.addDigitalListener((port, connection, time, value)->{ 
-    	    channel1.setValueAndBlock(BUZZER_PORT, value == 1, 500);
-    	});
+        runtime.addDigitalListener(new BuzzerBehavior(runtime));
+       
     }
+}
+```
+
+Behavior class:
+
+```java
+package com.ociweb.grove;
+
+import com.ociweb.iot.maker.*;
+
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
+import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.maker.FogCommandChannel.*;
+
+public class BuzzerBehavior implements DigitalListener {
+	
+	private static final Port BUZZER_PORT = D8;
+	
+	private final FogCommandChannel channel1;
+	
+	public BuzzerBehavior(FogRuntime runtime) {
+		// TODO Auto-generated constructor stub
+        channel1 = runtime.newCommandChannel(PIN_WRITER);
+	}
+
+	@Override
+	public void digitalEvent(Port port, long time, long durationMillis, int value) {
+		// TODO Auto-generated method stub
+	    channel1.setValueAndBlock(BUZZER_PORT, value == 1, 500);
+
+	}
+
 }
 ```
 
 
 When executed, the above code will allow you to turn on the buzzer whenever the button is pressed. Also, whenever the button is released, there will be a 500 millisecond delay before the buzzer will turn on again.
-The addDigitalListener() method passes a 1 as value when the button is pressed, and 0 when it is released. In order to send a signal to the relay on the digital port, use the setValue() method to check if the value is equivalent to 1, and when it is, a signal will be sent.
+The ```digitalEvent()``` method passes a 1 as the value when the button is pressed, and 0 when it is released. In order to send a signal to the relay on the digital port, use the ```setValue()``` method to check if the value is equivalent to 1, and when it is, a signal will be sent.

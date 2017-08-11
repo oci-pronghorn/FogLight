@@ -12,7 +12,9 @@
 [Starting a FogLight project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
-
+Demo code:
 .include "./src/main/java/com/ociweb/grove/IoTApp.java"
+Behavior class:
+.include "./src/main/java/com/ociweb/grove/VibrationSensorBehavior.java"
 
-The lambda passed into ```runtime.addAnalogListener()``` triggers the buzzer if the value of vibration is over a predetermined threshold, which is 800 in this case. 
+The behavior class triggers the buzzer if the value of vibration is over a predetermined threshold, which is 800 in this case. 

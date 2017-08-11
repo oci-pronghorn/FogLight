@@ -27,7 +27,7 @@ public class LEDScreenTransducer implements IODeviceTransducer,I2CListenerTransd
     
     public LEDScreenTransducer(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
-        target.ensureI2CWriting(50000, 150);
+        target.ensureI2CWriting(10000, 500);
         for(AstroPiListener item:l){
             if(item instanceof JoyStickListener){
                 this.joysticklistener = (JoyStickListener) item;
@@ -177,9 +177,8 @@ public class LEDScreenTransducer implements IODeviceTransducer,I2CListenerTransd
         int [] list = new int[192];
         int idx = 0;
         for(int ver = 0;ver<8;ver++){
+            for(int color = 0;color<3;color++){
             for(int hor = 0;hor<8;hor++){
-                for(int color = 0;color<3;color++){
-                    
                     list[idx] = map[ver][hor][color];
                     idx++;
                 }

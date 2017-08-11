@@ -12,7 +12,7 @@
 
 # Example project:
 
-The following sketch will demonstrate a basic demo for using the GPS.
+The following sketch will demonstrate a basic demo for using the Four Digit Display.
 
 Demo code:
 

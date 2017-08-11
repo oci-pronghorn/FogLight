@@ -1,5 +1,8 @@
 package com.ociweb.iot.maker.image;
 
+/**
+ * Scans the pixels linearly from (0,0) to (width, height)
+ */
 public class FogPixelProgressiveScanner implements FogPixelScanner {
     private final FogBitmap bmp;
     private final int width;
@@ -33,6 +36,3 @@ public class FogPixelProgressiveScanner implements FogPixelScanner {
         return true;
     }
 }
-
-
-

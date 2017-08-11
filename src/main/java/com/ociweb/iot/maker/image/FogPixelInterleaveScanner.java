@@ -1,5 +1,9 @@
 package com.ociweb.iot.maker.image;
 
+/**
+ * Scans the pixels linearly from (0,0) to (width, height)
+ * but does even lines, then odd lines
+ */
 public class FogPixelInterleaveScanner implements FogPixelScanner {
     private final FogBitmap bmp;
     private final int width;

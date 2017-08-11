@@ -15,34 +15,13 @@ public enum FogColorSpace {
         public byte getComponentCount() {
             return (byte)3;
         }
-    };
-    /*
+    },
     rgba {
         @Override
-        public FogBitmapLayout createDefaultLayout() {
-            FogBitmapLayout layout = new FogBitmapLayout();
-            layout.setComponentCount((byte)4);
-            return layout;
-        }
-    },
-    hls {
-        @Override
-        public FogBitmapLayout createDefaultLayout() {
-            FogBitmapLayout layout = new FogBitmapLayout();
-            layout.setComponentCount((byte)3);
-            return layout;
-        }
-    },
-
-    hlsa {
-        @Override
-        public FogBitmapLayout createDefaultLayout() {
-            FogBitmapLayout layout = new FogBitmapLayout();
-            layout.setComponentCount((byte)4);
-            return layout;
+        public byte getComponentCount() {
+            return (byte)4;
         }
     };
-    */
 
     public abstract byte getComponentCount();
 }

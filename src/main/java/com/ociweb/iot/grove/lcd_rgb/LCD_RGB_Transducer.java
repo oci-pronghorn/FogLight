@@ -1,19 +1,16 @@
 package com.ociweb.iot.grove.lcd_rgb;
 
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.image.FogBitmap;
-import com.ociweb.iot.maker.image.FogBitmapLayout;
-import com.ociweb.iot.maker.image.FogColorSpace;
-import com.ociweb.iot.maker.image.FogPixelScanner;
+import com.ociweb.iot.maker.image.*;
 
-public class LCD_RGB_Transducer {
+public class LCD_RGB_Transducer implements FogBmpDisplayable {
 	private final FogCommandChannel ch;
 
 	public LCD_RGB_Transducer(FogCommandChannel ch){
 		this.ch = ch;
 	}
 
-	public FogBitmapLayout createBmpLayout() {
+	public FogBitmapLayout newBmpLayout() {
 		FogBitmapLayout bmpLayout = new FogBitmapLayout(FogColorSpace.rgb);
 		bmpLayout.setComponentDepth((byte) 6);
 		bmpLayout.setWidth(8);
@@ -21,17 +18,20 @@ public class LCD_RGB_Transducer {
 		return bmpLayout;
 	}
 
-	public FogBitmap createEmptyBmp() {
-		return new FogBitmap(createBmpLayout());
+	public FogBitmap newEmptyBmp() {
+		return new FogBitmap(newBmpLayout());
 	}
 
-	public void display(FogPixelScanner scanner) {
+	public FogPixelScanner newPreferredBmpScanner(FogBitmap bmp) { return new FogPixelProgressiveScanner(bmp); }
+
+	public boolean display(FogPixelScanner scanner) {
 		while (scanner.next((bmp, i, x, y) -> {
 			int red = bmp.getComponent(x, y, 0);
 			int green = bmp.getComponent(x, y, 1);
 			int blue = bmp.getComponent(x, y, 2);
 			// set pixel on device
 		}));
+		return true;
 	}
 
 	public boolean begin(){

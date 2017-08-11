@@ -1,13 +1,10 @@
 package com.ociweb.iot.grove.oled;
 
+import com.ociweb.iot.maker.image.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.image.FogBitmap;
-import com.ociweb.iot.maker.image.FogBitmapLayout;
-import com.ociweb.iot.maker.image.FogColorSpace;
-import com.ociweb.iot.maker.image.FogPixelScanner;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
@@ -17,7 +14,7 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  * @author Ray Lo
  *
  */
-public abstract class BinaryOLED {
+public abstract class BinaryOLED implements FogBmpDisplayable {
 	
 	Logger logger = LoggerFactory.getLogger((BinaryOLED.class));
 	protected final FogCommandChannel ch;
@@ -38,9 +35,11 @@ public abstract class BinaryOLED {
 	}
 
 	
-	public FogBitmap createEmptyBmp() {
-		return new FogBitmap(createBmpLayout());
+	public FogBitmap newEmptyBmp() {
+		return new FogBitmap(newBmpLayout());
 	}
+
+	public FogPixelScanner newPreferredBmpScanner(FogBitmap bmp) { return new FogPixelProgressiveScanner(bmp); }
 
 	
 	/**
@@ -187,6 +186,6 @@ public abstract class BinaryOLED {
 	public abstract boolean setHorizontalMode();
 	public abstract boolean setVerticalMode();
 	public abstract boolean display(FogPixelScanner scanner);
-	public abstract FogBitmapLayout createBmpLayout();
+	public abstract FogBitmapLayout newBmpLayout();
 
 }

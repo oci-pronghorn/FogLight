@@ -22,7 +22,7 @@ public class LCDRGB_Behavior implements Behavior, StartupListener {
 	@Override
 	public void startup() {
 		lcd.setCursor(0, 0);
-		lcd.commandForTextAndColor("Hello Wall!", 63, 63, 63);
+		lcd.commandForTextAndColor("Hello Walls.", 63, 63, 127);
 	}
 	
 

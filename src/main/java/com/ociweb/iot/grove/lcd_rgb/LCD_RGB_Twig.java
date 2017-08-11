@@ -1,47 +1,28 @@
-package com.ociweb.iot.grove.thumb_joystick;
+package com.ociweb.iot.grove.lcd_rgb;
 
-import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CConnection;
+import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
-import com.ociweb.iot.maker.Port;
 
-public enum ThumbJoystickTwig implements ADIODevice{
-	ThumbJoystick(){
+public enum LCD_RGB_Twig implements I2CIODevice {
+	LCD_RGB(){
 		@Override
-		public boolean isInput(){
+		public boolean isOutput(){
 			return true;
 		}
 		@Override
-		public int range(){
-			return 1024;
+		public LCD_RGB_Transducer newTransducer(FogCommandChannel... ch){
+			return new LCD_RGB_Transducer(ch[0]);
 		}
 		
-		@Override
-		public int pinsUsed(){
-			return 2;
-		}
-		
-		@Override
-		public ThumbJoystickTransducer newTransducer(FogCommandChannel... ch){
-			return new ThumbJoystickTransducer();
-		}
-		
-		@Override
-		public ThumbJoystickTransducer newTransducer(Port p, FogCommandChannel... ch) {
-			return new ThumbJoystickTransducer(p);
-		}
-		@Override
-		public int response(){
-			return 40;
-		}
-	},
+	}
 	;
 
 	@Override
 	public int response() {
 		// TODO Auto-generated method stub
-		return 0;
+		return 40;
 	}
 
 	@Override
@@ -97,5 +78,4 @@ public enum ThumbJoystickTwig implements ADIODevice{
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
 }

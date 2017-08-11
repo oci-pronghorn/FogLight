@@ -1,13 +1,16 @@
 package com.ociweb.iot.grove.lcd_rgb;
 
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.image.*;
 
-public class LCD_RGB_Transducer implements FogBmpDisplayable {
+public class LCD_RGB_Transducer implements IODeviceTransducer,FogBmpDisplayable, StartupListenerTransducer{
 	private final FogCommandChannel ch;
 
 	public LCD_RGB_Transducer(FogCommandChannel ch){
 		this.ch = ch;
+		ch.ensureI2CWriting();
 	}
 
 	public FogBitmapLayout newBmpLayout() {
@@ -75,5 +78,10 @@ public class LCD_RGB_Transducer implements FogBmpDisplayable {
 	}
 	public boolean writeCharSequence( CharSequence text, int startIdx, int length, int col, int row){
 		return Grove_LCD_RGB.writeCharSequence(ch, text, startIdx, length, col, row);
+	}
+
+	@Override
+	public void startup() {
+		begin();
 	}
 }

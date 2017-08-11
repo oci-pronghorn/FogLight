@@ -8,27 +8,17 @@ import static com.ociweb.iot.maker.Port.*;
 
 public class LCDRGB implements FogApp
 {
-    ///////////////////////
-    //Connection constants 
-    ///////////////////////
+   
 
 
     @Override
     public void declareConnections(Hardware c) {
-        ////////////////////////////
-        //Connection specifications
-        ///////////////////////////
-
-        
     }
 
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
-
+       runtime.registerListener(new LCDRGB_Behavior(runtime));
     }
           
 }

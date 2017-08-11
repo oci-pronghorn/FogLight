@@ -15,6 +15,9 @@ The following sketch will turn the LED light on whenever the button is pressed d
 Demo code: 
 
 .include "./src/main/java/com/ociweb/grove/TouchSensor.java"
+Behavior class:
+.include "./src/main/java/com/ociweb/grove/TouchSensorBehavior.java"
+
 
 When executed, the above code will turn the LED light on while the touch sensor is activated by pressing the touch sensor or by having your finger close enough to the sensor. The touch sensor will also work even with a material in between the sensor and your finger, allowing many uses of this sensor. After the light is turned off, there will also be a 500 millisecond delay before the LED light can be turned on again.
-The addDigitalListener() method passes a 1 as value when the button is pressed, and 0 when it is released. In order to send a signal to the relay on the digital port, use the setValue() method to check if the value is equivalent to 1, and when it is, a signal will be sent.
+The behavior passes a 1 as value when the button is pressed, and 0 when it is released. In order to send a signal to the relay on the digital port, use the setValue() method to check if the value is equivalent to 1, and when it is, a signal will be sent.

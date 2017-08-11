@@ -71,7 +71,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Buzzer/README.md)
 - Four Digit Display
   - [wiki](http://wiki.seeed.cc/Grove-4-Digit_Display/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/FourDigitDisplay/README.md)
 - GPS
   - [wiki](http://wiki.seeed.cc/Grove-GPS/)
   - demo - Coming Soon!
@@ -83,7 +83,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/IICMotorDriver/README.md)
 - LCD RGB Backlight
   - [wiki](http://wiki.seeed.cc/Grove-LCD_RGB_Backlight/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LCDRGB/README.md)
 - LED
   - [wiki](http://wiki.seeed.cc/Grove-LED_Socket_Kit/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LED/README.md)
@@ -119,7 +119,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/SixAxisAccelerometer/README.md)
 - Temperature Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Temperature_Sensor/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Temprature/README.md)
 - Three Axis Acceleromter
   - [wiki](http://wiki.seeed.cc/Grove-3-Axis_Digital_Accelerometer-1.5g/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/ThreeAxisAccelerometer/README.md)

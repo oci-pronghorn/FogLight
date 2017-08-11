@@ -12,7 +12,7 @@
 [Starting a FogLight project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
-
+Demo code:
 
 ```java
 package com.ociweb.grove;
@@ -38,9 +38,48 @@ public class IoTApp implements FogApp
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
 				
-		runtime.addAnalogListener(new ViberationSensorBehavior(runtime)).includePorts(VIBRATION_SENSOR_PORT);
+		runtime.addAnalogListener(new VibrationSensorBehavior(runtime)).includePorts(VIBRATION_SENSOR_PORT);
 	}
 }
 ```
 
+Behavior class:
 
+```java
+package com.ociweb.grove;
+import static com.ociweb.iot.maker.FogCommandChannel.*;
+import static com.ociweb.iot.maker.Port.D2;
+
+import com.ociweb.iot.maker.AnalogListener;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Port;
+
+public class VibrationSensorBehavior implements AnalogListener {
+	private static final int threshold = 800;
+	private static final Port BUZZER_PORT = D2;
+
+	final FogCommandChannel ch;
+
+	public VibrationSensorBehavior(FogRuntime runtime) {
+		// TODO Auto-generated constructor stub
+		ch = runtime.newCommandChannel(PIN_WRITER);
+	}
+
+	@Override
+	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
+		// TODO Auto-generated method stub
+
+		if (value < threshold){
+			ch.setValue(BUZZER_PORT,false);
+		}
+		else {
+			ch.setValueAndBlock(BUZZER_PORT, true,100);//set the buzzer_port high for at least 100ms
+		}
+	}
+
+}
+```
+
+
+The behavior class triggers the buzzer if the value of vibration is over a predetermined threshold, which is 800 in this case. 

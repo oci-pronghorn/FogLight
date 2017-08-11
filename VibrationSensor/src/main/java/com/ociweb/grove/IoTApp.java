@@ -21,6 +21,6 @@ public class IoTApp implements FogApp
 	@Override
 	public void declareBehavior(FogRuntime runtime) {
 				
-		runtime.addAnalogListener(new ViberationSensorBehavior(runtime)).includePorts(VIBRATION_SENSOR_PORT);
+		runtime.addAnalogListener(new VibrationSensorBehavior(runtime)).includePorts(VIBRATION_SENSOR_PORT);
 	}
 }

@@ -7,13 +7,13 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 
-public class ViberationSensorBehavior implements AnalogListener {
+public class VibrationSensorBehavior implements AnalogListener {
 	private static final int threshold = 800;
 	private static final Port BUZZER_PORT = D2;
 
 	final FogCommandChannel ch;
 
-	public ViberationSensorBehavior(FogRuntime runtime) {
+	public VibrationSensorBehavior(FogRuntime runtime) {
 		// TODO Auto-generated constructor stub
 		ch = runtime.newCommandChannel(PIN_WRITER);
 	}

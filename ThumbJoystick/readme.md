@@ -1,34 +1,48 @@
-# Starting a FogLighter project using Maven: 
-[Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
+# What you will need before you start:
+-[Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) 
+
+-[Maven](https://maven.apache.org/install.html), which downloads and manages the libraries and APIs needed to get the Grove device working.
+
+-[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
+
+# Starting your Maven project: 
+[Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
 
 The following sketch reads and prints the X and Y values of the Joystick. In addition, it detects presses.
 
-Demo code:
+Demo code: 
 
 
 ```java
-public class ThumbJoystickBehavior implements Behavior, PressableJoystickListener{
-	private ThumbJoystickTransducer tj;
-	
-	public ThumbJoystickBehavior(Port p){
-		tj = ThumbJoystick.newTransducer(p);
-		tj.registerThumbJoystickListener(this);
-	}
-	
+package com.ociweb.grove;
+
+
+import com.ociweb.iot.maker.*;
+
+import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
+import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.gl.api.MsgCommandChannel;
+
+public class IoTApp implements FogApp
+{
+	private static final Port THUMBJOYSTICK_PORT = A2;
 
 	@Override
-	public void joystickValues(int x, int y) {
-		System.out.println("X: " + x + ", Y: " + y);
+	public void declareConnections(Hardware c) {
+		//TODO: pinUsed() is not automatically allowing user to automatically connect both ports once one port is connected
+		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT);
 	}
 
-	
+
 	@Override
-	public void buttonStateChange(boolean pressed, long time,long previousDuration){
-		System.out.println("Pressed:" + pressed + ", Duration: " + previousDuration);
+	public void declareBehavior(FogRuntime runtime) {
+		runtime.registerListener(new ThumbJoystickBehavior(THUMBJOYSTICK_PORT));
 	}
-
+	public static void main (String[] args){
+		FogRuntime.run(new IoTApp());
+	}
 }
 ```
 
@@ -36,11 +50,8 @@ public class ThumbJoystickBehavior implements Behavior, PressableJoystickListene
 
 The Joystick is made out of two potentiometers rotating in two orthogonal (X and Y) planes. They are physically constrained so that their values would read between around 200 to 800. When the joystick is pressed, the X value will read 1023 and can be used to detect presses.
 
-All of that logic has already been implemented for you in the ThumbJoyStickTransducer. Initialize an instance of the ThumbJoystickTransducer, passing in the port. Keep in mind that the joystick actually takes up two "pins," hence, if one was to plug the joystick into A0. A0 is now X an A1 is now Y. Although nothing will be plugged into A1 physically, it is occupied by the joystick.
+The lambda passed into ```runtime.addAnalogListener()``` first identifies which Port (the X or Y port) triggered the analog event, and prints out the value accordingly. There is an addition conditional logic for X to determine whether the joystick was pressed.
 
-In order to listen to the JoyStick, register either a PressableJoystickListener or a ThumbJoystickListener on the transducer created. In the example, we have simply implemented the PressableJoystickListener in our Behavior class. Hence, we register "this" onto the transducer, as "this" is the ThumbJoystickBehavior class, which is also an implementation of PressableJoystickListener.
-
-Upon a button press or release, the buttonStateChange callback method will tell us whether the new state is pressed or not, and how long the previous state was maintined. This will be useful for detecting double clicks.
 
 
 

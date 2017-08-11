@@ -2,7 +2,7 @@
 - [Raspberry Pi](https://www.raspberrypi.org/)
 - [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
 
-# Starting a FogLighter project using Maven:
+# Starting a FogLighter project using Maven: 
 [Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
@@ -95,7 +95,7 @@ public class AngleSensorBehavior implements AnalogListener {
 ```
 
 
-When executed, turning the knob will cause LED2 to turn on/off and LED1 to fade in/out accordingly.
+When executed, turning the knob will cause LED2 to turn on/off and LED1 to fade in/out accordingly. 
 
 
 

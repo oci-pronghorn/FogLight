@@ -89,5 +89,5 @@ public class FourDigitDisplayBehavior implements TimeListener,StartupListener {
 	}
 }
 ```
-This is an example use of the four digit display. Like a digital device, you can use the method ```setValue()``` to change the values of the four digit display.
+
 

@@ -2,7 +2,7 @@
 - [Raspberry Pi](https://www.raspberrypi.org/)
 - [GrovePi+ Board](https://www.dexterindustries.com/shop/grovepi-board/)
 
-# Starting a FogLighter project using Maven:
+# Starting a FogLighter project using Maven: 
 [Instructions here.](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:

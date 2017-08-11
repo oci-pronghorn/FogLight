@@ -104,10 +104,10 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/MotionSensor/README.md)
 - OLED 128x64
   - [wiki](http://wiki.seeed.cc/Grove-OLED_Display_0.96inch/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/OLED128x64/README.md)
 - OLED 96x96
   - [wiki](http://wiki.seeed.cc/Grove-OLED_Display_1.12inch/)
-  - demo - Coming Soon!
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/OLED96x96/README.md)
 - Real Time Clock
   - [wiki](http://wiki.seeed.cc/Grove-RTC/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/RealTimeClock/README.md)

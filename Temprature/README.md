@@ -7,7 +7,7 @@
 
 # Example project:
 
-The following sketch demonstrates a simple application to control two LEDs using an Angle Sensor.
+The following sketch demonstrates a simple application to measure the temperature in Celsius.
 
 Demo code (copy and paste this to a FogLighter project):
 First declare the connections in IoTApp.java:
@@ -20,32 +20,33 @@ package com.ociweb.grove;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogApp;
-import com.ociweb.iot.maker.Port;
 
 import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
-{
-    public static final Port LED1_PORT = D3;
-    public static final Port LED2_PORT = D4;
-    public static final Port ANGLE_SENSOR = A0;
-    
+{    public static void main( String[] args) {
+        FogRuntime.run(new IoTApp());
+    } 
+
     @Override
     public void declareConnections(Hardware c) {
-        
-        c.connect(LED, LED1_PORT);
-        c.connect(LED,LED2_PORT);
-        c.connect(AngleSensor,ANGLE_SENSOR);
-        
+        ////////////////////////////
+        //Connection specifications
+        ///////////////////////////
+        c.connect(TemperatureSensor, A0);
     }
-    
-    
+
+
     @Override
     public void declareBehavior(FogRuntime runtime) {
+        //////////////////////////////
+        //Specify the desired behavior
+        //////////////////////////////
         
-        runtime.registerListener(new AngleSensorBehavior(runtime));
-    }
+        runtime.registerListener(new TempSensorBehavior(runtime));
+
+    }  
 }
 ```
 
@@ -61,42 +62,26 @@ Then specify the behavior of the program in the Behavior class:
 package com.ociweb.grove;
 
 import com.ociweb.iot.maker.AnalogListener;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
-import static com.ociweb.grove.IoTApp.*;
-import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 /**
  *
  * @author huydo
  */
-public class AngleSensorBehavior implements AnalogListener {
-
-    private final FogCommandChannel led1Channel;
-    private    final FogCommandChannel led2Channel;
-    
-    public AngleSensorBehavior(FogRuntime runtime){
-        this.led1Channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER);
-        this.led2Channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER);
+public class TempSensorBehavior implements AnalogListener {
+    public TempSensorBehavior(FogRuntime runtime) {   
     }
-        
+    private final int B = 4275;               // B value of the thermistor
+    private final int R0 = 100000;            // R0 = 100k
     @Override
     public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-        if(value>512){
-                led2Channel.setValue(LED2_PORT,true);
-            }else{
-                led2Channel.setValue(LED2_PORT,false);
-            }
-            led1Channel.setValue(LED1_PORT,value/4);
+        // TODO Auto-generated method stub
+        double R =  (1023.0/value-1.0);
+        R = R0*R;
+        double temperature = 1.0/(Math.log(R/R0)/B+1/298.15)-273.15; // convert to temperature via datasheet
+        System.out.println("The temperature is : "+temperature+" Celsius");
     }
-    
 }
 ```
-
-
-When executed, turning the knob will cause LED2 to turn on/off and LED1 to fade in/out accordingly. 
-
-
-
 

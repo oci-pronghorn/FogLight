@@ -1,11 +1,11 @@
 # What you will need before you start:
--[Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)
+-[Java 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) 
 
 -[Maven](https://maven.apache.org/install.html), which downloads and manages the libraries and APIs needed to get the Grove device working.
 
 -[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
 
-# Starting your Maven project:
+# Starting your Maven project: 
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
@@ -67,7 +67,7 @@ import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
 public class RestfulWaterSensorBehavior implements AnalogListener, RestListener  {
 	private int val = -1;
 	private FogCommandChannel ch;
-	
+
 	public RestfulWaterSensorBehavior(FogRuntime runtime) {
 		this.ch = runtime.newCommandChannel(MsgCommandChannel.NET_RESPONDER | MsgCommandChannel.DYNAMIC_MESSAGING); 
 	}	
@@ -78,17 +78,17 @@ public class RestfulWaterSensorBehavior implements AnalogListener, RestListener 
 				(writer)->{
 					try {
 						writer.append(Integer.toString(this.val));
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
+					} catch (Exception e) {
+
 						e.printStackTrace();
-					}
+					}		
 				});
 	}
 
 	@Override
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
-			System.out.println(val);
-			this.val = value;
+		System.out.println(val);
+		this.val = value;
 	}
 
 }

@@ -10,6 +10,12 @@ import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTransducer {
 	private final FogCommandChannel ch;
 	private int testByte = 0x00;

@@ -11,6 +11,12 @@ import com.ociweb.iot.maker.image.FogPixelScanner;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
+
+/**
+ * 
+ * @author Ray Lo
+ *
+ */
 public abstract class BinaryOLED {
 	
 	Logger logger = LoggerFactory.getLogger((BinaryOLED.class));

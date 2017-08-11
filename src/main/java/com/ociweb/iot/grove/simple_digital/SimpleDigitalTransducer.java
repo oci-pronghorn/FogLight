@@ -7,25 +7,30 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.Port;
 
+
+
+/**
+ * 
+ * @author Ray Lo
+ *
+ */
 public class SimpleDigitalTransducer implements IODeviceTransducer, DigitalListener {
 	private final FogCommandChannel ch;
 	private final Port p;
 
-	//private final SimpleDigitalListener dListener;
-
 	private final ArrayList<SimpleDigitalListener> simpleDigListeners;
 
-
-	//TODO: STD DEV LISTENERS AS VARIABLES
 	public SimpleDigitalTransducer(FogCommandChannel ch, Port p, SimpleDigitalListener... dl){
 		ch.ensurePinWriting();
 		this.ch = ch;
 		this.p = p;
 		simpleDigListeners = new ArrayList<SimpleDigitalListener>();
 
-		for (SimpleDigitalListener d: dl){
-			simpleDigListeners.add(d);
+		int i = dl.length;
+		while (--i >= 0 ){
+			simpleDigListeners.add(dl[i]);
 		}
+		
 
 	}
 	public boolean setValue(boolean val){
@@ -37,8 +42,10 @@ public class SimpleDigitalTransducer implements IODeviceTransducer, DigitalListe
 	}
 	@Override
 	public void digitalEvent(Port port, long time, long durationMillis, int value) {
-		for (SimpleDigitalListener d: simpleDigListeners){
-			d.SimpleDigitalEvent(port, time, durationMillis, value);
+		int i = simpleDigListeners.size();
+		while (--i >= 0){
+			simpleDigListeners.get(i).simpleDigitalEvent(port, time, durationMillis, value);
 		}
+		
 	}
 }

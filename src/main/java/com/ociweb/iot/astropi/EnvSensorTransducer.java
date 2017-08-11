@@ -25,7 +25,7 @@ public class EnvSensorTransducer implements IODeviceTransducer,I2CListenerTransd
     
     public EnvSensorTransducer(FogCommandChannel ch,AstroPiListener... l){
         this.target = ch;
-        target.ensureI2CWriting(50,4);
+        target.ensureI2CWriting(500,10);
         for(AstroPiListener item:l){
             if(item instanceof TemperatureListener){
                 this.tempListener = (TemperatureListener) item;

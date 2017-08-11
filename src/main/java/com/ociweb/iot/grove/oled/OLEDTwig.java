@@ -1,8 +1,15 @@
 package com.ociweb.iot.grove.oled;
 import com.ociweb.iot.hardware.I2CConnection;
+
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public enum OLEDTwig implements I2CIODevice {
 	
 	OLED_128x64(){

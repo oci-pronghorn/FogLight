@@ -2,6 +2,7 @@ package com.ociweb.iot.maker;
 
 import java.util.ArrayList;
 
+import com.ociweb.pronghorn.iot.schema.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,10 +26,6 @@ import com.ociweb.iot.hardware.impl.grovepi.WindowsModel;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
-import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
-import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
@@ -62,87 +59,85 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	public FogRuntime(String[] args) {
 		super(args);
         
-		disableHardwareDetection = this.hasArgument("disableHardwareDetection", "--dhd");
-		
+        disableHardwareDetection = this.hasArgument("disableHardwareDetection", "--dhd");
+        
 	}
 
 
 	public Hardware getHardware(){
 		if(this.builder==null){
 
-			if (!disableHardwareDetection) {			
-				///////////////
-				//setup system for binary binding in case Zulu is found on Arm
-				//must populate os.arch as "arm" instead of "aarch32" or "aarch64" in that case, JIFFI is dependent on this value.
-				if (System.getProperty("os.arch", "unknown").contains("aarch")) {
-					System.setProperty("os.arch", "arm"); //TODO: investigate if this a bug against jiffi or zulu and inform them
-				}
-	
-				long startTime = System.currentTimeMillis();
-				
-				// Detect provided hardware implementation.
-				// TODO: Should this ONLY occur on Android devices?
+			if (!disableHardwareDetection) {///////////////
+			//setup system for binary binding in case Zulu is found on Arm
+			//must populate os.arch as "arm" instead of "aarch32" or "aarch64" in that case, JIFFI is dependent on this value.
+			if (System.getProperty("os.arch", "unknown").contains("aarch")) {
+				System.setProperty("os.arch", "arm"); //TODO: investigate if this a bug against jiffi or zulu and inform them
+			}
+
+			long startTime = System.currentTimeMillis();
+
+			// Detect provided hardware implementation.
+			// TODO: Should this ONLY occur on Android devices?
+			try {
+				Class.forName("android.app.Activity");
+				logger.trace("Detected Android environment. Searching for {}.", PROVIDED_HARDWARE_IMPL_NAME);
+
 				try {
-					Class.forName("android.app.Activity");
-					logger.trace("Detected Android environment. Searching for {}.", PROVIDED_HARDWARE_IMPL_NAME);
-	
+					Class<?> clazz = Class.forName(PROVIDED_HARDWARE_IMPL_NAME);
+					logger.trace("Detected {}.", PROVIDED_HARDWARE_IMPL_NAME);
 					try {
-						Class<?> clazz = Class.forName(PROVIDED_HARDWARE_IMPL_NAME);
-						logger.trace("Detected {}.", PROVIDED_HARDWARE_IMPL_NAME);
-						try {
-							this.builder = (HardwareImpl) clazz.getConstructor(GraphManager.class).newInstance(gm);
-							return this.builder;
-						} catch (NoSuchMethodException e) {
-							logger.warn(
-									"{} does not provide a single argument constructor that accepts a GraphManager. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME);
-						} catch (Throwable e) {
-							logger.warn(
-									"Unable to instantiate {}. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME, e);
-						}
-					} catch (ClassNotFoundException e) {
-						logger.trace("No {} is present.", PROVIDED_HARDWARE_IMPL_NAME);
+						this.builder = (HardwareImpl) clazz.getConstructor(GraphManager.class).newInstance(gm);
+						return this.builder;
+					} catch (NoSuchMethodException e) {
+						logger.warn(
+								"{} does not provide a single argument constructor that accepts a GraphManager. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME);
+					} catch (Throwable e) {
+						logger.warn(
+								"Unable to instantiate {}. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME, e);
 					}
-				} catch (ClassNotFoundException ignored) { }
-	
-				logger.info("android duration {} ",System.currentTimeMillis()-startTime);
-				
-				////////////////////////
-				//The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
-				///////////////////////
-				PiModel pm = null;
-				I2CBacking i2cBacking = null;
-				if ((pm = PiModel.detect()) != PiModel.Unknown){
-					logger.info("Detected running on " + pm);
-					this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
+				} catch (ClassNotFoundException e) {
+					logger.trace("No {} is present.", PROVIDED_HARDWARE_IMPL_NAME);
 				}
-				else if(WindowsModel.detect() != WindowsModel.Unknown) {
-					this.builder = new TestHardware(gm, args);
-					logger.info("Detected running on Windows, test mock hardware will be used");
-				}
-				
-				else if(MacModel.detect() != MacModel.Unknown) {
-					this.builder = new TestHardware(gm, args);
-					logger.info("Detected running on Mac, test mock hardware will be used");
-	
-				}
-				else if(LinuxModel.detect() != LinuxModel.Unknown) {
-					this.builder = new TestHardware(gm, args);
-					logger.info("Detected Running on Linux, test mock hardware will be used");
-	
-				}
-				else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
-					logger.info("Detected running on Edison");
-					System.out.println("You are running on the Edison hardware.");
-				}
-				else {
-					this.builder = new TestHardware(gm, args);
-					logger.info("Unrecognized hardware, test mock hardware will be used");
-				}
+			} catch (ClassNotFoundException ignored) { }
+
+			logger.info("android duration {} ",System.currentTimeMillis()-startTime);
+
+			////////////////////////
+			//The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
+			///////////////////////
+			PiModel pm = null;
+			I2CBacking i2cBacking = null;
+			if ((pm = PiModel.detect()) != PiModel.Unknown){
+				logger.info("Detected running on " + pm);
+				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
+			}
+			else if(WindowsModel.detect() != WindowsModel.Unknown) {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Detected running on Windows, test mock hardware will be used");
+			}
+
+			else if(MacModel.detect() != MacModel.Unknown) {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Detected running on Mac, test mock hardware will be used");
+
+			}
+			else if(LinuxModel.detect() != LinuxModel.Unknown) {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Detected Running on Linux, test mock hardware will be used");
+
+			}
+			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
+				logger.info("Detected running on Edison");
+				System.out.println("You are running on the Edison hardware.");
+			}
+			else {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Unrecognized hardware, test mock hardware will be used");}
 			} else {
 				this.builder = new TestHardware(gm, args);
 				logger.info("Hardware detection disabled on the command line, now using mock hardware.");
 			}
-			
+
 		}
 		return this.builder;
 	}
@@ -211,19 +206,13 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	}
 
 	public ListenerFilterIoT addImageListener(ImageListener listener) {
-		//NOTE: this is an odd approach, this level of configuration is normally hidden on this layer.
-		//      TODO: images should have their own internal time and not hijack the application level timer.
-		if (builder.getTriggerRate() < 1250) {
-			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS configured on the Hardware.");
-		}
-
 		switch (builder.getPlatformType()) {
-		case GROVE_PI:
-			return registerListener(new PiImageListenerBacking(listener));
-		default:
-			throw new UnsupportedOperationException("Image listeners are not supported for [" +
-					builder.getPlatformType() +
-					"] hardware");
+			case GROVE_PI:
+				return registerListener(listener);
+			default:
+				throw new UnsupportedOperationException("Image listeners are not supported for [" +
+						builder.getPlatformType() +
+						"] hardware");
 		}
 	}
 
@@ -248,7 +237,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		}
 
 		if (this.builder.isListeningToSerial(listener)) {
-			pipesCount++;      
+			pipesCount++;
+		}
+
+		if (this.builder.isListeningToCamera(listener)) {
+			pipesCount++;
 		}
 
 		pipesCount = addGreenPipesCount(listener, pipesCount);
@@ -263,7 +256,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x());
 		}
 		if (this.builder.isListeningToSerial(listener) ) {
-			inputPipes[--pipesCount] = newSerialInputPipe(new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());        
+			inputPipes[--pipesCount] = newSerialInputPipe(new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
+		}
+		if (this.builder.isListeningToCamera(listener)) {
+			inputPipes[--pipesCount] = new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
 		}
 
 		populateGreenPipes(listener, pipesCount, inputPipes);
@@ -274,15 +270,15 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		//TimeListener, time rate signals are sent from the stages its self and therefore does not need a pipe to consume.
 		/////////////////////
         //this is empty when transducerAutowiring is off
-        final ArrayList<ReactiveManagerPipeConsumer> consumers = new ArrayList<ReactiveManagerPipeConsumer>(); 
+        final ArrayList<ReactiveManagerPipeConsumer> consumers = new ArrayList<ReactiveManagerPipeConsumer>();
 
-        
+
         //extract this into common method to be called in GL and FL
 		if (transducerAutowiring) {
 			inputPipes = autoWireTransducers(listener, inputPipes, consumers);
-		}  
-		
-		ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener, 
+		}
+
+		ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener,
 													inputPipes, outputPipes, consumers,
 													parallelInstanceUnderActiveConstruction);
 		configureStageRate(listener,reactiveListener);
@@ -355,27 +351,27 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		if (FogRuntime.isRunning){
 			throw new UnsupportedOperationException("An FogApp is already running!");
 		}
-		
+
 		long lastTime;
 		long nowTime;
-		
+
 		FogRuntime.isRunning = true;
 		FogRuntime runtime = new FogRuntime(args);
-		
+
 		logger.info("{} ms startup", lastTime = System.currentTimeMillis());
 		Hardware hardware = runtime.getHardware();
 		//this default for Fog is slower due to the expected minimum hardware of iot devices
 		hardware.setDefaultRate(20_000); // 1/50 of 1 ms
-		
+
 		app.declareConfiguration(hardware);
 		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());
 		logger.info("{} ms duration {} ms finished declare configuration", nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		lastTime = nowTime;
-				
+
 		runtime.declareBehavior(app);
 		logger.info("{} ms duration {} ms finished declare behavior", nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		lastTime = nowTime;
-				
+
 		//TODO: at this point realize the stages in declare behavior
 		//      all updates are done so create the reactors with the right pipes and names
 		//      this change will let us move routes to part of the fluent API plus other benifits..
@@ -390,7 +386,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		logger.info("{} ms duration {} ms finished building internal graph", nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		lastTime = nowTime;
-				
+
 		if ( runtime.builder.isTelemetryEnabled()) {
 			runtime.gm.enableTelemetry(runtime.builder.telemetryHost(),8098);
 			logger.info("{} ms duration {} ms finished building telemetry", lastTime = nowTime = System.currentTimeMillis(), nowTime-lastTime);
@@ -401,7 +397,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		runtime.scheduler.startup();
 		logger.info("{} ms duration {} ms finished graph startup", nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		lastTime = nowTime;
-		
+
 		return runtime;
 	}
 

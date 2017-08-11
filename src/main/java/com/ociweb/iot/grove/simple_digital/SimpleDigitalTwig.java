@@ -6,6 +6,12 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.Port;
 
+
+/**
+ * 
+ * @author Ray Lo
+ *
+ */
 public enum SimpleDigitalTwig implements ADIODevice {
 	Buzzer() {
 		@Override

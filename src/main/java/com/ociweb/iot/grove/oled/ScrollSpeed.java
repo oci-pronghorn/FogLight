@@ -1,5 +1,11 @@
 package com.ociweb.iot.grove.oled;
 
+
+/**
+ * 
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public enum ScrollSpeed{
 	Scroll_2Frames(0x07),
 	Scroll_3Frames(0x04),

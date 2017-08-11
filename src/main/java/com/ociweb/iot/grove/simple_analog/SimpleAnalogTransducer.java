@@ -10,6 +10,15 @@ import com.ociweb.iot.transducer.AnalogListenerTransducer;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 import static com.ociweb.pronghorn.util.ma.MAvgRollerLong.*;
 
+
+/**
+ * 
+ * @author Ray Lo
+ *
+ */
+
+
+//TODO: NEED TO FINISH IMPLEMENTING MOVING/ROLLING STANDEAD DEVIATION LISTENERS
 public class SimpleAnalogTransducer implements IODeviceTransducer, AnalogListenerTransducer{
 	private FogCommandChannel ch;
 	private Port p;

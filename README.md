@@ -65,10 +65,10 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/AngleSensor/README.md)
 - Button
   - [wiki](http://wiki.seeed.cc/Grove-Button/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Button/Button.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Button/README.md)
 - Buzzer
   - [wiki](http://wiki.seeed.cc/Grove-Buzzer/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Buzzer/Buzzer.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Buzzer/README.md)
 - Four Digit Display
   - [wiki](http://wiki.seeed.cc/Grove-4-Digit_Display/)
   - demo - Coming Soon!
@@ -86,10 +86,10 @@ Of course, this is just a simple example; for more interesting examples that dem
   - demo - Coming Soon!
 - LED
   - [wiki](http://wiki.seeed.cc/Grove-LED_Socket_Kit/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LED/LED.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LED/README.md)
 - Light Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Light_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LightSensor/LightSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LightSensor/README.md)
 - Line Finder
   - [wiki](http://wiki.seeed.cc/Grove-Line_Finder/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/LineFinder/README.md)
@@ -113,7 +113,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/RealTimeClock/README.md)
 - Relay
   - [wiki](http://wiki.seeed.cc/Grove-Relay/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Relay/Relay.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/Relay/README.md)
 - SixAxisAccelerometer
   - [wiki](http://wiki.seeed.cc/Grove-6-Axis_AccelerometerAndCompass_V2.0/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/SixAxisAccelerometer/README.md)
@@ -125,10 +125,10 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/ThreeAxisAccelerometer/README.md)
 - Thumb Joystick
   - [wiki](http://wiki.seeed.cc/Grove-Thumb_Joystick/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/ThumbJoystick/readme.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/ThumbJoystick/README.md)
 - Touch Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Touch_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/TouchSensor/TouchSensor.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/TouchSensor/README.md)
 - UV Sensor
   - [wiki](http://wiki.seeed.cc/Grove-UV_Sensor/)
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/UVSensor/README.md)
@@ -140,7 +140,7 @@ Of course, this is just a simple example; for more interesting examples that dem
   - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/VariableColorLED/README.md)
 - Vibration Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Piezo_Vibration_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/VibrationSensor/readme.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/VibrationSensor/README.md)
 - Water Sensor
   - [wiki](http://wiki.seeed.cc/Grove-Water_Sensor/)
-  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/WaterSensor/readme.md)
+  - [demo](https://github.com/oci-pronghorn/FogLight-Grove/blob/master/WaterSensor/README.md)

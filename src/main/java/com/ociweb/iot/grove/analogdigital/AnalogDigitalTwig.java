@@ -23,6 +23,22 @@ import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayTransducer;
 @Deprecated
 public enum AnalogDigitalTwig implements ADIODevice {
 	
+        TemperatureSensor() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int response() {
+			return 1000;
+		}
+		@Override
+		public int range() {
+			return 1024;
+		}
+
+	},
 	UVSensor() {
 		@Override
 		public boolean isInput() {

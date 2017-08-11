@@ -77,14 +77,24 @@ public abstract class BinaryOLED {
 	 * @return true if the i2c bus is ready, false otherwise.
 	 */
 	protected boolean sendData(int[] data, int start, int length){
-		if (!ch.i2cIsReady()){
+		if (!ch.i2cIsReady( ( (length + 1) * 2 / BATCH_SIZE) + 1) ){
 			return false;
 		}
 		//call the helper method to recursively send batches
 		return sendData(data, start,BATCH_SIZE, start+length);
 	}
 	
-	protected boolean sendData(int [] data, int start, int length, int finalTargetIndex){
+	
+	/**
+	 * The private method required. for {@link BinaryOLED#sendData(int[], int, int)} to function.
+	 * @param data
+	 * @param start
+	 * @param length
+	 * @param finalTargetIndex
+	 * @return true if the i2c bus is ready, false otherwise.
+	 */
+	
+	private boolean sendData(int [] data, int start, int length, int finalTargetIndex){
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		i2cPayloadWriter.write(DATA_MODE);
 		int i;
@@ -100,6 +110,11 @@ public abstract class BinaryOLED {
 	}
 	
 	
+	/**
+	 * Send a single byte of command.
+	 * @param b
+	 * @return true if the i2c bus is ready, false otherwise.
+	 */
 	protected boolean sendCommand(int b){
 		if (!ch.i2cIsReady()){
 			return false;
@@ -122,28 +137,12 @@ public abstract class BinaryOLED {
 	 */
 
 	protected boolean sendCommands(int start, int length){
-		if (!ch.i2cIsReady()){
-			return false;
-		}
-		/*
-		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
-		
-		assert(length*2 <= BATCH_SIZE);
-		for (int i = start; i < start + length; i++){
-		
-				i2cPayloadWriter.write(COMMAND_MODE);
-				i2cPayloadWriter.write(cmd_out[i]);
-		
-		}
-		ch.i2cCommandClose();
-		ch.i2cFlushBatch();
-		return true;
-		*/
 		return sendCommands(cmd_out,start,length);
 	}
 	
 	protected boolean sendCommands(int[] cmd, int start, int length){
-		if (!ch.i2cIsReady()){
+		if (!ch.i2cIsReady( (length * 2 / BATCH_SIZE) + 1) ){ //TODO: this math is newly added, may need to double-check.
+			logger.trace("I2C is not ready");
 			return false;
 		}
 		//call the helper method to recursively send batches
@@ -168,7 +167,9 @@ public abstract class BinaryOLED {
 		return sendCommands(cmd, i, BATCH_SIZE, finalTargetIndex); //calls itself recursively until we reach finalTargetIndex
 	}
 	
+	//This is protected at David Giovannini's request.
 	protected abstract boolean init();
+	
 	public abstract boolean clear();
 	public abstract boolean cleanClear();
 	public abstract boolean displayOn();

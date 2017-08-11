@@ -20,7 +20,7 @@ import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayTransducer;
  * @see com.ociweb.iot.hardware.IODevice
  */
 
-
+@Deprecated
 public enum AnalogDigitalTwig implements ADIODevice {
 	
 	UVSensor() {

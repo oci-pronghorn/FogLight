@@ -18,6 +18,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	private int highPixelLevel = 0xF0;
 	private int iteration = 0;
 	private OLED_96x96_DriverChip chip;
+	private boolean clearScreenUponStartup = true;
 
 	public OLED_96x96_Transducer(FogCommandChannel ch){
 		//A nibble determines pixel. A byte is therefore two horizontally adjascent pixels.
@@ -25,7 +26,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		super(ch, new int[4608], new int[32], SSD1327_Consts.ADDRESS);
 		ch.ensureI2CWriting(100, BATCH_SIZE);
 		this.chip = SSD1327;
-		
+
 	}
 
 	@Override
@@ -79,9 +80,12 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		else {
 			chip = SSD1327;
 		}
-		
-	}
 
+	}
+	/** Sets contrast level for the screen.
+	 * @param contrast 
+	 * @return true if the channel was ready for the i2c commands.
+	 */
 	@Override
 	public boolean setContrast(int contrast){
 		cmd_out[0] = SSD1327_Consts.SET_CONTRAST_LEVEL_CMD;
@@ -89,6 +93,11 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		return sendCommands(0,2);
 	}
 
+	/** Sets the column aand row address of the text printing function.
+	 * @param row
+	 * @param col
+	 * @return true if the channel was ready for the i2c commands.
+	 */
 	@Override
 	public boolean setTextRowCol(int row, int col){
 		switch (chip){
@@ -113,29 +122,24 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		}
 	}
 
+	/**
+	 * clears the screen by prints spaces to the entire screen.
+	 *@return true if the channel was ready for the i2c commands.
+	 */
 	@Override
 	public boolean clear(){
 		int index = 0;
 		switch (chip){
 		case SSD1327:
-			/*
-			for (int row = 0; row < OLED_96x96_Consts.ROW_COUNT >> 1; row ++){
-				for (int col = 0; col < OLED_96x96_Consts.COL_COUNT; col++){
-					data_out[index++] = 0x00;
-				}
-			}	
-			System.out.println("Final Index: "+ index);
-			return sendData(0, index); //we send the entire array of data of 0s
-			*/
 			setVerticalMode();
 			for (int row = 0; row < OLED_96x96_Consts.ROW_COUNT / 8; row++ ){
 				setTextRowCol(row,0);
-				 if  (!printCharSequence("            ")){ //12 spaces is one empty row
-					 return false;
-				 }
+				if  (!printCharSequence("            ")){ //12 spaces is one empty row
+					return false;
+				}
 			}
 			return true;
-			
+
 		case SH1107G:
 			for(int j=0; j<128;j++){ 
 				data_out[j] = 0x00;  //make an empty array to be sent repeatedly
@@ -160,10 +164,9 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 
 	@Override
 	protected boolean init() {
-		//determineChip();
-		System.out.println("Artificially chose: " + chip);
-		int length = generateInitCommands(); //could have done this in the return line but this is clearer.
-		return sendCommands(0,length);
+		//determinChip(); TODO: this would be the place to call determineChip once implemented.
+		System.out.println("Chipset chosen: " + chip);
+		return sendCommands(0,  generateInitCommands() ); //generateInitCommands() returns the length of the commands generated
 	}
 
 	private int generateInitCommands(){
@@ -233,20 +236,39 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 
 	}
 
+	/**
+	 * Clears the screen while the screen is off and turns the screen backs on afterwards.
+	 * @return true if the channel was ready for the i2c commands.
+	 */
 	@Override
 	public boolean cleanClear() {
 		return displayOff() && clear() && displayOn();
 	}
 
+	/**
+	 * Turns screen on.
+	 * @return true if the channel was ready for the i2c commands.
+	 */
 	@Override
 	public boolean displayOn() {
 		return sendCommand(SSD1327_Consts.DISPLAY_ON);
 	}
 
+
+	/**
+	 * Turns screen off.
+	 * @return true if the channel was ready for the i2c commands.
+	 */
 	@Override
 	public boolean displayOff() {
 		return sendCommand(SSD1327_Consts.DISPLAY_OFF);
 	}
+
+	/**
+	 * Prints the charSequence at the current textRowCol position.
+	 * @param s is the char sequence to be printed. A String can be supplied since String is a subclass of CharSequence.
+	 * @return true if the channel was ready for the i2c commands.
+	 */
 
 	@Override
 	public boolean printCharSequence(CharSequence s) {
@@ -268,6 +290,13 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		return sendData(0, s.length()* charSpace);
 	}
 
+	/**
+	 * Prints the charSequence at the specified textRowCol position.
+	 * @param s is the char sequence to be printed. A String can be supplied since String is a subclass of CharSequence.
+	 * @param row
+	 * @param col
+	 * @return true if the channel was ready for the i2c commands.
+	 */
 	@Override
 	public boolean printCharSequenceAt(CharSequence s, int row, int col) {
 		return setTextRowCol(0,0) && printCharSequence(s);
@@ -359,13 +388,13 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	public boolean drawPixelMap(int[] map){
 		return true;
 	}
-	
+
 	/**
 	 * This function should be used over {@link #display(int[][], int)} with the pixelDepth set to 1 if the
 	 * input data map is a one dimensional compact array where each bit corresponds to a pixel. If each int corresponds
 	 * to a pixel, {@link #display(int[][], int)} should be the go-to method.
 	 * @param map
-	 * @return true
+	 * @return true if the channel was ready for the i2c commands.
 	 */
 	public boolean drawBitmap(int[] map) {
 		switch(chip){
@@ -383,7 +412,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 
 					c |= (b1 > 0)? highPixelLevel:0x00;
 					c |= (b2 > 0)? lowPixelLevel:0x00;		
-				
+
 					data_out[index++] = c;	
 				}
 			}
@@ -456,7 +485,15 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	public boolean display(int[][] raw_image) {
 		return display(raw_image, 4);
 	}
+
 	
+	/**
+	 * Displays 96x96 integer array.
+	 * @param raw_image
+	 * @param pixelDepth is the pixelDepth in bits of the input; this information allows the method to automatically
+	 *  convert to 4-bit pixelDepth as spec'ed by the physical hardware.
+	* @return true if the channel was ready for the i2c commands.
+	 */
 	@Override
 	public boolean display(int[][] raw_image, int pixelDepth){
 		switch (chip){
@@ -479,11 +516,11 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 			return false;
 		default:
 			return false;
-		
+
 		}
-		
+
 	}
-	
+
 
 	@Override
 	public boolean setHorizontalMode() {
@@ -517,7 +554,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		case SSD1327:
 			cmd_out[0] = SSD1327_Consts.REMAP;
 			cmd_out[1] = SSD1327_Consts.VERTICAL;
-			
+
 			break;
 		case SH1107G:
 			cmd_out[0] = SH1107G_Consts.REMAP_SGMT;
@@ -557,10 +594,17 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 	 */
 
+	public void setClearScreenUponStartup(boolean clear){
+		clearScreenUponStartup = clear;
+	}
+
+	
 	@Override
 	public void startup() {
-		logger.info("Transducer startup listener");
+		logger.info("OLED_96x96 initialized and cleared.");
 		this.init();
-		this.clear();
+		if (clearScreenUponStartup){
+			this.clear();
+		}
 	}
 }

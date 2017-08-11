@@ -18,6 +18,15 @@ import com.ociweb.iot.hardware.IODevice;
 public interface Hardware extends Builder {
 
     /**
+     * Sets the frequency at which images are taken on this hardware.
+     *
+     * @param triggerRateMillis Number of milliseconds between image capture events.
+     *
+     * @throws RuntimeException if the trigger rate is less than 1,250.
+     */
+    public void setImageTriggerRate(int triggerRateMillis) throws RuntimeException;
+
+    /**
      * Connects a new {@link IODevice} to this hardware on a given {@link Port}.
      *
      * @param device {@link IODevice} to connect.

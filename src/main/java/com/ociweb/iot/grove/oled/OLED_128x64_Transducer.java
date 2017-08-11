@@ -6,6 +6,7 @@ import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.*;
 import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction.*;
 import static com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation.*;
 
+import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction;
 import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -19,7 +20,7 @@ import com.ociweb.iot.maker.image.FogPixelScanner;
  * @author Ray Lo, Nathan Tippy
  *
  */
-public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransducer{
+public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransducer, StartupListenerTransducer{
 	/**
 	 * Constructs an instance of OLED_128x64 that holds on to the {@link FogCommandChannel} passed in.
 	 * @param ch FogCommandChannel used for the i2c write.
@@ -51,7 +52,7 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	}
 
 	@Override
-	public FogBitmapLayout createBmpLayout() {
+	public FogBitmapLayout newBmpLayout() {
 		FogBitmapLayout bmpLayout = new FogBitmapLayout(FogColorSpace.gray);
 		bmpLayout.setComponentDepth((byte) 1);
 		bmpLayout.setWidth(colCount);
@@ -527,6 +528,12 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	@Override
 	public boolean setUpScroll() {
 		return false;
+	}
+
+	@Override
+	public void startup() {
+		init(); 
+		clear();	
 	}
 }
 

@@ -1,5 +1,9 @@
 package com.ociweb.iot.grove.oled;
 
+/**
+ * @author Ray Lo, raylo@wustl.edu
+ *
+ */
 public class OLED_96x96_Consts {
 	public static final int ROW_COUNT = 96;
 	public static final int COL_COUNT = 96;

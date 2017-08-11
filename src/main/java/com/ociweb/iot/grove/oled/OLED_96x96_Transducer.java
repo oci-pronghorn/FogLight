@@ -30,7 +30,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 	}
 
 	@Override
-	public FogBitmapLayout createBmpLayout() {
+	public FogBitmapLayout newBmpLayout() {
 		FogBitmapLayout bmpLayout = new FogBitmapLayout(FogColorSpace.gray);
 		bmpLayout.setComponentDepth((byte) 4);
 		bmpLayout.setWidth(OLED_96x96_Consts.COL_COUNT);

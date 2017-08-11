@@ -289,7 +289,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		int testId = -1;
 		int i = inputPipes.length;
 		while (--i>=0) {
-			if (inputPipes[i]!=null && Pipe.isForSchema((Pipe<MessageSubscription>)inputPipes[i], MessageSubscription.class)) {
+			if (inputPipes[i]!=null
+				&& Pipe.isForSchema((Pipe<MessageSubscription>)inputPipes[i], MessageSubscription.class)) {
 				testId = inputPipes[i].id;
 			}
 		}

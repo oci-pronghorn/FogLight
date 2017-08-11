@@ -101,5 +101,5 @@ public class OLED_96x96Behavior implements TimeListener{
 	}
 }
 ```
-
+This is an example use of the OLED 96 x 96. In the behavior class, make sure to an OLED 96x96 transducer. Also included in the class, but while not shown above, are multiple 2-demensional arrays of different images. You can generate your own 2-demensional array of a jpeg or a png file to put the image on the OLED 96x96 by going to AppTest under ./src/test/java/com/ociweb/grove/.
 

@@ -9,7 +9,7 @@ import com.ociweb.gl.api.MsgCommandChannel;
 
 public class IoTApp implements FogApp
 {
-	private static final Port THUMBJOYSTICK_PORT = A0;
+	private static final Port THUMBJOYSTICK_PORT = A0; //TODO: test and fix with A2 should work...
 
 	@Override
 	public void declareConnections(Hardware c) {

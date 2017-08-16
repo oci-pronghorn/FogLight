@@ -9,6 +9,7 @@ public enum Port {
     A0(Port.IS_ANALOG, 0),
     A1(Port.IS_ANALOG, 1),
     A2(Port.IS_ANALOG, 2),
+    A3(Port.IS_ANALOG, 3),
 
     D0(Port.IS_DIGITAL, 0),
     D1(Port.IS_DIGITAL, 1),
@@ -45,7 +46,7 @@ public enum Port {
     /**
      * Array of all standard analog ports.
      */
-    public static Port[] ANALOGS = {A0, A1, A2};
+    public static Port[] ANALOGS = {A0, A1, A2, A3};
 
     /**
      * Array of all standard digital ports.

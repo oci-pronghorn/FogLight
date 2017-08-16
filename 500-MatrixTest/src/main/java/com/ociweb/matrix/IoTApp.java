@@ -192,8 +192,13 @@ public class IoTApp implements FogApp
 		
 		
 		if (k<0) {
-			Pipe.spinBlockForRoom(left, Pipe.EOF_SIZE);
-			Pipe.spinBlockForRoom(right, Pipe.EOF_SIZE);
+			//only works because we have multiple threads in play
+			while (!Pipe.hasRoomForWrite(left, Pipe.EOF_SIZE)) {
+			    Pipe.spinWork(left);
+			}
+			while (!Pipe.hasRoomForWrite(right, Pipe.EOF_SIZE)) {
+			    Pipe.spinWork(right);
+			}
 			Pipe.publishEOF(left);
 			Pipe.publishEOF(right);
 		}

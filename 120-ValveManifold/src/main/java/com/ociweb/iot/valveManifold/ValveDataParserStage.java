@@ -32,6 +32,7 @@ public class ValveDataParserStage extends PronghornStage {
 	private boolean EOF_Detected = false;
 	private int stationNumber;
 	private boolean isNew = true;
+	private boolean shutdownInProgress;
 	
 	public static void newInstance(GraphManager gm, Pipe<RawDataSchema> input, Pipe<ValveSchema> output) {
 		new ValveDataParserStage(gm, input, output);		
@@ -53,13 +54,20 @@ public class ValveDataParserStage extends PronghornStage {
 	
 	@Override
 	public void shutdown() {
-		//logger.info("shutting down");
-		Pipe.spinBlockForRoom(output, Pipe.EOF_SIZE);
 		Pipe.publishEOF(output);
 	}
 	
 	@Override
 	public void run() {
+		
+		if (shutdownInProgress) {
+			if (!Pipe.hasRoomForWrite(output, Pipe.EOF_SIZE)) {
+				return;
+			}
+			requestShutdown();
+			return;
+		}
+		
 		
 		//logger.info("called run");
 		while ((TrieParserReader.parseHasContent(reader)||Pipe.hasContentToRead(input)||EOF_Detected) && Pipe.hasRoomForWrite(output)) {
@@ -71,7 +79,7 @@ public class ValveDataParserStage extends PronghornStage {
 				return;//come back later, could not parse what we have so far.
 			}
 			if ( (!TrieParserReader.parseHasContent(reader)) && EOF_Detected) {
-				requestShutdown();
+				shutdownInProgress=true;
 				return;
 				
 			}

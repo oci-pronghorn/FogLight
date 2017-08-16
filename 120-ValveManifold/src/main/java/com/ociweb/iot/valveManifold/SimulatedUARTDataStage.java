@@ -68,8 +68,10 @@ public class SimulatedUARTDataStage extends PronghornStage{
 	
 	@Override
 	public void shutdown() {
-		Pipe.spinBlockForRoom(output, Pipe.EOF_SIZE);
-		Pipe.publishEOF(output);
+		if (Pipe.hasRoomForWrite(output, Pipe.EOF_SIZE)) {
+			Pipe.publishEOF(output);
+		}
+		//if not the system is already shutting down so this is not an issue
 	}
 	
 	@Override
@@ -127,8 +129,6 @@ public class SimulatedUARTDataStage extends PronghornStage{
 			
 			Pipe.confirmLowLevelWrite(output, size);
 			Pipe.publishWrites(output);
-			
-			//requestShutdown();
 			
 			if (++valve>=valveCount) {
 				nextRun = System.currentTimeMillis()+1_000;//1 seconds from now.

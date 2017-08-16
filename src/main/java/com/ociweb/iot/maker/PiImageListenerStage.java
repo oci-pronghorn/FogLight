@@ -87,11 +87,10 @@ public class PiImageListenerStage extends PronghornStage {
 
     @Override
     public void shutdown() {
-        // Wait for room on the pipe to write any remaining data.
-        Pipe.spinBlockForRoom(output, Pipe.EOF_SIZE);
-
-        // Publish remaining data.
-        Pipe.publishEOF(output);
+		if (Pipe.hasRoomForWrite(output, Pipe.EOF_SIZE)) {
+			Pipe.publishEOF(output);
+		}
+		//if not the system is already shutting down so this is not an issue
     }
 
     @Override

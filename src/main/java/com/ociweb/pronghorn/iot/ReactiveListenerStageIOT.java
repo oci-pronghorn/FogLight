@@ -426,13 +426,17 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 			
 			int runningValue = sendEveryAnalogValue[port.port] ? value : findStableReading(value, port.port);             
 			
+			int mean = runningValue;
 			//logger.debug(port+" send every value "+sendEveryAnalogValue[port.port]);
 			
-			MAvgRollerLong.roll(rollingMovingAveragesAnalog[port.port], runningValue);                                                
-			
-			int mean = runningValue;
-			if (MAvgRollerLong.isValid(rollingMovingAveragesAnalog[port.port])) {
-				mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[port.port]);
+			if (null!=rollingMovingAveragesAnalog[port.port]) {
+				MAvgRollerLong.roll(rollingMovingAveragesAnalog[port.port], runningValue);                                                
+				
+				if (MAvgRollerLong.isValid(rollingMovingAveragesAnalog[port.port])) {
+					mean = (int)MAvgRollerLong.mean(rollingMovingAveragesAnalog[port.port]);
+				}
+			} else {
+				logger.info("warning this port "+port+" is attempting to use moving average but no moving average was set up.\n Was this port connected in declare connections?");
 			}
 			
 			if (sendEveryAnalogValue[port.port]) {

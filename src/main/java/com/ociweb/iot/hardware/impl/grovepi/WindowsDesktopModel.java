@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
-public enum WindowsModel {
+public enum WindowsDesktopModel {
 
 	Unknown(),
 	Windows();
 	
 
-	private static final Logger logger  = LoggerFactory.getLogger(WindowsModel.class);
+	private static final Logger logger  = LoggerFactory.getLogger(WindowsDesktopModel.class);
 
 	static TrieParser trie = new TrieParser(256,false);
 	static TrieParserReader reader = new TrieParserReader(2,true);
@@ -29,7 +29,7 @@ public enum WindowsModel {
 		trie.setUTF8Value("%bi9%b\n", 1);
 	}
 	
-	public static synchronized WindowsModel detect() {
+	public static synchronized WindowsDesktopModel detect() {
 		
 		long start = System.currentTimeMillis();
 		try {
@@ -58,7 +58,7 @@ public enum WindowsModel {
 				
 
 			} catch (Throwable e) {
-				logger.info("unable to detect model.",e);
+				//logger.trace("unable to detect model.",e);
 				return Unknown;
 			}
 			

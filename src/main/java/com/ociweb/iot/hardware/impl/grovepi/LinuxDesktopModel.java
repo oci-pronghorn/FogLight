@@ -8,12 +8,12 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.pronghorn.util.TrieParser;
 import com.ociweb.pronghorn.util.TrieParserReader;
 
-public enum LinuxModel {
+public enum LinuxDesktopModel {
 
 	Unknown(),
 	Linux();
 
-	private static final Logger logger  = LoggerFactory.getLogger(LinuxModel.class);
+	private static final Logger logger  = LoggerFactory.getLogger(LinuxDesktopModel.class);
 
 	static TrieParser trie = new TrieParser(256,false);
 	static TrieParserReader reader = new TrieParserReader(2,true);
@@ -29,7 +29,7 @@ public enum LinuxModel {
 		trie.setUTF8Value("%b\n", 3);		
 	}
 	
-	public static synchronized LinuxModel detect() {
+	public static synchronized LinuxDesktopModel detect() {
 		
 		long start = System.currentTimeMillis();
 		try {
@@ -57,7 +57,7 @@ public enum LinuxModel {
 				
 				
 			} catch (Exception e) {
-				logger.info("unable to detect model.",e);
+				//logger.trace("unable to detect model.",e);
 				return Unknown;
 			}
 			

@@ -19,10 +19,10 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
-import com.ociweb.iot.hardware.impl.grovepi.LinuxModel;
+import com.ociweb.iot.hardware.impl.grovepi.LinuxDesktopModel;
 import com.ociweb.iot.hardware.impl.grovepi.MacModel;
 import com.ociweb.iot.hardware.impl.grovepi.PiModel;
-import com.ociweb.iot.hardware.impl.grovepi.WindowsModel;
+import com.ociweb.iot.hardware.impl.grovepi.WindowsDesktopModel;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -111,7 +111,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				logger.info("Detected running on " + pm);
 				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
 			}
-			else if(WindowsModel.detect() != WindowsModel.Unknown) {
+			else if(WindowsDesktopModel.detect() != WindowsDesktopModel.Unknown) {
 				this.builder = new TestHardware(gm, args);
 				logger.info("Detected running on Windows, test mock hardware will be used");
 			}
@@ -121,7 +121,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				logger.info("Detected running on Mac, test mock hardware will be used");
 
 			}
-			else if(LinuxModel.detect() != LinuxModel.Unknown) {
+			else if(LinuxDesktopModel.detect() != LinuxDesktopModel.Unknown) {
 				this.builder = new TestHardware(gm, args);
 				logger.info("Detected Running on Linux, test mock hardware will be used");
 

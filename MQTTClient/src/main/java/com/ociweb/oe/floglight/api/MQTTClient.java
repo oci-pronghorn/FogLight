@@ -19,11 +19,11 @@ public class MQTTClient implements FogApp {
 
 	@Override
 	public void declareConnections(Hardware builder) {
-		//final String brokerHost = "127.0.0.1";
+		final String brokerHost = "127.0.0.1";
 		//final String brokerHost = "172.16.10.28"; // Nathan's PC
-		final String brokerHost = "thejoveexpress.local"; // Raspberry Pi0
+		//final String brokerHost = "thejoveexpress.local"; // Raspberry Pi0
 		// Create a single mqtt client
-		mqttConfig = builder.useMQTT(brokerHost, 1883, "MQTTClientTest",200) //default of 10 in flight
+		mqttConfig = builder.useMQTT(brokerHost, 1883, false, "MQTTClientTest",200) //default of 10 in flight
 							.cleanSession(true)	
 							.keepAliveSeconds(10);
 

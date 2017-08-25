@@ -18,6 +18,7 @@ import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
+import com.ociweb.iot.hardware.impl.grovepi.BeagleBoneModel;
 import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
 import com.ociweb.iot.hardware.impl.grovepi.LinuxDesktopModel;
 import com.ociweb.iot.hardware.impl.grovepi.MacModel;
@@ -106,10 +107,15 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			//The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
 			///////////////////////
 			PiModel pm = null;
+			BeagleBoneModel bm = null;
 			I2CBacking i2cBacking = null;
 			if ((pm = PiModel.detect()) != PiModel.Unknown){
 				logger.info("Detected running on " + pm);
 				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
+			}
+			else if((bm = BeagleBoneModel.detect()) != BeagleBoneModel.Unknown) {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Detected running on " + bm);
 			}
 			else if(WindowsDesktopModel.detect() != WindowsDesktopModel.Unknown) {
 				this.builder = new TestHardware(gm, args);

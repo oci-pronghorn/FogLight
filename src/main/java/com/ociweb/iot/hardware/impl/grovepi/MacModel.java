@@ -74,7 +74,7 @@ public enum MacModel {
 			
 			return Unknown;
 		} finally {
-			logger.info("mac dection duration {} ", System.currentTimeMillis()-start);
+			logger.info("mac detection duration {} ", System.currentTimeMillis()-start);
 		}
 	}
 }

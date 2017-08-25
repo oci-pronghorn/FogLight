@@ -73,7 +73,7 @@ public enum LinuxDesktopModel {
 		
 			return Unknown;
 		} finally {
-			logger.info("linux dection duration {} ", System.currentTimeMillis()-start);
+			logger.info("linux detection duration {} ", System.currentTimeMillis()-start);
 		}
 	}
 }

@@ -74,7 +74,7 @@ public enum WindowsDesktopModel {
 				
 			return Unknown;
 		} finally {
-			logger.info("windows dection duration {} ", System.currentTimeMillis()-start);
+			logger.info("windows detection duration {} ", System.currentTimeMillis()-start);
 		}
 	}
 }

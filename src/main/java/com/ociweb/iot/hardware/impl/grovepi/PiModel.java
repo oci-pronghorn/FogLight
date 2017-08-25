@@ -125,7 +125,7 @@ public enum PiModel {
 			}
 			return Unknown;
 		} finally {
-			logger.info("pi dection duration {} ", System.currentTimeMillis()-start);
+			logger.info("pi detection duration {} ", System.currentTimeMillis()-start);
 		}
 	}
 }

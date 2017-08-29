@@ -35,7 +35,7 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 				System.out.println(reader.readUTFOfLength(reader.available()));
 			}
 		};
-
+		
 		reader.openPayloadData( payload );
 		
 		return true;

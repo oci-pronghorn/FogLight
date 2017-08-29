@@ -33,7 +33,7 @@ public class RestBehaviorEmptyResponse implements RestListener {
 	private Headable headReader = new Headable() {
 
 		@Override
-		public void read(BlobReader reader) { 
+		public void read(int id, BlobReader reader) { 
 			
 			System.out.println("COOKIE: "+reader.readUTFOfLength(reader.available()));
 						

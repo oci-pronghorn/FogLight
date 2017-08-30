@@ -58,7 +58,7 @@ public enum BeagleBoneModel {
 				//System.out.println("DETECT DATA\n"+new String(buffer,0,lastPos));
 				 
 			} catch (Exception e) {
-				logger.info("unable to detect model.", e);
+				//logger.trace("unable to detect model.", e);
 				return Unknown;
 			}
 

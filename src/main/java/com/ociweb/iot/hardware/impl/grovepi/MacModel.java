@@ -58,7 +58,7 @@ public enum MacModel {
 				
 
 			} catch (Throwable e) {
-				logger.info("unable to detect model.",e);
+				//logger.trace("unable to detect model.",e);
 				return Unknown;
 			}
 			

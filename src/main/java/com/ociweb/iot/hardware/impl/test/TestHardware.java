@@ -155,7 +155,7 @@ public class TestHardware extends HardwareImpl {
         long degrees = iteration % 360;
         double radians = degrees * Math.PI / 180.0;
         double s = (Math.sin(radians) + 1.0) / 2.0;
-        double range = deviceOnPort[port.ordinal()].range();
+        double range = getConnectedDevice(port).range();
         long value = Math.round(range * s);
         iteration++;
         return (int) value;

@@ -136,15 +136,15 @@ public class TestI2CBacking implements I2CBacking{
 					System.out.println(); 
 					newLineNeeded=false;
 				}
-
-				System.out.print("                         I2C Write to Addr:"+address+"   [");            
+/*
+				System.out.print("                         I2C Write to Addr:"+address+"   [");
 				//Appendables.appendArray(System.out, '[', message, 0, Integer.MAX_VALUE, ']', length).append('\n');
 				for (int i = 0; i < length; i++){
 					Appendables.appendFixedHexDigits(System.out, message[i] & 0xFF, 8).append(", ");
 				}
 				System.out.println("]");
+*/
 			}
-
 		}
 	}
 

@@ -574,7 +574,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		MsgCommandChannel.publishGo(count, IDX_MSG, gcc);
 	}
 
-	public void buildStages(IntHashTable subscriptionPipeLookup2, IntHashTable netPipeLookup2, GraphManager gm2) {
+	public void buildStages(IntHashTable subscriptionPipeLookup2, GraphManager gm2) {
 
 		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, I2CResponseSchema.instance);
 		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, GroveResponseSchema.instance);
@@ -606,7 +606,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;
 		IDX_I2C = i2cPipes.length>0 || i2cResponsePipes.length > 0 ? eventSchemas++ : -1;  //the 'or' check is to ensure that reading without a cmd channel works
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
-		IDX_NET = useNetClient(netPipeLookup2, httpClientRequestPipes) ? eventSchemas++ : -1;
+		IDX_NET = useNetClient(httpClientRequestPipes) ? eventSchemas++ : -1;
 		IDX_SER = serialOutputPipes.length>0 ? eventSchemas++ : -1;
 
 		long timeout = 20_000; //20 seconds
@@ -685,7 +685,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 		initChannelBlocker(maxGoPipeId);
 
-		buildHTTPClientGraph(netPipeLookup2, httpClientResponsePipes, httpClientRequestPipes, masterGoOut, masterAckIn);
+		buildHTTPClientGraph(httpClientResponsePipes, httpClientRequestPipes, masterGoOut, masterAckIn);
 
 		if (IDX_MSG <0) {
 			logger.trace("saved some resources by not starting up the unused pub sub service.");

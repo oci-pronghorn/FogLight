@@ -334,7 +334,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
-		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
+		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.gm);
 
 		runtime.logStageScheduleRates();
 
@@ -387,7 +387,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		System.out.println("To exit app press Ctrl-C");
 		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
-		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.netPipeLookup, runtime.gm);
+		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.gm);
 		runtime.logStageScheduleRates();
 
 		logger.info("{} ms duration {} ms finished building internal graph", nowTime = System.currentTimeMillis(), nowTime-lastTime);

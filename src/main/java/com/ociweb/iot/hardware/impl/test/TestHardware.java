@@ -148,11 +148,18 @@ public class TestHardware extends HardwareImpl {
         return HardwarePlatformType.TEST;
     }
 
+    private long iteration =  360;
+
     @Override
     public int read(Port port) {
-        return pinData[port.port] + (port.isAnalog() ? (Math.random()<.1 ? 1 : 0) : 0); //adding noise for analog values
+        long degrees = iteration % 360;
+        double radians = degrees * Math.PI / 180.0;
+        double s = (Math.sin(radians) + 1.0) / 2.0;
+        double range = deviceOnPort[port.ordinal()].range();
+        long value = Math.round(range * s);
+        iteration++;
+        return (int) value;
     }
-
 
     @Override
     public void write(Port port, int value) {

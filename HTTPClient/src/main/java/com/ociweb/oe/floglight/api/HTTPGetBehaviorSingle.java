@@ -2,6 +2,7 @@ package com.ociweb.oe.floglight.api;
 
 import com.ociweb.gl.api.HTTPResponseListener;
 import com.ociweb.gl.api.HTTPResponseReader;
+import com.ociweb.gl.api.HTTPSession;
 import com.ociweb.gl.api.Payloadable;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -13,14 +14,15 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 
 	
 	private final FogCommandChannel cmd;
-
+	private HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
+	 
 	public HTTPGetBehaviorSingle(FogRuntime runtime) {
 		cmd = runtime.newCommandChannel(NET_REQUESTER);
 	}
 
 	@Override
 	public void startup() {
-		cmd.httpGet("www.objectcomputing.com", "/");
+		cmd.httpGet(session, "/");
 	}
 
 	@Override

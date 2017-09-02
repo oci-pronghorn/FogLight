@@ -14,6 +14,7 @@ import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
+import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -155,7 +156,9 @@ public class TestHardware extends HardwareImpl {
         long degrees = iteration % 360;
         double radians = degrees * Math.PI / 180.0;
         double s = (Math.sin(radians) + 1.0) / 2.0;
-        double range = getConnectedDevice(port).range();
+        IODevice connectedDevice = getConnectedDevice(port);
+		int defaultRange = 255;
+		double range = null==connectedDevice ? defaultRange : connectedDevice.range();
         long value = Math.round(range * s);
         iteration++;
         return (int) value;

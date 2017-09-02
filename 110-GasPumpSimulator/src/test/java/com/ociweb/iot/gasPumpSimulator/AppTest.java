@@ -3,6 +3,7 @@ package com.ociweb.iot.gasPumpSimulator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -14,8 +15,8 @@ import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
  */
 public class AppTest { 
 
-	
-	 @Test
+	//no longer supported use of Paho.
+	 @Ignore
 	    public void testApp()
 	    {
 	    	FogRuntime runtime = FogRuntime.test(new IoTApp());	    	

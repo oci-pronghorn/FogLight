@@ -66,8 +66,24 @@ public class ReadDeviceInputStage extends PronghornStage {
 		assert(null!=schedule) : "should not have been called, there are no inputs configured";
 
 		if (null != this.schedule) {
-			assert(0==(this.schedule.commonClock%10)) : "must be divisible by 10";
-			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/10L , this); 
+			long computedRate = (this.schedule.commonClock);
+			do {
+				if (computedRate%10 == 0) {
+					computedRate = computedRate/10;
+				} else {
+					if (computedRate%5 == 0) {
+						computedRate = computedRate/5;
+					} else {
+						if (computedRate%2 == 0) {
+							computedRate = computedRate/2;
+						} else {
+							break;
+						}
+					}					
+				}
+			} while (computedRate>2_000_000); //must not poll any slower than once every 2ms.
+	
+			GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, computedRate, this); 
 		}
 		
 		GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);   
@@ -147,17 +163,14 @@ public class ReadDeviceInputStage extends PronghornStage {
 		
 		do{
 		    long waitTime = blockStartTime - hardware.nanoTime();
+		    long longRate = rate.longValue();
      		if(waitTime>0){
-     			if (null==rate || (waitTime > 2*rate.longValue())) {				
+     			if ( (null==rate) || 
+     				 (waitTime > (longRate<<1)) || //normal case if 2 cycles away
+     				 //if rate longer than 1 ms then just wait 1 cycle since rate is so large 
+     				 ((waitTime > longRate) && (longRate>=1_000_000)) 
+     					) {				
      				return; //Enough time has not elapsed to start next block on schedule
-     			} else {
-     				while (hardware.nanoTime()<blockStartTime){
-     					Thread.yield();
-     					if (Thread.interrupted()) {
-     						requestShutdown();
-     						return;
-     					}
-     				}    				
      			}
      		}
      		
@@ -168,7 +181,22 @@ public class ReadDeviceInputStage extends PronghornStage {
 				if (!Pipe.hasRoomForWrite(responsePipe)) {
 					return;//try again later, no room on output pipe.
 				}
-
+				
+				//only check time AFTER we know that there is room on the outgoing pipe.
+				int overhead = 40;//40ns
+				long wait = (blockStartTime -hardware.nanoTime()) - overhead;
+				if (wait>0) {
+					//we must wait a little longer to ensure we 
+					//do not hit the time target too early.
+					try {
+						Thread.sleep(wait/1_000_000, (int)(wait%1_000_000));
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						requestShutdown();
+						return;
+					}
+				}
+			
 				HardwareConnection hc = adConnections[inProgressIdx];
 				int connector = hc.register;
 				
@@ -178,7 +206,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 					//rotary encoder
 					//low level write
 					readRotaryEncoder(connector, Port.DIGITALS[connector], hardware.currentTimeMillis()); //TODO: hack for now, needs more testing.
-				} else if (1==hc.twig.range()) {
+				} else if (1 == hc.twig.range()) {
 					//digital read
 					int fieldValue = hardware.read(Port.DIGITALS[connector]);
 					//low level write

@@ -79,11 +79,27 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         
         if (null!=this.schedule) {
             //The fastest message that can ever be sent on I2C 100K is once every 1.6MS
-            
-            int divisor = 20; //TODO: review this later by checking less often the CPU usage should go down.
-            assert(0==(this.schedule.commonClock%divisor)) : "must be divisible by "+divisor;
-            GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, (this.schedule.commonClock)/divisor , this);
-            logger.debug("setting JFFI to pol every: {} with schedule {}",((this.schedule.commonClock)/divisor),this.schedule);
+        
+			long computedRate = (this.schedule.commonClock);
+			do {
+				if (computedRate%10 == 0) {
+					computedRate = computedRate/10;
+				} else {
+					if (computedRate%5 == 0) {
+						computedRate = computedRate/5;
+					} else {
+						if (computedRate%2 == 0) {
+							computedRate = computedRate/2;
+						} else {
+							break;
+						}
+					}					
+				}
+			} while (computedRate>2_000_000); //must not poll any slower than once every 2ms.
+
+            GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, computedRate , this);
+            logger.debug("setting JFFI to pol every: {} with schedule {}",computedRate,this.schedule);
+        
         }else{
             logger.debug("Schedule is null");
         }
@@ -183,14 +199,15 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         }
                         return; //Enough time has not elapsed to start next block on schedule
                     } else {
-                        long blockMS = (hardware.nanoTime()-blockStartTime) / 1_000_000;
-                        if (blockMS > 1) {
+                    	int padding = 200; //ns
+                        long block = ((hardware.nanoTime()-blockStartTime)) - padding;
+                        if (block > 0) {
                             try {
-                                Thread.sleep(blockMS - 1);
+                                Thread.sleep(block/1_000_000,(int)(block%1_000_000));
                             } catch (InterruptedException e) {
                                 requestShutdown();
                                 return;
-                            }//leave ourselves 1 MS
+                            }//leave ourselves the padding
                         }
                         while (hardware.nanoTime()<blockStartTime){
                             Thread.yield();

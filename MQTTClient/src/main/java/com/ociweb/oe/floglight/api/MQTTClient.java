@@ -25,11 +25,12 @@ public class MQTTClient implements FogApp {
 		// Create a single mqtt client
 		mqttConfig = builder.useMQTT(brokerHost, 1883, false, "MQTTClientTest",200) //default of 10 in flight
 							.cleanSession(true)	
-							.keepAliveSeconds(10);
+							.keepAliveSeconds(10)
+							.will(false, MQTTQOS.atMostOnce, "last/will", blobWriter -> {blobWriter.writeBoolean(true);});
 
 		// Timer rate
 		builder.setTimerPulseRate(300); 
-		builder.enableTelemetry();
+		//builder.enableTelemetry();
 	}
 
 	@Override

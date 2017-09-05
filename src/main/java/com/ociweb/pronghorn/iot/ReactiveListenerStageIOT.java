@@ -1,13 +1,7 @@
 package com.ociweb.pronghorn.iot;
 
-import java.awt.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-import com.ociweb.iot.impl.*;
-import com.ociweb.pronghorn.iot.schema.ImageSchema;
-import com.ociweb.pronghorn.pipe.DataInputBlobReader;
-import com.ociweb.pronghorn.pipe.RawDataSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +13,12 @@ import com.ociweb.gl.impl.stage.ReactiveOperators;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
+import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.impl.DigitalListenerBase;
+import com.ociweb.iot.impl.I2CListenerBase;
+import com.ociweb.iot.impl.ImageListenerBase;
+import com.ociweb.iot.impl.RotaryListenerBase;
+import com.ociweb.iot.impl.SerialListenerBase;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
@@ -26,6 +26,7 @@ import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -58,7 +59,6 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     protected int[] lastAnalogValues;
     protected long[] lastAnalogTimes;
 
-    
     /////////////////////
     //Listener Filters
     /////////////////////    
@@ -72,6 +72,9 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
     
     private DataInputBlobReader serialStremReader; //must be held as we accumulate serial data.
     private DataInputBlobReader<ImageSchema> imageStreamReader;
+    
+   
+    
     public static void initOperators(ReactiveOperators operators) {
     	
     	//Add more supported operators to the system
@@ -503,6 +506,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 		}
 	}
 
+	
 	@Override
 	public ListenerFilterIoT excludeI2CConnections(int... addresses) {
 		if (!startupCompleted && listener instanceof I2CListener) {

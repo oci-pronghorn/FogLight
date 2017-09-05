@@ -268,8 +268,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			inputPipes[--pipesCount] = new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
 		}
 
+		final int httpClientPipeId = netResponsePipeIdx; //must be grabbed before populateGreenPipes
+		
 		populateGreenPipes(listener, pipesCount, inputPipes);
-
+		
 		/////////////////////
 		//StartupListener is not driven by any response data and is called when the stage is started up. no pipe needed.
 		/////////////////////
@@ -278,19 +280,31 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         //this is empty when transducerAutowiring is off
         final ArrayList<ReactiveManagerPipeConsumer> consumers = new ArrayList<ReactiveManagerPipeConsumer>();
 
-
         //extract this into common method to be called in GL and FL
 		if (transducerAutowiring) {
 			inputPipes = autoWireTransducers(listener, inputPipes, consumers);
 		}
 
-		ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(gm, listener,
+		ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(
+				                                    gm, listener,
 													inputPipes, outputPipes, consumers,
 													parallelInstanceUnderActiveConstruction);
-		configureStageRate(listener,reactiveListener);
+		
+		configureStageRate(listener, reactiveListener);
+		
+        if (httpClientPipeId != netResponsePipeIdx) {
+        	reactiveListener.configureHTTPClientResponseSupport(httpClientPipeId);
+        }
+		
+		assert(checkPipeOrders(inputPipes));
 
+		return reactiveListener;
+
+	}
+
+	private boolean checkPipeOrders(Pipe<?>[] inputPipes) {
 		//////////
-		///only for assert, TODO: remove upon assert disabled
+		///only for assert
 		///////////
 		int testId = -1;
 		int i = inputPipes.length;
@@ -302,9 +316,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		}
 		assert(-1==testId || GraphManager.allPipesOfType(gm, MessageSubscription.instance)[subscriptionPipeIdx-1].id==testId) : "GraphManager has returned the pipes out of the expected order";
 		//////////////////
-
-		return reactiveListener;
-
+		return true;
 	}
 
 	private static Pipe<SerialInputSchema> newSerialInputPipe(PipeConfig<SerialInputSchema> config) {

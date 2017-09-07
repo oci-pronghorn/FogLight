@@ -1,7 +1,7 @@
 package com.ociweb.oe.floglight.api;
 
 import com.ociweb.gl.api.MQTTBridge;
-import com.ociweb.gl.impl.MQTTQOS;
+import com.ociweb.gl.api.MQTTQoS;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -26,7 +26,7 @@ public class MQTTClient implements FogApp {
 		mqttConfig = builder.useMQTT(brokerHost, 1883, false, "MQTTClientTest",200) //default of 10 in flight
 							.cleanSession(true)	
 							.keepAliveSeconds(10)
-							.will(false, MQTTQOS.atMostOnce, "last/will", blobWriter -> {blobWriter.writeBoolean(true);});
+							.will(false, MQTTQoS.atMostOnce, "last/will", blobWriter -> {blobWriter.writeBoolean(true);});
 
 		// Timer rate
 		builder.setTimerPulseRate(300); 
@@ -43,8 +43,8 @@ public class MQTTClient implements FogApp {
 		final String externalIngressTopic = "external/topic/ingress";
 		final String localTestTopic = "localtest";
 
-		final MQTTQOS transQos = MQTTQOS.atLeastOnce;
-		final MQTTQOS subscribeQos = MQTTQOS.atLeastOnce;
+		final MQTTQoS transQos = MQTTQoS.atLeastOnce;
+		final MQTTQoS subscribeQos = MQTTQoS.atLeastOnce;
 
 		// Inject the timer that publishes topic/egress
 		TimeBehavior internalEgressTopicProducer = new TimeBehavior(runtime, internalEgressTopic);

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
+import com.ociweb.iot.hardware.impl.test.BasicTestPortReader;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
@@ -24,6 +25,7 @@ public class AppTest
                 
         NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();      
         TestHardware hardware = (TestHardware)runtime.getHardware();
+        hardware.portReader = new BasicTestPortReader();
 
         hardware.clearI2CWriteCount();
 

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
+import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.gl.impl.stage.ReactiveOperator;
@@ -24,6 +25,8 @@ import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.I2CListener;
 import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
+import com.ociweb.iot.maker.RotaryListener;
+import com.ociweb.iot.maker.SerialListener;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
@@ -33,9 +36,9 @@ import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
-public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl> implements ListenerFilterIoT {
+public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl> implements ListenerFilterIoT {
   
-    private static final Logger logger = LoggerFactory.getLogger(ReactiveListenerStageIOT.class); 
+    private static final Logger logger = LoggerFactory.getLogger(ReactiveIoTListenerStage.class); 
     
     protected MAvgRollerLong[] rollingMovingAveragesAnalog;
     protected MAvgRollerLong[] rollingMovingAveragesDigital;    
@@ -84,7 +87,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
        		 new ReactiveOperator() {
 			@Override
 			public void apply(Object target, Pipe input, ReactiveListenerStage r) {
-				((ReactiveListenerStageIOT)r).consumeSerialMessage((SerialListenerBase)target, input);										
+				((ReactiveIoTListenerStage)r).consumeSerialMessage((SerialListenerBase)target, input);										
 			}        		                	 
         })
 		.addOperator(ImageListenerBase.class,
@@ -92,7 +95,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 					 new ReactiveOperator() {
 			 @Override
 			 public void apply(Object target, Pipe input, ReactiveListenerStage r) {
-				 ((ReactiveListenerStageIOT) r).consumeImageMessage((ImageListenerBase) target, input);
+				 ((ReactiveIoTListenerStage) r).consumeImageMessage((ImageListenerBase) target, input);
 			 }
 		 })
         .addOperator(AnalogListenerBase.class,
@@ -100,7 +103,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 	       		 new ReactiveOperator() {
 				@Override
 				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
-					((ReactiveListenerStageIOT)r).consumeResponseMessage(target, input);										
+					((ReactiveIoTListenerStage)r).consumeResponseMessage(target, input);										
 				}        		                	 
 	        })
         .addOperator(DigitalListenerBase.class, 
@@ -108,7 +111,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 	       		 new ReactiveOperator() {
 				@Override
 				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
-					((ReactiveListenerStageIOT)r).consumeResponseMessage(target, input);										
+					((ReactiveIoTListenerStage)r).consumeResponseMessage(target, input);										
 				}        		                	 
 	        })
         .addOperator(RotaryListenerBase.class, 
@@ -116,7 +119,7 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 	       		 new ReactiveOperator() {
 				@Override
 				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
-					((ReactiveListenerStageIOT)r).consumeResponseMessage(target, input);										
+					((ReactiveIoTListenerStage)r).consumeResponseMessage(target, input);										
 				}        		                	 
 	        })
         .addOperator(I2CListenerBase.class, 
@@ -124,12 +127,12 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
 	       		 new ReactiveOperator() {
 				@Override
 				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
-					((ReactiveListenerStageIOT)r).consumeI2CMessage(target, input);										
+					((ReactiveIoTListenerStage)r).consumeI2CMessage(target, input);										
 				}        		                	 
 	        });    	
     }
     
-    public ReactiveListenerStageIOT(GraphManager graphManager, Behavior listener, 
+    public ReactiveIoTListenerStage(GraphManager graphManager, Behavior listener, 
     		                        Pipe<?>[] inputPipes, 
     		                        Pipe<?>[] outputPipes, 
     		                        ArrayList<ReactiveManagerPipeConsumer> consumers,
@@ -138,6 +141,22 @@ public class ReactiveListenerStageIOT extends ReactiveListenerStage<HardwareImpl
         
         super(graphManager, listener, inputPipes, outputPipes, consumers, hardware, parallelInstance);
 
+        if (listener instanceof DigitalListener) {
+        	toStringDetails = toStringDetails + "DigitalListener\n";
+        }
+        if (listener instanceof AnalogListener) {
+        	toStringDetails = toStringDetails + "AnalogListener\n";
+        }
+        if (listener instanceof I2CListener) {
+        	toStringDetails = toStringDetails + "I2CListener\n";
+        }
+        if (listener instanceof SerialListener) {
+        	toStringDetails = toStringDetails + "SerialListener\n";
+        }
+        if (listener instanceof RotaryListener) {
+        	toStringDetails = toStringDetails + "RotaryListener\n";
+        }
+        
         this.builder = hardware;
                    
         //allow for shutdown upon shutdownRequest we have new content

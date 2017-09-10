@@ -40,7 +40,7 @@ import com.ociweb.iot.transducer.DigitalListenerTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.iot.transducer.RotaryListenerTransducer;
 import com.ociweb.iot.transducer.SerialListenerTransducer;
-import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
+import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
@@ -142,7 +142,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			HardwareConnection[] digitalInputs, HardwareConnection[] digitalOutputs, HardwareConnection[] pwmOutputs, HardwareConnection[] analogInputs) {
 
 		super(gm, args);
-				ReactiveListenerStageIOT.initOperators(operators);
+				ReactiveIoTListenerStage.initOperators(operators);
 		this.pcm.addConfig(new PipeConfig<HTTPRequestSchema>(HTTPRequestSchema.instance, 
 									                   		 2, //only a few requests when FogLight  
 									                         MAXIMUM_INCOMMING_REST_SIZE));

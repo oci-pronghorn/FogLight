@@ -25,7 +25,7 @@ import com.ociweb.iot.hardware.impl.grovepi.MacModel;
 import com.ociweb.iot.hardware.impl.grovepi.PiModel;
 import com.ociweb.iot.hardware.impl.grovepi.WindowsDesktopModel;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
+import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -285,7 +285,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			inputPipes = autoWireTransducers(listener, inputPipes, consumers);
 		}
 
-		ReactiveListenerStageIOT reactiveListener = builder.createReactiveListener(
+		ReactiveIoTListenerStage reactiveListener = builder.createReactiveListener(
 				                                    gm, listener,
 													inputPipes, outputPipes, consumers,
 													parallelInstanceUnderActiveConstruction);

@@ -39,8 +39,10 @@ public enum Port {
         return 0 != (IS_ANALOG & mask);
     }
 
-    public static Port nextPort(Port p) {    	
-    	return Port.values()[p.ordinal()+1];
+    public static Port nextPort(Port p) {
+        int ordinal = p.ordinal() + 1;
+        if (ordinal == Port.values().length) return null;
+    	return Port.values()[ordinal];
     }
     
     /**

@@ -16,7 +16,7 @@ import com.ociweb.iot.hardware.HardwarePlatformType;
 import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
+import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
@@ -189,7 +189,7 @@ public class GroveV3EdisonImpl extends HardwareImpl {
 	public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
 			                                                          Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, 
 			                                                          ArrayList<ReactiveManagerPipeConsumer> consumers,int parallelInstance) {
-		return (R)new ReactiveListenerStageIOT(gm, listener, inputPipes, outputPipes, consumers, this, parallelInstance);
+		return (R)new ReactiveIoTListenerStage(gm, listener, inputPipes, outputPipes, consumers, this, parallelInstance);
 	}
 	
 

@@ -19,7 +19,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class DexterGrovePiReactiveListenerStage extends ReactiveListenerStageIOT{
+public class DexterGrovePiReactiveListenerStage extends ReactiveIoTListenerStage{
 
 
 	private static final Logger logger = LoggerFactory.getLogger(DexterGrovePiReactiveListenerStage.class);

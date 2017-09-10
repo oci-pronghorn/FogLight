@@ -19,7 +19,7 @@ import com.ociweb.iot.hardware.impl.DefaultCommandChannel;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.iot.ReactiveListenerStageIOT;
+import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
@@ -51,6 +51,8 @@ public class TestHardware extends HardwareImpl {
     private long lastProvidedTime;
     
     private RS232Clientable testSerial = new TestSerial();
+
+    public TestPortReader portReader = new SinTestPortReader();
     
     public TestHardware(GraphManager gm, String[] args) {
         super(gm, args, 1);
@@ -149,19 +151,11 @@ public class TestHardware extends HardwareImpl {
         return HardwarePlatformType.TEST;
     }
 
-    private long iteration =  360;
-
     @Override
     public int read(Port port) {
-        long degrees = iteration % 360;
-        double radians = degrees * Math.PI / 180.0;
-        double s = (Math.sin(radians) + 1.0) / 2.0;
         IODevice connectedDevice = getConnectedDevice(port);
-		int defaultRange = 255;
-		double range = null==connectedDevice ? defaultRange : connectedDevice.range();
-        long value = Math.round(range * s);
-        iteration++;
-        return (int) value;
+        int range = connectedDevice == null ? 255 : connectedDevice.range();
+        return portReader.read(port, pinData[port.port], range);
     }
 
     @Override
@@ -217,7 +211,7 @@ public class TestHardware extends HardwareImpl {
     		                                                 ArrayList<ReactiveManagerPipeConsumer> consumers,
     		                                                 int parallelInstance) {
         assert(null!=listener);
-    	return (R)new ReactiveListenerStageIOT(gm, listener,
+    	return (R)new ReactiveIoTListenerStage(gm, listener,
         		                               inputPipes, outputPipes, 
         		                               consumers, this, parallelInstance);
     }

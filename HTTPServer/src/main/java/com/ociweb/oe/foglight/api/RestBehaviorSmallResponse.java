@@ -58,7 +58,7 @@ public class RestBehaviorSmallResponse implements RestListener {
 
 		//if this can not be published then we will get the request again later to be reattempted.
 		return cmd.publishHTTPResponse(request, 200, 
-								request.getRequestContext() | HTTPFieldReader.END_OF_RESPONSE,
+								false,
 				                HTTPContentTypeDefaults.TXT,
 				                writableA);
 

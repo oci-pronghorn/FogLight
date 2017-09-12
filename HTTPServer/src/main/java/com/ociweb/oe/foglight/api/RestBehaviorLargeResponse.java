@@ -59,7 +59,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 		
 		if (0 == partNeeded) {
 			boolean okA = cmd.publishHTTPResponse(request, 200, 
-									request.getRequestContext(),
+									true,
 					                HTTPContentTypeDefaults.TXT,
 					                writableA);
 			if (!okA) {
@@ -74,7 +74,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 		//////
 	
 		boolean okB = cmd.publishHTTPResponseContinuation(request,
-						 		request.getRequestContext() | HTTPFieldReader.END_OF_RESPONSE,
+						 		false,
 						 		writableB);
 		if (okB) {
 			partNeeded = 0;

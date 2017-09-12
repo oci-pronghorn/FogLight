@@ -379,7 +379,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		logger.info("{} ms startup", lastTime = System.currentTimeMillis());
 		Hardware hardware = runtime.getHardware();
 		//this default for Fog is slower due to the expected minimum hardware of iot devices
-		hardware.setDefaultRate(20_000); // 1/50 of 1 ms
+		hardware.setDefaultRate(100_000); // 1/10 of 1 ms
 
 		app.declareConfiguration(hardware);
 		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());

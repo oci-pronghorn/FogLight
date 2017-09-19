@@ -113,7 +113,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     public void startup(){
         super.startup();
         
-        workingBuffer = new byte[2048];
+        workingBuffer = new byte[4096]; //TODO: find a way to eliminate this temp storage.
         
         logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
         
@@ -351,7 +351,10 @@ while ( hasReleaseCountRemaining(activePipe)
             int pos = PipeReader.readBytesPosition(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             int mask = PipeReader.readBytesMask(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             
-            
+            //must grow if calls are needing more room.
+            if (workingBuffer.length < len) {
+            	workingBuffer = new byte[len*2];
+            }
             Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
             
             if (logger.isDebugEnabled()) {

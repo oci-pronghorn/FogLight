@@ -9,5 +9,4 @@ public enum OLEDScreenPresentation {
     OLEDScreenPresentation(int command){
         this.COMMAND = command;
     }
-
 }

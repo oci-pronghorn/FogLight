@@ -15,8 +15,4 @@ public class OLEDCommands {
     public static final int SET_VCOMH_VOLTAGE = 0xDB;
     public static final int REMAP_SGMT = 0xA0;
     public static final int ENTIRE_DISPLAY_ON = 0xA4;
-
-    public static final int COMMAND_MODE = 0x80;
-    public static final int DATA_MODE = 0x40;
-
 }

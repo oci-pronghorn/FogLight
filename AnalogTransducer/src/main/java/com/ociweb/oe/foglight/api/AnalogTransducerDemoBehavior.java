@@ -1,9 +1,5 @@
 package com.ociweb.oe.foglight.api;
 
-import com.ociweb.gl.api.TimeListener;
-import com.ociweb.iot.grove.simple_analog.MovingAverageListener;
-import com.ociweb.iot.grove.simple_analog.SimpleAnalogTransducer;
-import com.ociweb.iot.grove.simple_analog.SimpleAnalogListener;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;

@@ -1,14 +1,9 @@
 package com.ociweb.oe.foglight.api;
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.*;
-import com.ociweb.oe.foglight.api.StateMachine.StopLight;
-
-import static com.ociweb.iot.maker.Port.*;
-
-import com.ociweb.gl.api.StateChangeListener;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
 
 public class StateMachine implements FogApp
 {

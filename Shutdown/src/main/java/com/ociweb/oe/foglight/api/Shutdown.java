@@ -2,7 +2,7 @@ package com.ociweb.oe.foglight.api;
 
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.*;
 
 
 public class Shutdown implements FogApp

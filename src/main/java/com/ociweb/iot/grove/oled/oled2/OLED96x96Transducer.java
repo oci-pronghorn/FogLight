@@ -92,7 +92,8 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     // Public API
 
     public boolean clearDisplay() {
-        return injectInitScreen();
+        // TODO
+        return true;
     }
 
     public boolean setContrast(byte contrast) {
@@ -182,7 +183,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
 
     @Override
     public boolean display(FogPixelScanner scanner) {
-        return true;
+        return testScreen();
     }
 
     // Commands
@@ -222,7 +223,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
 
     // Test
 
-    private boolean injectInitScreen() {
+    private boolean testScreen() {
 
         System.out.print("injectInitScreen2\n");
         setOrientation(OLEDOrientation.horizontal);

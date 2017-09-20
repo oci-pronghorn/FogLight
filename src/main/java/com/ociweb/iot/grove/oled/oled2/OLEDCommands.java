@@ -19,7 +19,4 @@ public class OLEDCommands {
     public static final int COMMAND_MODE = 0x80;
     public static final int DATA_MODE = 0x40;
 
-    public static final int ROW_COUNT = 96;
-    public static final int COL_COUNT = 96;
-
 }

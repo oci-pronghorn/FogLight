@@ -1,15 +1,15 @@
 package com.ociweb.iot.metronome;
 
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.AngleSensor;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.Buzzer;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.AngleSensor;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Buzzer;
+import static com.ociweb.iot.maker.Port.A1;
+import static com.ociweb.iot.maker.Port.D2;
 
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
-
-import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp {
     

@@ -1,8 +1,7 @@
 package com.ociweb.iot.track1;
 
-
-import static com.ociweb.iot.grove.AnalogDigitalTwig.AngleSensor;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.LightSensor;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.AngleSensor;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.LightSensor;
 import static com.ociweb.iot.maker.Port.A1;
 import static com.ociweb.iot.maker.Port.A2;
 
@@ -13,11 +12,11 @@ import java.time.format.DateTimeFormatter;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.TimeTrigger;
+import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
-import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
 
 /**

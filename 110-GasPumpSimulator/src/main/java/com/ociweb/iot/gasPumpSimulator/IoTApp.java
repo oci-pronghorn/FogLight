@@ -1,9 +1,8 @@
 package com.ociweb.iot.gasPumpSimulator;
 
-
-import static com.ociweb.iot.grove.AnalogDigitalTwig.AngleSensor;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.Button;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.UltrasonicRanger;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.AngleSensor;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.UltrasonicRanger;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Button;
 import static com.ociweb.iot.maker.Port.A0;
 import static com.ociweb.iot.maker.Port.A2;
 import static com.ociweb.iot.maker.Port.D7;
@@ -11,9 +10,9 @@ import static com.ociweb.iot.maker.Port.D7;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.ListenerFilterIoT;
 
 public class IoTApp implements FogApp

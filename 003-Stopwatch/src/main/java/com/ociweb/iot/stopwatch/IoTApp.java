@@ -1,7 +1,7 @@
 package com.ociweb.iot.stopwatch;
 
-
-import static com.ociweb.iot.grove.AnalogDigitalTwig.Button;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Button;
+import static com.ociweb.iot.maker.Port.D3;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -10,14 +10,12 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
-import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
-
-import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
 {

@@ -1,13 +1,8 @@
 package com.ociweb.iot.cass;
 
-
-import static com.ociweb.iot.grove.AnalogDigitalTwig.*;
-
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.FogApp;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
 
 public class IoTApp implements FogApp
 {

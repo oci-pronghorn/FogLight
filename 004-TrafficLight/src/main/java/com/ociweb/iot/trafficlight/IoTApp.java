@@ -1,13 +1,12 @@
 package com.ociweb.iot.trafficlight;
 
-
-import static com.ociweb.iot.grove.GroveTwig.LED;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.LED;
 import static com.ociweb.iot.maker.Port.D3;
 import static com.ociweb.iot.maker.Port.D5;
 import static com.ociweb.iot.maker.Port.D6;
 
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.iot.grove.lcd_rgb.*;
+import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;

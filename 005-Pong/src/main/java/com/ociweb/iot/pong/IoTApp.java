@@ -1,13 +1,11 @@
 package com.ociweb.iot.pong;
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.AngleSensor;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.Button;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.AngleSensor;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Button;
 
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogApp;
-import static com.ociweb.iot.maker.Port.*;
-
 
 public class IoTApp implements FogApp {
 

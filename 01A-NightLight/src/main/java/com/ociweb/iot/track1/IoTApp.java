@@ -1,18 +1,17 @@
 package com.ociweb.iot.track1;
 
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.AngleSensor;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.LightSensor;
+import static com.ociweb.iot.maker.Port.A1;
+import static com.ociweb.iot.maker.Port.A2;
 
-import static com.ociweb.iot.grove.AnalogDigitalTwig.AngleSensor;
-import static com.ociweb.iot.grove.AnalogDigitalTwig.LightSensor;
-
+import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
-import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.Port;
-import static com.ociweb.iot.maker.Port.*;
-
-import com.ociweb.gl.api.GreenCommandChannel;
 
 /**
  * As it gets dark the back light of the LCD comes on.

@@ -24,7 +24,7 @@ class OLED96x96Witer {
     OLED96x96Witer(FogCommandChannel ch, int interleavelimit) {
         this.ch = ch;
         this.interleavelimit = interleavelimit;
-        this.ch.ensureI2CWriting(10000 * 4, 2);
+        this.ch.ensureI2CWriting(10000 * 4, 64);
     }
 
     public void start() {
@@ -199,45 +199,33 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     };
 
-    boolean sendData2(int data) {
-        if (!ch.i2cIsReady(1)) {
-            System.out.print("\nI2C is not ready\n");
-            return false;
-        }
-        System.out.print("D");
-        DataOutputBlobWriter<I2CCommandSchema> writer = ch.i2cCommandOpen(i2cAddress);
+    boolean sendData2(DataOutputBlobWriter writer, int data) {
+        //System.out.print("D");
         writer.write(DATA_MODE);
         writer.write(data & 0xFF);
-        ch.i2cCommandClose();
-        ch.i2cFlushBatch();
         return true;
     }
 
-    boolean sendCommand2(int data) {
-        if (!ch.i2cIsReady(1)) {
-            System.out.print("\nI2C is not ready\n");
-            return false;
-        }
-        System.out.print("C");
-        DataOutputBlobWriter<I2CCommandSchema> writer = ch.i2cCommandOpen(i2cAddress);
+    boolean sendCommand2(DataOutputBlobWriter writer, int data) {
+        //System.out.print("C");
         writer.write(COMMAND_MODE);
         writer.write(data & 0xFF);
-        ch.i2cCommandClose();
-        ch.i2cFlushBatch();
         return true;
     }
 
     private boolean injectInitScreen2() {
+
         System.out.print("injectInitScreen2\n");
-       setOrientation(OLEDOrientation.horizontal);
+        setOrientation(OLEDOrientation.horizontal);
 
         int Row = 0, column_l = 0x00, column_h = 0x11;
 
         for(int i=0;i<(96*96/8);i++) //1152
         {
-            if (!sendCommand2(0xb0 + Row)) return false;
-            if (!sendCommand2(column_l)) return false;
-            if (!sendCommand2(column_h)) return false;
+            if (!ch.i2cIsReady(1)) {
+                System.out.print("\nI2C is not ready\n");
+                return false;
+            }
 
             int tmp = 0x00;
             for(int b = 0; b < 8; b++)
@@ -245,18 +233,27 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
                 int bits = SeeedLogo[i];
                 tmp |= ( ( bits >> ( 7 - b ) ) & 0x01 ) << b;
             }
-            if (!sendData2(tmp)) return false;
+            //tmp = 0xFF;
+
+            DataOutputBlobWriter<I2CCommandSchema> writer = ch.i2cCommandOpen(i2cAddress);
+            if (!sendCommand2(writer, 0xb0 + Row)) return false;
+            if (!sendCommand2(writer, column_l)) return false;
+            if (!sendCommand2(writer, column_h)) return false;
+            if (!sendData2(writer, tmp)) return false;
+            ch.i2cCommandClose();
+
             Row++;
             if(Row >= 12){ // 192
                 Row = 0;
                 column_l++;
-                logger.info("End Row {}", column_l);
+                //logger.info("End Row {}", column_l);
                 if(column_l >= 16){
                     column_l = 0x00;
                     column_h += 0x01;
-                    logger.info("End Col {}", column_h);
+                    //logger.info("End Col {}", column_h);
                 }
             }
+            ch.i2cFlushBatch();
         }
         return true;
     }

@@ -1,11 +1,25 @@
 package com.ociweb.iot.grove.mp3_v2;
 
-import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.*;
-import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.AudioStorageDevice.*;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.chooseSpecificPlaybackDevice;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.loopAllMusic;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.msgStartByte;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.msgStopByte;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.pauseSong;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.playNextSong;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.playPreviousSong;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.playSong;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.playSpecificSong;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.specificVolume;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.specifyDirectory;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.specifySongInMP3Folder;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.turnVolumeDown;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.turnVolumeUp;
+import static com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.versionInfoByte;
 
+import com.ociweb.gl.api.Writable;
+import com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.AudioStorageDevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
-import com.ociweb.iot.maker.SerialWritable;
 import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.pipe.BlobReader;
 import com.ociweb.pronghorn.pipe.BlobWriter;
@@ -31,7 +45,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 				msgStopByte		
 		};
 	
-	private SerialWritable serialWriter = new SerialWritable() {
+	private Writable serialWriter = new Writable() {
 		@Override
 		public void write(BlobWriter writer){
 			for (int b: output_array){
@@ -42,7 +56,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 		}
 	};
 	
-	private SerialWritable testWriter = new SerialWritable() {
+	private Writable testWriter = new Writable() {
 		@Override
 		public void write(BlobWriter writer){
 			for (int i = 0; i < 500; i ++){

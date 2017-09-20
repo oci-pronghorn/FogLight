@@ -1,7 +1,6 @@
 package com.ociweb.iot.metronome;
 
 import com.ociweb.gl.api.GreenCommandChannel;
-import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;

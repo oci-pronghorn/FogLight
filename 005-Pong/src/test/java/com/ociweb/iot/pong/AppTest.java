@@ -1,9 +1,5 @@
 package com.ociweb.iot.pong;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;

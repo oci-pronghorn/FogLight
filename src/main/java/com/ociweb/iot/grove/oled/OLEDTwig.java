@@ -1,4 +1,5 @@
 package com.ociweb.iot.grove.oled;
+import com.ociweb.iot.grove.oled.oled2.OLED96x96Transducer;
 import com.ociweb.iot.hardware.I2CConnection;
 
 import com.ociweb.iot.hardware.I2CIODevice;
@@ -23,6 +24,19 @@ public enum OLEDTwig implements I2CIODevice {
 			return new OLED_128x64_Transducer(ch[0]);
 		}
 	},
+
+	OLED_96x96_2() {
+		@Override
+		public boolean isOutput() {
+			return true;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public OLED96x96Transducer newTransducer(FogCommandChannel... ch) {
+			return new OLED96x96Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
+		}
+	},
 	
 	OLED_96x96(){
 		@Override
@@ -34,8 +48,7 @@ public enum OLEDTwig implements I2CIODevice {
 		public OLED_96x96_Transducer newTransducer(FogCommandChannel...ch){
 			return new OLED_96x96_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
 		}	
-	}
-	;
+	};
 
 	@Override
 	public int response() {

@@ -1,12 +1,13 @@
 package com.ociweb.grove;
 
 
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.FogApp;
+import static com.ociweb.iot.maker.Port.A0;
 
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.grove.temp_and_humid.TempAndHumidTwig;
+
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
 
 public class IoTApp implements FogApp
 {    public static void main( String[] args) {
@@ -18,7 +19,7 @@ public class IoTApp implements FogApp
         ////////////////////////////
         //Connection specifications
         ///////////////////////////
-        c.connect(TemperatureSensor, A0);
+        //c.connect(new TempAndHumidTwig(A0.port,TempAndHumidTwig.MODULE_TYPE.DHT2301));
     }
 
 

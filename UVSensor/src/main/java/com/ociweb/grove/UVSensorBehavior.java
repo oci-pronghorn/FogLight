@@ -1,8 +1,6 @@
 package com.ociweb.grove;
 
 import com.ociweb.iot.maker.AnalogListener;
-import static com.ociweb.iot.maker.FogCommandChannel.*;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 

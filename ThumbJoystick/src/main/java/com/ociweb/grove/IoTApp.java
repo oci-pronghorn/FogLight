@@ -1,11 +1,13 @@
 package com.ociweb.grove;
 
 
-import com.ociweb.iot.maker.*;
+import static com.ociweb.iot.maker.Port.A0;
 
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
-import static com.ociweb.iot.maker.Port.*;
-import com.ociweb.gl.api.MsgCommandChannel;
+import com.ociweb.iot.grove.thumb_joystick.ThumbJoystickTwig;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 
 public class IoTApp implements FogApp
 {
@@ -14,7 +16,7 @@ public class IoTApp implements FogApp
 	@Override
 	public void declareConnections(Hardware c) {
 		//TODO: pinUsed() is not automatically allowing user to automatically connect both ports once one port is connected
-		c.connect(ThumbJoystick, THUMBJOYSTICK_PORT);
+		c.connect(ThumbJoystickTwig.ThumbJoystick, THUMBJOYSTICK_PORT);
 	}
 
 

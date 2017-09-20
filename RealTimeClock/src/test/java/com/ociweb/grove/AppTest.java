@@ -1,10 +1,6 @@
 package com.ociweb.grove;
 import org.junit.Test;
 
-import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
-
 /**
  * Unit test for simple App.
  */

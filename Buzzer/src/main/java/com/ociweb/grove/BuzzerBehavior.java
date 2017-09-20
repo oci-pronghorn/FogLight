@@ -1,10 +1,12 @@
 package com.ociweb.grove;
 
-import com.ociweb.iot.maker.*;
+import static com.ociweb.iot.maker.FogCommandChannel.PIN_WRITER;
+import static com.ociweb.iot.maker.Port.D8;
 
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
-import static com.ociweb.iot.maker.Port.*;
-import static com.ociweb.iot.maker.FogCommandChannel.*;
+import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Port;
 
 public class BuzzerBehavior implements DigitalListener {
 	

@@ -6,9 +6,9 @@
 package com.ociweb.grove;
 
 
-import com.ociweb.gl.api.GreenCommandChannel;
-import static com.ociweb.iot.maker.FogCommandChannel.*;
-import com.ociweb.iot.grove.lcd_rgb.*;
+import static com.ociweb.iot.maker.FogCommandChannel.I2C_WRITER;
+
+import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;

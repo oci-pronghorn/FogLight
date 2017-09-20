@@ -2,7 +2,6 @@ package com.ociweb.grove;
 
 import org.junit.Test;
 
-import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
@@ -17,8 +16,7 @@ public class AppTest {
 	    {
 	    	FogRuntime runtime = FogRuntime.test(new IoTApp());	    	
 	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
-	    	TestHardware hardware = (TestHardware)runtime.getHardware();
-	    
+
 	    	scheduler.startup();
 	    	
 	    	int iterations = 10;

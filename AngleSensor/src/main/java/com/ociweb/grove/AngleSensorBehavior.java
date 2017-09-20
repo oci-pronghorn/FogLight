@@ -5,12 +5,13 @@
  */
 package com.ociweb.grove;
 
+import static com.ociweb.grove.IoTApp.LED1_PORT;
+import static com.ociweb.grove.IoTApp.LED2_PORT;
+
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
-import static com.ociweb.grove.IoTApp.*;
-import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 /**
  *

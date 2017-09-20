@@ -1,8 +1,13 @@
 package com.ociweb.grove;
-import com.ociweb.iot.maker.*;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Button;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Relay;
+import static com.ociweb.iot.maker.Port.D3;
+import static com.ociweb.iot.maker.Port.D7;
 
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 
 public class IoTApp implements FogApp
 {

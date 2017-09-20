@@ -16,10 +16,11 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     private Logger logger = LoggerFactory.getLogger((BinaryOLED.class));
     private final FogCommandChannel ch;
     private final int i2cAddress = 0x3c;
+    private final int batchLimit = 64;
 
     public OLED96x96Transducer(FogCommandChannel ch) {
         this.ch = ch;
-        this.ch.ensureI2CWriting(10000 * 4, 64);
+        this.ch.ensureI2CWriting(10000 * 4, batchLimit);
     }
 
     @Override
@@ -165,9 +166,11 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
 
         for(int i=0;i<(96*96/8);i++) //1152
         {
-            if (!ch.i2cIsReady(1)) {
-                System.out.print("\nI2C is not ready\n");
-                return false;
+            if (((i + batchLimit) % batchLimit) == 0) {
+                if (!ch.i2cIsReady(1)) {
+                    System.out.print("\nI2C is not ready\n");
+                    return false;
+                }
             }
 
             int tmp = 0x00;
@@ -197,8 +200,13 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
                     //logger.info("End Col {}", column_h);
                 }
             }
-            ch.i2cFlushBatch();
+
+            if (((i + batchLimit) % batchLimit) == batchLimit - 1) {
+                ch.i2cFlushBatch();
+            }
+
         }
+        ch.i2cFlushBatch();
         return true;
     }
 

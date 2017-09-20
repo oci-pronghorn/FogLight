@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.MsgCommandChannel;
+import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
@@ -309,7 +310,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      */
     public abstract boolean digitalPulse(Port port, long durationNanos);
 
-    public boolean publishSerial(SerialWritable writable) {
+    public boolean publishSerial(Writable writable) {
         assert(writable != null);
         assert((0 != (initFeatures & SERIAL_WRITER))) : "CommandChannel must be created with SERIAL_WRITER flag";
                 

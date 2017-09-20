@@ -10,14 +10,14 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.ociweb.iot.grove.oled.oled2.OLEDCommands.*;
-
 public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerTransducer, FogBmpDisplayable {
     private Logger logger = LoggerFactory.getLogger((BinaryOLED.class));
     private final FogCommandChannel ch;
     private final int i2cCommandBatchLimit = 64; // Max commands before we must call flush (batch is i2c bus atomic, and must fit entirely on channel)
     private final int i2cCommandMaxSize = 64; // Max single i2C command size in bytes (i.e. address, register, payload)
     // TODO another constant for data payload chunks. This effects i2cCommandMaxSize.
+
+    private static final int REMAP_SGMT = 0xA0;
 
     // Initialization
 
@@ -42,6 +42,17 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
 
     private boolean init() {
         if (tryBeginI2CBatch(1)) {
+            final int DISPLAY_OFF =  0xAE;
+            final int SET_D_CLOCK = 0xD5;
+            final int SET_ROW_ADDRESS = 0x20;
+            final int SET_CONTRAST = 0x81;
+            final int NORMAL_DISPLAY = 0xA6;
+            final int SET_EXT_VPP = 0xAD;
+            final int SET_COMMON_SCAN_DIR = 0xC0;
+            final int SET_PHASE_LENGTH = 0xD9;
+            final int SET_VCOMH_VOLTAGE = 0xDB;
+            final int ENTIRE_DISPLAY_ON = 0xA4;
+
             DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
             queueInstruction(writer, DISPLAY_OFF);
             queueInstruction(writer, SET_D_CLOCK);
@@ -59,7 +70,6 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
             queueInstruction(writer, 0x1F);
             queueInstruction(writer, SET_VCOMH_VOLTAGE);
             queueInstruction(writer, 0x20);
-            queueInstruction(writer, DISPLAY_ON);
             endI2CCommand(writer);
             endI2CBatch();
             return true;
@@ -68,6 +78,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     }
 
     private boolean turnScreenOn() {
+        final int DISPLAY_ON = 0xAF;
         if (tryBeginI2CBatch(1)) {
             DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
             queueInstruction(writer, DISPLAY_ON);
@@ -85,6 +96,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     }
 
     public boolean setContrast(byte contrast) {
+        final int SET_CONTRAST = 0x81;
         if (tryBeginI2CBatch(1)) {
             DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
             queueInstruction(writer, SET_CONTRAST);
@@ -109,9 +121,10 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     }
 
     public boolean setScrollActivated(boolean activated) {
+        final int SET_ACTIVATED = activated ? 0x2F : 0x2E;
         if (tryBeginI2CBatch(1)) {
             DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
-            queueInstruction(writer, activated ? 0x2F : 0x2E);
+            queueInstruction(writer, SET_ACTIVATED);
             endI2CCommand(writer);
             endI2CBatch();
             return true;
@@ -214,6 +227,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
         System.out.print("injectInitScreen2\n");
         setOrientation(OLEDOrientation.horizontal);
 
+        final int SET_ROW_BASE_BYTE = 0xB0;
         int Row = 0;
         int column_l = 0x00;
         int column_h = 0x11; // 17

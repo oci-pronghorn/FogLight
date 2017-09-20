@@ -135,7 +135,7 @@ public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer 
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
     
@@ -147,7 +147,7 @@ public class RTC_Transducer implements IODeviceTransducer,I2CListenerTransducer 
             i2cPayloadWriter.writeByte(values[i]);
         }
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
 

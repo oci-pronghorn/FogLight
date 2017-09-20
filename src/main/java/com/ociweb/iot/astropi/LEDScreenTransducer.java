@@ -120,7 +120,7 @@ public class LEDScreenTransducer implements IODeviceTransducer,I2CListenerTransd
         for(int i = 0;i<= 191;i++){
             i2cPayloadWriter.writeByte(0);
         }
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
     /**
@@ -231,7 +231,7 @@ public class LEDScreenTransducer implements IODeviceTransducer,I2CListenerTransd
             i2cPayloadWriter.writeByte(addr[i]);
             i2cPayloadWriter.writeByte(intensity[i]);
             
-            target.i2cCommandClose();
+            target.i2cCommandClose(i2cPayloadWriter);
             
         }
         target.i2cFlushBatch();
@@ -247,7 +247,7 @@ public class LEDScreenTransducer implements IODeviceTransducer,I2CListenerTransd
         for(int i = 0;i<= 191;i++){
             i2cPayloadWriter.writeByte(vals[i]);
         }
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
     

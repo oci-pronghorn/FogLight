@@ -1,5 +1,7 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.UltrasonicRanger;
+
 import java.util.ArrayList;
 
 import org.slf4j.Logger;
@@ -8,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
-import com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig;
+import com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay;
 import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.HardwarePlatformType;
@@ -124,7 +126,7 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 			int register = GrovePiConstants.ANALOG_PORT_TO_REGISTER[connection]; 
 
 			//NOTE: may need to add additional "special cases" here
-			byte groveOperation = AnalogDigitalTwig.UltrasonicRanger == t ?
+			byte groveOperation = UltrasonicRanger == t ?
 					GrovePiConstants.ULTRASONIC_RANGER : 
 						GrovePiConstants.ANALOG_READ;
 
@@ -176,14 +178,13 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	@Override
 	public Hardware connect(ADIODevice t, Port port) {
 		System.out.println("GrovePiHardware.connect");
-		if (t == AnalogDigitalTwig.FourDigitDisplay){	
+		if (t == Grove_FourDigitDisplay.instance){	
 			deviceOnPort[port.ordinal()] = t; 
 			return connectGroveFirmwareDevice(t,port);
 		}
 		else {
 			return super.connect(t, port);
 		}
-
 	}
 
 	/**
@@ -193,12 +194,15 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 	 * @return the GrovePiHardware once the proper connections are made
 	 */
 	private Hardware connectGroveFirmwareDevice(IODevice t, Port... p){
-		if (t == AnalogDigitalTwig.FourDigitDisplay){
-			System.out.println("connectGroveFirmwareDevice");
-			byte[] tailored_setup = AnalogDigitalTwig.FourDigitDisplay.I2COutSetup();
-			tailored_setup[1] = p[0].port;
-			i2cOutputs = growI2CConnections(i2cOutputs,  new I2CConnection(t.getI2CConnection(), tailored_setup));
+		if (t == Grove_FourDigitDisplay.instance){
+			logger.info("connectGroveFirmwareDevice");
+			I2CConnection con = Grove_FourDigitDisplay.instance.getI2CConnection();
+			con.setup[1] = p[0].port;
+			
+			i2cOutputs = growI2CConnections(i2cOutputs,  con);
 			return this;
+			
+			
 		}
 		throw new UnsupportedOperationException("Do not call connect GroveFirmwareDevice unless you are connecting: /n 1) FourDigitDisplay");
 	}

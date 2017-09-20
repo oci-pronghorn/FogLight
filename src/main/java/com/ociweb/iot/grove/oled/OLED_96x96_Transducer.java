@@ -374,7 +374,7 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 
 			i2cPayloadWriter.write(cmd_out[i]);
 		}
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();
 
 		return true;

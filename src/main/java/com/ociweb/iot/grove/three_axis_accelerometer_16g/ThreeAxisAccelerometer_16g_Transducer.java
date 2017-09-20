@@ -392,7 +392,7 @@ during which a second value tap can powerOn. The scale factor is 1.25ms/LSB. A
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
 

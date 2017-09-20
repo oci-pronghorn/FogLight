@@ -1,7 +1,5 @@
 package com.ociweb.iot.impl;
 
-import java.io.File;
-
 /**
  * Listener for responding to image-receive events on a hardware system
  * equipped with a camera or other image-generating systems.

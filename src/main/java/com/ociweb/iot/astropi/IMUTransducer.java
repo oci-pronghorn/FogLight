@@ -467,7 +467,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
 
@@ -477,7 +477,7 @@ public class IMUTransducer implements IODeviceTransducer,I2CListenerTransducer,S
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
     

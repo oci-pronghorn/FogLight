@@ -1,15 +1,15 @@
 package com.ociweb.iot.grove.four_digit_display;
 
-import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
-import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
-
-import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.maker.Port.D5;
+import static com.ociweb.iot.maker.Port.D6;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.IODeviceTransducer;
+import com.ociweb.iot.maker.Port;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
 
 /**
@@ -100,7 +100,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 		i2cPayloadWriter.writeByte(p.port);
 		i2cPayloadWriter.writeByte(0x00);//dummy byte
 		i2cPayloadWriter.writeByte(0x00);//dummy byte
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();	
 		return true;
 	}
@@ -114,7 +114,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 		i2cPayloadWriter.writeByte(p.port);
 		i2cPayloadWriter.writeByte(brightness & 0x07); //brightness is only valid 0 through 7
 		i2cPayloadWriter.writeByte(0x00);//dummy byte
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();	
 		return true;
 	}
@@ -128,7 +128,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 		i2cPayloadWriter.writeByte(p.port);
 		i2cPayloadWriter.writeByte(index); //index is only valid 0 through 3
 		i2cPayloadWriter.writeByte(digit); //digit only 0 through 9
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();	
 		return true;
 	}
@@ -144,7 +144,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 		i2cPayloadWriter.writeByte(p.port);
 		i2cPayloadWriter.writeByte(leftPair); //brightness is only valid 0 through 3
 		i2cPayloadWriter.writeByte(rightPair); //digit only 0 through 9
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();	
 		return true;
 	}
@@ -159,7 +159,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 		i2cPayloadWriter.writeByte(p.port);
 		i2cPayloadWriter.writeByte(0x00);//dummy byte
 		i2cPayloadWriter.writeByte(0x00);//dummy byte
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();	
 		return true;
 	}
@@ -173,7 +173,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 		i2cPayloadWriter.writeByte(p.port);
 		i2cPayloadWriter.writeByte(0x00);//dummy byte
 		i2cPayloadWriter.writeByte(0x00);//dummy byte
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();	
 		return true;
 	}
@@ -356,9 +356,15 @@ public class Grove_FourDigitDisplay implements IODevice{
 	public int range() {
 		return 2;
 	}
+	
 	@Override
 	public I2CConnection getI2CConnection() {
-		return null;
+		byte[] read_cmd = {};
+		byte[] set_up = {GROVE_TM1637_INIT, 5, 0x00,0x00}; //default to digit output 5
+		byte address = 0x4;
+		byte bytes_to_read = 0;
+		byte reg = 0;
+		return new I2CConnection(this, address, read_cmd, bytes_to_read, reg, set_up);
 	}
 	@Override
 	public boolean isValid(byte[] backing, int position, int length, int mask) {

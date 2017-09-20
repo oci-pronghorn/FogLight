@@ -8,7 +8,6 @@ package com.ociweb.iot.grove.motor_driver;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *

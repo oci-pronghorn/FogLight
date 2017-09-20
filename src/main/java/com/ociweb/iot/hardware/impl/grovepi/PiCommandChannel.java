@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.MsgCommandChannel;
-import com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig;
 import com.ociweb.iot.grove.four_digit_display.FourDigitDisplayCommand;
 import com.ociweb.iot.grove.four_digit_display.Grove_FourDigitDisplay;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -201,7 +200,7 @@ public class PiCommandChannel extends FogCommandChannel{
 
 		IODevice connectedDevice = builder.getConnectedDevice(port);
 
-		if (connectedDevice == AnalogDigitalTwig.FourDigitDisplay){
+		if (connectedDevice == Grove_FourDigitDisplay.instance){
 			return setFourDigitDisplayValue(port, value);
 		}
 

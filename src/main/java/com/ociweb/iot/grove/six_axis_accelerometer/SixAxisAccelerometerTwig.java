@@ -5,12 +5,11 @@
 */
 package com.ociweb.iot.grove.six_axis_accelerometer;
 
-import static com.ociweb.iot.grove.six_axis_accelerometer.SixAxisAccelerometer_Constants.*;
+import static com.ociweb.iot.grove.six_axis_accelerometer.SixAxisAccelerometer_Constants.OUT_X_L_A;
+
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.I2CIODevice;
-import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  *

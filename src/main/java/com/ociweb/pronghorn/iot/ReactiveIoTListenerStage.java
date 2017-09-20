@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
-import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.gl.impl.stage.ReactiveOperator;
@@ -259,7 +258,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
                     
         oversampledAnalogValues = new int[MAX_PORTS*OVERSAMPLE_STEP];
         
-        stageRate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
+        stageRate = (Number)GraphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
         
         timeProcessWindow = (null==stageRate? 0 : (int)(stageRate.longValue()/MS_to_NS));
                         

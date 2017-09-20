@@ -2,14 +2,11 @@ package com.ociweb.iot.grove.temp_and_humid;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
-import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 /**
  * Stores information necessary for reading from the Temperature and Humidity sensor from Grove

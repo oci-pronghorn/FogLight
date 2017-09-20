@@ -190,7 +190,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
 

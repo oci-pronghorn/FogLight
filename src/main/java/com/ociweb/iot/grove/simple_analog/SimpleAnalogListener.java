@@ -1,6 +1,5 @@
 package com.ociweb.iot.grove.simple_analog;
 import com.ociweb.gl.api.Behavior;
-import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.Port;
 
 /**

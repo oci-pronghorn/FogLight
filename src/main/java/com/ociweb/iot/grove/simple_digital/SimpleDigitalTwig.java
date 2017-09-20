@@ -74,6 +74,18 @@ public enum SimpleDigitalTwig implements ADIODevice {
 			return 1;
 		}
 	},
+	RotaryEncoder() {
+		@Override
+		public boolean isInput() {
+			return true;
+		}
+
+		@Override
+		public int pinsUsed() {
+			return 2;
+		}
+
+	},
 	LED() {
 		@Override
 		public boolean isOutput() {

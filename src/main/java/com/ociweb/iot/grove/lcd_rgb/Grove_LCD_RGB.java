@@ -539,7 +539,7 @@ public class Grove_LCD_RGB implements IODevice {
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
 
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
     }
 
     private static void writeMultipleBytesToRegister(FogCommandChannel target, int address, int register, byte[] values, int startIdx, int length) {
@@ -550,7 +550,7 @@ public class Grove_LCD_RGB implements IODevice {
             i2cPayloadWriter.writeByte(values[i]);
         }
 
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
     }
 
     private static void writeCharSequenceToRegister(FogCommandChannel target, int address, int register, CharSequence values, int startIdx, int length) {
@@ -559,7 +559,7 @@ public class Grove_LCD_RGB implements IODevice {
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeASCII(values.subSequence(startIdx, startIdx + length));
 
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
     }
 
     private static void writeUTF8ToRegister(FogCommandChannel target, int address, int register, CharSequence text, int pos, int len) {
@@ -568,7 +568,7 @@ public class Grove_LCD_RGB implements IODevice {
         i2cPayloadWriter.writeByte(register);
         DataOutputBlobWriter.encodeAsUTF8(i2cPayloadWriter, text, pos, len);
 
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
     }
 
     @Override

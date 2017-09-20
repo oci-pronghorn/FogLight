@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.hardware.I2CLowLevelContoller;
 import com.ociweb.iot.hardware.I2CLowLevelEdisonController;
-import com.ociweb.iot.hardware.impl.edison.EdisonGPIO;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;

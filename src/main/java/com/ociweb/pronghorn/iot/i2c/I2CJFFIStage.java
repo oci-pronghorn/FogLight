@@ -1,7 +1,5 @@
 package com.ociweb.pronghorn.iot.i2c;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -18,7 +16,6 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.stage.scheduling.ThreadPerStageScheduler;
 import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
@@ -104,7 +101,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
             logger.debug("Schedule is null");
         }
         
-        rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
+        rate = (Number)GraphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
         
         processInputs = hardware.hasI2CInputs() && hasListeners();
     }

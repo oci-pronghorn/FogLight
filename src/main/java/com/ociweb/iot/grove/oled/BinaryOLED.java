@@ -100,7 +100,7 @@ public abstract class BinaryOLED implements FogBmpDisplayable {
 		for (i = start; i < Math.min(start + length - 1, finalTargetIndex); i++){
 			i2cPayloadWriter.write(data[i]);
 		}
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();
 		if (i == finalTargetIndex){
 			return true;
@@ -121,7 +121,7 @@ public abstract class BinaryOLED implements FogBmpDisplayable {
 		DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = ch.i2cCommandOpen(i2c_address);
 		i2cPayloadWriter.write(COMMAND_MODE);
 		i2cPayloadWriter.write(b);
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 
 		return true;
 	}
@@ -157,7 +157,7 @@ public abstract class BinaryOLED implements FogBmpDisplayable {
 			i2cPayloadWriter.write(COMMAND_MODE);
 			i2cPayloadWriter.write(cmd[i]);
 		}
-		ch.i2cCommandClose();
+		ch.i2cCommandClose(i2cPayloadWriter);
 		ch.i2cFlushBatch();
 		
 		if (i == finalTargetIndex){

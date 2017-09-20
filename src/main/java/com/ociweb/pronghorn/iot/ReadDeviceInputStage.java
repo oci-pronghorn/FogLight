@@ -1,11 +1,12 @@
 package com.ociweb.pronghorn.iot;
 
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Button;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.RotaryEncoder;
+
 import java.util.Arrays;
 
-import com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig;
 import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
-
 import com.ociweb.iot.hardware.IODevice;
 import com.ociweb.iot.hardware.impl.Util;
 import com.ociweb.iot.maker.Port;
@@ -13,7 +14,6 @@ import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.util.math.PMath;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
 public class ReadDeviceInputStage extends PronghornStage {
@@ -88,7 +88,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 		
 		GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);   
 				
-		rate = (Number)graphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
+		rate = (Number)GraphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
 	}
 
 
@@ -137,11 +137,11 @@ public class ReadDeviceInputStage extends PronghornStage {
 			
 				IODevice twig = hardware.getDigitalInputs()[i].twig;
 
-				if (twig == AnalogDigitalTwig.RotaryEncoder) {
+				if (twig == RotaryEncoder) {
 					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register; //just the low address
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
-				} else if (twig == AnalogDigitalTwig.Button) {                    
+				} else if (twig == Button) {                    
 					frequentScriptConn[frequentScriptLength] = hardware.getDigitalInputs()[i].register;
 					frequentScriptTwig[frequentScriptLength] = twig;                           
 					frequentScriptLength++; 
@@ -201,7 +201,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 				int connector = hc.register;
 				
 				
-				if (AnalogDigitalTwig.RotaryEncoder == hc.twig) {
+				if (RotaryEncoder == hc.twig) {
 					assert (hc.twig.pinsUsed()==2);
 					//rotary encoder
 					//low level write

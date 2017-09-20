@@ -180,7 +180,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer,
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
     /**
@@ -195,7 +195,7 @@ public class ADC_Transducer implements IODeviceTransducer,I2CListenerTransducer,
         i2cPayloadWriter.writeByte(value[0]);
         i2cPayloadWriter.writeByte(value[1]);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
 }
 

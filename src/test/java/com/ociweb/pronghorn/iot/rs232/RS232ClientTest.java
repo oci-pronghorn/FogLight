@@ -1,12 +1,14 @@
 package com.ociweb.pronghorn.iot.rs232;
 
-import org.junit.*;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.ociweb.iot.maker.Baud;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 /**
  * These tests will be skipped if Socat is missing or if Make can not successfully execute.

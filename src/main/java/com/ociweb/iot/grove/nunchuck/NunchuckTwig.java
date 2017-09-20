@@ -2,10 +2,8 @@ package com.ociweb.iot.grove.nunchuck;
 
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.iot.hardware.IODevice;
-import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
-import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
-import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.iot.maker.IODeviceTransducer;
 
 
 //TODO: fix the button response

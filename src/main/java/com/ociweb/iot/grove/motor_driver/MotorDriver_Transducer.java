@@ -45,7 +45,7 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         i2cPayloadWriter.writeByte(_direction);
         i2cPayloadWriter.writeByte(DUMMY_BYTE);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);
     }
@@ -86,7 +86,7 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         i2cPayloadWriter.writeByte(actualchannel1Power);
         i2cPayloadWriter.writeByte(actualchannel2Power);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);
     }
@@ -117,7 +117,7 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         i2cPayloadWriter.writeByte(_s);
         i2cPayloadWriter.writeByte(DUMMY_BYTE);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);
     }
@@ -146,7 +146,7 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         i2cPayloadWriter.writeByte(255);
         i2cPayloadWriter.writeByte(255);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
         target.i2cDelay(DRIVER_I2C_ADD, 4000000);				                // wait
         

@@ -105,11 +105,11 @@ public enum PiModel {
 			
 			int token;
 			do {
-				token = (int)reader.parseNext(reader, trie);		
+				token = (int)TrieParserReader.parseNext(reader, trie);		
 			} while (token!=1 && token!=-1);
 			
 			if (1==token) {
-				StringBuilder value = reader.capturedFieldBytesAsUTF8(reader, 0, new StringBuilder());
+				StringBuilder value = TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, new StringBuilder());
 				
 				PiModel[] all = PiModel.values();
 				int i = all.length;

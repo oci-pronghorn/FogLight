@@ -1,11 +1,9 @@
 package com.ociweb.pronghorn.iot.i2c.impl;
 
-import com.ociweb.pronghorn.iot.i2c.I2CBacking;
-
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 
 /**
  * Native I2C backing implementation for a GrovePi using ioctl.h.

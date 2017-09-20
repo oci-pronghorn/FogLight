@@ -146,7 +146,7 @@ public class EnvSensorTransducer implements IODeviceTransducer,I2CListenerTransd
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
     private void LPS25HWriteByte(int register, int value) {
@@ -155,7 +155,7 @@ public class EnvSensorTransducer implements IODeviceTransducer,I2CListenerTransd
         i2cPayloadWriter.writeByte(register);
         i2cPayloadWriter.writeByte(value);
         
-        target.i2cCommandClose();
+        target.i2cCommandClose(i2cPayloadWriter);
         target.i2cFlushBatch();
     }
 

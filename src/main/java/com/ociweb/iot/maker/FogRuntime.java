@@ -2,14 +2,12 @@ package com.ociweb.iot.maker;
 
 import java.util.ArrayList;
 
-import com.ociweb.pronghorn.iot.schema.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.MsgRuntime;
-import com.ociweb.gl.impl.BuilderImpl;
 import com.ociweb.gl.impl.ChildClassScanner;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
@@ -27,6 +25,11 @@ import com.ociweb.iot.hardware.impl.grovepi.WindowsDesktopModel;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;

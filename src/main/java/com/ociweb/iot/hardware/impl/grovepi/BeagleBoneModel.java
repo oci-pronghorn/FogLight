@@ -1,7 +1,6 @@
 package com.ociweb.iot.hardware.impl.grovepi;
 
 import java.io.InputStream;
-import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,10 +65,10 @@ public enum BeagleBoneModel {
 
 			int token;
 			do {
-				token = (int) reader.parseNext(reader, trie);
+				token = (int) TrieParserReader.parseNext(reader, trie);
 			} while (token != 1 && token != -1);
 			if (1 == token) {
-				StringBuilder value = reader.capturedFieldBytesAsUTF8(reader, 0, new StringBuilder());
+				StringBuilder value = TrieParserReader.capturedFieldBytesAsUTF8(reader, 0, new StringBuilder());
 				if (value.indexOf(Black.product[0]) >= 0) {
 					return Black;
 				} else if(value.indexOf(GreenWireless.product[0]) >= 0){

@@ -66,7 +66,7 @@ public enum MacModel {
 			
 			int token;
 			do {
-				token = (int)reader.parseNext(reader, trie);		
+				token = (int)TrieParserReader.parseNext(reader, trie);		
 			} while (token!=1 && token!=-1);
 			if (1==token) {
 				return Mac;

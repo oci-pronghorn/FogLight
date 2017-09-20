@@ -695,15 +695,15 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 					masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
 		}
 
-//		int c = masterGoOut.length;
-//		while (--c>=0) {
-//			if (!PronghornStage.noNulls(masterGoOut[c])) {
-//				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
-//			}
-//			if (!PronghornStage.noNulls(masterAckIn[c])) {
-//				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
-//			}
-//		}		
+		int c = masterGoOut.length;
+		while (--c>=0) {
+			if (!PronghornStage.noNulls(masterGoOut[c])) {
+				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
+			}
+			if (!PronghornStage.noNulls(masterAckIn[c])) {
+				throw new UnsupportedOperationException("Flag is missing in command channel for "+featureName(c));
+			}
+		}		
 
 
 		//////////////////

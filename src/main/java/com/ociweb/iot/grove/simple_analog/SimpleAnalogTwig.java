@@ -31,13 +31,6 @@ public enum SimpleAnalogTwig implements ADIODevice{
 			return 100;
 		}
 	},
-	Buzzer() {
-		@Override
-		public boolean isOutput() {
-			return true;
-		}
-
-	},
 	SoundSensor() {
 		@Override
 		public boolean isInput() {

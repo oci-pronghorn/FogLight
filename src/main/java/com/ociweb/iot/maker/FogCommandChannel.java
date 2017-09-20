@@ -60,15 +60,15 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	this.initFeatures |= I2C_WRITER;
     }
     
-    public void ensureI2CWriting(int commandCountCapcity, int maxMessageSize) {
+    public void ensureI2CWriting(int commandCountCapacity, int maxMessageSize) {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
-    	growCommandCountRoom(commandCountCapcity);
+    	growCommandCountRoom(commandCountCapacity);
     	this.initFeatures |= I2C_WRITER;    
     	PipeConfig<I2CCommandSchema> config = pcm.getConfig(I2CCommandSchema.class);
-		if (isTooSmall(commandCountCapcity, maxMessageSize, config)) {
-    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), commandCountCapcity),
+		if (isTooSmall(commandCountCapacity, maxMessageSize, config)) {
+    		this.pcm.addConfig(Math.max(config.minimumFragmentsOnPipe(), commandCountCapacity),
 			           Math.max(config.maxVarLenSize(), maxMessageSize), I2CCommandSchema.class);   
     	}
     }
@@ -413,32 +413,37 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     /**
      * Flushes all awaiting I2C data to the I2C bus for consumption.
      */
-    public void i2cFlushBatch() { 
-    	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
-        assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
-        try {
-        	builder.releaseI2CTraffic(runningI2CCommandCount, this);        	
-            runningI2CCommandCount = 0;
-        } finally {
-            assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+    public void i2cFlushBatch() {
+        assert ((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
+        if (runningI2CCommandCount > 0) {
+            assert (enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+            try {
+                builder.releaseI2CTraffic(runningI2CCommandCount, this);
+                runningI2CCommandCount = 0;
+            } finally {
+                assert (exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+            }
         }
     }
 
-
-    public void i2cCommandClose() { 
+    public int i2cCommandClose(DataOutputBlobWriter<I2CCommandSchema> writer) {
     	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
         try {
             if (++runningI2CCommandCount > maxCommands) {
                 throw new UnsupportedOperationException("too many commands, found "+runningI2CCommandCount+" but only left room for "+maxCommands);
             }
-           
-            DataOutputBlobWriter.closeHighLevelField(PipeWriter.outputStream(i2cOutput), I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
+
+            int bytesWritten = DataOutputBlobWriter.closeHighLevelField(writer, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             PipeWriter.publishWrites(i2cOutput);
+            return bytesWritten;
         } finally {
             assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
         }        
     }
 
-
+    @Deprecated
+    public void i2cCommandClose() {
+        i2cCommandClose(PipeWriter.outputStream(i2cOutput));
+    }
 }

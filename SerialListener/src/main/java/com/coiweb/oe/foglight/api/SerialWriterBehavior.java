@@ -1,10 +1,9 @@
 package com.coiweb.oe.foglight.api;
 
 import com.ociweb.gl.api.TimeListener;
+import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.SerialWritable;
-import com.ociweb.iot.maker.SerialWriter;
 import com.ociweb.pronghorn.pipe.BlobWriter;
 
 import static com.ociweb.iot.maker.FogRuntime.SERIAL_WRITER;
@@ -18,7 +17,7 @@ public class SerialWriterBehavior implements TimeListener {
 	private final FogCommandChannel cmd;
 	private int value = 0;
 
-	SerialWritable writable = new SerialWritable() {
+	Writable writable = new Writable() {
 		@Override
 		public void write(BlobWriter writer) {
 			writer.writeByte(value++);

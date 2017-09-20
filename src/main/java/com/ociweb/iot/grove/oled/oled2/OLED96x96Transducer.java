@@ -124,8 +124,8 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
         bus.end();
     }
 
-    final int[] SeeedLogo = new int[] {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    final int[] SeeedLogo = new int[] { // 16 * 72 == 1152,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x60, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x06, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xC0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x01, 0xC0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -218,7 +218,9 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
         System.out.print("injectInitScreen2\n");
         setOrientation(OLEDOrientation.horizontal);
 
-        int Row = 0, column_l = 0x00, column_h = 0x11;
+        int Row = 0;
+        int column_l = 0x00;
+        int column_h = 0x11; // 17
 
         for(int i=0;i<(96*96/8);i++) //1152
         {
@@ -233,17 +235,18 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
                 int bits = SeeedLogo[i];
                 tmp |= ( ( bits >> ( 7 - b ) ) & 0x01 ) << b;
             }
-            //tmp = 0xFF;
+            tmp = 0xFF;
 
             DataOutputBlobWriter<I2CCommandSchema> writer = ch.i2cCommandOpen(i2cAddress);
-            if (!sendCommand2(writer, 0xb0 + Row)) return false;
+            if (!sendCommand2(writer, SET_ROW_BASE_BYTE + Row)) return false;
             if (!sendCommand2(writer, column_l)) return false;
             if (!sendCommand2(writer, column_h)) return false;
             if (!sendData2(writer, tmp)) return false;
             ch.i2cCommandClose();
 
             Row++;
-            if(Row >= 12){ // 192
+
+            if(Row >= 12){
                 Row = 0;
                 column_l++;
                 //logger.info("End Row {}", column_l);
@@ -278,7 +281,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     }
 
     public boolean setScrollActivated(boolean activated) {
-        cmd[0] = activated ? SeeedGrayOLED_Activate_Scroll_Cmd : SeeedGrayOLED_Dectivate_Scroll_Cmd;
+        cmd[0] = activated ? 0x2F : 0x2E;
         return sendCommands(1);
     }
 
@@ -294,13 +297,8 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
         return sendCommands(8);
     }
 
-    public boolean invertDisplay() {
-        cmd[0] = SeeedGrayOLED_Inverse_Display_Cmd;
-        return sendCommands(1);
-    }
-
-    public boolean normalizeDisplay() {
-        cmd[0] = SeeedGrayOLED_Normal_Display_Cmd;
+    public boolean setPresentation(OLEDScreenPresentation presentation) {
+        cmd[0] = presentation.COMMAND;
         return sendCommands(1);
     }
 
@@ -353,7 +351,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     }
 
     private boolean sendCommands(int length) {
-        if (!ch.i2cIsReady( length * 2)) {
+        if (!ch.i2cIsReady(1)) {
             logger.trace("I2C is not ready");
             return false;
         }

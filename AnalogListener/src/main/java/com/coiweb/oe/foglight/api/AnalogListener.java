@@ -1,10 +1,13 @@
 package com.coiweb.oe.foglight.api;
 
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.LightSensor;
+import static com.ociweb.iot.maker.Port.A2;
+import static com.ociweb.iot.maker.Port.DIGITALS;
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 
 public class AnalogListener implements FogApp
 {

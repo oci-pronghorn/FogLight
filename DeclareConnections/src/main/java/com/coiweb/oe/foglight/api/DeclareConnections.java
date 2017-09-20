@@ -1,12 +1,16 @@
 package com.coiweb.oe.foglight.api;
 
+import static com.ociweb.iot.grove.oled.OLEDTwig.OLED_96x96;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Button;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Buzzer;
+import static com.ociweb.iot.maker.Port.D2;
+import static com.ociweb.iot.maker.Port.D3;
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
-
-import com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16gTwig.ThreeAxisAccelerometer_16g;
+import com.ociweb.iot.maker.Baud;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 
 public class DeclareConnections implements FogApp
 {

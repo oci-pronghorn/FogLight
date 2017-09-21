@@ -1,11 +1,16 @@
 package com.ociweb.oe.foglight.api;
 
-import static com.ociweb.iot.maker.Port.*;
+import static com.ociweb.iot.maker.Port.D2;
+import static com.ociweb.iot.maker.Port.D3;
 
-import com.ociweb.gl.api.*;
-import com.ociweb.iot.maker.*;
+import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.ShutdownListener;
+import com.ociweb.gl.api.StartupListener;
+import com.ociweb.iot.maker.DigitalListener;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.pipe.BlobWriter;
 
 public class ShutdownBehavior implements StartupListener, DigitalListener, ShutdownListener, PubSubListener{
 
@@ -51,8 +56,7 @@ public class ShutdownBehavior implements StartupListener, DigitalListener, Shutd
 			if(!PSRequested){
 				PSRequested = true;
 				System.out.println("Checking and turning off light");
-    			
-    			
+    			    			
 				channel1.setValue(LED_PORT, false);   			
 				
     			channel1.publishTopic("LED");

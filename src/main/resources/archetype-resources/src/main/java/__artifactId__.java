@@ -1,8 +1,6 @@
 package ${package};
 
 
-import static com.ociweb.iot.grove.GroveTwig.*;
-
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 

@@ -12,7 +12,7 @@ import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.grove.mp3_v2.MP3_V2_Transducer;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.util.Appendables;
 
 

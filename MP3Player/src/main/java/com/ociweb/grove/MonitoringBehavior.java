@@ -1,12 +1,12 @@
 package com.ociweb.grove;
 
 import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class MonitoringBehavior implements SerialListener {
 
 	@Override
-	public int message(BlobReader reader) {
+	public int message(ChannelReader reader) {
 		if (reader.available() > 0){
 			int consumed = 0;
 			while (reader.hasRemainingBytes()){

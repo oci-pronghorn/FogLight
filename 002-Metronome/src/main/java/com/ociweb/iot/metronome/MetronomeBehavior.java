@@ -9,7 +9,7 @@ import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 /*
  * Beats per minute   (build an ENUM of these so we can diplay the names on the screen.
@@ -79,7 +79,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     }    
 
     @Override
-    public boolean message(CharSequence topic, BlobReader payload) {
+    public boolean message(CharSequence topic, ChannelReader payload) {
             	
         if (requestedPBM>0) {
 

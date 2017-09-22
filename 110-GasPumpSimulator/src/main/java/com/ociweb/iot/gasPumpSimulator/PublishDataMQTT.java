@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.PubSubListener;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class PublishDataMQTT implements PubSubListener{
 
@@ -31,7 +31,7 @@ public class PublishDataMQTT implements PubSubListener{
 	}
 
 	@Override
-	public boolean message(CharSequence topic, BlobReader payload) {
+	public boolean message(CharSequence topic, ChannelReader payload) {
 
 	    try {
 		    	if (null==client) {

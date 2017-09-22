@@ -11,7 +11,7 @@ import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.gl.api.StateChangeListener;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.util.Appendables;
 
 public class DisplayController implements PubSubListener, StateChangeListener<PumpState> {
@@ -47,7 +47,7 @@ public class DisplayController implements PubSubListener, StateChangeListener<Pu
 	}
 
 	@Override
-	public boolean message(CharSequence topic, BlobReader payload) {
+	public boolean message(CharSequence topic, ChannelReader payload) {
 		
 		if (topic.equals(topicTank)) { //.toString().equals(topicTank.toString())) {
 			

@@ -22,7 +22,7 @@ import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class BlinkerBehavior implements StartupListener, PubSubListener {
  
@@ -37,7 +37,7 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	}	
 	
 	@Override
-	public boolean message(CharSequence topic, BlobReader payload) {
+	public boolean message(CharSequence topic, ChannelReader payload) {
 
 		 int value = payload.readInt();
          blinkerChannel.setValueAndBlock(IoTApp.LED_PORT, value==1, PAUSE);               

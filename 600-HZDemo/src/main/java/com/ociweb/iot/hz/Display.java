@@ -10,7 +10,7 @@ import com.ociweb.gl.impl.PayloadReader;
 import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class Display implements PubSubListener{
 
@@ -23,7 +23,7 @@ public class Display implements PubSubListener{
 	}
 
 	@Override
-	public boolean message(CharSequence topic, BlobReader payload) {
+	public boolean message(CharSequence topic, ChannelReader payload) {
 		
 		
 		String newText = payload.readUTF();

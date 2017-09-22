@@ -4,7 +4,7 @@ import java.io.IOException;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.SerialListenerTransducer;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class GPS_Transducer implements SerialListenerTransducer, IODeviceTransducer{
 	
@@ -21,7 +21,7 @@ public class GPS_Transducer implements SerialListenerTransducer, IODeviceTransdu
 	}
 
 	@Override
-	public int message(BlobReader reader) {	
+	public int message(ChannelReader reader) {	
 		System.out.println("SerialReader's message function is being triggered");
 		int index = 0;
 		while (reader.hasRemainingBytes()){

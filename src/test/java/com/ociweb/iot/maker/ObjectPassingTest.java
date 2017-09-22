@@ -13,7 +13,7 @@ import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.WaitFor;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 
 public class ObjectPassingTest {
@@ -42,7 +42,7 @@ public class ObjectPassingTest {
 						FogCommandChannel cc1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
 
 						@Override
-						public boolean message(CharSequence topic, BlobReader payload) {
+						public boolean message(CharSequence topic, ChannelReader payload) {
 					
 							try {
 								

@@ -21,8 +21,8 @@ import com.ociweb.iot.grove.mp3_v2.MP3_V2_Consts.AudioStorageDevice;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.transducer.SerialListenerTransducer;
-import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import com.ociweb.pronghorn.pipe.ChannelReader;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
 
 
 /**
@@ -47,7 +47,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 	
 	private Writable serialWriter = new Writable() {
 		@Override
-		public void write(BlobWriter writer){
+		public void write(ChannelWriter writer){
 			for (int b: output_array){
 				writer.writeByte(b);	
 				System.out.print("0x" + Integer.toHexString(b) + " ");
@@ -58,7 +58,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 	
 	private Writable testWriter = new Writable() {
 		@Override
-		public void write(BlobWriter writer){
+		public void write(ChannelWriter writer){
 			for (int i = 0; i < 500; i ++){
 				writer.writeByte(testByte);	
 				System.out.println("Test byte: " + Integer.toHexString(testByte));		
@@ -74,7 +74,7 @@ public class MP3_V2_Transducer implements SerialListenerTransducer, IODeviceTran
 	}
 
 	@Override
-	public int message(BlobReader reader) {
+	public int message(ChannelReader reader) {
 		return 0;
 	}
 	

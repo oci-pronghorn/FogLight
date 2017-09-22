@@ -4,7 +4,7 @@ import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.gl.api.PubSubStructuredWritable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.util.field.IntegerFieldProcessor;
 import com.ociweb.pronghorn.util.field.MessageConsumer;
 import com.ociweb.pronghorn.util.field.StructuredBlobWriter;
@@ -44,7 +44,7 @@ public class ThingBehavior implements PubSubListener {
     };
     
 	@Override
-	public boolean message(CharSequence topic, BlobReader payload) {
+	public boolean message(CharSequence topic, ChannelReader payload) {
 					
 		//
 		////NOTE: this one line will copy messages from payload if consumer returns true

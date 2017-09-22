@@ -6,7 +6,7 @@ import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.util.Appendables;
 
 public class GenerateBehavior implements PubSubListener {
@@ -27,7 +27,7 @@ public class GenerateBehavior implements PubSubListener {
 
 
 	@Override
-	public boolean message(CharSequence topic, BlobReader payload) {
+	public boolean message(CharSequence topic, ChannelReader payload) {
 		int n = rand.nextInt(101);
 		Appendables.appendValue(target, "", n, " ");
 		

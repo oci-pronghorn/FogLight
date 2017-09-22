@@ -7,7 +7,7 @@ import com.ociweb.gl.api.RestListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class RestBehaviorEmptyResponse implements RestListener {
 
@@ -23,7 +23,7 @@ public class RestBehaviorEmptyResponse implements RestListener {
 	Payloadable reader = new Payloadable() {
 		
 		@Override
-		public void read(BlobReader reader) {
+		public void read(ChannelReader reader) {
 			
 			System.out.println("POST: "+reader.readUTFOfLength(reader.available()));
 			
@@ -33,7 +33,7 @@ public class RestBehaviorEmptyResponse implements RestListener {
 	private Headable headReader = new Headable() {
 
 		@Override
-		public void read(int id, BlobReader reader) { 
+		public void read(int id, ChannelReader reader) { 
 			
 			System.out.println("COOKIE: "+reader.readUTFOfLength(reader.available()));
 						

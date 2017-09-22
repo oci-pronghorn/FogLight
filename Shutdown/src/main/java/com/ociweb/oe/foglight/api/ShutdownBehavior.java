@@ -10,7 +10,7 @@ import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class ShutdownBehavior implements StartupListener, DigitalListener, ShutdownListener, PubSubListener{
 
@@ -75,7 +75,7 @@ public class ShutdownBehavior implements StartupListener, DigitalListener, Shutd
 	
 
 	@Override
-	public boolean message(CharSequence topic, BlobReader payload) {
+	public boolean message(CharSequence topic, ChannelReader payload) {
 		statusOfLED = false;
 		return true;
 	}

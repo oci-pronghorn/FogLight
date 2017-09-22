@@ -7,7 +7,7 @@ import com.ociweb.gl.api.WaitFor;
 import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
 
 public class TimeBehavior implements TimeListener {
 	private int droppedCount = 0;

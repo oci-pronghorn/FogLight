@@ -9,8 +9,8 @@ import com.ociweb.gl.api.RestListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
-import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import com.ociweb.pronghorn.pipe.ChannelReader;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
 
 public class RestBehaviorLargeResponse implements RestListener {
 
@@ -24,7 +24,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	Payloadable reader = new Payloadable() {
 		
 		@Override
-		public void read(BlobReader reader) {
+		public void read(ChannelReader reader) {
 			
 			System.out.println("POST: "+reader.readUTFOfLength(reader.available()));
 			
@@ -35,7 +35,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	Writable writableA = new Writable() {
 		
 		@Override
-		public void write(BlobWriter writer) {
+		public void write(ChannelWriter writer) {
 			writer.writeUTF8Text("beginning of text file\n");//23 in length
 		}
 		
@@ -44,7 +44,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	Writable writableB = new Writable() {
 		
 		@Override
-		public void write(BlobWriter writer) {
+		public void write(ChannelWriter writer) {
 			writer.writeUTF8Text("ending of text file\n");//20 in length
 		}
 		

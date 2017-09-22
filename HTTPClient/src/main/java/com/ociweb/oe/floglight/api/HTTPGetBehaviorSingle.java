@@ -8,7 +8,7 @@ import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.network.config.HTTPContentType;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListener {
 
@@ -33,7 +33,7 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 		
 		Payloadable payload = new Payloadable() {
 			@Override
-			public void read(BlobReader reader) {
+			public void read(ChannelReader reader) {
 				System.out.println(reader.readUTFOfLength(reader.available()));
 			}
 		};

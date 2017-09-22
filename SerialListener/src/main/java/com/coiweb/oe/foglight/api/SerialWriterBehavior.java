@@ -4,7 +4,7 @@ import com.ociweb.gl.api.TimeListener;
 import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
 
 import static com.ociweb.iot.maker.FogRuntime.SERIAL_WRITER;
 
@@ -19,7 +19,7 @@ public class SerialWriterBehavior implements TimeListener {
 
 	Writable writable = new Writable() {
 		@Override
-		public void write(BlobWriter writer) {
+		public void write(ChannelWriter writer) {
 			writer.writeByte(value++);
 		}		
 	};

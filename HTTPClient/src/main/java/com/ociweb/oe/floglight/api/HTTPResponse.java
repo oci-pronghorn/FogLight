@@ -4,7 +4,7 @@ import com.ociweb.gl.api.HTTPResponseListener;
 import com.ociweb.gl.api.HTTPResponseReader;
 import com.ociweb.gl.api.Payloadable;
 import com.ociweb.pronghorn.network.config.HTTPContentType;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class HTTPResponse implements HTTPResponseListener {
 
@@ -16,7 +16,7 @@ public class HTTPResponse implements HTTPResponseListener {
 
 		Payloadable payload = new Payloadable() {
 			@Override
-			public void read(BlobReader reader) {
+			public void read(ChannelReader reader) {
 				System.out.println(reader.readUTFOfLength(reader.available()));
 			}
 		};

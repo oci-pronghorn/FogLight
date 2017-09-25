@@ -1,5 +1,6 @@
 package com.ociweb.iot.grove.oled.oled2;
 
+import com.ociweb.gl.api.transducer.ShutdownListenerTransducer;
 import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.grove.oled.BinaryOLED;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -10,21 +11,23 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerTransducer, FogBmpDisplayable {
+public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerTransducer, ShutdownListenerTransducer, FogBmpDisplayable {
     private Logger logger = LoggerFactory.getLogger((BinaryOLED.class));
     private final FogCommandChannel ch;
     private final int i2cCommandBatchLimit = 64; // Max commands before we must call flush (batch is i2c bus atomic, and must fit entirely on channel)
     private final int i2cCommandMaxSize = 64; // Max single i2C command size in bytes (i.e. address, register, payload)
     // TODO another constant for data payload chunks. This effects i2cCommandMaxSize.
 
+    private static final int DISPLAY_OFF =  0xAE;
     private static final int REMAP_SGMT = 0xA0;
+    private static final int SET_EXT_VPP = 0xAD;
 
     // Initialization
 
     public OLED96x96Transducer(FogCommandChannel ch) {
         this.ch = ch;
         // TODO: commandCountCapacity cannot be just i2cCommandBatchLimit, why?
-        this.ch.ensureI2CWriting(i2cCommandBatchLimit * i2cCommandMaxSize, i2cCommandMaxSize);
+        this.ch.ensureI2CWriting(i2cCommandMaxSize, i2cCommandMaxSize);
     }
 
     @Override
@@ -42,12 +45,10 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
 
     private boolean init() {
         if (tryBeginI2CBatch(1)) {
-            final int DISPLAY_OFF =  0xAE;
             final int SET_D_CLOCK = 0xD5;
             final int SET_ROW_ADDRESS = 0x20;
             final int SET_CONTRAST = 0x81;
             final int NORMAL_DISPLAY = 0xA6;
-            final int SET_EXT_VPP = 0xAD;
             final int SET_COMMON_SCAN_DIR = 0xC0;
             final int SET_PHASE_LENGTH = 0xD9;
             final int SET_VCOMH_VOLTAGE = 0xDB;
@@ -89,14 +90,22 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
         return false;
     }
 
-    // Public API
-
-    public boolean clearDisplay() {
-        // TODO
+    @Override
+    public boolean acceptShutdown() {
+        if (tryBeginI2CBatch(1)) {
+            DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
+            queueInstruction(writer, DISPLAY_OFF);
+            queueInstruction(writer, SET_EXT_VPP);
+            queueInstruction(writer, 0x00);
+            endI2CCommand(writer);
+            endI2CBatch();
+        }
         return true;
     }
 
-    public boolean setContrast(byte contrast) {
+    // Public API
+
+    public boolean setContrast(int contrast) {
         final int SET_CONTRAST = 0x81;
         if (tryBeginI2CBatch(1)) {
             DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
@@ -109,6 +118,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
         return false;
     }
 
+    // Does not rotate - just flips one axis
     public boolean setOrientation(OLEDOrientation orientation) {
         if (tryBeginI2CBatch(1)) {
             DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
@@ -162,6 +172,31 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
         return false;
     }
 
+    public boolean clearDisplay() {
+        setOrientation(OLEDOrientation.horizontal);
+        //if (tryBeginI2CBatch(1)) {
+            //DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
+            for (int i = 0; i < 16; i++) { //16 Pages
+                writeElement(0xb0 + i, true);
+                writeElement(0x00, true);
+                writeElement(0x10, true);
+                //queueInstruction(writer, 0xb0 + i);
+                //queueInstruction(writer, 0x00);
+                //queueInstruction(writer, 0x10);
+                for (int j = 0; j < 128; j++) { //128 Columns
+                    //queueData(writer, 0x00);
+                    writeElement(0x00, false);
+                }
+            }
+            //endI2CCommand(writer);
+            //endI2CBatch();
+        //}
+        //else {
+        //    return false;
+        //}
+        return true;
+    }
+
     // FogBitmap
 
     @Override
@@ -183,10 +218,25 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
 
     @Override
     public boolean display(FogPixelScanner scanner) {
-        return testScreen();
+        return clearDisplay();
     }
 
     // Commands
+
+    private boolean writeElement(int data, boolean isInstruction) {
+        if (tryBeginI2CBatch(1)) {
+            DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
+            if (isInstruction) {
+                queueInstruction(writer, data);
+            }
+            else {
+                queueData(writer, data);
+            }
+            endI2CCommand(writer);
+            endI2CBatch();
+        }
+        return true;
+    }
 
     private boolean tryBeginI2CBatch(int commandCount) {
         if (!ch.i2cIsReady(commandCount)) {
@@ -212,9 +262,11 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     }
 
     private void endI2CCommand(DataOutputBlobWriter<I2CCommandSchema> writer) {
-        if (ch.i2cCommandClose(writer) > i2cCommandMaxSize) {
+        int bytesWritten = ch.i2cCommandClose(writer);
+        if (bytesWritten > i2cCommandMaxSize) {
             throw new UnsupportedOperationException("Write too large i2C command. i2cCommandMaxSize is too small or too much was written.");
         }
+        //logger.warn("Batch Size: {}<={}", bytesWritten, i2cCommandMaxSize);
     }
 
     private void endI2CBatch() {
@@ -223,16 +275,49 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
 
     // Test
 
+    private boolean testScreen2() {
+        System.out.print("testScreen1\n");
+        setOrientation(OLEDOrientation.horizontal);
+        final int SET_ROW_BASE_BYTE = 0xB0;
+
+        int i = 0;
+        for (int x = 0; x < 96; x++) {
+            for (int y = 0; y < 96; y++) {
+                if (((i + i2cCommandBatchLimit) % i2cCommandBatchLimit) == 0) {
+                    if (!tryBeginI2CBatch(i2cCommandBatchLimit)) {
+                        return false;
+                    }
+                }
+
+                int tmp = 0x00;
+
+                DataOutputBlobWriter<I2CCommandSchema> writer = beginI2CCommand();
+                //queueInstruction(writer, SET_ROW_BASE_BYTE + Row);
+                //queueInstruction(writer, column_l);
+                //queueInstruction(writer, column_h);
+                queueData(writer, tmp);
+                endI2CCommand(writer);
+
+
+                if (((i + i2cCommandBatchLimit) % i2cCommandBatchLimit) == i2cCommandBatchLimit - 1) {
+                    endI2CBatch();
+                }
+                i++;
+            }
+        }
+        endI2CBatch();
+        return true;
+    }
+
     private boolean testScreen() {
 
-        System.out.print("injectInitScreen2\n");
+        System.out.print("testScreen2\n");
         setOrientation(OLEDOrientation.horizontal);
 
         final int SET_ROW_BASE_BYTE = 0xB0;
         int Row = 0;
         int column_l = 0x00;
         int column_h = 0x11; // 17
-        boolean ended = false;
 
         for(int i=0;i<(96*96/8);i++) //1152
         {
@@ -241,7 +326,6 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
                     return false;
                 }
             }
-            ended = false;
 
             int tmp = 0x00;
             for(int b = 0; b < 8; b++)
@@ -277,17 +361,28 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
 
             if (((i + i2cCommandBatchLimit) % i2cCommandBatchLimit) == i2cCommandBatchLimit - 1) {
                 endI2CBatch();
-                ended = true;
             }
 
         }
-        if (!ended) {
-            endI2CBatch();
-        }
+        endI2CBatch();
         return true;
     }
 
-    final int[] SeeedLogo = new int[] { // 16 * 72 == 1152,
+    final int[] SeeedLogo = new int[] {
+            // 72 is the number of rows
+            // 96 - 72 = 24, 24 / 2 = 12 - means Row@12 is the image vert centering
+            // measurement on device backs this up 20mm/2.5mm == 96/12
+
+            // 1152 is the number of bytes in image
+            // 16 * 72 == 1152
+            // 96 * 96 / 8 == 1152
+            //
+
+            // Image is square on display (15mm*15mm)
+            // But with 1 pixel = 1 bit then we are 128 pixels wide!
+            // Array
+
+
             0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x60, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x06, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xC0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00,

@@ -110,7 +110,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     public void startup(){
         super.startup();
         
-        workingBuffer = new byte[4096]; //TODO: find a way to eliminate this temp storage.
+        workingBuffer = new byte[2048]; //TODO: find a way to eliminate this temp storage.
         
         logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
         
@@ -156,17 +156,17 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                                 return;
                             }
                         }
+                     
                         
-                        
-                        workingBuffer[0] = -2;
-                        byte[] temp = i2cBacking.read(connection.address, workingBuffer, connection.readBytesAtStartUp);
-                                                
                         PipeWriter.presumeWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
                         PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, connection.address);
                         PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
                         PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, connection.setup[0]);
                         
+                        workingBuffer[0] = -2;//this is the non-read case read did not populate the array.
+                        byte[] temp = i2cBacking.read(connection.address, workingBuffer, connection.readBytesAtStartUp);                        
                         PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, connection.readBytesAtStartUp, Integer.MAX_VALUE);
+                        
                         
                         PipeWriter.publishWrites(i2cResponsePipe);
                         
@@ -261,9 +261,6 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         //do nothing in here, this is very short and we must get off the bus as fast as possible.
                         //}
                         
-                        workingBuffer[0] = -2;
-                        byte[] temp = i2cBacking.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);
-                        
                         //logger.info("i2c reading result {} delay before read {} ",Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )),this.inputs[inProgressIdx].delayAfterRequestNS);
                         
                         PipeWriter.presumeWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
@@ -271,6 +268,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
                         PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
                         
+                        workingBuffer[0] = -2;
+                        byte[] temp = i2cBacking.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);                       
                         PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, this.inputs[inProgressIdx].readBytes, Integer.MAX_VALUE);
                         
                         PipeWriter.publishWrites(i2cResponsePipe);
@@ -352,7 +351,9 @@ while ( hasReleaseCountRemaining(activePipe)
 //            if (workingBuffer.length < len) {
 //            	workingBuffer = new byte[len*2];
 //            }
-            Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
+            Pipe.copyBytesFromToRing(backing, pos, mask, 
+            		                 workingBuffer, 0, Integer.MAX_VALUE, 
+            		                 len);
             
             if (logger.isDebugEnabled()) {
                 logger.debug("{} send command {} {}", activePipe, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);

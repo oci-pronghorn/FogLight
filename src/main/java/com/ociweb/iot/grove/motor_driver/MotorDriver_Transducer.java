@@ -22,12 +22,12 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
 
     public MotorDriver_Transducer(FogCommandChannel ch){
         this.target = ch;
-        target.ensureI2CWriting(30000, 5);
+        target.ensureI2CWriting(3000, 5);
     }
     
     public MotorDriver_Transducer(FogCommandChannel ch,int i2cAddress){
         this.target = ch;
-        target.ensureI2CWriting(30000, 5);
+        target.ensureI2CWriting(3000, 5);
         this.DRIVER_I2C_ADD = i2cAddress;
     }
         
@@ -35,19 +35,6 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
     public void startup() { //set registers on the driver to 0
         direction(0x00);
         setPower(0,0);
-    }
-    
-    private void direction(int _direction){
-        
-        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
-        
-        i2cPayloadWriter.writeByte(DIR_REG);
-        i2cPayloadWriter.writeByte(_direction);
-        i2cPayloadWriter.writeByte(DUMMY_BYTE);
-        
-        target.i2cCommandClose(i2cPayloadWriter);
-        target.i2cFlushBatch();
-        target.i2cDelay(DRIVER_I2C_ADD, 4000000);
     }
 
     public int getMinVelocity() {
@@ -63,32 +50,43 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
      * @param channel1Power integer between -255 and 255
      * @param channel2Power integer between -255 and 255
      */
-    public void setPower(int channel1Power,int channel2Power){
-        
+    public boolean setPower(int channel1Power,int channel2Power){
+
+        int direction = M1CW_M2CW;
         if(channel1Power >= 0 && channel2Power >= 0){
-            direction(M1CW_M2CW);
+            direction = M1CW_M2CW;
         }else if(channel1Power < 0 && channel2Power<0){
-            direction(M1ACW_M2ACW);
+            direction = M1ACW_M2ACW;
         }else if(channel1Power >= 0 && channel2Power < 0){
-            direction(M1CW_M2ACW);
+            direction = M1CW_M2ACW;
         }else if(channel1Power < 0 && channel2Power >= 0){
-            direction(M1ACW_M2CW);
+            direction = M1ACW_M2CW;
         }
 
         int actualchannel1Power = Math.abs(channel1Power);
         int actualchannel2Power = Math.abs(channel2Power);
         if (actualchannel1Power > 255) actualchannel1Power = 255;
         if (actualchannel2Power > 255) actualchannel2Power = 255;
-        
-        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
-        
-        i2cPayloadWriter.writeByte(SPEED_REG);
-        i2cPayloadWriter.writeByte(actualchannel1Power);
-        i2cPayloadWriter.writeByte(actualchannel2Power);
-        
-        target.i2cCommandClose(i2cPayloadWriter);
-        target.i2cFlushBatch();
-        target.i2cDelay(DRIVER_I2C_ADD, 4000000);
+
+        if (target.i2cIsReady(2)) {
+            {
+                DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
+                i2cPayloadWriter.writeByte(DIR_REG);
+                i2cPayloadWriter.writeByte(direction);
+                i2cPayloadWriter.writeByte(DUMMY_BYTE);
+                target.i2cCommandClose(i2cPayloadWriter);
+            }
+            {
+                DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
+                i2cPayloadWriter.writeByte(SPEED_REG);
+                i2cPayloadWriter.writeByte(actualchannel1Power);
+                i2cPayloadWriter.writeByte(actualchannel2Power);
+                target.i2cCommandClose(i2cPayloadWriter);
+            }
+            target.i2cFlushBatch();
+            return true;
+        }
+        return false;
     }
     
     public void setFrequency(int frequency){
@@ -128,6 +126,7 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
      * stepper motor runs anticlockwise
      * @param _step
      */
+    // TODO: better job of i2c command usage
     public void StepperRun(int _step) {
         int _direction = 1;
         if (_step > 0) {
@@ -176,5 +175,19 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
         }
         
     }
+
+    private void direction(int _direction){
+
+        DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(DRIVER_I2C_ADD);
+
+        i2cPayloadWriter.writeByte(DIR_REG);
+        i2cPayloadWriter.writeByte(_direction);
+        i2cPayloadWriter.writeByte(DUMMY_BYTE);
+
+        target.i2cCommandClose(i2cPayloadWriter);
+        target.i2cFlushBatch();
+        target.i2cDelay(DRIVER_I2C_ADD, 4000000);
+    }
+
 
 }

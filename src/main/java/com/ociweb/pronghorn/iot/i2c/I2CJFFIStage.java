@@ -70,6 +70,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         
         if (((HardwareImpl)this.hardware).hasI2CInputs()) {
             this.schedule = ((HardwareImpl)this.hardware).buildI2CPollSchedule();
+            
+            logger.info("I2C Schedule: {} ", this.schedule);
+            
         } else {
             logger.debug("skipped buildI2CPollSchedule has no i2c inputs" );
         }
@@ -165,7 +168,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         
                         workingBuffer[0] = -2;//this is the non-read case read did not populate the array.
                         byte[] temp = i2cBacking.read(connection.address, workingBuffer, connection.readBytesAtStartUp);                        
-                        PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, connection.readBytesAtStartUp, Integer.MAX_VALUE);
+                        PipeWriter.writeBytes(i2cResponsePipe, 
+                        		  I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, 
+                        		  temp, 0, connection.readBytesAtStartUp, Integer.MAX_VALUE);
                         
                         
                         PipeWriter.publishWrites(i2cResponsePipe);
@@ -270,7 +275,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         
                         workingBuffer[0] = -2;
                         byte[] temp = i2cBacking.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);                       
-                        PipeWriter.writeBytes(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, temp, 0, this.inputs[inProgressIdx].readBytes, Integer.MAX_VALUE);
+                        PipeWriter.writeBytes(i2cResponsePipe, 
+                        		   I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, 
+                        		   temp, 0, this.inputs[inProgressIdx].readBytes, Integer.MAX_VALUE);
                         
                         PipeWriter.publishWrites(i2cResponsePipe);
                         

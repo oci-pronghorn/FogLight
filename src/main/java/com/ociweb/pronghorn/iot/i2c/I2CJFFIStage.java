@@ -348,10 +348,10 @@ while ( hasReleaseCountRemaining(activePipe)
             int pos = PipeReader.readBytesPosition(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             int mask = PipeReader.readBytesMask(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             
-            //must grow if calls are needing more room.
-            if (workingBuffer.length < len) {
-            	workingBuffer = new byte[len*2];
-            }
+//            //must grow if calls are needing more room.
+//            if (workingBuffer.length < len) {
+//            	workingBuffer = new byte[len*2];
+//            }
             Pipe.copyBytesFromToRing(backing, pos, mask, workingBuffer, 0, Integer.MAX_VALUE, len);
             
             if (logger.isDebugEnabled()) {

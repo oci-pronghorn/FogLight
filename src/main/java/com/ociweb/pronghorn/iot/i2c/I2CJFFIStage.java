@@ -142,7 +142,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                     connection.setup,
                     connection.setup.length) && hardware.nanoTime()<timeOut){};
                     if (hardware.nanoTime()>timeOut) {
-                        logger.warn("failed to get I2C bus master, waited 35ms");
+                        logger.warn("on setup failed to get I2C bus master, waited 35ms");
                         //timeout trying to get the i2c bus
                         return;
                     }
@@ -243,7 +243,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         while(!i2cBacking.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.nanoTime()<timeOut){}
                         
                         if (hardware.nanoTime()>timeOut) {
-                            logger.warn("failed to get I2C bus master, waited 35ms");
+                            logger.warn("on write failed to get I2C bus master, waited 35ms");
                             //timeout trying to get the i2c bus
                             return;
                         }
@@ -362,9 +362,10 @@ while ( hasReleaseCountRemaining(activePipe)
             		                 workingBuffer, 0, Integer.MAX_VALUE, 
             		                 len);
             
-            if (logger.isDebugEnabled()) {
-                logger.debug("{} send command {} {}", activePipe, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
-            }
+            //if (logger.isDebugEnabled()) {
+                logger.info("{} pipe {} send addr {} command {} {}",Appendables.appendEpochTime(new StringBuilder(), System.currentTimeMillis())
+                		              ,activePipe, addr, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
+            //}
             
             //    logger.info("i2c request write to address: {} register: {}  ",addr, workingBuffer[0]);//+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
             

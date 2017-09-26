@@ -380,9 +380,9 @@ while ( hasReleaseCountRemaining(activePipe)
         case I2CCommandSchema.MSG_BLOCKCHANNEL_22:
         {
             hardware.blockChannelDuration(PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13), goPipeId(activePipe));
-            if (logger.isDebugEnabled()) {
-                logger.debug("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
-            }
+           // if (logger.isDebugEnabled()) {
+                logger.info("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
+           // }
         }
         break;
         
@@ -395,9 +395,9 @@ while ( hasReleaseCountRemaining(activePipe)
             long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13);
             
             blockConnectionDuration(connection, duration);
-            if (logger.isDebugEnabled()) {
-                logger.debug("I2C addr {} {} blocked for {} nanos  {}", addr, connection, duration, pipe);
-            }
+           // if (logger.isDebugEnabled()) {
+                logger.info("I2C addr {} {} blocked for {} nanos  {}", addr, connection, duration, pipe);
+           // }
         }
         break;
         
@@ -407,9 +407,9 @@ while ( hasReleaseCountRemaining(activePipe)
             int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12);
             long time = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_TIMEMS_14);
             blockConnectionUntil(connection, time);
-            if (logger.isDebugEnabled()) {
-                logger.debug("I2C addr {} {} blocked until {} millis {}", addr, connection, time, pipe);
-            }
+           // if (logger.isDebugEnabled()) {
+                logger.info("I2C addr {} {} blocked until {} millis {}", addr, connection, time, pipe);
+           // }
         }
         
         break;

@@ -1,5 +1,6 @@
 package com.ociweb.iot.hardware;
 
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.ociweb.iot.impl.*;
@@ -469,7 +470,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		for (int i = 0; i < localInputs.length; i++) {
 			schedulePeriods[i] = localInputs[i].responseMS*MS_TO_NS;
 		}
-		//logger.debug("known I2C rates: {}",Arrays.toString(schedulePeriods));
+		
+		logger.info("Known I2C rates: {}",Arrays.toString(schedulePeriods));
 		return PMath.buildScriptedSchedule(schedulePeriods);
 
 	}

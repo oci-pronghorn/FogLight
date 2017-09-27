@@ -21,6 +21,7 @@ import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
 public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
+    public static boolean debugCommands = true;
     
     private final Pipe<I2CCommandSchema>[] fromCommandChannels;
     private final Pipe<I2CResponseSchema> i2cResponsePipe;
@@ -354,18 +355,19 @@ while ( hasReleaseCountRemaining(activePipe)
             int pos = PipeReader.readBytesPosition(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             int mask = PipeReader.readBytesMask(pipe, I2CCommandSchema.MSG_COMMAND_7_FIELD_BYTEARRAY_2);
             
-//            //must grow if calls are needing more room.
-//            if (workingBuffer.length < len) {
-//            	workingBuffer = new byte[len*2];
-//            }
+            //must grow if calls are needing more room.
+            if (workingBuffer.length < len) {
+            	workingBuffer = new byte[len*2];
+            }
+
             Pipe.copyBytesFromToRing(backing, pos, mask, 
             		                 workingBuffer, 0, Integer.MAX_VALUE, 
             		                 len);
             
-            //if (logger.isDebugEnabled()) {
+            if (debugCommands) {
                 logger.info("{} pipe {} send addr {} command {} {}",Appendables.appendEpochTime(new StringBuilder(), System.currentTimeMillis())
                 		              ,activePipe, addr, Appendables.appendArray(new StringBuilder(), '[', backing, pos, mask, ']', len), pipe);
-            //}
+            }
             
             //    logger.info("i2c request write to address: {} register: {}  ",addr, workingBuffer[0]);//+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
             
@@ -380,9 +382,9 @@ while ( hasReleaseCountRemaining(activePipe)
         case I2CCommandSchema.MSG_BLOCKCHANNEL_22:
         {
             hardware.blockChannelDuration(PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13), goPipeId(activePipe));
-           // if (logger.isDebugEnabled()) {
+            if (debugCommands) {
                 logger.info("CommandChannel blocked for {} millis ",PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCHANNEL_22_FIELD_DURATIONNANOS_13));
-           // }
+            }
         }
         break;
         
@@ -395,9 +397,9 @@ while ( hasReleaseCountRemaining(activePipe)
             long duration = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTION_20_FIELD_DURATIONNANOS_13);
             
             blockConnectionDuration(connection, duration);
-           // if (logger.isDebugEnabled()) {
+            if (debugCommands) {
                 logger.info("I2C addr {} {} blocked for {} nanos  {}", addr, connection, duration, pipe);
-           // }
+            }
         }
         break;
         
@@ -407,9 +409,9 @@ while ( hasReleaseCountRemaining(activePipe)
             int addr = PipeReader.readInt(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_ADDRESS_12);
             long time = PipeReader.readLong(pipe, I2CCommandSchema.MSG_BLOCKCONNECTIONUNTIL_21_FIELD_TIMEMS_14);
             blockConnectionUntil(connection, time);
-           // if (logger.isDebugEnabled()) {
+            if (debugCommands) {
                 logger.info("I2C addr {} {} blocked until {} millis {}", addr, connection, time, pipe);
-           // }
+            }
         }
         
         break;

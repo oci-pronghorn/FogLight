@@ -14,14 +14,15 @@ import com.ociweb.iot.maker.FogRuntime;
  *
  * @author huydo
  */
-public class AccelBehavior implements AccelValsListener,StartupListener,MagValsListener { 
+public class AccelBehavior implements AccelValsListener, StartupListener, MagValsListener {
     private final FogCommandChannel ch;
     
     private final SixAxisAccelerometer_Transducer accSensor;
     
     AccelBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel();     
-        accSensor = new SixAxisAccelerometer_Transducer(ch,this);
+        accSensor = new SixAxisAccelerometer_Transducer(ch);
+        accSensor.registerListeners(this, this);
     }
    
     @Override
@@ -32,16 +33,13 @@ public class AccelBehavior implements AccelValsListener,StartupListener,MagValsL
 
     @Override
     public void accelerationValues(int x, int y, int z) {
-        System.out.println("x: "+x);
-        System.out.println("y: "+y);
-        System.out.println("z: "+z);
+        System.out.println("accel x: " + x + " y: " + y + " z: "+ z);
     }
 
     @Override
     public void magneticValues(int x, int y, int z) {
-        double heading = 180*Math.atan2(y, x)/3.14;
+        double heading = 180.0 * Math.atan2(y, x) / Math.PI;
         heading = (heading<0)?(heading+360):heading;
-        System.out.println("heading: "+heading);
+        System.out.println("heading: " + heading);
     }
-    
 }

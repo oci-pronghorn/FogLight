@@ -9,6 +9,6 @@ package com.ociweb.iot.grove.six_axis_accelerometer;
  *
  * @author huydo
  */
-public interface MagValsListener extends SixAxisAccelerometer_16gListener {
+public interface MagValsListener {
     void magneticValues(int x,int y,int z);
 }

@@ -21,14 +21,33 @@ public class AccelBehavior implements AccelValsListener, StartupListener, MagVal
     
     AccelBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel();     
-        accSensor = new SixAxisAccelerometer_Transducer(ch);
-        accSensor.registerListeners(this, this);
+        accSensor = new SixAxisAccelerometer_Transducer(ch, this, this);
     }
    
     @Override
     public void startup() {
         accSensor.setAccelScale(6);
         accSensor.setMagScale(8);
+    }
+
+    @Override
+    public AccelerometerAccelDataRate getAccerometerDataRate() {
+        return AccelerometerAccelDataRate.hz50;
+    }
+
+    @Override
+    public AccelerometerAccelScale getccerometerScale() {
+        return AccelerometerAccelScale.gauss6;
+    }
+
+    @Override
+    public AccelerometerMagDataRate getMagneticDataRate() {
+        return AccelerometerMagDataRate.hz50;
+    }
+
+    @Override
+    public AccelerometerMagScale getMagneticScale() {
+        return AccelerometerMagScale.gauss8;
     }
 
     @Override

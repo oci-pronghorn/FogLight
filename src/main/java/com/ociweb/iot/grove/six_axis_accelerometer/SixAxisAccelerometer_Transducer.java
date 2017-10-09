@@ -21,23 +21,24 @@ import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
  */
 public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer {
     private final FogCommandChannel target;
-    private AccelValsListener accellistener;
-    private MagValsListener maglistener;
+    private final AccelValsListener accellistener;
+    private final MagValsListener maglistener;
 
-    // TODO: why are mutations on these accumulated?
-    private int CTRL_REG2Val = 0b00000000; //by default, acceleration full scale = +/- 2g
-    private int CTRL_REG1Val = 0b01011111; //by default, ODR = 50 Hz, enable BDU, all accel axes enabled
-    private int CTRL_REG5Val = 0b10010000; //by default, enable temperature sensor, magnetic data low resolution, ODR = 50 Hz
-    private int CTRL_REG6Val = 0x00;
+    private final AccelerometerAccelDataRate accelDataRate;
+    private final AccelerometerAccelScale accelScale;
+    private final AccelerometerMagDataRate magDataRate;
+    private final AccelerometerMagScale magScale;
     
-    public SixAxisAccelerometer_Transducer(FogCommandChannel ch) {
+    public SixAxisAccelerometer_Transducer(FogCommandChannel ch, AccelValsListener accellistener,  MagValsListener maglistener) {
         this.target = ch;
-        target.ensureI2CWriting(50, 4);
-    }
-
-    public void registerListeners(AccelValsListener accellistener,  MagValsListener maglistener) {
         this.accellistener = accellistener;
         this.maglistener = maglistener;
+        target.ensureI2CWriting(50, 4);
+
+        this.accelDataRate = accellistener != null ? accellistener.getAccerometerDataRate() : null;
+        this.accelScale = accellistener != null ? accellistener.getccerometerScale() : null;
+        this.magDataRate = maglistener != null ? maglistener.getMagneticDataRate() : null;
+        this.magScale = maglistener != null ? maglistener.getMagneticScale() : null;
     }
 
     /**
@@ -51,14 +52,21 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
     
     @Override 
     public void startup() {
-        axWriteByte(CTRL_REG1,CTRL_REG1Val);
-        axWriteByte(CTRL_REG2,CTRL_REG2Val); // set full-scale
+        // TODO: use stored values from listeners
+        axWriteByte(CTRL_REG1, CTRL_REG1Val);
+        axWriteByte(CTRL_REG2, CTRL_REG2Val); // set full-scale
         axWriteByte(CTRL_REG3,0x00); //no interrupt
         axWriteByte(CTRL_REG4,0x00); //no interrupt
-        axWriteByte(CTRL_REG5,CTRL_REG5Val); //0x10 = magnetic 50 Hz output rate, enable temperature
-        axWriteByte(CTRL_REG6,CTRL_REG6Val); //magnetic scale = +/- 2 Gauss
+        axWriteByte(CTRL_REG5, CTRL_REG5Val); //0x10 = magnetic 50 Hz output rate, enable temperature
+        axWriteByte(CTRL_REG6, CTRL_REG6Val); //magnetic scale = +/- 2 Gauss
         axWriteByte(CTRL_REG7,0b10000000);
     }
+
+    // TODO: why are mutations on these accumulated?
+    private int CTRL_REG2Val = 0b00000000; //by default, acceleration full scale = +/- 2g
+    private int CTRL_REG1Val = 0b01011111; //by default, ODR = 50 Hz, enable BDU, all accel axes enabled
+    private int CTRL_REG5Val = 0b10010000; //by default, enable temperature sensor, magnetic data low resolution, ODR = 50 Hz
+    private int CTRL_REG6Val = 0x00;
 
     /**
      * Set accelerometer output data rate 
@@ -67,7 +75,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * 6 = 100 Hz, 7 = 200 Hz, 8 = 400 Hz
      * 9 = 800 Hz, 10 = 1600 Hz
      */
-    // TODO: make enum
+    @Deprecated
     public boolean setAccelODR(int aRate) {
         if(aRate != 0){
             CTRL_REG1Val |= (aRate<<4);
@@ -80,7 +88,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * @param aScale 2,4,6,8 or 16 (gauss)
      * 
      */
-    // TODO: make enum
+    @Deprecated
     public boolean setAccelScale(int aScale) {
         switch(aScale){
             case 2:
@@ -108,7 +116,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * 0 = 3Hz, 1 = 6 Hz, 2 = 12 Hz
      * 3 = 25 Hz, 4 = 50 Hz
      */
-    // TODO: make enum
+    @Deprecated
     public boolean setMagODR(int mRate) {
         CTRL_REG5Val |= (mRate << 2);
         return axWriteByte(CTRL_REG5,CTRL_REG5Val);
@@ -118,7 +126,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
      * Set the full scale of magnetometer data
      * @param mScale 2,4,8 or 12 (gauss)
      */
-    // TODO: make enum
+    @Deprecated
     public boolean setMagScale(int mScale) {
         switch(mScale){
             case 2:

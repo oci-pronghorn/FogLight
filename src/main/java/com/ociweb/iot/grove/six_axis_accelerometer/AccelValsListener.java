@@ -10,5 +10,9 @@ package com.ociweb.iot.grove.six_axis_accelerometer;
  * @author huydo
  */
 public interface AccelValsListener {
+    AccelerometerAccelDataRate getAccerometerDataRate();
+
+    AccelerometerAccelScale getccerometerScale();
+
     void accelerationValues(int x,int y,int z);
 }

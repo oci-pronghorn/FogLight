@@ -56,7 +56,7 @@ public enum SixAxisAccelerometerTwig {
             @SuppressWarnings("unchecked")
 		@Override
 		public SixAxisAccelerometer_Transducer newTransducer(FogCommandChannel... ch) {
-			return new SixAxisAccelerometer_Transducer(ch[0]);
+			return new SixAxisAccelerometer_Transducer(ch[0], null, null);
 		}
             /**
              *

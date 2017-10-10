@@ -111,7 +111,7 @@ public class IoTApp implements FogApp
 		
 		
 		int targetThreadCount = 10;//60; //105967ms
-		Pipe<ColumnSchema<M>>[] colResults = BuildMatrixCompute.buildGraph(gm, resultSchema, leftSchema, rightSchema, left, right, targetThreadCount-2);
+		Pipe<ColumnSchema<M>>[] colResults = BuildMatrixCompute.buildProductGraphRC(gm, left, right, targetThreadCount-2);
 		
 //		int x = colResults.length;
 //		PipeCleanerStage[] watches = new PipeCleanerStage[colResults.length];
@@ -120,7 +120,7 @@ public class IoTApp implements FogApp
 //		}
 		
 		
-		ColumnsToRowsStage<M> ctr = new ColumnsToRowsStage(gm, resultSchema, colResults, result);
+		ColumnsToRowsStage<M> ctr = new ColumnsToRowsStage(gm, colResults, result);
 		
 		
 		//ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -5,7 +5,7 @@
 */
 package com.ociweb.grove;
 
-import com.ociweb.gl.api.StartupListener;
+import com.ociweb.gl.api.Behavior;
 import com.ociweb.iot.grove.six_axis_accelerometer.*;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -14,20 +14,25 @@ import com.ociweb.iot.maker.FogRuntime;
  *
  * @author huydo
  */
-public class AccelBehavior implements AccelValsListener, StartupListener, MagValsListener {
+public class AccelBehavior implements Behavior, AccelValsListener {
     private final FogCommandChannel ch;
     
     private final SixAxisAccelerometer_Transducer accSensor;
-    
+    private final AccerometerMagValues magValues;
+
     AccelBehavior(FogRuntime runtime){
-        this.ch = runtime.newCommandChannel();     
-        accSensor = new SixAxisAccelerometer_Transducer(ch, this, this);
-    }
-   
-    @Override
-    public void startup() {
-        accSensor.setAccelScale(6);
-        accSensor.setMagScale(8);
+        this.ch = runtime.newCommandChannel();
+        this.magValues = new AccerometerMagValues(
+                AccelerometerMagDataRate.hz50,
+                AccelerometerMagScale.gauss8,
+                AccelerometerMagRes.high) {
+
+            @Override
+            public void onChange() {
+                System.out.println("heading: " + magValues.getHeading());
+            }
+        };
+        accSensor = new SixAxisAccelerometer_Transducer(ch, this, magValues, null);
     }
 
     @Override
@@ -36,29 +41,17 @@ public class AccelBehavior implements AccelValsListener, StartupListener, MagVal
     }
 
     @Override
-    public AccelerometerAccelScale getccerometerScale() {
+    public AccelerometerAccelScale getAccerometerScale() {
         return AccelerometerAccelScale.gauss6;
     }
 
     @Override
-    public AccelerometerMagDataRate getMagneticDataRate() {
-        return AccelerometerMagDataRate.hz50;
-    }
-
-    @Override
-    public AccelerometerMagScale getMagneticScale() {
-        return AccelerometerMagScale.gauss8;
+    public int getAccerometerAxes() {
+        return AccelerometerAccelAxes.all;
     }
 
     @Override
     public void accelerationValues(int x, int y, int z) {
         System.out.println("accel x: " + x + " y: " + y + " z: "+ z);
-    }
-
-    @Override
-    public void magneticValues(int x, int y, int z) {
-        double heading = 180.0 * Math.atan2(y, x) / Math.PI;
-        heading = (heading<0)?(heading+360):heading;
-        System.out.println("heading: " + heading);
     }
 }

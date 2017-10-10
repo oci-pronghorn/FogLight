@@ -1,10 +1,10 @@
 package com.ociweb.iot.grove.six_axis_accelerometer;
 
 public enum AccelerometerMagScale {
-    gauss2(1),
-    gauss4(2),
-    gauss8(3),
-    gauss12(4);
+    gauss2(0x00<<5),
+    gauss4(0x01<<5),
+    gauss8(0x02<<5),
+    gauss12(0x03<<5);
 
     private final int specification;
 

@@ -18,7 +18,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 public enum SixAxisAccelerometerTwig {
     ;
         public enum SixAxisAccelerometer implements I2CIODevice {
-            
+            // TODO: read temp
             readAccel(){
                 
                 @Override
@@ -56,7 +56,7 @@ public enum SixAxisAccelerometerTwig {
             @SuppressWarnings("unchecked")
 		@Override
 		public SixAxisAccelerometer_Transducer newTransducer(FogCommandChannel... ch) {
-			return new SixAxisAccelerometer_Transducer(ch[0], null, null);
+			return new SixAxisAccelerometer_Transducer(ch[0], null, null, null);
 		}
             /**
              *

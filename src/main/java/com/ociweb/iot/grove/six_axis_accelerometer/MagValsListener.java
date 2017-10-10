@@ -14,5 +14,7 @@ public interface MagValsListener {
 
     AccelerometerMagScale getMagneticScale();
 
+    AccelerometerMagRes getMagneticRes();
+
     void magneticValues(int x,int y,int z);
 }

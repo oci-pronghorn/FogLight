@@ -9,16 +9,16 @@ package com.ociweb.iot.grove.six_axis_accelerometer;
  */
 
 public enum AccelerometerAccelDataRate {
-    hz3(1),
-    hz6(2),
-    hz12(3),
-    hz25(4),
-    hz50(5),
-    hz100(6),
-    hz200(7),
-    hz400(8),
-    hz800(9),
-    hz1600(10);
+    hz3(0x01<<4),
+    hz6(0x02<<4),
+    hz12(0x03<<4),
+    hz25(0x04<<4),
+    hz50(0x05<<4),
+    hz100(0x06<<4),
+    hz200(0x07<<4),
+    hz400(0x08<<4),
+    hz800(0x09<<4),
+    hz1600(0x0A<<4);
 
     private final int specification;
 
@@ -30,3 +30,4 @@ public enum AccelerometerAccelDataRate {
         return specification;
     }
 }
+

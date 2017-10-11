@@ -15,24 +15,28 @@ import com.ociweb.iot.maker.FogRuntime;
  * @author huydo
  */
 public class AccelBehavior implements Behavior {
-    private final FogCommandChannel ch;
-    
+    private final FogCommandChannel channel;
     private final SixAxisAccelerometer_Transducer accSensor;
     private final AccerometerValues values;
 
     AccelBehavior(FogRuntime runtime){
-        this.ch = runtime.newCommandChannel();
+        this.channel = runtime.newCommandChannel();
         this.values = new AccerometerValues() {
             @Override
             public void onChange(Changed changed) {
-                if (changed == Changed.mag) {
-                    System.out.println("heading: " + values.getHeading());
-                }
-                else if (changed == Changed.accel) {
-                    System.out.println("accel x: " + values.getAccelX() + " y: " + values.getAccelY() + " z: "+ values.getAccelZ());
-                }
+                System.out.println("heading: " + values.getHeading());
+                System.out.println("pitch: " + values.getPitch());
+                System.out.println("roll: " + values.getRoll());
+                System.out.println("tilt: " + values.getTiltHeading());
+                System.out.println("mx: " + values.getMagX());
+                System.out.println("my: " + values.getMagY());
+                System.out.println("mz: " + values.getMagZ());
+                System.out.println("ax: " + values.getAccelX());
+                System.out.println("ay: " + values.getAccelY());
+                System.out.println("az: " + values.getAccelZ());
+                System.out.println("");
             }
         };
-        accSensor = new SixAxisAccelerometer_Transducer(ch, values, values, null);
+        accSensor = new SixAxisAccelerometer_Transducer(channel, values, values, null);
     }
 }

@@ -36,7 +36,7 @@ public enum MotorDriverTwig implements I2CIODevice {
             
         }
         @Override
-        public int pullResponseTimeoutNS() {
+        public int pullResponseMinWaitNS() {
             return 0;
         }
 

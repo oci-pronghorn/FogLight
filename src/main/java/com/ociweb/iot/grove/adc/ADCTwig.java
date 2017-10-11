@@ -42,7 +42,7 @@ public enum ADCTwig {
             }
             
             @Override
-            public int pullResponseTimeoutNS() {
+            public int pullResponseMinWaitNS() {
                 return 0;
             }
             

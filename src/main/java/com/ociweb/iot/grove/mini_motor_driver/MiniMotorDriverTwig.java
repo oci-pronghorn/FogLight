@@ -62,7 +62,7 @@ public enum MiniMotorDriverTwig {
             /**
              * @return Delay, in milliseconds, for scan. TODO: What's scan?
              */
-            public int pullResponseTimeoutNS() {
+            public int pullResponseMinWaitNS() {
                 return 0;
             }
             

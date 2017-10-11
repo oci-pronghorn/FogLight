@@ -101,15 +101,15 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
         }
     }
 
+    private short[] temp = {0,0,0};
     /**
      * Convert the 6 bytes of X,Y,Z values to the correct two's complement representation
      * @param backing array containing 6 bytes
      * @param position index of the first byte
      * @param length length of the array
-     * @param mask
+     * @param mask the mask
      * @return array of 3 X,Y,Z values ,where array[0] = X, array[1] = Y
      */
-    private short[] temp = {0,0,0};
     private short[] interpretData(byte[] backing, int position, int length, int mask) {
         assert(length==6) : "Non-Accelerometer data passed into the class";
         //format the data from the circular buffer backing[]

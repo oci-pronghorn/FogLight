@@ -83,6 +83,7 @@ public class MotorDriver_Transducer implements IODeviceTransducer,StartupListene
                 i2cPayloadWriter.writeByte(actualchannel2Power);
                 target.i2cCommandClose(i2cPayloadWriter);
             }
+            target.i2cDelay(DRIVER_I2C_ADD, 4000000);
             target.i2cFlushBatch();
             return true;
         }

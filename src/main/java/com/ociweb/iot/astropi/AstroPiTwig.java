@@ -108,7 +108,7 @@ public enum AstroPiTwig {
                     return 1000;
                 }
             @Override
-            public int pullResponseTimeoutNS() {
+            public int pullResponseMinWaitNS() {
                 return 0;
             }
             

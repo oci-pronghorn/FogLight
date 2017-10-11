@@ -337,7 +337,7 @@ public class Grove_FourDigitDisplay implements IODevice{
 		return 20;
 	}
 	@Override
-	public int pullResponseTimeoutNS() {
+	public int pullResponseMinWaitNS() {
 		return 20;
 	}
 	@Override

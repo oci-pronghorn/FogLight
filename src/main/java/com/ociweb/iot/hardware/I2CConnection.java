@@ -41,7 +41,7 @@ public class I2CConnection extends HardwareConnection {
 		this.readBytes = readBytes;
 		this.register = register;
 		this.setup = setup;
-		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY_NS +twig.pullResponseTimeoutNS();
+		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY_NS +twig.pullResponseMinWaitNS();
 		this.readBytesAtStartUp = 0;
 	}
 
@@ -52,7 +52,7 @@ public class I2CConnection extends HardwareConnection {
 		this.readBytes = readBytes;
 		this.register = register;
 		this.setup = setup;
-		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY_NS +twig.pullResponseTimeoutNS();
+		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY_NS +twig.pullResponseMinWaitNS();
 		this.readBytesAtStartUp = readBytesAtStartUp;
 	}
 
@@ -60,15 +60,14 @@ public class I2CConnection extends HardwareConnection {
 		this(twig,address,readCmd,readBytes,register,setup,pullRateMS,HardwareConnection.DEFAULT_AVERAGE_WINDOW_MS, false);
 	}
 
-	//TODO: Customer average MS is never used.
 	public I2CConnection(IODevice twig, byte address, byte[] readCmd, int readBytes, int register, byte[] setup, int pullRateMS, int customAverageMS, boolean everyValue) {
-		super(twig, UNKOWN_REGISTER, pullRateMS, HardwareConnection.DEFAULT_AVERAGE_WINDOW_MS, everyValue);
+		super(twig, UNKOWN_REGISTER, pullRateMS, customAverageMS, everyValue);
 		this.address = address;
 		this.readCmd = readCmd;
 		this.readBytes = readBytes;
 		this.register = register;
 		this.setup = setup;
-		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY_NS +twig.pullResponseTimeoutNS();
+		this.delayAfterRequestNS = GROVE_PI_MIN_SCAN_DELAY_NS +twig.pullResponseMinWaitNS();
 		this.readBytesAtStartUp = 0;
 	}
 

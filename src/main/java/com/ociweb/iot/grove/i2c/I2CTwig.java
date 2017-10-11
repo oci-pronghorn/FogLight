@@ -25,7 +25,7 @@ public enum I2CTwig implements I2CIODevice {
 	}
 
 	@Override
-	public int pullResponseTimeoutNS() {
+	public int pullResponseMinWaitNS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

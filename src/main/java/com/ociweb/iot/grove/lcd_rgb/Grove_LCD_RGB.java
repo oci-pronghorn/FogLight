@@ -118,7 +118,7 @@ public class Grove_LCD_RGB implements IODevice {
     }
 
     @Override
-    public int pullResponseTimeoutNS() {
+    public int pullResponseMinWaitNS() {
         return 0;
     }
 

@@ -41,7 +41,7 @@ public enum MP3_V2Twig implements SerialIODevice{
 	}
 
 	@Override
-	public int pullResponseTimeoutNS() {
+	public int pullResponseMinWaitNS() {
 		return 0;
 	}
 

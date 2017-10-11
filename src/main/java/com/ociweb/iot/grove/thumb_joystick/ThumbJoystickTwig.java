@@ -45,7 +45,7 @@ public enum ThumbJoystickTwig implements ADIODevice{
 	}
 
 	@Override
-	public int pullResponseTimeoutNS() {
+	public int pullResponseMinWaitNS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

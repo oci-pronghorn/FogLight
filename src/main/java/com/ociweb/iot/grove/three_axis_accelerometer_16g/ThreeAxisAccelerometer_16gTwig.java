@@ -61,7 +61,7 @@ public enum ThreeAxisAccelerometer_16gTwig {
             return 1000;
         }
         @Override
-        public int pullResponseTimeoutNS() {
+        public int pullResponseMinWaitNS() {
             return 0;
         }
         

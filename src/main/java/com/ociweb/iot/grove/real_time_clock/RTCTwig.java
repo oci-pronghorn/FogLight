@@ -45,7 +45,7 @@ public enum RTCTwig {
                 }
                 
                 @Override
-                public int pullResponseTimeoutNS() {
+                public int pullResponseMinWaitNS() {
                     return 0;
                 }
                 

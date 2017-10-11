@@ -26,7 +26,7 @@ public enum LCD_RGB_Twig implements I2CIODevice {
 	}
 
 	@Override
-	public int pullResponseTimeoutNS() {
+	public int pullResponseMinWaitNS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

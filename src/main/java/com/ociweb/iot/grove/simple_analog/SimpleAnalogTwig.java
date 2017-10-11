@@ -86,7 +86,7 @@ public enum SimpleAnalogTwig implements ADIODevice{
 		}
 
 		@Override
-		public int pullResponseTimeoutNS() {
+		public int pullResponseMinWaitNS() {
 			return 1_420_000;
 		}
 
@@ -137,7 +137,7 @@ public enum SimpleAnalogTwig implements ADIODevice{
 	/**
 	 * @return Wait, in nanoseconds, for response.
 	 */
-	public int pullResponseTimeoutNS() {
+	public int pullResponseMinWaitNS() {
 		return 0;
 	}
 

@@ -128,7 +128,7 @@ public enum SimpleDigitalTwig implements ADIODevice {
 	/**
 	 * @return Wait, in nanoseconds, for response.
 	 */
-	public int pullResponseTimeoutNS() {
+	public int pullResponseMinWaitNS() {
 		return 0;
 	}
 

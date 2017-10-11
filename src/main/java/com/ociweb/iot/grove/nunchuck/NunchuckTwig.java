@@ -51,7 +51,7 @@ public class NunchuckTwig implements IODevice{
 	}
 
 	@Override
-    public int pullResponseTimeoutNS() {
+    public int pullResponseMinWaitNS() {
     	return 0;
     }
     

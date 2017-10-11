@@ -54,7 +54,7 @@ public enum SixAxisAccelerometerTwig {
                 return 1000;
             }
             @Override
-            public int pullResponseTimeoutNS() {
+            public int pullResponseMinWaitNS() {
                 return 0;
             }
 

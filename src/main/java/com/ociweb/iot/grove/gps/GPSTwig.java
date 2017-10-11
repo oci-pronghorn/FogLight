@@ -34,7 +34,7 @@ public enum GPSTwig implements SerialIODevice{
 	}
 
 	@Override
-	public int pullResponseTimeoutNS() {
+	public int pullResponseMinWaitNS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

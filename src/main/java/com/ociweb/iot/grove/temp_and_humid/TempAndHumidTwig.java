@@ -111,7 +111,7 @@ public class TempAndHumidTwig implements IODevice{
 	}
 	
 	@Override
-    public int scanDelay() {
+    public int pullResponseTimeoutNS() {
     	return 0;
     }
 
@@ -126,7 +126,7 @@ public class TempAndHumidTwig implements IODevice{
 	}
 
     @Override
-    public int response() {       
+    public int defaultPullRateMS() {
        return 600;      
     }
     

@@ -51,7 +51,7 @@ public class NunchuckTwig implements IODevice{
 	}
 
 	@Override
-    public int scanDelay() {
+    public int pullResponseTimeoutNS() {
     	return 0;
     }
     
@@ -71,7 +71,7 @@ public class NunchuckTwig implements IODevice{
 	}
 
 	@Override
-    public int response() {       
+    public int defaultPullRateMS() {
        return 10;      
     }
 	

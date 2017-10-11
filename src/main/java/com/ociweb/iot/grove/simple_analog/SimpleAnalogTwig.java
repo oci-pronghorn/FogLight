@@ -14,7 +14,7 @@ public enum SimpleAnalogTwig implements ADIODevice{
 		}
 
 		@Override
-		public int response() {
+		public int defaultPullRateMS() {
 			return 30;
 		}
 
@@ -27,7 +27,7 @@ public enum SimpleAnalogTwig implements ADIODevice{
 		}
 
 		@Override
-		public int response() {
+		public int defaultPullRateMS() {
 			return 100;
 		}
 	},
@@ -38,7 +38,7 @@ public enum SimpleAnalogTwig implements ADIODevice{
 		}
 
 		@Override
-		public int response() {
+		public int defaultPullRateMS() {
 			return 2;
 		}
 	},
@@ -49,7 +49,7 @@ public enum SimpleAnalogTwig implements ADIODevice{
 		}
 
 		@Override
-		public int response() {
+		public int defaultPullRateMS() {
 			return 40;
 		}
 		@Override
@@ -81,12 +81,12 @@ public enum SimpleAnalogTwig implements ADIODevice{
 		}
 
 		@Override
-		public int response() {
+		public int defaultPullRateMS() {
 			return 200;
 		}
 
 		@Override
-		public int scanDelay() {
+		public int pullResponseTimeoutNS() {
 			return 1_420_000;
 		}
 
@@ -130,14 +130,14 @@ public enum SimpleAnalogTwig implements ADIODevice{
 	/**
 	 * @return Response time, in milliseconds, for this twig.
 	 */
-	public int response() {
+	public int defaultPullRateMS() {
 		return 20;
 	}
 
 	/**
-	 * @return Delay, in milliseconds, for scan. TODO: What's scan?
+	 * @return Wait, in nanoseconds, for response.
 	 */
-	public int scanDelay() {
+	public int pullResponseTimeoutNS() {
 		return 0;
 	}
 

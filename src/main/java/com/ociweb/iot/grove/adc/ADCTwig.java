@@ -37,12 +37,12 @@ public enum ADCTwig {
                 }
             };
             @Override
-            public int response() {
+            public int defaultPullRateMS() {
                 return 1000;
             }
             
             @Override
-            public int scanDelay() {
+            public int pullResponseTimeoutNS() {
                 return 0;
             }
             

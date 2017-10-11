@@ -51,13 +51,13 @@ public enum OLEDTwig implements I2CIODevice {
 	};
 
 	@Override
-	public int response() {
+	public int defaultPullRateMS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public int scanDelay() {
+	public int pullResponseTimeoutNS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

@@ -106,7 +106,7 @@ public abstract class AccerometerValues implements MagValsListener, AccelValsLis
         return heading;
     }
 
-    double getTiltHeading()  {
+    public double getTiltHeading()  {
         double pitch = getPitch();
         double roll = getRoll();
         double xh = mX * Math.cos(pitch) + mZ * Math.sin(pitch);

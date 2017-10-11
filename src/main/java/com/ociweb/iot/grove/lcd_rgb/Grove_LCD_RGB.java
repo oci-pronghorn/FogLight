@@ -118,7 +118,7 @@ public class Grove_LCD_RGB implements IODevice {
     }
 
     @Override
-    public int scanDelay() {
+    public int pullResponseTimeoutNS() {
         return 0;
     }
 
@@ -602,7 +602,7 @@ public class Grove_LCD_RGB implements IODevice {
     }
 
     @Override
-    public int response() {
+    public int defaultPullRateMS() {
         return 20;
     }
 

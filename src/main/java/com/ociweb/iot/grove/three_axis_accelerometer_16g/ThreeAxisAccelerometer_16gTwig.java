@@ -57,24 +57,18 @@ public enum ThreeAxisAccelerometer_16gTwig {
             return true;
         }
         @Override
-        public int response() {
+        public int defaultPullRateMS() {
             return 1000;
+        }
+        @Override
+        public int pullResponseTimeoutNS() {
+            return 0;
         }
         
         @SuppressWarnings("unchecked")
         @Override
         public ThreeAxisAccelerometer_16g_Transducer newTransducer(FogCommandChannel... ch) {
             return new ThreeAxisAccelerometer_16g_Transducer(ch[0]);
-        }
-        /**
-         *
-         *
-         * /**
-         * @return Delay, in milliseconds, for scan. TODO: What's scan?
-         */
-        @Override
-        public int scanDelay() {
-            return 0;
         }
         
         /**

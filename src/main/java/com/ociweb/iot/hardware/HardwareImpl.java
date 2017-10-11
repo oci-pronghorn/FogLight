@@ -62,6 +62,8 @@ import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 import com.ociweb.pronghorn.util.math.PMath;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
+import static com.ociweb.iot.hardware.HardwareConnection.DEFAULT_AVERAGE_WINDOW_MS;
+
 public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 
@@ -85,8 +87,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	private static final int DEFAULT_LENGTH = 16;
 	private static final int DEFAULT_PAYLOAD_SIZE = 128;
-	private static final int DEFAULT_CUSTOM_RATE_MS = -1;
-	private static final int DEFAULT_CUSTOM_AVG_WINDOW_MS = -1;
 	private static final boolean DEFAULT_EVERY_VALUE = false;
 
 	private int i2cBus;
@@ -550,17 +550,17 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS) {
-		return connect(t,port,customRateMS, DEFAULT_CUSTOM_AVG_WINDOW_MS ,false);
+		return connect(t,port,customRateMS, DEFAULT_AVERAGE_WINDOW_MS ,false);
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port, int customRateMS, boolean everyValue) {
-		return connect(t,port,customRateMS, DEFAULT_CUSTOM_AVG_WINDOW_MS ,everyValue);
+		return connect(t,port,customRateMS, DEFAULT_AVERAGE_WINDOW_MS ,everyValue);
 	}
 
 	@Override
 	public Hardware connect(ADIODevice t, Port port) {
-		return connect (t, port, DEFAULT_CUSTOM_RATE_MS,DEFAULT_CUSTOM_AVG_WINDOW_MS,false);
+		return connect (t, port, t.defaultPullRateMS(),DEFAULT_AVERAGE_WINDOW_MS,false);
 	}
 
 	public void releasePinOutTraffic(int count, MsgCommandChannel<?> gcc) {		

@@ -48,7 +48,7 @@ public enum MiniMotorDriverTwig {
             }
             
             @Override
-            public int response() {
+            public int defaultPullRateMS() {
                 return 1000;
             }
             
@@ -62,7 +62,7 @@ public enum MiniMotorDriverTwig {
             /**
              * @return Delay, in milliseconds, for scan. TODO: What's scan?
              */
-            public int scanDelay() {
+            public int pullResponseTimeoutNS() {
                 return 0;
             }
             

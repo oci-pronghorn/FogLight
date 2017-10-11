@@ -12,8 +12,8 @@ public interface IODevice {
 	 * 
 	 * @return Time in ms between read request and read response for I2C devices.
 	 */
-     public int           response();   //in ms, do not poll faster than this
-     public int           scanDelay();  //in ns, do not rexpect read to be faster than this.
+     public int           defaultPullRateMS();   //in ms, do not poll faster than this
+     public int           pullResponseTimeoutNS();  //in ns, do not rexpect read to be faster than this.
      public boolean       isInput();
      public boolean       isOutput();
      public boolean       isPWM();

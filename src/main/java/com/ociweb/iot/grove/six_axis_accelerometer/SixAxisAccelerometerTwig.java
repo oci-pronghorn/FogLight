@@ -50,29 +50,20 @@ public enum SixAxisAccelerometerTwig {
                 return true;
             }
             @Override
-            public int response() {
+            public int defaultPullRateMS() {
                 return 1000;
             }
+            @Override
+            public int pullResponseTimeoutNS() {
+                return 0;
+            }
+
             @SuppressWarnings("unchecked")
 		@Override
 		public SixAxisAccelerometer_Transducer newTransducer(FogCommandChannel... ch) {
 			return new SixAxisAccelerometer_Transducer(ch[0], null, null, null);
 		}
-            /**
-             *
-             *
-             * /**
-             * @return Delay, in milliseconds, for scan. TODO: What's scan?
-             */
-            @Override
-            public int scanDelay() {
-                return 0;
-            }
-            
-            /**
-             * @return True if this twig is Pulse Width Modulated (PWM) device, and
-             *         false otherwise.
-             */
+
             @Override
             public boolean isPWM() {
                 return false;

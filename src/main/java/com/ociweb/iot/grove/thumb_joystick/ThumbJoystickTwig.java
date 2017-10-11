@@ -32,20 +32,20 @@ public enum ThumbJoystickTwig implements ADIODevice{
 			return new ThumbJoystickTransducer(p);
 		}
 		@Override
-		public int response(){
+		public int defaultPullRateMS(){
 			return 40;
 		}
 	},
 	;
 
 	@Override
-	public int response() {
+	public int defaultPullRateMS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public int scanDelay() {
+	public int pullResponseTimeoutNS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

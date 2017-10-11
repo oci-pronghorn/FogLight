@@ -19,7 +19,7 @@ public enum MP3_V2Twig implements SerialIODevice{
 			return true;
 		}
 		@Override 
-		public int response(){
+		public int defaultPullRateMS(){
 			return 40;
 		}
 		@Override
@@ -36,12 +36,12 @@ public enum MP3_V2Twig implements SerialIODevice{
 	};
 
 	@Override
-	public int response() {	
+	public int defaultPullRateMS() {
 		return 0;
 	}
 
 	@Override
-	public int scanDelay() {	
+	public int pullResponseTimeoutNS() {
 		return 0;
 	}
 

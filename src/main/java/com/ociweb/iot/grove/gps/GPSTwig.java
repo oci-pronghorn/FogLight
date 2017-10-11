@@ -8,7 +8,7 @@ import com.ociweb.iot.maker.IODeviceTransducer;
 public enum GPSTwig implements SerialIODevice{
 	GPS (){
 		@Override
-		public int response(){
+		public int defaultPullRateMS(){
 			return 1000;
 		}
 		@Override
@@ -28,13 +28,13 @@ public enum GPSTwig implements SerialIODevice{
 		
 	};
 	@Override
-	public int response() {
+	public int defaultPullRateMS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public int scanDelay() {
+	public int pullResponseTimeoutNS() {
 		// TODO Auto-generated method stub
 		return 0;
 	}

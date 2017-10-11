@@ -39,14 +39,13 @@ public enum RTCTwig {
                 
                 
                 @Override
-                public int response() {
+                public int defaultPullRateMS() {
                     return 1000;
                     
                 }
-                /**
-                 * @return Delay, in milliseconds, for scan. TODO: What's scan?
-                 */
-                public int scanDelay() {
+                
+                @Override
+                public int pullResponseTimeoutNS() {
                     return 0;
                 }
                 

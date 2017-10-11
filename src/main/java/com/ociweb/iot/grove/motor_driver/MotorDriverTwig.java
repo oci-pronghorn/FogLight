@@ -31,21 +31,19 @@ public enum MotorDriverTwig implements I2CIODevice {
         
         
         @Override
-        public int response() {
+        public int defaultPullRateMS() {
             return 1000;
             
         }
+        @Override
+        public int pullResponseTimeoutNS() {
+            return 0;
+        }
+
         @SuppressWarnings("unchecked")
         @Override
         public MotorDriver_Transducer newTransducer(FogCommandChannel...ch){
             return new MotorDriver_Transducer(ch[0]);//TODO:feed the right chip enum, create two seperate twigs
-        }
-        /**
-         * @return Delay, in milliseconds, for scan. TODO: What's scan?
-         */
-        @Override
-        public int scanDelay() {
-            return 0;
         }
         
         /**

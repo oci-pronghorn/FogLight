@@ -19,7 +19,7 @@ public enum AstroPiTwig {
         public enum AstroPi implements I2CIODevice{
             GetJoystick(){
                 @Override
-                public int response() {
+                public int defaultPullRateMS() {
                     return 300;
                 }
                 @Override
@@ -104,11 +104,11 @@ public enum AstroPiTwig {
                 }    
             };
             @Override
-                public int response() {
+                public int defaultPullRateMS() {
                     return 1000;
                 }
             @Override
-            public int scanDelay() {
+            public int pullResponseTimeoutNS() {
                 return 0;
             }
             

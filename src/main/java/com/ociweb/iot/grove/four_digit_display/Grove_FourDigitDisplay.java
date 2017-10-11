@@ -333,11 +333,11 @@ public class Grove_FourDigitDisplay implements IODevice{
 		return (b & (0x01 << pos)) ;
 	}
 	@Override
-	public int response() {
+	public int defaultPullRateMS() {
 		return 20;
 	}
 	@Override
-	public int scanDelay() {
+	public int pullResponseTimeoutNS() {
 		return 20;
 	}
 	@Override

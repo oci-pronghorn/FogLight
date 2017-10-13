@@ -15,11 +15,66 @@ The following sketch will demonstrate a simple use of the ```addAnalogListener()
 Demo code:
 Main Class
 
-#### ERROR:  could not read file .srcmainjavacomcoiweboefoglightapiAnalogListener.java
+
+```java
+package com.ociweb.oe.foglight.api;
+
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.LightSensor;
+import static com.ociweb.iot.maker.Port.A2;
+import static com.ociweb.iot.maker.Port.DIGITALS;
+
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
+
+public class AnalogListener implements FogApp
+{
+	private static Port LIGHT_SENSOR_PORT = A2;
+
+    @Override
+    public void declareConnections(Hardware c) {
+        
+    	c.connect(LightSensor, LIGHT_SENSOR_PORT);
+        
+    }
+
+    @Override
+    public void declareBehavior(FogRuntime runtime) {
+        
+    	runtime.addAnalogListener(new AnalogListenerBehavior(runtime)).includePorts(LIGHT_SENSOR_PORT).excludePorts(DIGITALS);
+    }
+          
+}
+```
+
 
 Behavior class 
 
-#### ERROR:  could not read file .srcmainjavacomcoiweboefoglightapiAnalogListenerBehavior.java
+
+```java
+package com.ociweb.oe.foglight.api;
+
+import com.ociweb.iot.maker.AnalogListener;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Port;
+
+public class AnalogListenerBehavior implements AnalogListener {
+
+	
+	public AnalogListenerBehavior(FogRuntime runtime) {
+		
+	}
+
+	@Override
+	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
+
+		System.out.println("value: " + value);
+	}
+
+}
+```
+
 
 These classes are a basic demo of how to use the ```AnalogListener() method```. Following it with the ```includePorts()```method will cause that listener to only listen to the ports listed. Similarly, the ```ecludePorts()``` will make that listener ignore anything coming from any ports listed. Without either of those methods, the AnalogListener will listen to any analog devices connected to any analog compatible ports. 
 In the behavior class, the overridden method will provide you with five variables, ```port```,  ```time```, ```durationMillis```, ```average```, and ```value```. 

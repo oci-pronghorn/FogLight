@@ -17,7 +17,7 @@ Main Class
 
 
 ```java
-package com.coiweb.oe.foglight.api;
+package com.ociweb.oe.foglight.api;
 
 
 import com.ociweb.iot.maker.Baud;
@@ -61,7 +61,7 @@ Behavior classes
 
 
 ```java
-package com.coiweb.oe.foglight.api;
+package com.ociweb.oe.foglight.api;
 
 import java.util.Arrays;
 
@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.SerialListener;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.util.Appendables;
 
 public class SerialListenerBehavior implements SerialListener {
@@ -88,7 +88,7 @@ public class SerialListenerBehavior implements SerialListener {
 	}
 
 	@Override
-	public int message(BlobReader reader) {
+	public int message(ChannelReader reader) {
 		
 		if (reader.available()<10) {
 			return 0; //consumed nothing
@@ -113,14 +113,13 @@ public class SerialListenerBehavior implements SerialListener {
 
 
 ```java
-package com.coiweb.oe.foglight.api;
+package com.ociweb.oe.foglight.api;
 
 import com.ociweb.gl.api.TimeListener;
+import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.SerialWritable;
-import com.ociweb.iot.maker.SerialWriter;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
 
 import static com.ociweb.iot.maker.FogRuntime.SERIAL_WRITER;
 
@@ -133,9 +132,9 @@ public class SerialWriterBehavior implements TimeListener {
 	private final FogCommandChannel cmd;
 	private int value = 0;
 
-	SerialWritable writable = new SerialWritable() {
+	Writable writable = new Writable() {
 		@Override
-		public void write(BlobWriter writer) {
+		public void write(ChannelWriter writer) {
 			writer.writeByte(value++);
 		}		
 	};

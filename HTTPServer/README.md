@@ -78,8 +78,9 @@ import com.ociweb.gl.api.Payloadable;
 import com.ociweb.gl.api.RestListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.network.config.HTTPHeader;
 import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class RestBehaviorEmptyResponse implements RestListener {
 
@@ -95,7 +96,7 @@ public class RestBehaviorEmptyResponse implements RestListener {
 	Payloadable reader = new Payloadable() {
 		
 		@Override
-		public void read(BlobReader reader) {
+		public void read(ChannelReader reader) {
 			
 			System.out.println("POST: "+reader.readUTFOfLength(reader.available()));
 			
@@ -105,7 +106,7 @@ public class RestBehaviorEmptyResponse implements RestListener {
 	private Headable headReader = new Headable() {
 
 		@Override
-		public void read(BlobReader reader) { 
+		public void read(HTTPHeader header, ChannelReader reader) { 
 			
 			System.out.println("COOKIE: "+reader.readUTFOfLength(reader.available()));
 						
@@ -147,8 +148,8 @@ import com.ociweb.gl.api.RestListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
-import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import com.ociweb.pronghorn.pipe.ChannelReader;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
 
 public class RestBehaviorLargeResponse implements RestListener {
 
@@ -162,7 +163,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	Payloadable reader = new Payloadable() {
 		
 		@Override
-		public void read(BlobReader reader) {
+		public void read(ChannelReader reader) {
 			
 			System.out.println("POST: "+reader.readUTFOfLength(reader.available()));
 			
@@ -173,7 +174,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	Writable writableA = new Writable() {
 		
 		@Override
-		public void write(BlobWriter writer) {
+		public void write(ChannelWriter writer) {
 			writer.writeUTF8Text("beginning of text file\n");//23 in length
 		}
 		
@@ -182,7 +183,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 	Writable writableB = new Writable() {
 		
 		@Override
-		public void write(BlobWriter writer) {
+		public void write(ChannelWriter writer) {
 			writer.writeUTF8Text("ending of text file\n");//20 in length
 		}
 		
@@ -197,7 +198,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 		
 		if (0 == partNeeded) {
 			boolean okA = cmd.publishHTTPResponse(request, 200, 
-									request.getRequestContext(),
+									true,
 					                HTTPContentTypeDefaults.TXT,
 					                writableA);
 			if (!okA) {
@@ -212,7 +213,7 @@ public class RestBehaviorLargeResponse implements RestListener {
 		//////
 	
 		boolean okB = cmd.publishHTTPResponseContinuation(request,
-						 		request.getRequestContext() | HTTPFieldReader.END_OF_RESPONSE,
+						 		false,
 						 		writableB);
 		if (okB) {
 			partNeeded = 0;
@@ -239,8 +240,8 @@ import com.ociweb.gl.api.RestListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
-import com.ociweb.pronghorn.pipe.BlobReader;
-import com.ociweb.pronghorn.pipe.BlobWriter;
+import com.ociweb.pronghorn.pipe.ChannelReader;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
 
 public class RestBehaviorSmallResponse implements RestListener {
 
@@ -253,7 +254,7 @@ public class RestBehaviorSmallResponse implements RestListener {
 	Payloadable reader = new Payloadable() {
 		
 		@Override
-		public void read(BlobReader reader) {
+		public void read(ChannelReader reader) {
 			
 			System.out.println("POST: "+reader.readUTFOfLength(reader.available()));
 			
@@ -264,7 +265,7 @@ public class RestBehaviorSmallResponse implements RestListener {
 	Writable writableA = new Writable() {
 		
 		@Override
-		public void write(BlobWriter writer) {
+		public void write(ChannelWriter writer) {
 			writer.writeUTF8Text("beginning of text file\n");
 		}
 		
@@ -273,7 +274,7 @@ public class RestBehaviorSmallResponse implements RestListener {
 	Writable writableB = new Writable() {
 		
 		@Override
-		public void write(BlobWriter writer) {
+		public void write(ChannelWriter writer) {
 			writer.writeUTF8Text("this is some text\n");
 		}
 		
@@ -288,7 +289,7 @@ public class RestBehaviorSmallResponse implements RestListener {
 
 		//if this can not be published then we will get the request again later to be reattempted.
 		return cmd.publishHTTPResponse(request, 200, 
-								request.getRequestContext() | HTTPFieldReader.END_OF_RESPONSE,
+								false,
 				                HTTPContentTypeDefaults.TXT,
 				                writableA);
 

@@ -21,12 +21,13 @@ Demo code:
 package com.ociweb.oe.foglight.api;
 
 
-import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.*;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.AngleSensor;
+import static com.ociweb.iot.maker.Port.A0;
 
-import com.ociweb.iot.maker.*;
-import static com.ociweb.iot.maker.Port.*;
-
-import com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 
 public class AnalogTransducerDemo implements FogApp
 {
@@ -52,10 +53,6 @@ Behavior class:
 ```java
 package com.ociweb.oe.foglight.api;
 
-import com.ociweb.gl.api.TimeListener;
-import com.ociweb.iot.grove.simple_analog.MovingAverageListener;
-import com.ociweb.iot.grove.simple_analog.SimpleAnalogTransducer;
-import com.ociweb.iot.grove.simple_analog.SimpleAnalogListener;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;

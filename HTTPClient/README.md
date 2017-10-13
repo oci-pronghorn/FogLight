@@ -13,7 +13,7 @@
 Demo code:
 
 ```java
-package com.ociweb.oe.floglight.api;
+package com.ociweb.oe.foglight.api;
 
 
 import com.ociweb.iot.maker.FogApp;
@@ -49,8 +49,9 @@ public class HTTPClient implements FogApp
 Behavior class:
 
 ```java
-package com.ociweb.oe.floglight.api;
+package com.ociweb.oe.foglight.api;
 
+import com.ociweb.gl.api.HTTPSession;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -59,7 +60,8 @@ public class HTTPGetBehaviorChained implements StartupListener {
 	
 	private FogCommandChannel cmd;
 	private int responseId;
-
+    private HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
+	
 	public HTTPGetBehaviorChained(FogRuntime runtime, int responseId) {
 		this.cmd = runtime.newCommandChannel(NET_REQUESTER);
 		this.responseId = responseId;
@@ -68,7 +70,7 @@ public class HTTPGetBehaviorChained implements StartupListener {
 	@Override
 	public void startup() {
 		
-		cmd.httpGet("www.objectcomputing.com", "/", responseId);
+		cmd.httpGet(session, "/", responseId);
 		
 	}
 
@@ -77,29 +79,31 @@ public class HTTPGetBehaviorChained implements StartupListener {
 
 
 ```java
-package com.ociweb.oe.floglight.api;
+package com.ociweb.oe.foglight.api;
 
 import com.ociweb.gl.api.HTTPResponseListener;
 import com.ociweb.gl.api.HTTPResponseReader;
+import com.ociweb.gl.api.HTTPSession;
 import com.ociweb.gl.api.Payloadable;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.network.config.HTTPContentType;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListener {
 
 	
 	private final FogCommandChannel cmd;
-
+	private HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
+	 
 	public HTTPGetBehaviorSingle(FogRuntime runtime) {
 		cmd = runtime.newCommandChannel(NET_REQUESTER);
 	}
 
 	@Override
 	public void startup() {
-		cmd.httpGet("www.objectcomputing.com", "/");
+		cmd.httpGet(session, "/");
 	}
 
 	@Override
@@ -110,11 +114,11 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 		
 		Payloadable payload = new Payloadable() {
 			@Override
-			public void read(BlobReader reader) {
+			public void read(ChannelReader reader) {
 				System.out.println(reader.readUTFOfLength(reader.available()));
 			}
 		};
-
+		
 		reader.openPayloadData( payload );
 		
 		return true;
@@ -125,13 +129,13 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 
 
 ```java
-package com.ociweb.oe.floglight.api;
+package com.ociweb.oe.foglight.api;
 
 import com.ociweb.gl.api.HTTPResponseListener;
 import com.ociweb.gl.api.HTTPResponseReader;
 import com.ociweb.gl.api.Payloadable;
 import com.ociweb.pronghorn.network.config.HTTPContentType;
-import com.ociweb.pronghorn.pipe.BlobReader;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class HTTPResponse implements HTTPResponseListener {
 
@@ -143,7 +147,7 @@ public class HTTPResponse implements HTTPResponseListener {
 
 		Payloadable payload = new Payloadable() {
 			@Override
-			public void read(BlobReader reader) {
+			public void read(ChannelReader reader) {
 				System.out.println(reader.readUTFOfLength(reader.available()));
 			}
 		};
@@ -157,4 +161,3 @@ public class HTTPResponse implements HTTPResponseListener {
 ```
 
 
-This class is a simple demonstration of an HTTP Client. HTTP Client will send a request out to an HTTP Server. In this case, the client is sending a request to go to "www.objectcomputing.com".

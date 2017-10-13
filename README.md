@@ -7,7 +7,7 @@
 #### [Git](https://git-scm.com/)
 - which clones a template Maven project with the necessary dependencies already set up.
 #### [PuTTY](http://www.putty.org/)
-- which allows you to interact and control your device
+- which allows Windows OS to interact and control your device.
 
 ## Starting Your Own Project
 
@@ -38,7 +38,7 @@ The terminal now asks for:
 This will create a folder named after your project, which includes all the project files. Let’s call our project *ProjectXYZ*.  
 If you’re working from Terminal, open up the file  “ProjectXYZ”/src/main/java/com/ociweb/IoTApp.java . You can start implementing the project code from here. 
 
-If you’re using an IDE, open up the created Maven project - *ProjectXYZ* and start working from IoTApp.java
+If you’re using an IDE, open up the created Maven project - *ProjectXYZ* and start working from <ProjectName>.java
  
 ### Importing the Maven project in Eclipse
 Select File -> Import
@@ -90,12 +90,12 @@ After succesfully building the project, ```cd``` into the **/target** folder. No
 ```
 scp ProjectXYZ.jar username@servername:
 ``` 
-This will send the jar file to your RaspberryPi. You can also send the jar file to a specifc location by adding the file path after the colon. For example, if your username was "pi", the server name was "raspberry" and you wanted to add the .jar file to your Projects folder, the command would look like this ..
+This will send the jar file to your RaspberryPi. You can also send the jar file to a specifc location by adding the file path after the colon. For example, if your username was "pi", the server name was "raspberry" and you wanted to add the .jar file to your root "/Projects" folder, the command would look like this ..
 ```
 scp ProjectXYZ.jar pi@raspberry:/Projects/
 ```
 
-Once the project is your device, use PuTTY to connect to your device. In PuTTY, if needed, ```cd``` into the folder containging your .jar file and then use the following command on your device..
+Once the project is your device, use PuTTY (Windows) or command shell SSH to connect to your device. If needed, ```cd``` into the folder containging your .jar file and then use the following command on your device.
 ```
 java -jar ProjectXYZ.jar
 ```

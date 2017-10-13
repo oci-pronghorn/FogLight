@@ -15,11 +15,11 @@ The following sketch will demonstrate a simple use of the ```addAnalogListener()
 Demo code:
 Main Class
 
-.include ".\src\main\java\com\coiweb\oe\foglight\api\AnalogListener.java"
+.include "./src/main/java/com/ociweb/oe/foglight/api/AnalogListener.java"
 
 Behavior class 
 
-.include ".\src\main\java\com\coiweb\oe\foglight\api\AnalogListenerBehavior.java"
+.include "./src/main/java/com/ociweb/oe/foglight/api/AnalogListenerBehavior.java"
 
 These classes are a basic demo of how to use the ```AnalogListener() method```. Following it with the ```includePorts()```method will cause that listener to only listen to the ports listed. Similarly, the ```ecludePorts()``` will make that listener ignore anything coming from any ports listed. Without either of those methods, the AnalogListener will listen to any analog devices connected to any analog compatible ports. 
 In the behavior class, the overridden method will provide you with five variables, ```port```,  ```time```, ```durationMillis```, ```average```, and ```value```. 

@@ -1,4 +1,4 @@
-package com.coiweb.oe.foglight.api;
+package com.ociweb.oe.foglight.api;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

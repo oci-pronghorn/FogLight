@@ -1,1 +1,1 @@
-main=com.ociweb.oe.floglight.api.MQTTClient
+main=com.ociweb.oe.foglight.api.MQTTClient

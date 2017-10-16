@@ -5,9 +5,9 @@ import com.ociweb.gl.api.MQTTQoS;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.oe.floglight.api.behaviors.EgressBehavior;
-import com.ociweb.oe.floglight.api.behaviors.IngressBehavior;
-import com.ociweb.oe.floglight.api.behaviors.TimeBehavior;
+import com.ociweb.oe.foglight.api.behaviors.EgressBehavior;
+import com.ociweb.oe.foglight.api.behaviors.IngressBehavior;
+import com.ociweb.oe.foglight.api.behaviors.TimeBehavior;
 
 public class MQTTClient implements FogApp {
 	private MQTTBridge mqttConfig;

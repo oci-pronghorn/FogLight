@@ -15,22 +15,10 @@ public class AppTest {
 	 @Test
 	    public void testApp()
 	    {
-		    FogRuntime runtime = FogRuntime.test(new Shutdown());	    	
-	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
-	    	TestHardware hardware = (TestHardware)runtime.getHardware();
-	    
-	    	scheduler.startup();
-	    	
-	    	int iterations = 10;
-			while (--iterations >= 0) {
-				    		
-					scheduler.run();
-					
-					//test application here
-					
-			}
-			
-			scheduler.shutdown();
+		 
+		 FogRuntime.testUntilShutdownRequested(new Shutdown(), 1000);
+		 
+
 			
 	    }
 }

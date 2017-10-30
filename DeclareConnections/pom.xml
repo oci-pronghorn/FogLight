@@ -6,7 +6,7 @@
     <groupId>com.ociweb.oe.foglight.api</groupId>
     <version>1</version>
   </parent>
-  <groupId>com.coiweb.oe.foglight.api</groupId>
+  <groupId>com.ociweb.oe.foglight.api</groupId>
   <artifactId>DeclareConnections</artifactId>
   <version>1.0-SNAPSHOT</version>
   

@@ -1,9 +1,13 @@
 package com.ociweb.oe.foglight.api;
 
 
+import com.ociweb.gl.api.Behavior;
+import com.ociweb.gl.api.PubSubListener;
 import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class CustomDevice implements FogApp
 {
@@ -24,10 +28,14 @@ public class CustomDevice implements FogApp
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        //////////////////////////////
-        //Specify the desired behavior
-        //////////////////////////////
+        runtime.registerListener(new PubSubListener() {
+            FogCommandChannel ch = runtime.newCommandChannel();
 
+            @Override
+            public boolean message(CharSequence charSequence, ChannelReader channelReader) {
+                return true;
+            }
+        });
     }
           
 }

@@ -35,7 +35,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
+import com.ociweb.pronghorn.stage.scheduling.ScriptedNonThreadScheduler;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
@@ -332,10 +332,37 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		};
 	}
 
-
-
-	public static FogRuntime test(FogApp app) {
+	@Deprecated
+    public static FogRuntime test(FogApp app) {
 		FogRuntime runtime = new FogRuntime();
+        test(app, runtime);
+		return runtime;
+    }
+	
+	public static boolean testUntilShutdownRequested(FogApp app, long timeoutMS) {
+		FogRuntime runtime = new FogRuntime();
+		
+		ScriptedNonThreadScheduler s = test(app, runtime);
+        
+        long limit = System.nanoTime() + (timeoutMS*1_000_000L);
+        boolean result = true;
+        s.startup();
+    	                
+		while (!ScriptedNonThreadScheduler.isShutdownRequested(s)) {
+
+				s.run();
+				if (System.nanoTime() > limit) {
+					result = false;
+					break;
+				}
+		}		
+
+		s.shutdown();
+		return result;
+	}
+
+	public static ScriptedNonThreadScheduler test(FogApp app, FogRuntime runtime) {
+
 		//force hardware to TestHardware regardless of where or what platform its run on.
 		//this is done because this is the test() method and must behave the same everywhere.
 		runtime.builder = new TestHardware(runtime.gm, runtime.args);
@@ -349,7 +376,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
-		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.gm);
+		runtime.builder.buildStages(runtime);
 
 		runtime.logStageScheduleRates();
 
@@ -358,11 +385,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		}
 		//exportGraphDotFile();
 
-		runtime.scheduler  = new NonThreadScheduler(runtime.gm);
+		runtime.scheduler  = new ScriptedNonThreadScheduler(runtime.gm, false);
 		//= runtime.builder.createScheduler(runtime);
 		//for test we do not call startup and wait instead for this to be done by test.
 
-		return runtime;
+		return (ScriptedNonThreadScheduler)runtime.scheduler;
 	}
 
 	public static FogRuntime run(FogApp app) {
@@ -402,7 +429,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		System.out.println("To exit app press Ctrl-C");
 		runtime.builder.coldSetup(); //TODO: should we add LCD init in the PI hardware code? How do we know when its used?
 
-		runtime.builder.buildStages(runtime.subscriptionPipeLookup, runtime.gm);
+		runtime.builder.buildStages(runtime);
 		runtime.logStageScheduleRates();
 
 		logger.info("{} ms duration {} ms finished building internal graph", nowTime = System.currentTimeMillis(), nowTime-lastTime);

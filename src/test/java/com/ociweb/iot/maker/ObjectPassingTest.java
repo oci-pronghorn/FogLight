@@ -15,6 +15,7 @@ import com.ociweb.gl.api.WaitFor;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
+import com.ociweb.pronghorn.stage.scheduling.ScriptedNonThreadScheduler;
 
 public class ObjectPassingTest {
 	 
@@ -98,7 +99,7 @@ public class ObjectPassingTest {
 	    		
 	    	});
 	    	    	
-	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();
+		    ScriptedNonThreadScheduler scheduler = (ScriptedNonThreadScheduler)runtime.getScheduler();
 	    	scheduler.startup();
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    	

@@ -1,17 +1,16 @@
 package com.ociweb.iot.hardware;
 
+import static com.ociweb.iot.hardware.HardwareConnection.DEFAULT_AVERAGE_WINDOW_MS;
+
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.ociweb.iot.impl.*;
-import com.ociweb.iot.maker.*;
-import com.ociweb.iot.transducer.*;
-import com.ociweb.pronghorn.iot.schema.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgCommandChannel;
+import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.BuilderImpl;
 import com.ociweb.gl.impl.ChildClassScanner;
 import com.ociweb.gl.impl.schema.IngressMessages;
@@ -30,15 +29,18 @@ import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.impl.AnalogListenerBase;
 import com.ociweb.iot.impl.DigitalListenerBase;
 import com.ociweb.iot.impl.I2CListenerBase;
+import com.ociweb.iot.impl.ImageListenerBase;
 import com.ociweb.iot.impl.RotaryListenerBase;
 import com.ociweb.iot.impl.SerialListenerBase;
 import com.ociweb.iot.maker.Baud;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.PiImageListenerStage;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.transducer.AnalogListenerTransducer;
 import com.ociweb.iot.transducer.DigitalListenerTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
+import com.ociweb.iot.transducer.ImageListenerTransducer;
 import com.ociweb.iot.transducer.RotaryListenerTransducer;
 import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
@@ -48,6 +50,11 @@ import com.ociweb.pronghorn.iot.i2c.I2CJFFIStage;
 import com.ociweb.pronghorn.iot.i2c.impl.I2CNativeLinuxBacking;
 import com.ociweb.pronghorn.iot.rs232.RS232Client;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
+import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
@@ -61,8 +68,6 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 import com.ociweb.pronghorn.util.math.PMath;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
-
-import static com.ociweb.iot.hardware.HardwareConnection.DEFAULT_AVERAGE_WINDOW_MS;
 
 public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
@@ -576,8 +581,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		MsgCommandChannel.publishGo(count, IDX_MSG, gcc);
 	}
 
-	public void buildStages(IntHashTable subscriptionPipeLookup2, GraphManager gm2) {
+	public void buildStages(MsgRuntime runtime) {
 
+		IntHashTable subscriptionPipeLookup2 = MsgRuntime.getSubPipeLookup(runtime);
+		GraphManager gm2 = MsgRuntime.getGraphManager(runtime);
+		
 		Pipe<I2CResponseSchema>[] i2cResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, I2CResponseSchema.instance);
 		Pipe<GroveResponseSchema>[] responsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, GroveResponseSchema.instance);
 
@@ -679,7 +687,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			}
 
 			if (hasConnections) {
-				TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut, this);
+				TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut, runtime, this);
 			} else {
 				PipeCleanerStage.newInstance(gm, orderPipes[t]);
 			}

@@ -160,7 +160,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.ociweb.FogLight</mainClass>
+							<mainClass>${package}.FogLight</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

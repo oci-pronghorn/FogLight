@@ -80,7 +80,7 @@ public enum PiModel {
 				
 			int lastPos = 0;
 			try {
-				Process process = Runtime.getRuntime().exec("cat /proc/cpuinfo");
+				Process process = Runtime.getRuntime().exec("cat /proc/cpuinfo"); ///TODO: this can not be called on all boxes.
 						    			
 				InputStream stream = process.getInputStream();
 				int len = 0;

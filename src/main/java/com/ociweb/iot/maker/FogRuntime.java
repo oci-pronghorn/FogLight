@@ -112,14 +112,17 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			PiModel pm = null;
 			BeagleBoneModel bm = null;
 			I2CBacking i2cBacking = null;
-			if ((pm = PiModel.detect()) != PiModel.Unknown){
-				logger.info("Detected running on " + pm);
-				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
-			}
-//			else if((bm = BeagleBoneModel.detect()) != BeagleBoneModel.Unknown) { //NOTE: this requres Super user to run
+
+
+			//			else if((bm = BeagleBoneModel.detect()) != BeagleBoneModel.Unknown) { //NOTE: this requres Super user to run
 //				this.builder = new TestHardware(gm, args);
 //				logger.info("Detected running on " + bm);
 //			}
+			if(LinuxDesktopModel.detect() != LinuxDesktopModel.Unknown) {
+				this.builder = new TestHardware(gm, args);
+				logger.info("Detected Running on Linux, test mock hardware will be used");
+				
+			}
 			else if(WindowsDesktopModel.detect() != WindowsDesktopModel.Unknown) {
 				this.builder = new TestHardware(gm, args);
 				logger.info("Detected running on Windows, test mock hardware will be used");
@@ -130,15 +133,14 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				logger.info("Detected running on Mac, test mock hardware will be used");
 
 			}
-			else if(LinuxDesktopModel.detect() != LinuxDesktopModel.Unknown) {
-				this.builder = new TestHardware(gm, args);
-				logger.info("Detected Running on Linux, test mock hardware will be used");
-
+			else if ((pm = PiModel.detect()) != PiModel.Unknown){
+				logger.info("Detected running on " + pm);
+				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
 			}
 			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
 				logger.info("Detected running on Edison");
 				System.out.println("You are running on the Edison hardware.");
-			}
+			} 
 			else {
 				this.builder = new TestHardware(gm, args);
 				logger.info("Unrecognized hardware, test mock hardware will be used");}

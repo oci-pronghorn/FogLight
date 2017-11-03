@@ -72,79 +72,85 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		if(this.builder==null){
 
 			if (!disableHardwareDetection) {///////////////
-			//setup system for binary binding in case Zulu is found on Arm
-			//must populate os.arch as "arm" instead of "aarch32" or "aarch64" in that case, JIFFI is dependent on this value.
-			if (System.getProperty("os.arch", "unknown").contains("aarch")) {
-				System.setProperty("os.arch", "arm"); //TODO: investigate if this a bug against jiffi or zulu and inform them
-			}
-
-			long startTime = System.currentTimeMillis();
-
-			// Detect provided hardware implementation.
-			// TODO: Should this ONLY occur on Android devices?
-			try {
-				Class.forName("android.app.Activity");
-				logger.trace("Detected Android environment. Searching for {}.", PROVIDED_HARDWARE_IMPL_NAME);
-
-				try {
-					Class<?> clazz = Class.forName(PROVIDED_HARDWARE_IMPL_NAME);
-					logger.trace("Detected {}.", PROVIDED_HARDWARE_IMPL_NAME);
-					try {
-						this.builder = (HardwareImpl) clazz.getConstructor(GraphManager.class).newInstance(gm);
-						return this.builder;
-					} catch (NoSuchMethodException e) {
-						logger.warn(
-								"{} does not provide a single argument constructor that accepts a GraphManager. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME);
-					} catch (Throwable e) {
-						logger.warn(
-								"Unable to instantiate {}. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME, e);
-					}
-				} catch (ClassNotFoundException e) {
-					logger.trace("No {} is present.", PROVIDED_HARDWARE_IMPL_NAME);
+				//setup system for binary binding in case Zulu is found on Arm
+				//must populate os.arch as "arm" instead of "aarch32" or "aarch64" in that case, JIFFI is dependent on this value.
+				if (System.getProperty("os.arch", "unknown").contains("aarch")) {
+					System.setProperty("os.arch", "arm"); //TODO: investigate if this a bug against jiffi or zulu and inform them
 				}
-			} catch (ClassNotFoundException ignored) { }
-
-			logger.info("android duration {} ",System.currentTimeMillis()-startTime);
-
-			////////////////////////
-			//The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
-			///////////////////////
-			PiModel pm = null;
-			BeagleBoneModel bm = null;
-			I2CBacking i2cBacking = null;
-
-
-			//			else if((bm = BeagleBoneModel.detect()) != BeagleBoneModel.Unknown) { //NOTE: this requres Super user to run
-//				this.builder = new TestHardware(gm, args);
-//				logger.info("Detected running on " + bm);
-//			}
-			if(LinuxDesktopModel.detect() != LinuxDesktopModel.Unknown) {
-				this.builder = new TestHardware(gm, args);
-				logger.info("Detected Running on Linux, test mock hardware will be used");
+	
+				long startTime = System.currentTimeMillis();
+	
+				// Detect provided hardware implementation.
+				// TODO: Should this ONLY occur on Android devices?
+				try {
+					Class.forName("android.app.Activity");
+					logger.trace("Detected Android environment. Searching for {}.", PROVIDED_HARDWARE_IMPL_NAME);
+	
+					try {
+						Class<?> clazz = Class.forName(PROVIDED_HARDWARE_IMPL_NAME);
+						logger.trace("Detected {}.", PROVIDED_HARDWARE_IMPL_NAME);
+						try {
+							this.builder = (HardwareImpl) clazz.getConstructor(GraphManager.class).newInstance(gm);
+							return this.builder;
+						} catch (NoSuchMethodException e) {
+							logger.warn(
+									"{} does not provide a single argument constructor that accepts a GraphManager. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME);
+						} catch (Throwable e) {
+							logger.warn(
+									"Unable to instantiate {}. Continuing native hardware detection.", PROVIDED_HARDWARE_IMPL_NAME, e);
+						}
+					} catch (ClassNotFoundException e) {
+						logger.trace("No {} is present.", PROVIDED_HARDWARE_IMPL_NAME);
+					}
+				} catch (ClassNotFoundException ignored) { }
+	
+				logger.info("android duration {} ",System.currentTimeMillis()-startTime);
+	
+				////////////////////////
+				//The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
+				///////////////////////
+				PiModel pm = null;
+				BeagleBoneModel bm = null;
+				I2CBacking i2cBacking = null;
+	
+	
+				//			else if((bm = BeagleBoneModel.detect()) != BeagleBoneModel.Unknown) { //NOTE: this requres Super user to run
+	//				this.builder = new TestHardware(gm, args);
+	//				logger.info("Detected running on " + bm);
+	//			}
 				
-			}
-			else if(WindowsDesktopModel.detect() != WindowsDesktopModel.Unknown) {
-				this.builder = new TestHardware(gm, args);
-				logger.info("Detected running on Windows, test mock hardware will be used");
-			}
-
-			else if(MacModel.detect() != MacModel.Unknown) {
-				this.builder = new TestHardware(gm, args);
-				logger.info("Detected running on Mac, test mock hardware will be used");
-
-			}
-			else if ((pm = PiModel.detect()) != PiModel.Unknown){
-				logger.info("Detected running on " + pm);
-				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
-			}
-			else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
-				logger.info("Detected running on Edison");
-				System.out.println("You are running on the Edison hardware.");
-			} 
-			else {
-				this.builder = new TestHardware(gm, args);
-				logger.info("Unrecognized hardware, test mock hardware will be used");}
-			} else {
+				
+				if ((pm = PiModel.detect()) != PiModel.Unknown){ 
+					logger.info("Detected running on " + pm);
+					this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
+					
+				} 
+				else if(LinuxDesktopModel.detect() != LinuxDesktopModel.Unknown) {
+					this.builder = new TestHardware(gm, args);
+					logger.info("Detected Running on Linux, test mock hardware will be used");
+					
+				}
+				else if(WindowsDesktopModel.detect() != WindowsDesktopModel.Unknown) {
+					this.builder = new TestHardware(gm, args);
+					logger.info("Detected running on Windows, test mock hardware will be used");
+				}
+	
+				else if(MacModel.detect() != MacModel.Unknown) {
+					this.builder = new TestHardware(gm, args);
+					logger.info("Detected running on Mac, test mock hardware will be used");
+	
+				}
+				else if (null != (this.builder = new GroveV3EdisonImpl(gm, args, edI2C)).getI2CBacking() ) {
+					logger.info("Detected running on Edison");
+					System.out.println("You are running on the Edison hardware.");
+				} 
+				else {
+					this.builder = new TestHardware(gm, args);
+					logger.info("Unrecognized hardware, test mock hardware will be used");
+				}
+			} else 
+			
+			{
 				this.builder = new TestHardware(gm, args);
 				logger.info("Hardware detection disabled on the command line, now using mock hardware.");
 			}

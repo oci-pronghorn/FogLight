@@ -116,10 +116,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				logger.info("Detected running on " + pm);
 				this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
 			}
-			else if((bm = BeagleBoneModel.detect()) != BeagleBoneModel.Unknown) {
-				this.builder = new TestHardware(gm, args);
-				logger.info("Detected running on " + bm);
-			}
+//			else if((bm = BeagleBoneModel.detect()) != BeagleBoneModel.Unknown) { //NOTE: this requres Super user to run
+//				this.builder = new TestHardware(gm, args);
+//				logger.info("Detected running on " + bm);
+//			}
 			else if(WindowsDesktopModel.detect() != WindowsDesktopModel.Unknown) {
 				this.builder = new TestHardware(gm, args);
 				logger.info("Detected running on Windows, test mock hardware will be used");

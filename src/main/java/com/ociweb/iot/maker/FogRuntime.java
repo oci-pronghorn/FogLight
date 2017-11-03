@@ -125,16 +125,15 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 					this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
 					
 				} 
-				else if(LinuxDesktopModel.detect() != LinuxDesktopModel.Unknown) {
-					this.builder = new TestHardware(gm, args);
-					logger.info("Detected Running on Linux, test mock hardware will be used");
-					
-				}
 				else if(WindowsDesktopModel.detect() != WindowsDesktopModel.Unknown) {
 					this.builder = new TestHardware(gm, args);
 					logger.info("Detected running on Windows, test mock hardware will be used");
 				}
-	
+				else if(LinuxDesktopModel.detect() != LinuxDesktopModel.Unknown) {
+					this.builder = new TestHardware(gm, args);
+					logger.info("Detected Running on Linux, test mock hardware will be used");
+					
+				}	
 				else if(MacModel.detect() != MacModel.Unknown) {
 					this.builder = new TestHardware(gm, args);
 					logger.info("Detected running on Mac, test mock hardware will be used");

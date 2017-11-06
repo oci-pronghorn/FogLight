@@ -216,9 +216,21 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                                 return;
                             }//leave ourselves the padding
                         }
-                        while (hardware.nanoTime()<blockStartTime){
-                            Thread.yield();
+                        
+                        long waitNano = (blockStartTime-hardware.nanoTime());
+                        if (waitNano>1) {
+                        	
+                        	try {
+								Thread.sleep(waitNano/1_000_000, (int)(waitNano%1_000_000));
+							} catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+							}
                         }
+                        //old implementation...                        
+//                        while (hardware.nanoTime()<blockStartTime){
+//                            Thread.yield();
+//                        }
+                        
                     }
                 }
                 

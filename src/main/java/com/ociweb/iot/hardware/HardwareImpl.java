@@ -686,9 +686,12 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 				maxGoPipeId = populateGoAckPipes(maxGoPipeId, masterGoOut, masterAckIn, goOut, ackIn, IDX_SER);
 			}
 
-			if (hasConnections) {
+			if (true | hasConnections) {
 				TrafficCopStage trafficCopStage = new TrafficCopStage(gm, timeout, orderPipes[t], ackIn, goOut, runtime, this);
 			} else {
+				//this optimization can no longer be done due to the use of shutdown on command channel.
+				//    revisit this later...
+				//TODO: we can reintroduce this as long has we have a stage here which does shutdown on -1;
 				PipeCleanerStage.newInstance(gm, orderPipes[t]);
 			}
 		}

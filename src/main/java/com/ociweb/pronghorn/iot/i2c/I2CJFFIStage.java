@@ -12,6 +12,7 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
+import com.ociweb.pronghorn.network.mqtt.MQTTClientGraphBuilder;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -108,6 +109,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         rate = (Number)GraphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
         
         processInputs = hardware.hasI2CInputs() && hasListeners();
+        
+		GraphManager.addNota(graphManager, GraphManager.DOT_BACKGROUND, "darksalmon", this);
+
     }
     
     @Override

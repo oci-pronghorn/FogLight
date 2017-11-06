@@ -25,12 +25,12 @@ public abstract class AccerometerValues implements MagValsListener, AccelValsLis
 
     @Override
     public AccelerometerMagScale getMagneticScale() {
-        return AccelerometerMagScale.gauss8;
+        return AccelerometerMagScale.gauss2;
     }
 
     @Override
     public AccelerometerMagRes getMagneticRes() {
-        return AccelerometerMagRes.low;
+        return AccelerometerMagRes.high;
     }
 
     @Override

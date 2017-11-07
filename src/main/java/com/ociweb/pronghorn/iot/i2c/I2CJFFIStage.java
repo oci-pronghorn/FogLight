@@ -145,7 +145,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
             timeOut = hardware.nanoTime() + (writeTime*35_000_000);
             while(!i2cBacking.write(connection.address,
                     connection.setup,
-                    connection.setup.length) && hardware.nanoTime()<timeOut){};
+                    connection.setup.length) && hardware.nanoTime()<timeOut){
+            	
+            		};
                     if (hardware.nanoTime()>timeOut) {
                         logger.warn("on setup failed to get I2C bus master, waited 35ms");
                         //timeout trying to get the i2c bus
@@ -155,16 +157,25 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                     if(connection.readBytesAtStartUp > 0){ // doing i2c read at start up
                         
                         long delayAfterRequestNS = connection.delayAfterRequestNS;
+                        long delayUntil = hardware.nanoTime()+delayAfterRequestNS;
+                        
                         if (delayAfterRequestNS>0) {
                             try {
+                            	//some slow platforms will not sleep long enough so we spin yield below
                                 Thread.sleep(delayAfterRequestNS/1_000_000,(int) (delayAfterRequestNS%1_000_000));
+                                long dif;
+                                while ((dif = (delayUntil-hardware.nanoTime()))>0) {
+                                	if (dif>100) {
+                                		Thread.yield();
+                                	}
+                                }
                             } catch (InterruptedException e) {
                                 Thread.currentThread().interrupt();
                                 requestShutdown();
                                 return;
                             }
+            				
                         }
-                     
                         
                         PipeWriter.presumeWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
                         PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, connection.address);
@@ -211,26 +222,17 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         if (block > 0) {
                             try {
                                 Thread.sleep(block/1_000_000,(int)(block%1_000_000));
+                                long dif;
+                                while ((dif = (blockStartTime-hardware.nanoTime()))>0) {
+                                	if (dif>100) {
+                                		Thread.yield();
+                                	}
+                                }
                             } catch (InterruptedException e) {
                                 requestShutdown();
                                 return;
-                            }//leave ourselves the padding
+                            }//some slow platforms will NOT sleep long enough above so we spin below.
                         }
-                        
-                        long waitNano = (blockStartTime-hardware.nanoTime());
-                        if (waitNano>1) {
-                        	
-                        	try {
-								Thread.sleep(waitNano/1_000_000, (int)(waitNano%1_000_000));
-							} catch (InterruptedException e) {
-								Thread.currentThread().interrupt();
-							}
-                        }
-                        //old implementation...                        
-//                        while (hardware.nanoTime()<blockStartTime){
-//                            Thread.yield();
-//                        }
-                        
                     }
                 }
                 
@@ -266,23 +268,27 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         }
                         
                         long delayAfterRequestNS = this.inputs[inProgressIdx].delayAfterRequestNS;
+                        long delayUntil = hardware.nanoTime()+delayAfterRequestNS;
+                        
                         if (delayAfterRequestNS>0) {
                             try {
+                            	//some slow platforms will not sleep long enough so we spin yield below
                                 Thread.sleep(delayAfterRequestNS/1_000_000,(int) (delayAfterRequestNS%1_000_000));
+                                long dif;
+                                while ((dif = (delayUntil-hardware.nanoTime()))>0) {
+                                	if (dif>100) {
+                                		Thread.yield();
+                                	}
+                                }
                             } catch (InterruptedException e) {
                                 Thread.currentThread().interrupt();
                                 requestShutdown();
                                 return;
                             }
+                            
+                            
                         }
-                        
-                        //DO Not delete this block until after we have tested this code with the metronome and traffic lights...
-                        //long now = System.nanoTime();
-                        //long limit = now + delayAfterRequestNS;
-                        //while(System.nanoTime() < limit) {
-                        //do nothing in here, this is very short and we must get off the bus as fast as possible.
-                        //}
-                        
+
                         //logger.info("i2c reading result {} delay before read {} ",Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )),this.inputs[inProgressIdx].delayAfterRequestNS);
                         
                         PipeWriter.presumeWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);

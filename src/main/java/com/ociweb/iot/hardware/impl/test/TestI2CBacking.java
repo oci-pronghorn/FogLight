@@ -66,6 +66,8 @@ public class TestI2CBacking implements I2CBacking{
 		return this;
 	}
 
+	boolean reportedTestHardwareRequest = false;
+	
 	@Override
 	public byte[] read(byte address, byte[] target, int length) throws IllegalStateException {
 		if (!configured) {
@@ -75,8 +77,11 @@ public class TestI2CBacking implements I2CBacking{
 		if (null != responses[address]) {    		
 			System.arraycopy(responses[address], 0, target, 0, Math.min(length, responseLengths[address]));
 		} else {
-			//for this case the developer did not provide test data
-			logger.warn("Test hardware was asked for I2C read on address {} but nothing was prepared to be sent back. call hardware.setI2CValueToRead((byte){},data,len) to prevent this warning.", address,address);
+			if (!reportedTestHardwareRequest) {
+				//for this case the developer did not provide test data
+				logger.warn("Test hardware was asked for I2C read on address {} but nothing was prepared to be sent back. call hardware.setI2CValueToRead((byte){},data,len) to prevent this warning.", address,address);
+				reportedTestHardwareRequest = true;
+			}
 		}
 		return target;
 

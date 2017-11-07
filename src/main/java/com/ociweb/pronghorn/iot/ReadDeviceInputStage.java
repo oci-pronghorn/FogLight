@@ -89,6 +89,9 @@ public class ReadDeviceInputStage extends PronghornStage {
 		GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);   
 				
 		rate = (Number)GraphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
+		
+		GraphManager.addNota(graphManager, GraphManager.DOT_BACKGROUND, "darksalmon", this);
+		
 	}
 
 
@@ -184,12 +187,19 @@ public class ReadDeviceInputStage extends PronghornStage {
 				
 				//only check time AFTER we know that there is room on the outgoing pipe.
 				int overhead = 40;//40ns
-				long wait = (blockStartTime -hardware.nanoTime()) - overhead;
+				long wait = (blockStartTime - hardware.nanoTime()) - overhead;
 				if (wait>0) {
 					//we must wait a little longer to ensure we 
 					//do not hit the time target too early.
 					try {
 						Thread.sleep(wait/1_000_000, (int)(wait%1_000_000));
+                        long dif;
+                        while ((dif = (blockStartTime - hardware.nanoTime()))>0) {
+                        	if (dif>100) {
+                        		Thread.yield();
+                        	}
+                        }
+						
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 						requestShutdown();

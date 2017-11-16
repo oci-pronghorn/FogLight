@@ -21,7 +21,7 @@ public class HTTPServer implements FogApp
     @Override
     public void declareConnections(Hardware c) {
         
-		c.enableServer(false, 8088);    	
+		c.enableServer(false, false, "0.0.0.0", 8088);    	
 		emptyResponseRouteId = c.registerRoute("/testpageA?arg=#{myarg}", cookieHeader);
 		smallResponseRouteId = c.registerRoute("/testpageB");
 		largeResponseRouteId = c.registerRoute("/testpageC", cookieHeader);

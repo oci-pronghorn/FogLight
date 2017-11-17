@@ -60,7 +60,7 @@ public class MQTTClient implements FogApp {
 				.addSubscription(internalIngressTopic, mqttBrokerListener::receiveMqttMessage);
 
 		// Inject the listener for "localtest"
-		EgressBehavior doTheBusiness = new EgressBehavior();
+		EgressBehavior doTheBusiness = new EgressBehavior(runtime);
 		runtime.registerListener(doTheBusiness)
 				.addSubscription(localTestTopic, doTheBusiness::receiveTestTopic);
 	}

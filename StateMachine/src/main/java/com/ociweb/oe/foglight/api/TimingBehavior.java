@@ -8,7 +8,7 @@ import com.ociweb.oe.foglight.api.StateMachine.StopLight;
 public class TimingBehavior implements TimeListener {
 	private static long startTime;
 	private static boolean haveStartTime = false;
-	private static final long fullTime = 15_000; //time from one red light to the next in milliseconds
+	private static final long fullTime = 15; //time from one red light to the next in milliseconds
     final FogCommandChannel channel;
 
 	public TimingBehavior(FogRuntime runtime) {
@@ -20,11 +20,11 @@ public class TimingBehavior implements TimeListener {
 	@Override
 	public void timeEvent(long time, int iteration) {
 		
-		if((time-startTime)%fullTime == 5_000) {
+		if((time-startTime)%fullTime == 5) {
 			System.out.print("Go! ");
 			channel.changeStateTo(StopLight.Go);
 		}
-		else if((time-startTime)%fullTime == 10_000) {
+		else if((time-startTime)%fullTime == 10) {
 			System.out.print("Caution. ");
 			channel.changeStateTo(StopLight.Caution);
 		}

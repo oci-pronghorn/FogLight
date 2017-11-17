@@ -1,14 +1,13 @@
 package com.ociweb.oe.foglight.api;
 
+import com.ociweb.gl.api.StartupListener;
+import com.ociweb.iot.maker.*;
+
 import static com.ociweb.iot.grove.oled.OLEDTwig.OLED_96x96;
 import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Button;
 import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.Buzzer;
 import static com.ociweb.iot.maker.Port.D2;
 import static com.ociweb.iot.maker.Port.D3;
-
-import com.ociweb.gl.api.PubSubListener;
-import com.ociweb.iot.maker.*;
-import com.ociweb.pronghorn.pipe.ChannelReader;
 
 public class DeclareConnections implements FogApp
 {
@@ -41,14 +40,7 @@ public class DeclareConnections implements FogApp
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-		runtime.registerListener(new PubSubListener() {
-			FogCommandChannel ch = runtime.newCommandChannel();
-
-			@Override
-			public boolean message(CharSequence charSequence, ChannelReader channelReader) {
-				return true;
-			}
-		});
+		runtime.registerListener((StartupListener) runtime::shutdownRuntime);
 
     }
           

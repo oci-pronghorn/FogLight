@@ -24,7 +24,7 @@ public class MQTTClient implements FogApp {
 		//final String brokerHost = "thejoveexpress.local"; // Raspberry Pi0
 		//final String brokerHost = "badbroker"; // Raspberry Pi0
 		// Create a single mqtt client
-		mqttConfig = builder.useMQTT(brokerHost, 1883, false, "MQTTClientTest",200) //default of 10 in flight
+		mqttConfig = builder.useMQTT(brokerHost, 1883, "MQTTClientTest",200) //default of 10 in flight
 							.cleanSession(true)	
 							.keepAliveSeconds(10);
 
@@ -60,7 +60,7 @@ public class MQTTClient implements FogApp {
 				.addSubscription(internalIngressTopic, mqttBrokerListener::receiveMqttMessage);
 
 		// Inject the listener for "localtest"
-		EgressBehavior doTheBusiness = new EgressBehavior();
+		EgressBehavior doTheBusiness = new EgressBehavior(runtime);
 		runtime.registerListener(doTheBusiness)
 				.addSubscription(localTestTopic, doTheBusiness::receiveTestTopic);
 	}

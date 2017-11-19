@@ -44,7 +44,7 @@ public class StateMachine implements FogApp
 
         
         runtime.addTimePulseListener(new TimingBehavior(runtime));
-		runtime.addStateChangeListener(new StateChangeBehavior());
+		runtime.addStateChangeListener(new StateChangeBehavior(runtime));
     }
           
 }

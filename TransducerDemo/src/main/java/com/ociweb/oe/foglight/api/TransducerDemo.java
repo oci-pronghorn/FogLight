@@ -1,13 +1,13 @@
 package com.ociweb.oe.foglight.api;
 
 
-import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.*;
-import static com.ociweb.iot.maker.Port.A1;
-
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.LightSensor;
+import static com.ociweb.iot.maker.Port.A1;
 
 public class TransducerDemo implements FogApp
 {
@@ -26,7 +26,7 @@ public class TransducerDemo implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-    	runtime.registerListener(new CustomSumTransducerBehavior());
+    	runtime.registerListener(new CustomSumTransducerBehavior(runtime));
     }
           
 }

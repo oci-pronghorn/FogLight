@@ -12,6 +12,7 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.Port;
+import com.ociweb.pronghorn.network.NetGraphBuilder;
 public class IoTApp implements FogApp
 {
 	private static final Port LED3_PORT = D5;
@@ -53,7 +54,8 @@ public class IoTApp implements FogApp
 		c.connect(LED, LED3_PORT);
 
 		if (isWebControlled) {
-			c.enableServer(8088);			
+			c.useHTTP1xServer(8088).setHost(NetGraphBuilder.bindHost());
+						
 		//	c.enableTelemetry(true);			
 			webRoute = c.registerRoute("/trafficLight?color=${color}");
 

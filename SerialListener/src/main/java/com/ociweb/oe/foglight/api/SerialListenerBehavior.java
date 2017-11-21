@@ -16,7 +16,7 @@ public class SerialListenerBehavior implements SerialListener {
 	private final static Logger logger = LoggerFactory.getLogger(SerialListenerBehavior.class);
 	
 	private byte[] myBuffer = new byte[10];
-	private int timeToLive = 10;
+	private int timeToLive = 2;
 	private final Appendable builder;
 	
 	SerialListenerBehavior(Appendable builder, FogRuntime runtime) {

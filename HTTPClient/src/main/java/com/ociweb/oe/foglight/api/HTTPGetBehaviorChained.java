@@ -8,18 +8,18 @@ import com.ociweb.iot.maker.FogRuntime;
 public class HTTPGetBehaviorChained implements StartupListener {
 	
 	private FogCommandChannel cmd;
-	private int responseId;
-    private HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
 	
-	public HTTPGetBehaviorChained(FogRuntime runtime, int responseId) {
+    private HTTPSession session;
+	
+	public HTTPGetBehaviorChained(FogRuntime runtime, HTTPSession session) {
 		this.cmd = runtime.newCommandChannel(NET_REQUESTER);
-		this.responseId = responseId;
+		this.session = session;
 	}
 
 	@Override
 	public void startup() {
 		
-		cmd.httpGet(session, "/", responseId);
+		cmd.httpGet(session, "/");
 		
 	}
 

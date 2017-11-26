@@ -2,6 +2,7 @@ package com.ociweb.iot.maker;
 
 import java.util.ArrayList;
 
+import com.ociweb.gl.api.TelemetryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -393,8 +394,13 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		runtime.logStageScheduleRates();
 
 		TelemetryConfig telemetryConfig = runtime.builder.getTelemetryConfig();
+<<<<<<< HEAD
 		if (telemetryConfig != null) {
 			runtime.telemetryHost = runtime.gm.enableTelemetry(telemetryConfig.getHost(), telemetryConfig.getPort());
+=======
+		if ( telemetryConfig != null) {
+			runtime.gm.enableTelemetry(telemetryConfig.getHost(),telemetryConfig.getPort());
+>>>>>>> branch 'master' of https://github.com/oci-pronghorn/FogLight.git
 		}
 		
 		//exportGraphDotFile();
@@ -450,8 +456,14 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		lastTime = nowTime;
 
 		TelemetryConfig telemetryConfig = runtime.builder.getTelemetryConfig();
+<<<<<<< HEAD
 		if (telemetryConfig != null) {
 			runtime.telemetryHost = runtime.gm.enableTelemetry(telemetryConfig.getHost(), telemetryConfig.getPort());
+=======
+		if ( telemetryConfig != null) {
+			runtime.gm.enableTelemetry(telemetryConfig.getHost(),telemetryConfig.getPort());
+			logger.info("{} ms duration {} ms finished building telemetry", lastTime = nowTime = System.currentTimeMillis(), nowTime-lastTime);
+>>>>>>> branch 'master' of https://github.com/oci-pronghorn/FogLight.git
 		}
 
 		//exportGraphDotFile();

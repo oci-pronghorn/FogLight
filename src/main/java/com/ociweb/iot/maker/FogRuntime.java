@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.MsgRuntime;
+import com.ociweb.gl.api.TelemetryConfig;
 import com.ociweb.gl.impl.ChildClassScanner;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
@@ -302,7 +303,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		
 		configureStageRate(listener, reactiveListener);
 		
+		//TODO: this is a new test adding this pipe.
         if (httpClientPipeId != netResponsePipeIdx) {
+        	//TODO: We need to add all the Sessions however we do not know this until later.
+        	//      
+        	
         	reactiveListener.configureHTTPClientResponseSupport(httpClientPipeId);
         }
 		
@@ -387,9 +392,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		runtime.logStageScheduleRates();
 
-		if ( runtime.builder.isTelemetryEnabled()) {
-			runtime.gm.enableTelemetry(runtime.builder.telemetryHost(),8098);
+		TelemetryConfig telemetryConfig = runtime.builder.getTelemetryConfig();
+		if (telemetryConfig != null) {
+			runtime.telemetryHost = runtime.gm.enableTelemetry(telemetryConfig.getHost(), telemetryConfig.getPort());
 		}
+		
 		//exportGraphDotFile();
 
 		runtime.scheduler  = new ScriptedNonThreadScheduler(runtime.gm, false);
@@ -442,10 +449,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		logger.info("{} ms duration {} ms finished building internal graph", nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		lastTime = nowTime;
 
-		if ( runtime.builder.isTelemetryEnabled()) {
-			runtime.gm.enableTelemetry(runtime.builder.telemetryHost(),8098);
-			logger.info("{} ms duration {} ms finished building telemetry", lastTime = nowTime = System.currentTimeMillis(), nowTime-lastTime);
+		TelemetryConfig telemetryConfig = runtime.builder.getTelemetryConfig();
+		if (telemetryConfig != null) {
+			runtime.telemetryHost = runtime.gm.enableTelemetry(telemetryConfig.getHost(), telemetryConfig.getPort());
 		}
+
 		//exportGraphDotFile();
 
 		runtime.scheduler = runtime.builder.createScheduler(runtime);

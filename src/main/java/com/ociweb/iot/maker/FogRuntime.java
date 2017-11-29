@@ -1,6 +1,7 @@
 package com.ociweb.iot.maker;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.ociweb.gl.api.TelemetryConfig;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.api.TelemetryConfig;
 import com.ociweb.gl.impl.ChildClassScanner;
+import com.ociweb.gl.impl.PrivateTopic;
 import com.ociweb.gl.impl.schema.MessagePubSub;
 import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
@@ -36,6 +38,7 @@ import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.ScriptedNonThreadScheduler;
 
@@ -237,9 +240,52 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	public ListenerFilterIoT addI2CListener(I2CListener listener) {
 		return registerListenerImpl(listener);
 	}
+	
+	////
+	
+
+	public ListenerFilterIoT addRotaryListener(String id, RotaryListener listener) {
+		return registerListener(id, listener);
+	}
+
+	public ListenerFilterIoT addAnalogListener(String id, AnalogListener listener) {
+		return registerListener(id, listener);
+	}
+
+	public ListenerFilterIoT addDigitalListener(String id, DigitalListener listener) {
+		return registerListener(id, listener);
+	}
+
+	public ListenerFilterIoT addSerialListener(String id, SerialListener listener) {
+		return registerListener(id, listener);
+	}
+
+	public ListenerFilterIoT registerListener(String id, Behavior listener) {
+		return registerListenerImpl(id, listener);
+	}
+
+	public ListenerFilterIoT addImageListener(String id, ImageListener listener) {
+		switch (builder.getPlatformType()) {
+			case GROVE_PI:
+				return registerListener(id, listener);
+			default:
+				throw new UnsupportedOperationException("Image listeners are not supported for [" +
+						builder.getPlatformType() +
+						"] hardware");
+		}
+	}
+
+	public ListenerFilterIoT addI2CListener(String id, I2CListener listener) {
+		return registerListenerImpl(id, listener);
+	}
 
 	private ListenerFilterIoT registerListenerImpl(Behavior listener) {
+		return registerListenerImpl(null, listener);
+	}
+	
+	private ListenerFilterIoT registerListenerImpl(String id, Behavior listener) {
 
+		
 		outputPipes = new Pipe<?>[0];
 		ChildClassScanner.visitUsedByClass(listener, gatherPipesVisitor, MsgCommandChannel.class);//populates OutputPipes
 
@@ -296,10 +342,29 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		if (transducerAutowiring) {
 			inputPipes = autoWireTransducers(listener, inputPipes, consumers);
 		}
+		
+
+		if (null!=id) {
+			
+			List<PrivateTopic> sourceTopics = builder.getPrivateTopicsFromSource(id);
+			int i = sourceTopics.size();
+			while (--i>=0) {
+				outputPipes = PronghornStage.join(outputPipes, sourceTopics.get(i).getPipe());				
+			}
+						
+			List<PrivateTopic> targetTopics = builder.getPrivateTopicsFromTarget(id);
+			int j = targetTopics.size();
+			while (--j>=0) {
+				inputPipes = PronghornStage.join(inputPipes, targetTopics.get(i).getPipe());
+			}
+						
+		}
 
 		ReactiveIoTListenerStage reactiveListener = builder.createReactiveListener(
 				                                    gm, listener,
-													inputPipes, outputPipes, consumers,
+													inputPipes, 
+													outputPipes, 
+													consumers,
 													parallelInstanceUnderActiveConstruction);
 		
 		configureStageRate(listener, reactiveListener);

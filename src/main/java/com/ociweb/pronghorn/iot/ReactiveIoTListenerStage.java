@@ -85,7 +85,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
         		SerialInputSchema.instance,
        		 new ReactiveOperator() {
 			@Override
-			public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+			public void apply(int index, Object target, Pipe input, ReactiveListenerStage r) {
 				((ReactiveIoTListenerStage)r).consumeSerialMessage((SerialListenerBase)target, input);										
 			}        		                	 
         })
@@ -93,7 +93,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 					 ImageSchema.instance,
 					 new ReactiveOperator() {
 			 @Override
-			 public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+			 public void apply(int index, Object target, Pipe input, ReactiveListenerStage r) {
 				 ((ReactiveIoTListenerStage) r).consumeImageMessage((ImageListenerBase) target, input);
 			 }
 		 })
@@ -101,7 +101,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
         		GroveResponseSchema.instance,
 	       		 new ReactiveOperator() {
 				@Override
-				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+				public void apply(int index, Object target, Pipe input, ReactiveListenerStage r) {
 					((ReactiveIoTListenerStage)r).consumeResponseMessage(target, input);										
 				}        		                	 
 	        })
@@ -109,7 +109,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
         		GroveResponseSchema.instance,
 	       		 new ReactiveOperator() {
 				@Override
-				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+				public void apply(int index, Object target, Pipe input, ReactiveListenerStage r) {
 					((ReactiveIoTListenerStage)r).consumeResponseMessage(target, input);										
 				}        		                	 
 	        })
@@ -117,7 +117,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
         		GroveResponseSchema.instance,
 	       		 new ReactiveOperator() {
 				@Override
-				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+				public void apply(int index, Object target, Pipe input, ReactiveListenerStage r) {
 					((ReactiveIoTListenerStage)r).consumeResponseMessage(target, input);										
 				}        		                	 
 	        })
@@ -125,7 +125,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
         		I2CResponseSchema.instance,
 	       		 new ReactiveOperator() {
 				@Override
-				public void apply(Object target, Pipe input, ReactiveListenerStage r) {
+				public void apply(int index, Object target, Pipe input, ReactiveListenerStage r) {
 					((ReactiveIoTListenerStage)r).consumeI2CMessage(target, input);										
 				}        		                	 
 	        });    	

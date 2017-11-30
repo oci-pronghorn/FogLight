@@ -135,10 +135,10 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
     		                        Pipe<?>[] inputPipes, 
     		                        Pipe<?>[] outputPipes, 
     		                        ArrayList<ReactiveManagerPipeConsumer> consumers,
-    		                        HardwareImpl hardware, int parallelInstance) {
+    		                        HardwareImpl hardware, int parallelInstance, String nameId) {
 
         
-        super(graphManager, listener, inputPipes, outputPipes, consumers, hardware, parallelInstance);
+        super(graphManager, listener, inputPipes, outputPipes, consumers, hardware, parallelInstance, nameId);
 
         if (listener instanceof DigitalListener) {
         	toStringDetails = toStringDetails + "DigitalListener\n";

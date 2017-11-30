@@ -27,8 +27,8 @@ public class DexterGrovePiReactiveListenerStage extends ReactiveIoTListenerStage
 	public DexterGrovePiReactiveListenerStage(GraphManager graphManager, Behavior listener, 
 			                                  Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, 
 			                                  ArrayList<ReactiveManagerPipeConsumer> consumers,
-			                                  HardwareImpl hardware, int parallelInstance) {
-		super(graphManager, listener, inputPipes, outputPipes, consumers, hardware, parallelInstance);
+			                                  HardwareImpl hardware, int parallelInstance, String nameId) {
+		super(graphManager, listener, inputPipes, outputPipes, consumers, hardware, parallelInstance, nameId);
 	}
     
     

@@ -113,8 +113,9 @@ public class GrovePiHardwareImpl extends HardwareImpl {
 
 	@Override
 	public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
-			Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, ArrayList<ReactiveManagerPipeConsumer> consumers, int parallelInstance) {
-		return (R)new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, consumers, this, parallelInstance); 
+			Pipe<?>[] inputPipes, Pipe<?>[] outputPipes, ArrayList<ReactiveManagerPipeConsumer> consumers,
+			int parallelInstance, String id) {
+		return (R)new DexterGrovePiReactiveListenerStage(gm, listener, inputPipes, outputPipes, consumers, this, parallelInstance, id); 
 	}
 
 	@Override

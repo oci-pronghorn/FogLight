@@ -365,7 +365,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 													inputPipes, 
 													outputPipes, 
 													consumers,
-													parallelInstanceUnderActiveConstruction);
+													parallelInstanceUnderActiveConstruction, id);
 		
 		configureStageRate(listener, reactiveListener);
 		

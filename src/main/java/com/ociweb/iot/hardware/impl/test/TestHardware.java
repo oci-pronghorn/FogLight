@@ -199,11 +199,11 @@ public class TestHardware extends HardwareImpl {
     public <R extends ReactiveListenerStage> R createReactiveListener(GraphManager gm,  Behavior listener, 
     		                                                 Pipe<?>[] inputPipes, Pipe<?>[] outputPipes,
     		                                                 ArrayList<ReactiveManagerPipeConsumer> consumers,
-    		                                                 int parallelInstance) {
+    		                                                 int parallelInstance, String nameId) {
         assert(null!=listener);
     	return (R)new ReactiveIoTListenerStage(gm, listener,
         		                               inputPipes, outputPipes, 
-        		                               consumers, this, parallelInstance);
+        		                               consumers, this, parallelInstance, nameId);
     }
 	public final boolean isTestHardware() {
 		return true;

@@ -14,10 +14,11 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 
 	
 	private final FogCommandChannel cmd;
-	private HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
+	private HTTPSession session;
 	 
-	public HTTPGetBehaviorSingle(FogRuntime runtime) {
+	public HTTPGetBehaviorSingle(FogRuntime runtime, HTTPSession session) {
 		cmd = runtime.newCommandChannel(NET_REQUESTER);
+		this.session = session;
 	}
 
 	@Override

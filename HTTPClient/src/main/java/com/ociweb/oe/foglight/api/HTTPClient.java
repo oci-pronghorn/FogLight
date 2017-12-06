@@ -19,8 +19,9 @@ public class HTTPClient implements FogApp
     public void declareBehavior(FogRuntime runtime) {       
     	HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
     	
-    	HTTPGetBehaviorSingle temp = new HTTPGetBehaviorSingle(runtime);
-		runtime.addStartupListener(temp);
+    	session = new HTTPSession("www.objectcomputing.com",80,1);
+    	HTTPGetBehaviorSingle temp = new HTTPGetBehaviorSingle(runtime, session);
+		runtime.addStartupListener(temp).includeHTTPSession(session);
 			   	
     	
     	runtime.addResponseListener(new HTTPResponse()).includeHTTPSession(session);

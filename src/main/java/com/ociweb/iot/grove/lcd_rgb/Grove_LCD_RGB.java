@@ -556,9 +556,10 @@ public class Grove_LCD_RGB implements IODevice {
     private static void writeCharSequenceToRegister(FogCommandChannel target, int address, int register, CharSequence values, int startIdx, int length) {
         DataOutputBlobWriter<I2CCommandSchema> i2cPayloadWriter = target.i2cCommandOpen(address);
 
-        i2cPayloadWriter.writeByte(register);
-        i2cPayloadWriter.writeASCII(values.subSequence(startIdx, startIdx + length));
-
+        i2cPayloadWriter.writeByte(register);        
+        while(--length>=0) {//assumes ASCII only chars due to hardware limitation
+        	i2cPayloadWriter.writeByte(values.charAt(startIdx++));
+        }
         target.i2cCommandClose(i2cPayloadWriter);
     }
 

@@ -14,14 +14,19 @@ public class HTTPServer implements FogApp
 	int smallResponseRouteId;
 	int largeResponseRouteId;
 	int fileServerId;
+	int port;
 	
 	
 	byte[] myArgName = "myarg".getBytes();
 	
+	public HTTPServer(int port) {
+		this.port = port;
+	}
+	
     @Override
     public void declareConnections(Hardware c) {
         
-        c.useHTTP1xServer(8088).setHost("0.0.0.0").useInsecureServer();
+        c.useHTTP1xServer(port).setHost("0.0.0.0").useInsecureServer();
 		emptyResponseRouteId = c.registerRoute("/testpageA?arg=#{myarg}", cookieHeader);
 		smallResponseRouteId = c.registerRoute("/testpageB");
 		largeResponseRouteId = c.registerRoute("/testpageC", cookieHeader);

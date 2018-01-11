@@ -17,4 +17,11 @@ public class AppTest {
 		boolean cleanExit = FogRuntime.testUntilShutdownRequested(new MQTTClient(), 1000);
 		assertTrue(cleanExit);
 	}
+	
+	
+	@Test
+	public void placeholderTest() {
+		assert(true);
+	}
+	
 }

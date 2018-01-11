@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 public class AppTest {
 	@Test
 	public void testApp() {
-		boolean cleanExit = FogRuntime.testUntilShutdownRequested(new HTTPServer(8089), 100);
-		assertTrue(cleanExit);
+		FogRuntime.testUntilShutdownRequested(new HTTPServer(8089), 100);
+		
 	}
 }

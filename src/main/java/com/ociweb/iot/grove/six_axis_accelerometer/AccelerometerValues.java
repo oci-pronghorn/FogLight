@@ -1,6 +1,11 @@
 package com.ociweb.iot.grove.six_axis_accelerometer;
 
-public abstract class AccerometerValues implements MagValsListener, AccelValsListener, TempValsListener {
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
+public abstract class AccelerometerValues implements MagValsListener, AccelValsListener, TempValsListener, Externalizable {
     private int t = 0;
     private int mX = 0;
     private int mY = 0;
@@ -15,7 +20,27 @@ public abstract class AccerometerValues implements MagValsListener, AccelValsLis
         temp
     }
 
-    public AccerometerValues() {
+    public AccelerometerValues() {
+    }
+
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.write(t);
+        out.write(mX);
+        out.write(mY);
+        out.write(mZ);
+        out.write(aX);
+        out.write(aY);
+        out.write(aZ);
+    }
+
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        t = in.readInt();
+        mX = in.readInt();
+        mY = in.readInt();
+        mZ = in.readInt();
+        aX = in.readInt();
+        aY = in.readInt();
+        aZ = in.readInt();
     }
 
     @Override

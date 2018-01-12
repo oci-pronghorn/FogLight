@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-public abstract class AccelerometerValues implements MagValsListener, AccelValsListener, TempValsListener, Externalizable {
+public class AccelerometerValues implements MagValsListener, AccelValsListener, TempValsListener, Externalizable {
     private int t = 0;
     private int mX = 0;
     private int mY = 0;
@@ -89,7 +89,8 @@ public abstract class AccelerometerValues implements MagValsListener, AccelValsL
         onChange(Changed.accel);
     }
 
-    public abstract void onChange(Changed changed);
+    public void onChange(Changed changed) {
+    }
 
     public int getMagX() {
         return mX;

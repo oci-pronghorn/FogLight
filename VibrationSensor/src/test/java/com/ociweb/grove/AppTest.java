@@ -1,31 +1,36 @@
 package com.ociweb.grove;
 
+import org.junit.Test;
+
+import com.ociweb.iot.hardware.impl.test.TestHardware;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.stage.scheduling.ScriptedNonThreadScheduler;
+
 /**
  * Unit test for simple App.
  */
-public class AppTest { 
+public class AppTest {
 
-	/*
-	 @Test
-	    public void testApp()
-	    {
-	    	DeviceRuntime runtime = DeviceRuntime.test(new IoTApp());	    	
-	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
-	    	TestHardware hardware = (TestHardware)runtime.getHardware();
-	    
-	    	scheduler.startup();
-	    	
-	    	int iterations = 10;
-			while (--iterations >= 0) {
-				    		
-					scheduler.run();
-					
-					//test application here
-					
-			}
-			
-			scheduler.shutdown();
-			
-	    }
-	    */
+
+    @Test
+    public void testApp()
+    {
+        FogRuntime runtime = FogRuntime.test(new IoTApp());
+        ScriptedNonThreadScheduler scheduler = (ScriptedNonThreadScheduler)runtime.getScheduler();
+        TestHardware hardware = (TestHardware)runtime.getHardware();
+
+        scheduler.startup();
+
+        int iterations = 10;
+        while (--iterations >= 0) {
+
+            scheduler.run();
+
+            //test application here
+
+        }
+
+        scheduler.shutdown();
+
+    }
 }

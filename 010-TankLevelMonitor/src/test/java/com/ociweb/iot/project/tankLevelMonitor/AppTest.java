@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
+import com.ociweb.pronghorn.stage.scheduling.ScriptedNonThreadScheduler;
 
 /**
  * Unit test for simple App.
@@ -15,8 +15,8 @@ public class AppTest {
 	 @Test
 	    public void testApp()
 	    {
-	    	FogRuntime runtime = FogRuntime.test(new IoTApp());	    	
-	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
+	    	FogRuntime runtime = FogRuntime.test(new IoTApp());
+			ScriptedNonThreadScheduler scheduler = (ScriptedNonThreadScheduler)runtime.getScheduler();
 	    
 	    	scheduler.startup();
 	    	    	

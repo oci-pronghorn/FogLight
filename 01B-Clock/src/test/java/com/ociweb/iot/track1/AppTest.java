@@ -5,7 +5,7 @@ import org.junit.Test;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.iot.hardware.impl.test.TestI2CBacking;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
+import com.ociweb.pronghorn.stage.scheduling.ScriptedNonThreadScheduler;
 
 
 /**
@@ -22,8 +22,8 @@ public class AppTest {
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    
 	    	TestI2CBacking backing = (TestI2CBacking)hardware.getI2CBacking();
-	    	
-	    	NonThreadScheduler scheduler = (NonThreadScheduler)runtime.getScheduler();    	
+
+			ScriptedNonThreadScheduler scheduler = (ScriptedNonThreadScheduler)runtime.getScheduler();
 	    	scheduler.startup();
 	    	
 	    	hardware.clearI2CWriteCount();

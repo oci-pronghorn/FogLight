@@ -17,11 +17,11 @@ import com.ociweb.iot.maker.FogRuntime;
 public class AccelBehavior implements Behavior {
     private final FogCommandChannel channel;
     private final SixAxisAccelerometer_Transducer accSensor;
-    private final AccerometerValues values;
+    private final AccelerometerValues values;
 
     AccelBehavior(FogRuntime runtime){
         this.channel = runtime.newCommandChannel();
-        this.values = new AccerometerValues() {
+        this.values = new AccelerometerValues() {
             @Override
             public void onChange(Changed changed) {
                 System.out.println("heading: " + values.getHeading());

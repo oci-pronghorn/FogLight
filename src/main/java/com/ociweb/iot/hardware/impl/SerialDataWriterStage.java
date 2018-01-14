@@ -3,6 +3,7 @@ package com.ociweb.iot.hardware.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.schema.TrafficAckSchema;
 import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
@@ -25,13 +26,14 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage {
 	private int pos;
 	private int pipeIdx = -1;
 
-	public SerialDataWriterStage(GraphManager graphManager, 
+	public SerialDataWriterStage(GraphManager graphManager,
+			MsgRuntime<?,?> runtime,
 			Pipe<SerialOutputSchema>[] ccToAdOut, //many stages requesting writes
 			Pipe<TrafficReleaseSchema>[] goPipe, //traffic releases for each
 			Pipe<TrafficAckSchema>[] ackPipe, 
 			HardwareImpl hardware, RS232Clientable rs232Client) {
 		
-		super(graphManager, hardware, ccToAdOut, goPipe, ackPipe);
+		super(graphManager, runtime, hardware, ccToAdOut, goPipe, ackPipe);
 		
 		assert(noNulls(ccToAdOut));
 		assert(noNulls(goPipe));

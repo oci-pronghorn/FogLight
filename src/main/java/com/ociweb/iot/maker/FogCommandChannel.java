@@ -115,6 +115,19 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     }
     
     @Override
+	protected void secondShutdownMsg() {
+    	
+    	if (!sentEOF(i2cOutput)) {
+			if (!sentEOF(pinOutput)) {
+				if (!sentEOF(serialOutput)) {
+					super.secondShutdownMsg();
+				}            				
+			}
+		}
+    	
+	}
+    
+    @Override
     public Pipe<?>[] getOutputPipes() {
     	//we must wait till this last possible moment to build.
     	buildFogPipes();

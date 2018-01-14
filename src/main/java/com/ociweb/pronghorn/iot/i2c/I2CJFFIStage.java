@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.schema.TrafficAckSchema;
 import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.AbstractTrafficOrderedStage;
@@ -52,12 +53,14 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     
     public static final AtomicBoolean instanceCreated = new AtomicBoolean(false);
     
-    public I2CJFFIStage(GraphManager graphManager, Pipe<TrafficReleaseSchema>[] goPipe,
+    public I2CJFFIStage(GraphManager graphManager, 
+    		MsgRuntime<?,?> runtime,
+    		Pipe<TrafficReleaseSchema>[] goPipe,
             Pipe<I2CCommandSchema>[] i2cPayloadPipes,
             Pipe<TrafficAckSchema>[] ackPipe,
             Pipe<I2CResponseSchema> i2cResponsePipe,
             HardwareImpl hardware) {
-        super(graphManager, hardware, i2cPayloadPipes, goPipe, ackPipe, i2cResponsePipe);
+        super(graphManager, runtime, hardware, i2cPayloadPipes, goPipe, ackPipe, i2cResponsePipe);
         
         assert(!instanceCreated.getAndSet(true)) : "Only one i2c manager can be running at a time";
         

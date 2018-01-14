@@ -142,7 +142,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     }
 
 	public HardwareImpl(GraphManager gm, String[] args, int i2cBus) {
-		this(gm, args, i2cBus, false,false,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
+		this(gm, args, i2cBus, false, false, EMPTY,EMPTY,EMPTY,EMPTY,EMPTY);
 	}
 
 	protected HardwareImpl(GraphManager gm, String[] args, int i2cBus, boolean publishTime, boolean configI2C, HardwareConnection[] multiDigitalInput,
@@ -402,19 +402,19 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		ReadDeviceInputStage adInputStage = new ReadDeviceInputStage(this.gm, masterResponsePipe, this);
 	}
 
-	protected void createI2COutputInputStage(Pipe<I2CCommandSchema>[] i2cPipes,
+	protected void createI2COutputInputStage(MsgRuntime<?,?> runtime, Pipe<I2CCommandSchema>[] i2cPipes,
 			Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn, Pipe<I2CResponseSchema> masterI2CResponsePipe) {
 
 		if (hasI2CInputs()) {
-			I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
+			I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, runtime, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
 		} else {
 			//TODO: build an output only version of this stage because there is nothing to read
-			I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
+			I2CJFFIStage i2cJFFIStage = new I2CJFFIStage(gm, runtime, masterI2CgoOut, i2cPipes, masterI2CackIn, masterI2CResponsePipe, this);
 		}
 	}
 
-	protected void createADOutputStage(Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
-		DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, requestPipes, masterPINgoOut, masterPINackIn, this);
+	protected void createADOutputStage(MsgRuntime<?,?> runtime, Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
+		DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, runtime, requestPipes, masterPINgoOut, masterPINackIn, this);
 	}
 
 
@@ -698,12 +698,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 
 		initChannelBlocker(maxGoPipeId);
-		buildHTTPClientGraph(httpClientResponsePipes, httpClientRequestPipes, masterGoOut, masterAckIn);
+		buildHTTPClientGraph(runtime, httpClientResponsePipes, httpClientRequestPipes, masterGoOut, masterAckIn);
 
 		if (IDX_MSG <0) {
 			logger.trace("saved some resources by not starting up the unused pub sub service.");
 		} else {
-			createMessagePubSubStage(subscriptionPipeLookup2, ingressMessagePipes,
+			createMessagePubSubStage(
+					runtime,
+					subscriptionPipeLookup2, ingressMessagePipes,
 					messagePubSub,
 					masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
 		}
@@ -729,7 +731,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {
-			createI2COutputInputStage(i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
+			createI2COutputInputStage(runtime, i2cPipes, masterGoOut[IDX_I2C], masterAckIn[IDX_I2C], masterI2CResponsePipe);
 		}
 
 		//////////////
@@ -751,7 +753,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		if (serialOutputPipes.length>0) {	
 			assert(null!=masterGoOut[IDX_SER]);
 			assert(serialOutputPipes.length == masterGoOut[IDX_SER].length) : serialOutputPipes.length+" == "+masterGoOut[IDX_SER].length;
-			createSerialOutputStage(serialOutputPipes, masterGoOut[IDX_SER], masterAckIn[IDX_SER]);			
+			createSerialOutputStage(runtime, serialOutputPipes, masterGoOut[IDX_SER], masterAckIn[IDX_SER]);			
 		}
 
 		//////////////
@@ -789,7 +791,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			assert(PronghornStage.noNulls(masterGoOut[IDX_PIN])) : "Go Pipe must not contain nulls";
 			assert(PronghornStage.noNulls(masterAckIn[IDX_PIN])) : "Ack Pipe must not contain nulls";
 
-			createADOutputStage(pinRequestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
+			createADOutputStage(runtime, pinRequestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
 		}
 	}
 
@@ -819,9 +821,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return null;
 	}
 
-	protected void createSerialOutputStage(Pipe<SerialOutputSchema>[] serialOutputPipes,
+	protected void createSerialOutputStage(MsgRuntime<?,?> runtime, Pipe<SerialOutputSchema>[] serialOutputPipes,
 			Pipe<TrafficReleaseSchema>[] masterGoOut, Pipe<TrafficAckSchema>[] masterAckIn) {
-		new SerialDataWriterStage(gm, serialOutputPipes, masterGoOut, masterAckIn,
+		new SerialDataWriterStage(gm, runtime, serialOutputPipes, masterGoOut, masterAckIn,
 				this, this.buildSerialClient());
 	}
 

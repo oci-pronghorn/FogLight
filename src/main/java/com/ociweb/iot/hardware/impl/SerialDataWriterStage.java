@@ -36,8 +36,6 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage {
 		super(graphManager, runtime, hardware, ccToAdOut, goPipe, ackPipe);
 		
 		assert(noNulls(ccToAdOut));
-		assert(noNulls(goPipe));
-	    assert(noNulls(ackPipe));
 	       
 		assert(goPipe.length == ackPipe.length) : "should be one ack pipe for every go pipe";        
 	    assert(goPipe.length == ccToAdOut.length) : "SerialData should be one pub sub pipe for every go "+goPipe.length+" vs "+ccToAdOut.length;

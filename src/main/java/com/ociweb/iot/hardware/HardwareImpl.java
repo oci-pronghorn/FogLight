@@ -777,9 +777,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//only build direct pin output when we detected its use
 		///////////////
 		if (IDX_PIN>=0) {
-			assert(PronghornStage.noNulls(masterGoOut[IDX_PIN])) : "Go Pipe must not contain nulls";
-			assert(PronghornStage.noNulls(masterAckIn[IDX_PIN])) : "Ack Pipe must not contain nulls";
-
 			createADOutputStage(runtime, pinRequestPipes, masterGoOut[IDX_PIN], masterAckIn[IDX_PIN]);
 		}
 	}

@@ -5,19 +5,21 @@
 
 -[Git](https://git-scm.com/), which clones a template Maven project with the necessary dependencies already set up.
 
+-[Mosquitto](https://mosquitto.org/download/), which is an MQTT message broker
+
 # Starting your Maven project: 
 [Starting a mvn project](https://github.com/oci-pronghorn/FogLighter/blob/master/README.md)
 
 # Example project:
  
-The following sketch will demonstrate a basic demo for using a ```Shutdown()```.
+The following sketch will demonstrate a basic demo for using an Analog Transducer.
  
 Demo code:
 
-.include "./src/main/java/com/ociweb/oe/foglight/api/Shutdown.java"
+.include "./src/main/java/com/ociweb/oe/foglight/api/ImageListener.java"
 
 Behavior class:
 
-.include "./src/main/java/com/ociweb/oe/foglight/api/ShutdownBehavior.java"
+.include "./src/main/java/com/ociweb/oe/foglight/api/ImageListenerBehavior.java"
 
-This class is a simple demonstration of how to use the ```Shutdown()```. This demonstration sets up a shutdown listener to shutdown devices when run.
+This class is a simple demonstration of a Image Listener

@@ -25,9 +25,9 @@ import com.ociweb.gl.api.MQTTQoS;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.oe.floglight.api.behaviors.EgressBehavior;
-import com.ociweb.oe.floglight.api.behaviors.IngressBehavior;
-import com.ociweb.oe.floglight.api.behaviors.TimeBehavior;
+import com.ociweb.oe.foglight.api.behaviors.EgressBehavior;
+import com.ociweb.oe.foglight.api.behaviors.IngressBehavior;
+import com.ociweb.oe.foglight.api.behaviors.TimeBehavior;
 
 public class MQTTClient implements FogApp {
 	private MQTTBridge mqttConfig;
@@ -44,7 +44,7 @@ public class MQTTClient implements FogApp {
 		//final String brokerHost = "thejoveexpress.local"; // Raspberry Pi0
 		//final String brokerHost = "badbroker"; // Raspberry Pi0
 		// Create a single mqtt client
-		mqttConfig = builder.useMQTT(brokerHost, 1883, false, "MQTTClientTest",200) //default of 10 in flight
+		mqttConfig = builder.useMQTT(brokerHost, 1883, "MQTTClientTest",200) //default of 10 in flight
 							.cleanSession(true)	
 							.keepAliveSeconds(10);
 
@@ -80,7 +80,7 @@ public class MQTTClient implements FogApp {
 				.addSubscription(internalIngressTopic, mqttBrokerListener::receiveMqttMessage);
 
 		// Inject the listener for "localtest"
-		EgressBehavior doTheBusiness = new EgressBehavior();
+		EgressBehavior doTheBusiness = new EgressBehavior(runtime);
 		runtime.registerListener(doTheBusiness)
 				.addSubscription(localTestTopic, doTheBusiness::receiveTestTopic);
 	}
@@ -88,13 +88,123 @@ public class MQTTClient implements FogApp {
 ```
 
 
-Behavior class:
+Behavior classes:
 
-#### ERROR:  could not read file ./src/main/java/com/ociweb/oe/foglight/api/TimeBehavior.java
 
-#### ERROR:  could not read file ./src/main/java/com/ociweb/oe/foglight/api/IngressBehavior.java
+```java
+package com.ociweb.oe.foglight.api.behaviors;
 
-#### ERROR:  could not read file ./src/main/java/com/ociweb/oe/foglight/api/EgressBehavior.java
+import java.util.Date;
+
+import com.ociweb.gl.api.TimeListener;
+import com.ociweb.gl.api.WaitFor;
+import com.ociweb.gl.api.Writable;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
+
+public class TimeBehavior implements TimeListener {
+	private int droppedCount = 0;
+    private final FogCommandChannel cmdChnl;
+	private final String publishTopic;
+
+	public TimeBehavior(FogRuntime runtime, String publishTopic) {
+		cmdChnl = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+		this.publishTopic = publishTopic;
+	}
+
+	@Override
+	public void timeEvent(long time, int iteration) {
+		int i = 1;//iterations
+		while (--i>=0) {
+			Date d = new Date(System.currentTimeMillis());
+			
+			// On the timer event create a payload with a string encoded timestamp
+			Writable writable = writer -> writer.writeUTF8Text("'MQTT egress body " + d + "'");
+					
+			// Send out the payload with thre MQTT topic "topic/egress"
+			boolean ok = cmdChnl.publishTopic(publishTopic, writable, WaitFor.None);
+			if (ok) {
+				//System.err.println("sent "+d);
+			}
+			else {
+				droppedCount++;
+				System.err.println("The system is backed up, dropped "+droppedCount);
+			}
+		}
+	}
+}
+```
+
+
+
+```java
+package com.ociweb.oe.foglight.api.behaviors;
+
+import com.ociweb.gl.api.PubSubMethodListener;
+import com.ociweb.gl.api.WaitFor;
+import com.ociweb.gl.api.Writable;
+import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.ChannelReader;
+
+public class IngressBehavior implements PubSubMethodListener {
+	private final FogCommandChannel cmd;
+	private final String publishTopic;
+
+	public IngressBehavior(FogRuntime runtime, String publishTopic) {
+		cmd = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+		this.publishTopic = publishTopic;
+	}
+
+	public boolean receiveMqttMessage(CharSequence topic,  ChannelReader payload) {
+		// this received when mosquitto_pub is invoked - see MQTTClient
+		System.out.print("\ningress body: ");
+
+		// Read the message payload and output it to System.out
+		payload.readUTFOfLength(payload.available(), System.out);
+		System.out.println();
+
+		// Create the on-demand mqtt payload writer
+		Writable mqttPayload = writer -> writer.writeUTF("\nsecond step test message");
+
+		// On the 'localtest' topic publish the mqtt payload
+		cmd.publishTopic(publishTopic, mqttPayload, WaitFor.None);
+
+		// We consumed the message
+		return true;
+	}
+}
+```
+
+
+
+```java
+package com.ociweb.oe.foglight.api.behaviors;
+
+import com.ociweb.gl.api.PubSubMethodListener;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.pronghorn.pipe.ChannelReader;
+
+public class EgressBehavior implements PubSubMethodListener {
+
+	private final FogRuntime runtime;
+
+	public EgressBehavior(FogRuntime runtime) {
+		this.runtime = runtime;
+	}
+
+	public boolean receiveTestTopic(CharSequence topic, ChannelReader payload) {
+		// topic is the MQTT topic
+		// payload is the MQTT payload
+		// this received when mosquitto_pub is invoked - see MQTTClient
+		System.out.println("got topic "+topic+" payload "+payload.readUTF()+"\n");
+		runtime.shutdownRuntime();
+		return true;
+	}
+}
+```
+
 
 
 This class is a simple demonstration of MQTT (Message Queue Telemetry Transport). A lightweight messaging protocal, it was inititially designed for constrained devices and low-bandwidth, high-latency or unreliable networks. This demo uses Mosquitto as a message broker, which means that the messages that are published will go through Mosquitto, which will send them to and subsrcibers of the topic. 

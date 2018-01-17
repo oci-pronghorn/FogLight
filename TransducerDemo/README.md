@@ -19,13 +19,13 @@ Main class:
 package com.ociweb.oe.foglight.api;
 
 
-import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.*;
-import static com.ociweb.iot.maker.Port.A1;
-
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.LightSensor;
+import static com.ociweb.iot.maker.Port.A1;
 
 public class TransducerDemo implements FogApp
 {
@@ -44,7 +44,7 @@ public class TransducerDemo implements FogApp
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-    	runtime.registerListener(new CustomSumTransducerBehavior());
+    	runtime.registerListener(new CustomSumTransducerBehavior(runtime));
     }
           
 }
@@ -57,17 +57,28 @@ Transducer class:
 ```java
 package com.ociweb.oe.foglight.api;
 
+import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.transducer.AnalogListenerTransducer;
 
 public class CustomSumTransducer implements AnalogListenerTransducer {
+	private final FogRuntime runtime;
 	private int sum = 0;
+	private int counter = 0;
+
+	CustomSumTransducer(FogRuntime runtime) {
+		this.runtime = runtime;
+	}
+
 	@Override
 	public void analogEvent(Port port, long time, long durationMillis, int average, int value) {
 		
-			sum +=value;
-			System.out.println("Current sum: " + sum);
-		
+		sum +=value;
+		System.out.println("Current sum: " + sum);
+		counter++;
+		if (counter == 5) {
+			runtime.shutdownRuntime();
+		}
 	}
 
 }
@@ -80,25 +91,15 @@ Behavior class:
 ```java
 package com.ociweb.oe.foglight.api;
 
-import static com.ociweb.iot.maker.Port.A1;
-
 import com.ociweb.gl.api.Behavior;
-import com.ociweb.iot.grove.simple_analog.SimpleAnalogListener;
-import com.ociweb.iot.grove.simple_analog.SimpleAnalogTransducer;
-import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.Port;
 
 public class CustomSumTransducerBehavior implements Behavior {
-	
-	
 	CustomSumTransducer cst;
-	public CustomSumTransducerBehavior() {
-		cst = new CustomSumTransducer();
+
+	public CustomSumTransducerBehavior(FogRuntime runtime) {
+		cst = new CustomSumTransducer(runtime);
 	}
-
-
-
 }
 ```
 

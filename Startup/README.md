@@ -35,6 +35,7 @@ public class Startup implements FogApp
 
     	runtime.addStartupListener(()->{
     		System.out.println("Hello, this message will display once at start");
+            runtime.shutdownRuntime();
     	});
     }
 }

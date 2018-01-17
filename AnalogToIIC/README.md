@@ -96,7 +96,7 @@ public class AnalogToIICBehavior implements StartupListener,AlertStatusListener,
 ```
 
 
-[1] The ADC source code supports 2 Listener interfaces:
+The ADC source code supports 2 Listener interfaces:
 1. ConversionResultListener
 This listener has conversionResult() abstract method which passes the 12 bit integer conversion result from the ADC.
 

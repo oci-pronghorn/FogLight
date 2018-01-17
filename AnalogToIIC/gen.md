@@ -16,7 +16,7 @@ First declare the connections in AnalogToIIC.java . In order to perform I2C read
 Then specify the behavior of the program in the Behavior class:
 .include "./src/main/java/com/ociweb/grove/AnalogToIICBehavior.java"
 
-[1] The ADC source code supports 2 Listener interfaces:
+The ADC source code supports 2 Listener interfaces:
 1. ConversionResultListener
 This listener has conversionResult() abstract method which passes the 12 bit integer conversion result from the ADC.
 

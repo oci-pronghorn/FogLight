@@ -7,7 +7,7 @@
 
 # Example project:
 
-The following sketch demonstrates a simple application to control two LEDs using an Angle Sensor.
+The following sketch demonstrates a simple application to play MP3 files from a folder.
 
 Demo code (copy and paste this to a FogLighter project):
 First declare the connections in MP3Player.java:
@@ -119,7 +119,7 @@ public class MonitoringBehavior implements SerialListener {
 ```
 
 
-When executed, turning the knob will cause LED2 to turn on/off and LED1 to fade in/out accordingly. 
+When executed, the MP3 player will play MP3 files from a folder. 
 
 
 

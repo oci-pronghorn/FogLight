@@ -17,13 +17,16 @@ First declare the connections in IoTApp.java:
 package com.ociweb.grove;
 
 
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.FogApp;
-import com.ociweb.iot.maker.Port;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.AngleSensor;
+import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.LED;
+import static com.ociweb.iot.maker.Port.A0;
+import static com.ociweb.iot.maker.Port.D3;
+import static com.ociweb.iot.maker.Port.D4;
 
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
-import static com.ociweb.iot.maker.Port.*;
+import com.ociweb.iot.maker.FogApp;
+import com.ociweb.iot.maker.FogRuntime;
+import com.ociweb.iot.maker.Hardware;
+import com.ociweb.iot.maker.Port;
 
 public class IoTApp implements FogApp
 {
@@ -60,12 +63,13 @@ Then specify the behavior of the program in the Behavior class:
  */
 package com.ociweb.grove;
 
+import static com.ociweb.grove.IoTApp.LED1_PORT;
+import static com.ociweb.grove.IoTApp.LED2_PORT;
+
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
-import static com.ociweb.grove.IoTApp.*;
-import static com.ociweb.iot.maker.FogCommandChannel.*;
 
 /**
  *

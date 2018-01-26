@@ -214,12 +214,11 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	 * Modifies the data_out array to have necessary raw bytes to print a char
 	 * @param c the char to be encoded
 	 * @param start is the starting index within data_out where the char should be encoded (8 bytes, since the chars are 8x8)
-	 * @return true if the user's char input was valid (a.k.a has pre-determined mapping)
+	 * @return true
 	 */
 	private boolean encodeChar(char c, int start){
 		if (c > 127 || c < 32){
-			//'c' has no defined font for Grove_OLED_128x64");
-			return false;
+			c = ' ';
 		}
 		int counter = 0;
 		for (int i = start; i < start + 8; i++){

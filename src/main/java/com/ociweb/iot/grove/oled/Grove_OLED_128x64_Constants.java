@@ -33,7 +33,7 @@ public class Grove_OLED_128x64_Constants {
 	public static final byte DISPLAY_START_LINE = (byte)(0x40 & 0xFF); //40~7f
 	public static final byte ROW_START_ADDRESS_PAGE_MODE = (byte)(0xB0 & 0xFF);//0xB0 ~ 0x B7
 
-	//these commands require further input afterwards
+	//these commands require further input afterwards                   
 	public static final byte SET_MEMORY = (byte)(0x20 & 0xFF);
 	public static final byte SET_COLUMN_ADDRESS = (byte)(0x21& 0xFF);
 	public static final byte SET_PAGE_ADDRESS = (byte)(0x22& 0xFF);
@@ -66,6 +66,11 @@ public class Grove_OLED_128x64_Constants {
 
 	public static final byte TURN_OFF_INVERSE_DISPLAY = (byte)(0xA6 & 0xFF);
 	public static final byte TURN_ON_INVERSE_DISPLAY =  (byte)(0xA7 & 0xFF);
+
+
+	public static final byte CHARGE_PUMP_SETTING = (byte) (0x8D & 0xFF);
+    public static final byte CHARGE_PUMP_ON = (byte) (0x14 & 0xFF);
+    public static final byte CHARGE_PUMP_OFF = (byte) (0x10 & 0xFF);
 
 
 	public static final byte PUT_DISPLAY_TO_SLEEP = (byte)(0xAE & 0xFF);

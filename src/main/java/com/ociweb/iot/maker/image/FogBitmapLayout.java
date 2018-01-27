@@ -135,7 +135,7 @@ public class FogBitmapLayout implements Externalizable {
         assert(x >= 0 && x < width) : "x must be in 0 indexed range of width";
         assert(y >= 0 && y < height) : "y must be in 0 indexed range of height";
         assert(z >= 0 && z < componentCount) : "z must be in 0 indexed range of componentCount";
-        return (x * rowWidth) + (y * pixelWidth) + (z * componentWidth);
+        return (y * rowWidth) + (x * pixelWidth) + (z * componentWidth);
     }
 
     public double getValue(byte[] bmp, int x, int y, int z) {
@@ -166,6 +166,8 @@ public class FogBitmapLayout implements Externalizable {
     public void setComponent(byte[] bmp, int x, int y, int z, int value) {
         value = value & valueMask;
         int i = address(x, y, z);
+
+        assert ( i < bmpSize() ) : "i must be less than the bitmap size";
         switch (componentWidth) {
             case 1:
                 bmp[i] = (byte) value;

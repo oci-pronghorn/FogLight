@@ -214,10 +214,7 @@ public class OLED96x96Transducer implements IODeviceTransducer, StartupListenerT
     }
 
     @Override
-    public FogPixelScanner newPreferredBmpScanner(FogBitmap bmp) { return new FogPixelProgressiveScanner(bmp); }
-
-    @Override
-    public boolean display(FogPixelScanner scanner) {
+    public boolean display(FogBitmap bmp) {
         return clearDisplay();
     }
 

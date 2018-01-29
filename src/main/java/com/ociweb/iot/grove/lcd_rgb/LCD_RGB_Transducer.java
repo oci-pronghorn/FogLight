@@ -5,10 +5,10 @@ import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
 import com.ociweb.iot.maker.image.*;
 
-public class LCD_RGB_Transducer implements IODeviceTransducer,FogBmpDisplayable, StartupListenerTransducer{
+public class LCD_RGB_Transducer implements IODeviceTransducer, FogBmpDisplayable, StartupListenerTransducer {
 	private final FogCommandChannel ch;
 
-	public LCD_RGB_Transducer(FogCommandChannel ch){
+	public LCD_RGB_Transducer(FogCommandChannel ch) {
 		this.ch = ch;
 		ch.ensureI2CWriting();
 	}
@@ -25,16 +25,8 @@ public class LCD_RGB_Transducer implements IODeviceTransducer,FogBmpDisplayable,
 		return new FogBitmap(newBmpLayout());
 	}
 
-	public FogPixelScanner newPreferredBmpScanner(FogBitmap bmp) { return new FogPixelProgressiveScanner(bmp); }
-
-	public boolean display(FogPixelScanner scanner) {
-		while (scanner.next((bmp, i, x, y) -> {
-			int red = bmp.getComponent(x, y, 0);
-			int green = bmp.getComponent(x, y, 1);
-			int blue = bmp.getComponent(x, y, 2);
-			// set pixel on device
-		}));
-		return true;
+	public boolean display(FogBitmap bmp) {
+		return false;
 	}
 
 	public boolean begin(){

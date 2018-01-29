@@ -5,9 +5,9 @@ import static com.ociweb.iot.grove.oled.OLED_96x96_DriverChip.*;
 import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.grove.oled.OLED_96x96_Consts;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmap;
 import com.ociweb.iot.maker.image.FogBitmapLayout;
 import com.ociweb.iot.maker.image.FogColorSpace;
-import com.ociweb.iot.maker.image.FogPixelScanner;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.iot.maker.IODeviceTransducer;
@@ -38,17 +38,8 @@ public class OLED_96x96_Transducer extends BinaryOLED implements IODeviceTransdu
 		return bmpLayout;
 	}
 
-	@Override
-	public boolean display(FogPixelScanner scanner) {
-		// Assume progressive scanner for now...
-		while (scanner.next((bmp, i, x, y) -> {
-			if (x % 2 == 0) {
-				byte v1 = (byte)bmp.getComponent(x , y, 0);
-				byte v2 = (byte)bmp.getComponent(x + 1, y, 0);
-				byte packet = (byte)((v1 << 4) | v2);
-			}
-		}));
-		return true;
+	public boolean display(FogBitmap bmp) {
+		return false;
 	}
 
 	@Deprecated

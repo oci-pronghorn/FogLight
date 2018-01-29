@@ -10,9 +10,9 @@ import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Direction;
 import com.ociweb.iot.grove.oled.Grove_OLED_128x64_Constants.Orientation;
 import com.ociweb.iot.maker.FogCommandChannel;
+import com.ociweb.iot.maker.image.FogBitmap;
 import com.ociweb.iot.maker.image.FogBitmapLayout;
 import com.ociweb.iot.maker.image.FogColorSpace;
-import com.ociweb.iot.maker.image.FogPixelScanner;
 
 /**
  * IODeviceTransducer object that holds on to the FogCommandChannel, data_output array, and cmd_output array.
@@ -40,11 +40,9 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	 */
 	@Override
 	protected boolean init(){
-        System.out.println ("INIT: charge pump enabled");
-
 		cmd_out[0] = PUT_DISPLAY_TO_SLEEP;
 		cmd_out[1] = CHARGE_PUMP_SETTING;
-		cmd_out[2] = CHARGE_PUMP_ON;              /* Charge Pump Command */
+		cmd_out[2] = CHARGE_PUMP_ON;
         cmd_out[3] = WAKE_DISPLAY;
 		cmd_out[4] = TURN_OFF_INVERSE_DISPLAY;
 		cmd_out[5] = DEACTIVATE_SCROLL;
@@ -65,11 +63,7 @@ public class OLED_128x64_Transducer extends BinaryOLED implements IODeviceTransd
 	}
 
 	@Override
-	public boolean display(FogPixelScanner scanner) {
-		while (scanner.next((bmp, i, x, y) -> {
-			byte gray = (byte) bmp.getComponent(x, y, 0);
-			// set pixel on device
-		}));
+	public boolean display(FogBitmap bmp) {
 		return false;
 	}
 

@@ -10,7 +10,5 @@ public interface FogBmpDisplayable {
 
     FogBitmap newEmptyBmp();
 
-    FogPixelScanner newPreferredBmpScanner(FogBitmap bmp);
-
-    boolean display(FogPixelScanner scanner);
+    boolean display(FogBitmap bmp);
 }

@@ -38,9 +38,6 @@ public abstract class BinaryOLED implements FogBmpDisplayable {
 	public FogBitmap newEmptyBmp() {
 		return new FogBitmap(newBmpLayout());
 	}
-
-	public FogPixelScanner newPreferredBmpScanner(FogBitmap bmp) { return new FogPixelProgressiveScanner(bmp); }
-
 	
 	/**
 	 * Sends a "data" identifier byte followed by the user-supplied byte over the i2c.
@@ -186,7 +183,7 @@ public abstract class BinaryOLED implements FogBmpDisplayable {
 	public abstract boolean display(int[][] raw_image, int pixelDepth);
 	public abstract boolean setHorizontalMode();
 	public abstract boolean setVerticalMode();
-	public abstract boolean display(FogPixelScanner scanner);
+	public abstract boolean display(FogBitmap bmp);
 	public abstract FogBitmapLayout newBmpLayout();
 
 }

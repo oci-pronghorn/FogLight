@@ -5,8 +5,6 @@
 */
 package com.ociweb.iot.grove.six_axis_accelerometer;
 
-import static com.ociweb.iot.grove.six_axis_accelerometer.SixAxisAccelerometer_Constants.*;
-
 import com.ociweb.gl.api.transducer.StartupListenerTransducer;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.IODeviceTransducer;
@@ -14,12 +12,19 @@ import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 
-
 /**
  *
  * @author huydo
  */
-public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CListenerTransducer,StartupListenerTransducer {
+public class SixAxisAccelerometer_Transducer implements
+        IODeviceTransducer,
+        I2CListenerTransducer,
+        StartupListenerTransducer {
+
+    static final int LSM303D_ADDR = 0x1E;  // assuming SA0 grounded
+    static final int OUT_X_L_A = (byte)((0x28 | 0x80)&0xff); //append a 1 at MSB to enable auto address increment
+    static final int OUT_X_L_M = (byte)((0x08 | 0x80)&0xff); //append a 1 at MSB to enable auto address increment
+
     private final FogCommandChannel target;
     private final AccelValsListener accellistener;
     private final MagValsListener maglistener;
@@ -33,9 +38,16 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
         target.ensureI2CWriting(50, 4);
     }
 
-    
     @Override 
     public void startup() {
+        int CTRL_REG1 = 0x20;
+        int CTRL_REG2 = 0x21;
+        int CTRL_REG3 = 0x22;
+        int CTRL_REG4 = 0x23;
+        int CTRL_REG5 = 0x24;
+        int CTRL_REG6 = 0x25;
+        int CTRL_REG7 = 0x26;
+
         if (accellistener != null) {
             final int accelDataRate = accellistener.getAccerometerDataRate().getSpecification();
             final int accelAxes = accellistener.getAccerometerAxes();
@@ -65,7 +77,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
             axWriteByte(CTRL_REG6, 0);
         }
 
-        axWriteByte(CTRL_REG7,0b10000000); // 0x00 = continouous conversion mode
+        axWriteByte(CTRL_REG7,0b10000000); // 0x00 = continuous conversion mode
     }
 
     /**
@@ -94,7 +106,7 @@ public class SixAxisAccelerometer_Transducer implements IODeviceTransducer,I2CLi
                 short[] xyz_accel = this.interpretData(backing, position, length, mask);
                 accellistener.accelerationValues(xyz_accel[0], xyz_accel[1], xyz_accel[2]);
             }
-            if (maglistener != null && register == OUT_X_L_M) {
+            else if (maglistener != null && register == OUT_X_L_M) {
                 short[] xyz_mag = this.interpretData(backing, position, length, mask);
                 maglistener.magneticValues(xyz_mag[0], xyz_mag[1], xyz_mag[2]);
             }

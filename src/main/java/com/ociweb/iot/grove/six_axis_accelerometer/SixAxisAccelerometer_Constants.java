@@ -9,11 +9,12 @@ package com.ociweb.iot.grove.six_axis_accelerometer;
  *
  * @author huydo
  */
+/*
 public class SixAxisAccelerometer_Constants {
-    /* LSM303 Address definitions */
+    // LSM303 Address definitions
     public static final int LSM303D_ADDR = 0x1E;  // assuming SA0 grounded
     
-    /* LSM303 Register definitions */
+    // LSM303 Register definitions
     public static final int TEMP_OUT_L		= (byte)((0x05 | 0x80)&0xff);//append a 1 at MSB to enable auto address increment
     public static final int TEMP_OUT_H		= 0x06;
     public static final int	STATUS_REG_M	= 0x07;
@@ -70,5 +71,5 @@ public class SixAxisAccelerometer_Constants {
     public static final int	TIME_WINDOW		= 0x3D;
     public static final int	ACT_THS			= 0x3E;
     public static final int	ACT_DUR			= 0x3F;
-    
 }
+*/

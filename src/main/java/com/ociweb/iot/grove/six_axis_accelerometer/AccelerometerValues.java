@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-public class AccelerometerValues implements MagValsListener, AccelValsListener, TempValsListener, Externalizable {
+public class AccelerometerValues implements Externalizable {
     private int t = 0;
     private int mX = 0;
     private int mY = 0;
@@ -13,12 +13,6 @@ public class AccelerometerValues implements MagValsListener, AccelValsListener, 
     private int aX = 0;
     private int aY = 0;
     private int aZ = 0;
-
-    public enum Changed {
-        mag,
-        accel,
-        temp
-    }
 
     public AccelerometerValues() {
     }
@@ -43,53 +37,16 @@ public class AccelerometerValues implements MagValsListener, AccelValsListener, 
         aZ = in.readInt();
     }
 
-    @Override
-    public AccelerometerMagDataRate getMagneticDataRate() {
-        return AccelerometerMagDataRate.hz50;
-    }
-
-    @Override
-    public AccelerometerMagScale getMagneticScale() {
-        return AccelerometerMagScale.gauss2;
-    }
-
-    @Override
-    public AccelerometerMagRes getMagneticRes() {
-        return AccelerometerMagRes.high;
-    }
-
-    @Override
     public void magneticValues(int x, int y, int z) {
         this.mX = x;
         this.mY = y;
         this.mZ = z;
-        onChange(Changed.mag);
     }
 
-    @Override
-    public AccelerometerAccelDataRate getAccerometerDataRate() {
-        return AccelerometerAccelDataRate.hz50;
-    }
-
-    @Override
-    public AccelerometerAccelScale getAccerometerScale() {
-        return AccelerometerAccelScale.gauss2;
-    }
-
-    @Override
-    public int getAccerometerAxes() {
-        return  AccelerometerAccelAxes.all;
-    }
-
-    @Override
     public void accelerationValues(int x,int y,int z) {
         this.aX = x;
         this.aY = y;
         this.aZ = z;
-        onChange(Changed.accel);
-    }
-
-    public void onChange(Changed changed) {
     }
 
     public int getMagX() {

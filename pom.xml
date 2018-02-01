@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ociweb</groupId>
   <artifactId>FogLighter</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1-SNAPSHOT</version>
   <name>FogLight-Archetype</name>
   <url>http://maven.apache.org</url>
   
@@ -14,7 +14,7 @@
     <connection>scm:git:git://github.com/oci-pronghorn/FogLighter.git</connection>
     <url>https://github.com/oci-pronghorn/FogLighter</url>
     <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/FogLighter.git</developerConnection>
-    <tag>FogLighter-0.1.0</tag>
+    <tag>HEAD</tag>
   </scm>
   
   <distributionManagement>

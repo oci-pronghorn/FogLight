@@ -14,29 +14,28 @@ import com.ociweb.iot.maker.FogRuntime;
  *
  * @author huydo
  */
-public class AccelBehavior implements Behavior {
+public class AccelBehavior extends AccelerometerListener implements Behavior {
     private final FogCommandChannel channel;
     private final SixAxisAccelerometer_Transducer accSensor;
-    private final AccelerometerValues values;
 
     AccelBehavior(FogRuntime runtime){
         this.channel = runtime.newCommandChannel();
-        this.values = new AccelerometerValues() {
-            @Override
-            public void onChange(Changed changed) {
-                System.out.println("heading: " + values.getHeading());
-                System.out.println("pitch: " + values.getPitch());
-                System.out.println("roll: " + values.getRoll());
-                System.out.println("tilt: " + values.getTiltHeading());
-                System.out.println("mx: " + values.getMagX());
-                System.out.println("my: " + values.getMagY());
-                System.out.println("mz: " + values.getMagZ());
-                System.out.println("ax: " + values.getAccelX());
-                System.out.println("ay: " + values.getAccelY());
-                System.out.println("az: " + values.getAccelZ());
-                System.out.println("");
-            }
-        };
-        accSensor = new SixAxisAccelerometer_Transducer(channel, values, values, null);
+        accSensor = new SixAxisAccelerometer_Transducer(channel, this, this, null);
+    }
+
+    @Override
+    public void onChange(AccelerometerValues values, Changed changed) {
+        System.out.println("heading: " + values.getHeading());
+        System.out.println("pitch: " + values.getPitch());
+        System.out.println("roll: " + values.getRoll());
+        System.out.println("tilt: " + values.getTiltHeading());
+        System.out.println("mx: " + values.getMagX());
+        System.out.println("my: " + values.getMagY());
+        System.out.println("mz: " + values.getMagZ());
+        System.out.println("ax: " + values.getAccelX());
+        System.out.println("ay: " + values.getAccelY());
+        System.out.println("az: " + values.getAccelZ());
+        System.out.println("");
+
     }
 }

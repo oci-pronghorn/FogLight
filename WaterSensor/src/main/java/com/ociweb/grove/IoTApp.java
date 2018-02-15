@@ -22,7 +22,7 @@ public class IoTApp implements FogApp
 
 		c.enableTelemetry();
 
-		webRoute = c.registerRoute(requestRoute);
+		webRoute = c.defineRoute().path(requestRoute).routeId();
 	}
 
 

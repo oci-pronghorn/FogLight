@@ -27,10 +27,10 @@ public class HTTPServer implements FogApp
     public void declareConnections(Hardware c) {
         
         c.useHTTP1xServer(port).setHost("0.0.0.0").useInsecureServer();
-		emptyResponseRouteId = c.registerRoute("/testpageA?arg=#{myarg}", cookieHeader);
-		smallResponseRouteId = c.registerRoute("/testpageB");
-		largeResponseRouteId = c.registerRoute("/testpageC", cookieHeader);
-		fileServerId         = c.registerRoute("/file${path}");
+		emptyResponseRouteId = c.defineRoute(cookieHeader).path("/testpageA?arg=#{myarg}").routeId();
+		smallResponseRouteId = c.defineRoute().path("/testpageB").routeId();
+		largeResponseRouteId = c.defineRoute(cookieHeader).path("/testpageC").routeId();
+		fileServerId         = c.defineRoute().path("/file${path}").routeId();
 		c.enableTelemetry();
 		
     }

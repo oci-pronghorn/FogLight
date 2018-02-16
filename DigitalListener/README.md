@@ -71,12 +71,12 @@ Behavior class:
 ```java
 package com.ociweb.oe.foglight.api;
 
-import static com.ociweb.iot.maker.Port.*;
-
 import com.ociweb.iot.maker.DigitalListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Port;
+
+import static com.ociweb.iot.maker.Port.*;
 
 public class DigitalListenerBehavior implements DigitalListener {
 
@@ -102,6 +102,7 @@ public class DigitalListenerBehavior implements DigitalListener {
 			System.out.println("Buzzer was on for " + durationMillis + " milliseconds");
 			System.out.println("time: " + time);
 		}
+		channel.shutdown();
 	}
 
 }

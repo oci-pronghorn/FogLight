@@ -16,6 +16,7 @@ Demo code:
 package com.ociweb.oe.foglight.api;
 
 
+import com.ociweb.gl.api.HTTPSession;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -26,19 +27,20 @@ public class HTTPClient implements FogApp
     @Override
     public void declareConnections(Hardware c) {   
     	c.useNetClient();
-    	c.enableTelemetry();
+    	//c.enableTelemetry();
     }
 
     @Override
     public void declareBehavior(FogRuntime runtime) {       
+    	HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
     	
-    	HTTPGetBehaviorSingle temp = new HTTPGetBehaviorSingle(runtime);
-		runtime.addStartupListener(temp);
+    	session = new HTTPSession("www.objectcomputing.com",80,1);
+    	HTTPGetBehaviorSingle temp = new HTTPGetBehaviorSingle(runtime, session);
+		runtime.addStartupListener(temp).includeHTTPSession(session);
 			   	
     	
-    	int responseId = runtime.addResponseListener(new HTTPResponse()).getId();    	
-    	runtime.addStartupListener(new HTTPGetBehaviorChained(runtime, responseId));
-    	
+    	runtime.addResponseListener(new HTTPResponse()).includeHTTPSession(session);
+    	runtime.addStartupListener(new HTTPGetBehaviorChained(runtime, session));
     	
     	
     }
@@ -59,18 +61,18 @@ import com.ociweb.iot.maker.FogRuntime;
 public class HTTPGetBehaviorChained implements StartupListener {
 	
 	private FogCommandChannel cmd;
-	private int responseId;
-    private HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
 	
-	public HTTPGetBehaviorChained(FogRuntime runtime, int responseId) {
+    private HTTPSession session;
+	
+	public HTTPGetBehaviorChained(FogRuntime runtime, HTTPSession session) {
 		this.cmd = runtime.newCommandChannel(NET_REQUESTER);
-		this.responseId = responseId;
+		this.session = session;
 	}
 
 	@Override
 	public void startup() {
 		
-		cmd.httpGet(session, "/", responseId);
+		cmd.httpGet(session, "/");
 		
 	}
 
@@ -95,10 +97,11 @@ public class HTTPGetBehaviorSingle implements StartupListener, HTTPResponseListe
 
 	
 	private final FogCommandChannel cmd;
-	private HTTPSession session = new HTTPSession("www.objectcomputing.com",80,0);
+	private HTTPSession session;
 	 
-	public HTTPGetBehaviorSingle(FogRuntime runtime) {
+	public HTTPGetBehaviorSingle(FogRuntime runtime, HTTPSession session) {
 		cmd = runtime.newCommandChannel(NET_REQUESTER);
+		this.session = session;
 	}
 
 	@Override

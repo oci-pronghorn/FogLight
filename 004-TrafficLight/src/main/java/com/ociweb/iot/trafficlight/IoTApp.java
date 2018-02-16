@@ -57,7 +57,7 @@ public class IoTApp implements FogApp
 			c.useHTTP1xServer(8088).setHost(NetGraphBuilder.bindHost());
 						
 		//	c.enableTelemetry(true);			
-			webRoute = c.defineRoute("/trafficLight?color=${color}");
+			webRoute = c.defineRoute().path("/trafficLight?color=${color}").routeId();
 
 		}
 

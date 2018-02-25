@@ -348,14 +348,16 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			
 			List<PrivateTopic> sourceTopics = builder.getPrivateTopicsFromSource(id);
 			int i = sourceTopics.size();
-			while (--i>=0) {
-				outputPipes = PronghornStage.join(outputPipes, sourceTopics.get(i).getPipe());				
+			while (--i>=0) {				
+				PrivateTopic privateTopic = sourceTopics.get(i);
+				outputPipes = PronghornStage.join(outputPipes, privateTopic.getPipe(parallelInstanceUnderActiveConstruction));				
 			}
 						
 			List<PrivateTopic> targetTopics = builder.getPrivateTopicsFromTarget(id);
 			int j = targetTopics.size();
 			while (--j>=0) {
-				inputPipes = PronghornStage.join(inputPipes, targetTopics.get(i).getPipe());
+				PrivateTopic privateTopic = targetTopics.get(i);
+				inputPipes = PronghornStage.join(inputPipes, privateTopic.getPipe(parallelInstanceUnderActiveConstruction));
 			}
 						
 		}

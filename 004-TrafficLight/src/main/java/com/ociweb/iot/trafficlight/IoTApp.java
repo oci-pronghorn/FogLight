@@ -54,10 +54,10 @@ public class IoTApp implements FogApp
 		c.connect(LED, LED3_PORT);
 
 		if (isWebControlled) {
-			c.useHTTP1xServer(8088).setHost(NetGraphBuilder.bindHost());
+			c.useHTTP1xServer(8088).setHost(NetGraphBuilder.bindHost(null));
 						
 		//	c.enableTelemetry(true);			
-			webRoute = c.registerRoute("/trafficLight?color=${color}");
+			webRoute = c.defineRoute().path("/trafficLight?color=${color}").routeId();
 
 		}
 

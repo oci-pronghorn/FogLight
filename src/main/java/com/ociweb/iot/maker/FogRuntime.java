@@ -469,11 +469,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		
 		//exportGraphDotFile();
 
-		runtime.scheduler  = new ScriptedNonThreadScheduler(runtime.gm, false);
+		runtime.setScheduler(new ScriptedNonThreadScheduler(runtime.gm, false));
 		//= runtime.builder.createScheduler(runtime);
 		//for test we do not call startup and wait instead for this to be done by test.
 
-		return (ScriptedNonThreadScheduler)runtime.scheduler;
+		return (ScriptedNonThreadScheduler)runtime.getScheduler();
 	}
 
 	public static FogRuntime run(FogApp app) {
@@ -527,8 +527,8 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		//exportGraphDotFile();
 
-		runtime.scheduler = runtime.builder.createScheduler(runtime);
-		runtime.scheduler.startup();
+		runtime.setScheduler(runtime.builder.createScheduler(runtime));
+		runtime.getScheduler().startup();
 		logger.info("{} ms duration {} ms finished graph startup", nowTime = System.currentTimeMillis(), nowTime-lastTime);
 		lastTime = nowTime;
 

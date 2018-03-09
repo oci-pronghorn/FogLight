@@ -150,9 +150,6 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 		super(gm, args);
 				ReactiveIoTListenerStage.initOperators(operators);
-		this.pcm.addConfig(new PipeConfig<HTTPRequestSchema>(HTTPRequestSchema.instance, 
-									                   		 2, //only a few requests when FogLight  
-									                         MAXIMUM_INCOMMING_REST_SIZE));
 
 		this.pcm.addConfig(new PipeConfig<NetPayloadSchema>(NetPayloadSchema.instance,
 															2, //only a few requests when FogLight 

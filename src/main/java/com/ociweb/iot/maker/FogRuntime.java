@@ -64,12 +64,18 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	public FogRuntime() {
 		this(new String[0]);
 	}
+	public FogRuntime(String name) {
+		this(new String[0],name);
+	}
 
 	public FogRuntime(String[] args) {
-		super(args);
-        
+		super(args,null);
         disableHardwareDetection = this.hasArgument("disableHardwareDetection", "--dhd");
-        
+	}
+	
+	public FogRuntime(String[] args, String name) {
+		super(args,name);
+        disableHardwareDetection = this.hasArgument("disableHardwareDetection", "--dhd");
 	}
 
 
@@ -420,7 +426,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
     }
 	
 	public static boolean testUntilShutdownRequested(FogApp app, long timeoutMS) {
-		FogRuntime runtime = new FogRuntime();
+		FogRuntime runtime = new FogRuntime(app.getClass().getSimpleName());
 		
 		ScriptedNonThreadScheduler s = test(app, runtime);
         

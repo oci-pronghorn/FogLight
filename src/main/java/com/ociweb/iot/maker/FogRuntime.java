@@ -475,7 +475,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		
 		//exportGraphDotFile();
 
-		runtime.setScheduler(new ScriptedNonThreadScheduler(runtime.gm, false));
+		runtime.setScheduler(new ScriptedNonThreadScheduler(runtime.gm, null, false));
 		//= runtime.builder.createScheduler(runtime);
 		//for test we do not call startup and wait instead for this to be done by test.
 

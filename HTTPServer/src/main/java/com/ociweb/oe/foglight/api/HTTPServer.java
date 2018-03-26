@@ -8,8 +8,7 @@ import com.ociweb.pronghorn.network.config.HTTPHeaderDefaults;
 
 public class HTTPServer implements FogApp
 {
-	byte[] cookieHeader = HTTPHeaderDefaults.COOKIE.rootBytes();
-	
+
 	int emptyResponseRouteId;
 	int smallResponseRouteId;
 	int largeResponseRouteId;
@@ -25,11 +24,11 @@ public class HTTPServer implements FogApp
 	
     @Override
     public void declareConnections(Hardware c) {
-        
+
         c.useHTTP1xServer(port).setHost("0.0.0.0").useInsecureServer();
-		emptyResponseRouteId = c.defineRoute(cookieHeader).path("/testpageA?arg=#{myarg}").routeId();
+		emptyResponseRouteId = c.defineRoute(HTTPHeaderDefaults.COOKIE).path("/testpageA?arg=#{myarg}").routeId();
 		smallResponseRouteId = c.defineRoute().path("/testpageB").routeId();
-		largeResponseRouteId = c.defineRoute(cookieHeader).path("/testpageC").routeId();
+		largeResponseRouteId = c.defineRoute(HTTPHeaderDefaults.COOKIE).path("/testpageC").routeId();
 		fileServerId         = c.defineRoute().path("/file${path}").routeId();
 		c.enableTelemetry();
 		

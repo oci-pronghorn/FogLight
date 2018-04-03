@@ -15,14 +15,14 @@ First declare the connections in IoTApp.java . In order to perform I2C read, spe
 ```java
 package com.ociweb.grove;
 
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.AngleSensor;
+import static com.ociweb.iot.maker.Port.A0;
 
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
-import static com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriverTwig.*;
+import com.ociweb.iot.grove.mini_motor_driver.MiniMotorDriverTwig.MiniMotorDriver;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.Port;
-import static com.ociweb.iot.maker.Port.*;
 
 public class IoTApp implements FogApp
 {
@@ -74,6 +74,7 @@ public class MiniMotorBehavior implements AnalogListener,MiniMotorDriverListener
     
     MiniMotorBehavior(FogRuntime runtime){
         this.ch = runtime.newCommandChannel();
+        ch.ensureI2CWriting(1000,100);
         motorController = new MiniMotorDriver_Transducer(ch,this);
     }
     

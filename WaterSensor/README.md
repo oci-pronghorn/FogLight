@@ -18,8 +18,9 @@ package com.ociweb.grove;
 
 
 import static com.ociweb.grove.RestfulWaterSensorConstants.*;
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.*;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.*;
 
+import com.ociweb.gl.api.HTTPServerConfig;
 import com.ociweb.iot.maker.*;
 
 public class IoTApp implements FogApp
@@ -29,10 +30,11 @@ public class IoTApp implements FogApp
 	public void declareConnections(Hardware c) {
 		c.connect(WaterSensor, WATER_SENSOR_PORT);
 
-		c.enableServer(serverIsTLS, 
-				serverIsLarge,
-				hostIP,
-				8088);	
+    	HTTPServerConfig conf = c.useHTTP1xServer(8088)
+    			.setHost(hostIP);
+    	if (!serverIsTLS) {
+    		conf.useInsecureServer();
+    	}
 
 		c.enableTelemetry();
 
@@ -74,7 +76,7 @@ public class RestfulWaterSensorBehavior implements AnalogListener, RestListener 
 
 	@Override
 	public boolean restRequest(HTTPRequestReader reader) {
-		return ch.publishHTTPResponse(reader, 200, HTTPFieldReader.END_OF_RESPONSE | HTTPFieldReader.CLOSE_CONNECTION, HTTPContentTypeDefaults.HTML,
+		return ch.publishHTTPResponse(reader, 200, false, HTTPContentTypeDefaults.HTML,
 				(writer)->{
 					try {
 						writer.append(Integer.toString(this.val));

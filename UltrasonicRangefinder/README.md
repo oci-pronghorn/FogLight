@@ -16,12 +16,12 @@ In IoTApp.java:
 ```java
 package com.ociweb.grove;
 
-import static com.ociweb.iot.grove.analogdigital.AnalogDigitalTwig.UltrasonicRanger;
+import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.UltrasonicRanger;
 import static com.ociweb.iot.maker.Port.A0;
 
+import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogApp;
 
 public class IoTApp implements FogApp
 {
@@ -66,9 +66,9 @@ In IoTBehavior.java:
 package com.ociweb.grove;
 
 
-import com.ociweb.gl.api.GreenCommandChannel;
-import static com.ociweb.iot.maker.FogCommandChannel.*;
-import com.ociweb.iot.grove.lcd_rgb.*;
+import static com.ociweb.iot.maker.FogCommandChannel.I2C_WRITER;
+
+import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;

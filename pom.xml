@@ -8,14 +8,10 @@
  
   <modules>
     <module>Startup</module>
-    <module>Timer</module>
     <module>CommandChannel</module>
     <module>StateMachine</module>
     <module>PubSub</module>
-    <module>HTTPClient</module>
-    <module>HTTPServer</module>
     <module>CustomDevice</module>
-    <module>PubSubStructured</module>
     <module>Shutdown</module>
     <module>DeclareConnections</module>
     <module>DigitalListener</module>
@@ -23,7 +19,6 @@
     <module>I2CListener</module>
     <module>SerialListener</module>
     <module>ImageListener</module>
-    <module>MQTTClient</module>
     <module>AnalogTransducer</module>
     <module>TransducerDemo</module>
   </modules>

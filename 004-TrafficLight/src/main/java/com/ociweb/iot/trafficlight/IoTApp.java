@@ -26,7 +26,7 @@ public class IoTApp implements FogApp
 	private boolean isWebControlled = false;////set this to true;
 
 	private int webRoute = -1;
-	private byte[] COLOR = "color".getBytes();
+	private long COLOR;
 
 	private byte[] RED = "red".getBytes();
 	private byte[] GREEN = "green".getBytes();
@@ -58,7 +58,7 @@ public class IoTApp implements FogApp
 						
 		//	c.enableTelemetry(true);			
 			webRoute = c.defineRoute().path("/trafficLight?color=${color}").routeId();
-
+			COLOR = c.lookupFieldByName(webRoute, "color");
 		}
 
 	}
@@ -87,13 +87,13 @@ public class IoTApp implements FogApp
 
 		runtime.addRestListener((reader)->{
 
-									 if (reader.isEqual(COLOR, RED)) {
+									 if (reader.structured().isEqual(COLOR, RED)) {
 										 return channel.publishHTTPResponse(reader, turnOnRed(channel) ? 200 : 500);
 										 
-									 } else if (reader.isEqual(COLOR, GREEN)) {
+									 } else if (reader.structured().isEqual(COLOR, GREEN)) {
 										 return channel.publishHTTPResponse(reader, turnOnGreen(channel) ? 200 : 500);
 										 
-									 } else if (reader.isEqual(COLOR, YELLOW)) {
+									 } else if (reader.structured().isEqual(COLOR, YELLOW)) {
 										 return channel.publishHTTPResponse(reader, turnOnYellow(channel) ? 200 : 500);
 										 
 									 } else {

@@ -3,7 +3,6 @@ package com.ociweb.iot.maker;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ociweb.gl.api.TelemetryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -425,6 +424,26 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		return runtime;
     }
 	
+	public static boolean testConcurrentUntilShutdownRequested(FogApp app, long timeoutMS) {
+		
+		 long limit = System.nanoTime() + (timeoutMS*1_000_000L);
+		 
+		 MsgRuntime runtime = run(app);
+
+	   	 while (!runtime.isShutdownComplete()) {
+	   		if (System.nanoTime() > limit) {
+	   				logger.warn("exit due to timeout");
+					return false;
+	   		}
+	   		try {
+					Thread.sleep(2);
+				} catch (InterruptedException e) {
+					return false;
+				}
+	   	 }
+	   	 return true;
+	}
+	
 	public static boolean testUntilShutdownRequested(FogApp app, long timeoutMS) {
 		FogRuntime runtime = new FogRuntime(app.getClass().getSimpleName());
 		
@@ -432,7 +451,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         
         long limit = System.nanoTime() + (timeoutMS*1_000_000L);
         boolean result = true;
-        s.startup();
+        s.startup(true);
     	                
 		while (!ScriptedNonThreadScheduler.isShutdownRequested(s)) {
 

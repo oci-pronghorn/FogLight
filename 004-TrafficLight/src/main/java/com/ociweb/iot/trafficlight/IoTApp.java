@@ -6,6 +6,8 @@ import static com.ociweb.iot.maker.Port.D5;
 import static com.ociweb.iot.maker.Port.D6;
 
 import com.ociweb.gl.api.GreenCommandChannel;
+import com.ociweb.gl.api.HTTPResponseService;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
 import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
@@ -80,25 +82,23 @@ public class IoTApp implements FogApp
 	private void configureWebBasedColorChange(FogRuntime runtime) {
 		final FogCommandChannel channel = runtime.newCommandChannel(
 									    FogRuntime.PIN_WRITER |
-									    FogRuntime.I2C_WRITER |
-										GreenCommandChannel.DYNAMIC_MESSAGING | 
-										GreenCommandChannel.NET_RESPONDER);
-
+									    FogRuntime.I2C_WRITER );
+		HTTPResponseService responseService = channel.newHTTPResponseService();
 
 		runtime.addRestListener((reader)->{
 
 									 if (reader.structured().isEqual(COLOR, RED)) {
-										 return channel.publishHTTPResponse(reader, turnOnRed(channel) ? 200 : 500);
+										 return responseService.publishHTTPResponse(reader, turnOnRed(channel) ? 200 : 500);
 										 
 									 } else if (reader.structured().isEqual(COLOR, GREEN)) {
-										 return channel.publishHTTPResponse(reader, turnOnGreen(channel) ? 200 : 500);
+										 return responseService.publishHTTPResponse(reader, turnOnGreen(channel) ? 200 : 500);
 										 
 									 } else if (reader.structured().isEqual(COLOR, YELLOW)) {
-										 return channel.publishHTTPResponse(reader, turnOnYellow(channel) ? 200 : 500);
+										 return responseService.publishHTTPResponse(reader, turnOnYellow(channel) ? 200 : 500);
 										 
 									 } else {
 										 
-										 return channel.publishHTTPResponse(reader, 404);
+										 return responseService.publishHTTPResponse(reader, 404);
 										 
 									 }}).includeRoutes(webRoute);
 
@@ -108,39 +108,42 @@ public class IoTApp implements FogApp
 	protected void configureTimeBasedColorChange(FogRuntime runtime) {
 		final FogCommandChannel channel0 = runtime.newCommandChannel(
 				 									FogRuntime.PIN_WRITER |
-				 									FogRuntime.I2C_WRITER |
-				                                    GreenCommandChannel.DYNAMIC_MESSAGING);
+				 									FogRuntime.I2C_WRITER);
+		PubSubService pubService = channel0.newPubSubService();
 		runtime.addPubSubListener((topic, payload)-> {
 
 			turnOnRed(channel0);
 			channel0.block(State.REDLIGHT.getTime());
-			channel0.publishTopic("GREEN",w->{});
+			pubService.publishTopic("GREEN",w->{});
 			return true;
 		}).addSubscription("RED");
 
 		final FogCommandChannel channel1 = runtime.newCommandChannel(
 														FogRuntime.PIN_WRITER |
-														FogRuntime.I2C_WRITER |
-				                                     GreenCommandChannel.DYNAMIC_MESSAGING);
+														FogRuntime.I2C_WRITER);
+		PubSubService pubSubService = channel1.newPubSubService();
+		
+		
 		runtime.addPubSubListener((topic, payload)-> {
 
 			turnOnGreen(channel1);
 			channel1.block(State.GREENLIGHT.getTime());
 			
-			channel1.publishTopic("YELLOW",w->{});
+			pubSubService.publishTopic("YELLOW",w->{});
 			return true;
 		}).addSubscription("GREEN");
 
 		final FogCommandChannel channel2 = runtime.newCommandChannel(
 													 FogRuntime.PIN_WRITER |
-													 FogRuntime.I2C_WRITER |
-				                                       GreenCommandChannel.DYNAMIC_MESSAGING);
+													 FogRuntime.I2C_WRITER);
+		PubSubService pubService2 = channel2.newPubSubService();
+		
 		runtime.addPubSubListener((topic, payload)-> {
 
 			turnOnYellow(channel2);
 			channel2.block(State.YELLOWLIGHT.getTime());
 			
-			channel2.publishTopic("RED",w->{});
+			pubService2.publishTopic("RED",w->{});
 			return true;
     	}).addSubscription("YELLOW");
     	
@@ -148,7 +151,9 @@ public class IoTApp implements FogApp
     		                                       FogRuntime.PIN_WRITER |
     		                                       FogRuntime.I2C_WRITER |
     		                                       GreenCommandChannel.DYNAMIC_MESSAGING);
-       runtime.addStartupListener(()->{channel4.publishTopic("RED",w->{});});
+       PubSubService pubService4 = channel4.newPubSubService();
+       
+       runtime.addStartupListener(()->{pubService4.publishTopic("RED",w->{});});
 
 	}
 

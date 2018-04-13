@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.MsgCommandChannel;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -23,14 +24,14 @@ public class SubscribeDataMQTT implements StartupListener {
 	private final Logger logger = LoggerFactory.getLogger(SubscribeDataMQTT.class);
 	private final String subscriptionTopic; //  = "#";
 	private final String publishTopic;
-    private final FogCommandChannel commandChannel;
+    private final PubSubService commandChannel;
 	private final String clientId;
 	private final String serverURI;
 	
 	//"tcp://localhost:1883", "TestClient"
 	public SubscribeDataMQTT(FogRuntime runtime, String subscriptionTopic, String publishTopic, String serverURI, String clientId) {
 		
-		this.commandChannel = runtime.newCommandChannel(MsgCommandChannel.DYNAMIC_MESSAGING);
+		this.commandChannel = runtime.newCommandChannel().newPubSubService();
 				
 		this.connOptions = new MqttConnectOptions();
 		

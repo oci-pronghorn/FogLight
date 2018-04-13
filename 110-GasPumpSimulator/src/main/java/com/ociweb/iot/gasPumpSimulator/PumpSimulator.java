@@ -12,7 +12,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 
 	private Logger logger = LoggerFactory.getLogger(PumpSimulator.class);
 
-	private final FogCommandChannel channel;
+	private final PubSubService channel;
 	private final String fuelName;
 	private final int centsPerUnit;
 
@@ -25,7 +25,7 @@ public class PumpSimulator implements DigitalListener, StateChangeListener<PumpS
 
 	public PumpSimulator(FogRuntime runtime, String pumpTopic, String totalTopic, String fuelName, int centsPerGallon) {
 
-   	  this.channel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING);
+   	  this.channel = runtime.newCommandChannel().newPubSubService();
       this.pumpTopic = pumpTopic;
       this.totalTopic = totalTopic;
    	  this.fuelName = fuelName;

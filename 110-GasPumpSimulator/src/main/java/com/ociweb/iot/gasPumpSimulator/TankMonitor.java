@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.MsgCommandChannel;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.iot.maker.AnalogListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -11,7 +12,7 @@ import com.ociweb.iot.maker.Port;
 
 public class TankMonitor implements AnalogListener {
 
-	private final FogCommandChannel commandChannel;
+	private final PubSubService commandChannel;
   private final String topic;
   private final int fullTank;
   private final int radiusMM = 42;
@@ -23,7 +24,7 @@ public class TankMonitor implements AnalogListener {
 
 	public TankMonitor(FogRuntime runtime, String topic, int fullTank, String fuelName) {
 
-		this.commandChannel = runtime.newCommandChannel(MsgCommandChannel.DYNAMIC_MESSAGING);
+		this.commandChannel = runtime.newCommandChannel().newPubSubService();
 		this.topic = topic;
 		this.fuelName = fuelName;
 		this.fullTank = fullTank;

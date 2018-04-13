@@ -2,6 +2,7 @@ package com.ociweb.iot.metronome;
 
 import com.ociweb.gl.api.GreenCommandChannel;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
@@ -57,16 +58,21 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private int activeBPM;
     
     private int showingBPM;
+	private PubSubService tickPubSub;
     
     public MetronomeBehavior(FogRuntime runtime) {
-        this.tickCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING | FogRuntime.I2C_WRITER | FogRuntime.PIN_WRITER);
-        this.screenCommandChannel = runtime.newCommandChannel(GreenCommandChannel.DYNAMIC_MESSAGING | FogRuntime.I2C_WRITER | FogRuntime.PIN_WRITER);
+        this.tickCommandChannel = runtime.newCommandChannel( 
+        		FogRuntime.I2C_WRITER | FogRuntime.PIN_WRITER);
+        this.screenCommandChannel = runtime.newCommandChannel(
+        		FogRuntime.I2C_WRITER | FogRuntime.PIN_WRITER);
+        this.tickPubSub = this.tickCommandChannel.newPubSubService();
+        
     }
 
     @Override
     public void startup() {
-        tickCommandChannel.subscribe(topic,this); 
-        tickCommandChannel.publishTopic(topic,w->{});
+    	tickPubSub.subscribe(topic,this); 
+    	tickPubSub.publishTopic(topic,w->{});
         
         Grove_LCD_RGB.commandForColor(tickCommandChannel, 255, 255, 255);
         
@@ -101,7 +107,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             }
             
         }
-        tickCommandChannel.publishTopic(topic,w->{});//request next tick
+        tickPubSub.publishTopic(topic,w->{});//request next tick
         
         return true;
     }

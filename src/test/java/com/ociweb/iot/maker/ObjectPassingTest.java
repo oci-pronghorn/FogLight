@@ -10,11 +10,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.WaitFor;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.pipe.ChannelReader;
-import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.ScriptedNonThreadScheduler;
 
 public class ObjectPassingTest {
@@ -40,7 +40,7 @@ public class ObjectPassingTest {
 				public void declareBehavior(FogRuntime runtime) {
 					
 					runtime.addPubSubListener(new PubSubListener() {
-						FogCommandChannel cc1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+						PubSubService cc1 = runtime.newCommandChannel().newPubSubService();
 
 						@Override
 						public boolean message(CharSequence topic, ChannelReader payload) {
@@ -77,7 +77,7 @@ public class ObjectPassingTest {
 					
 					
 					runtime.addStartupListener(new StartupListener() {
-						FogCommandChannel cc2 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
+						PubSubService cc2 = runtime.newCommandChannel().newPubSubService();
 
 						@Override
 						public void startup() {

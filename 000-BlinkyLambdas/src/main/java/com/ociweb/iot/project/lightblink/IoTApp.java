@@ -16,6 +16,7 @@ package com.ociweb.iot.project.lightblink;
 import static com.ociweb.iot.grove.simple_digital.SimpleDigitalTwig.*;
 import static com.ociweb.iot.maker.Port.D5;
 
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
@@ -41,13 +42,14 @@ public class IoTApp implements FogApp {
     @Override
     public void declareBehavior(FogRuntime runtime) {
         
-        final FogCommandChannel blinkerChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER |
-			    DYNAMIC_MESSAGING);        
+        final FogCommandChannel blinkerChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER);
+        PubSubService messageService = blinkerChannel.newPubSubService();
+        
         runtime.addPubSubListener((topic,payload)->{
 
 		    boolean value = payload.readBoolean();
 		    blinkerChannel.setValueAndBlock(LED_PORT, value, PAUSE);               
-		    /*boolean ignored =*/ blinkerChannel.publishTopic(TOPIC, w->{
+		    /*boolean ignored =*/ messageService.publishTopic(TOPIC, w->{
 		    	w.writeBoolean(!value);
 		    });
 		    return true;
@@ -56,9 +58,12 @@ public class IoTApp implements FogApp {
                 
         final FogCommandChannel startupChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER |
 			    DYNAMIC_MESSAGING); 
+        PubSubService startupService = startupChannel.newPubSubService();
+        
+        
         runtime.addStartupListener(
                 ()->{
-                	 startupChannel.publishTopic(TOPIC, w->{
+                	startupService.publishTopic(TOPIC, w->{
                 		w.writeBoolean(true);             		
                 	});
                 });        

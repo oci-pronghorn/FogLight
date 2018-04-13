@@ -18,8 +18,8 @@
 package com.ociweb.iot.project.lightblink;
 
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.StartupListener;
-import com.ociweb.iot.maker.FogApp;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.ChannelReader;
@@ -30,10 +30,13 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
     private static final int PAUSE = 500;
 	
 	private FogCommandChannel blinkerChannel;
+	private PubSubService messageService;
 	
 	public BlinkerBehavior(FogRuntime runtime) {
-		blinkerChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER |
-			    FogApp.DYNAMIC_MESSAGING); 
+		blinkerChannel = runtime.newCommandChannel( FogRuntime.PIN_WRITER); 
+		messageService = blinkerChannel.newPubSubService();
+		
+		
 	}	
 	
 	@Override
@@ -41,7 +44,7 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 
 		 int value = payload.readInt();
          blinkerChannel.setValueAndBlock(IoTApp.LED_PORT, value==1, PAUSE);               
-         return blinkerChannel.publishTopic(TOPIC, w->{
+         return messageService.publishTopic(TOPIC, w->{
         	 w.writeInt( 1==value ? 0 : 1 );        	 
          });
     }
@@ -49,8 +52,8 @@ public class BlinkerBehavior implements StartupListener, PubSubListener {
 	@Override
 	public void startup() {
 
-		blinkerChannel.subscribe(TOPIC, this);
-		blinkerChannel.publishTopic(TOPIC,w->{
+		messageService.subscribe(TOPIC, this);
+		messageService.publishTopic(TOPIC,w->{
 			w.writeInt( 1 );
 		});
 	}

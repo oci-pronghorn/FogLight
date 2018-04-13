@@ -7,6 +7,8 @@ import com.ociweb.iot.maker.Port;
 
 import static com.ociweb.iot.maker.Port.*;
 
+import com.ociweb.gl.api.PubSubService;
+
 public class DigitalListenerBehavior implements DigitalListener {
 
 	private static final Port BUZZER_PORT = D2;
@@ -14,8 +16,12 @@ public class DigitalListenerBehavior implements DigitalListener {
 	private static final Port TOUCH_SENSOR_PORT = D4;
 
 	private FogCommandChannel channel;
+	private PubSubService pubService;
+	
 	public DigitalListenerBehavior(FogRuntime runtime) {
-		channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER | DYNAMIC_MESSAGING);
+		channel = runtime.newCommandChannel(FogCommandChannel.PIN_WRITER);
+		pubService = channel.newPubSubService();
+		
 	}
 
 	@Override
@@ -31,7 +37,7 @@ public class DigitalListenerBehavior implements DigitalListener {
 			System.out.println("Buzzer was on for " + durationMillis + " milliseconds");
 			System.out.println("time: " + time);
 		}
-		channel.shutdown();
+		pubService.shutdown();
 	}
 
 }

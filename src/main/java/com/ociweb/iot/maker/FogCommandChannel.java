@@ -52,19 +52,29 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	   hardware.useI2C();//critical for hardware to know that I2C is really really  in use.
        }
     }
+    
+    public I2CService newI2CService() {
+    	return new I2CService(this);
+    }
+    
+    public I2CService newI2CService(int commandCountCapacity, int maxMessageSize) {
+    	return new I2CService(this, commandCountCapacity, maxMessageSize);
+    }  
 
-    public void ensureI2CWriting() {
+    @Deprecated
+	public void ensureI2CWriting() {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
     	this.initFeatures |= I2C_WRITER;
     }
     
+	@Deprecated
     public void ensureI2CWriting(int commandCountCapacity, int maxMessageSize) {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
-    	growCommandCountRoom(commandCountCapacity);
+    	growCommandCountRoom(this, commandCountCapacity);
     	this.initFeatures |= I2C_WRITER;    
     	PipeConfig<I2CCommandSchema> config = pcm.getConfig(I2CCommandSchema.class);
 		if (isTooSmall(commandCountCapacity, maxMessageSize, config)) {
@@ -73,6 +83,15 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	}
     }
     
+	public PinService newPinService() {
+		return new PinService(this);
+	}
+    
+	public PinService newPinService(int commandCountCapacity, int maxMessageSize) {
+		return new PinService(this,commandCountCapacity,maxMessageSize);
+	}
+	
+	@Deprecated
     public void ensurePinWriting() {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
@@ -80,11 +99,12 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	this.initFeatures |= PIN_WRITER;
     }
     
+	@Deprecated
     public void ensurePinWriting(int commandCountCapacity, int maxMessageSize) {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
-    	growCommandCountRoom(commandCountCapacity);
+    	growCommandCountRoom(this, commandCountCapacity);
     	this.initFeatures |= PIN_WRITER;    
     	PipeConfig<GroveRequestSchema> config = pcm.getConfig(GroveRequestSchema.class);
 		if (isTooSmall(commandCountCapacity, maxMessageSize, config)) {
@@ -93,6 +113,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	}
     }
     
+    @Deprecated
     public void ensureSerialWriting() {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
@@ -100,11 +121,12 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	this.initFeatures |= SERIAL_WRITER;
     }
     
+    @Deprecated
     public void ensureSerialWriting(int commandCountCapacity, int maxMessageSize) {
     	if (maxCommands>=0) {
     		throw new UnsupportedOperationException("Too late, this method must be called in define behavior.");
     	}
-    	growCommandCountRoom(commandCountCapacity);
+    	growCommandCountRoom(this, commandCountCapacity);
     	this.initFeatures |= SERIAL_WRITER;    
     	PipeConfig<SerialOutputSchema> config = pcm.getConfig(SerialOutputSchema.class);
 		if (isTooSmall(commandCountCapacity, maxMessageSize, config)) {
@@ -113,6 +135,15 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     				           Math.max(config.maxVarLenSize(), maxMessageSize), SerialOutputSchema.class);   
     	}
     }
+    
+    public SerialService newSerialService() {
+    	return new SerialService(this);
+    }
+    
+    public SerialService newSerialService(int commandCountCapacity, int maxMessageSize) {
+    	return new SerialService(this,commandCountCapacity,maxMessageSize);
+    }
+    
     
     @Override
 	protected void secondShutdownMsg() {
@@ -240,6 +271,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      *
      * @return True if blocking was successful, and false otherwise.
      */
+    @Deprecated
     public abstract boolean block(Port port, long durationMilli);
 
     /**
@@ -252,6 +284,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      *
      * @return True if blocking was successful, and false otherwise.
      */
+    @Deprecated
     public abstract boolean blockUntil(Port port, long time);
 
     /**
@@ -323,6 +356,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      */
     public abstract boolean digitalPulse(Port port, long durationNanos);
 
+    @Deprecated
     public boolean publishSerial(Writable writable) {
         assert(writable != null);
         assert((0 != (initFeatures & SERIAL_WRITER))) : "CommandChannel must be created with SERIAL_WRITER flag";
@@ -358,6 +392,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      *         connected to the specified target address.
      *
      */
+    @Deprecated
     public DataOutputBlobWriter<I2CCommandSchema> i2cCommandOpen(int targetAddress) {       
     	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
 
@@ -384,6 +419,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      * @param targetAddress I2C address to trigger a delay on.
      * @param durationNanos Time in nanoseconds to delay.
      */
+    @Deprecated
     public void i2cDelay(int targetAddress, long durationNanos) {
     	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
@@ -410,12 +446,14 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
         
     }
 
+    @Deprecated
     public boolean i2cIsReady() {
     	return i2cIsReady(1);
     }
     /**
      * @return True if the I2C bus is ready for communication, and false otherwise.
      */
+    @Deprecated
     public boolean i2cIsReady(int requestedCommandCount) {
     	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
     	assert(null!=i2cOutput) : "pipe must not be null";
@@ -426,12 +464,13 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     /**
      * Flushes all awaiting I2C data to the I2C bus for consumption.
      */
+    @Deprecated
     public void i2cFlushBatch() {
         assert ((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         if (runningI2CCommandCount > 0) {
             assert (enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
             try {
-                builder.releaseI2CTraffic(runningI2CCommandCount, this);
+            	FogCommandChannel.releaseI2CTraffic(this);
                 runningI2CCommandCount = 0;
             } finally {
                 assert (exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
@@ -439,6 +478,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
         }
     }
 
+    @Deprecated
     public int i2cCommandClose(DataOutputBlobWriter<I2CCommandSchema> writer) {
     	assert((0 != (initFeatures & I2C_WRITER))) : "CommandChannel must be created with I2C_WRITER flag";
         assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
@@ -459,4 +499,8 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     public void i2cCommandClose() {
         i2cCommandClose(PipeWriter.outputStream(i2cOutput));
     }
+
+	public static void releaseI2CTraffic(FogCommandChannel cmd) {
+		   cmd.builder.releaseI2CTraffic(cmd.runningI2CCommandCount, cmd);
+	}
 }

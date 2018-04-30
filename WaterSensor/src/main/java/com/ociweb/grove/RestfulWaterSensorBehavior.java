@@ -9,15 +9,19 @@ import com.ociweb.pronghorn.network.config.HTTPContentTypeDefaults;
 
 public class RestfulWaterSensorBehavior implements AnalogListener, RestListener  {
 	private int val = -1;
-	private FogCommandChannel ch;
+	private final PubSubService pubSubService;
+	private final HTTPResponseService httpResponseService;
+
 
 	public RestfulWaterSensorBehavior(FogRuntime runtime) {
-		this.ch = runtime.newCommandChannel(MsgCommandChannel.NET_RESPONDER | MsgCommandChannel.DYNAMIC_MESSAGING); 
-	}	
+		FogCommandChannel ch = runtime.newCommandChannel();
+		pubSubService = ch.newPubSubService();
+		httpResponseService = ch.newHTTPResponseService();
+	}
 
 	@Override
 	public boolean restRequest(HTTPRequestReader reader) {
-		return ch.publishHTTPResponse(reader, 200, false, HTTPContentTypeDefaults.HTML,
+		return httpResponseService.publishHTTPResponse(reader, 200, false, HTTPContentTypeDefaults.HTML,
 				(writer)->{
 					try {
 						writer.append(Integer.toString(this.val));

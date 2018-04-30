@@ -4,6 +4,7 @@ import java.util.Random;
 
 import com.ociweb.gl.api.MessageReader;
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.pronghorn.pipe.ChannelReader;
@@ -13,14 +14,15 @@ public class GenerateBehavior implements PubSubListener {
 
 	Random rand;
     private final CharSequence publishTopic;
-	final FogCommandChannel channel1;
 	private final Appendable target;
+	private final PubSubService pubSubService;
 	
 	public GenerateBehavior(FogRuntime runtime, CharSequence publishTopic, Appendable target, int seed) {
 		
 		this.target = target;
-		channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-		
+		FogCommandChannel channel1 = runtime.newCommandChannel();
+		pubSubService = channel1.newPubSubService();
+
 		this.publishTopic = publishTopic;
 		this.rand = new Random(seed);
 	}
@@ -31,7 +33,7 @@ public class GenerateBehavior implements PubSubListener {
 		int n = rand.nextInt(101);
 		Appendables.appendValue(target, "", n, " ");
 		
-		return channel1.publishTopic(publishTopic);
+		return pubSubService.publishTopic(publishTopic);
 		
 	}
 

@@ -1,5 +1,6 @@
 package com.ociweb.oe.foglight.api;
 
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.maker.FogCommandChannel;
 import com.ociweb.iot.maker.FogRuntime;
@@ -9,11 +10,12 @@ public class TimingBehavior implements TimeListener {
 	private static long startTime;
 	private static boolean haveStartTime = false;
 	private static final long fullTime = 15; //time from one red light to the next in milliseconds
-    final FogCommandChannel channel;
+	private final PubSubService pubSubService;
+
 
 	public TimingBehavior(FogRuntime runtime) {
-		channel = runtime.newCommandChannel(DYNAMIC_MESSAGING);
-
+		FogCommandChannel channel = runtime.newCommandChannel();
+		pubSubService = channel.newPubSubService();
 	}
 
 
@@ -22,15 +24,15 @@ public class TimingBehavior implements TimeListener {
 		
 		if((time-startTime)%fullTime == 5) {
 			System.out.print("Go! ");
-			channel.changeStateTo(StopLight.Go);
+			pubSubService.changeStateTo(StopLight.Go);
 		}
 		else if((time-startTime)%fullTime == 10) {
 			System.out.print("Caution. ");
-			channel.changeStateTo(StopLight.Caution);
+			pubSubService.changeStateTo(StopLight.Caution);
 		}
 		else if((time-startTime)%fullTime == 0) {
 			System.out.print("Stop! ");
-			channel.changeStateTo(StopLight.Stop);
+			pubSubService.changeStateTo(StopLight.Stop);
 		}
 		
 		if(!haveStartTime) {

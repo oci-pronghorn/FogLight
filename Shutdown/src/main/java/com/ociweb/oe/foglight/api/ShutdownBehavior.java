@@ -4,6 +4,7 @@ import static com.ociweb.iot.maker.Port.D2;
 import static com.ociweb.iot.maker.Port.D3;
 
 import com.ociweb.gl.api.PubSubListener;
+import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.ShutdownListener;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.iot.maker.DigitalListener;
@@ -20,7 +21,9 @@ public class ShutdownBehavior implements StartupListener, DigitalListener, Shutd
 	private boolean PSRequested = false; // pubsub requested
 	private boolean statusOfLED = false; // LED on or off
 	private boolean SdConfirmed = false; //shutdown confirmed
-	
+
+	private final PubSubService pubSubService;
+
 	final FogCommandChannel channel1;
 
 	private final FogRuntime runtime;
@@ -28,7 +31,9 @@ public class ShutdownBehavior implements StartupListener, DigitalListener, Shutd
    
 	
     public ShutdownBehavior(FogRuntime runtime) {
-		channel1 = runtime.newCommandChannel(DYNAMIC_MESSAGING | FogCommandChannel.I2C_WRITER | FogCommandChannel.PIN_WRITER);
+		channel1 = runtime.newCommandChannel(FogCommandChannel.I2C_WRITER | FogCommandChannel.PIN_WRITER);
+		FogCommandChannel ch = runtime.newCommandChannel();
+		pubSubService = ch.newPubSubService();
 		this.runtime = runtime;
 	}
 	
@@ -59,7 +64,7 @@ public class ShutdownBehavior implements StartupListener, DigitalListener, Shutd
     			    			
 				channel1.setValue(LED_PORT, false);   			
 				
-    			channel1.publishTopic("LED");
+    			pubSubService.publishTopic("LED");
 			}
 			return false;
 		}

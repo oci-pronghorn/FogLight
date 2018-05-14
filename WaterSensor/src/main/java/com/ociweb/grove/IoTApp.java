@@ -4,8 +4,8 @@ package com.ociweb.grove;
 import static com.ociweb.grove.RestfulWaterSensorConstants.*;
 import static com.ociweb.iot.grove.simple_analog.SimpleAnalogTwig.*;
 
-import com.ociweb.gl.api.HTTPServerConfig;
 import com.ociweb.iot.maker.*;
+import com.ociweb.pronghorn.network.HTTPServerConfig;
 
 public class IoTApp implements FogApp
 {

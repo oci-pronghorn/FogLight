@@ -10,7 +10,7 @@ import com.ociweb.pronghorn.HTTPServer;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
-import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
+import com.ociweb.pronghorn.stage.monitor.PipeMonitorCollectorStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
@@ -59,7 +59,7 @@ public class ManifoldApp {
 
 		if (!simulate) {
 			buildRealPipes();
-			MonitorConsoleStage.attach(gm);
+			PipeMonitorCollectorStage.attach(gm);
 		} else {
 			logger.info("running simulation");
 			buildAllFakePipes();
@@ -102,7 +102,7 @@ public class ManifoldApp {
 		//logger.info("run graph");
 		
 		
-		MonitorConsoleStage.attach(gm);
+		PipeMonitorCollectorStage.attach(gm);
 		
 		StageScheduler scheduler = new ThreadPerStageScheduler(gm);
 		

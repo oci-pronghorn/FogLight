@@ -17,7 +17,7 @@ import com.ociweb.pronghorn.stage.math.ColumnsToRowsStage;
 import com.ociweb.pronghorn.stage.math.DecimalSchema;
 import com.ociweb.pronghorn.stage.math.MatrixSchema;
 import com.ociweb.pronghorn.stage.math.RowSchema;
-import com.ociweb.pronghorn.stage.monitor.MonitorConsoleStage;
+import com.ociweb.pronghorn.stage.monitor.PipeMonitorCollectorStage;
 import com.ociweb.pronghorn.stage.scheduling.FixedThreadsScheduler;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;

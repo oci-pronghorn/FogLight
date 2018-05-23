@@ -24,7 +24,7 @@ public enum BeagleBoneModel {
 	}
 
 	static TrieParser trie = new TrieParser(256, false);
-	static TrieParserReader reader = new TrieParserReader(2, true);
+	static TrieParserReader reader = new TrieParserReader(true);
 	static {
 		trie.setUTF8Value("    product: TI AM335x BeagleBone %b\n", 1);
 		trie.setUTF8Value("%b\n",2);

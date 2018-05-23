@@ -17,7 +17,7 @@ public enum MacModel {
 	private static final Logger logger  = LoggerFactory.getLogger(MacModel.class);
 	
 	static TrieParser trie = new TrieParser(256,false);
-	static TrieParserReader reader = new TrieParserReader(2,true);
+	static TrieParserReader reader = new TrieParserReader(true);
 	static {
 		//Any UTF8 value with a 1 is a string that will be looked for by the parse reader,
 		//any value with 2 will be skipped over by the parse reader

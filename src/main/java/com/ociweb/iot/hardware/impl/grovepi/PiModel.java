@@ -62,7 +62,7 @@ public enum PiModel {
 	}
 	
 	static TrieParser trie = new TrieParser(256,false);
-	static TrieParserReader reader = new TrieParserReader(2,true);
+	static TrieParserReader reader = new TrieParserReader(true);
 	static {
 		trie.setUTF8Value("Revision	: %b\n", 1);
 		trie.setUTF8Value("%b: %b\n"       , 2);

@@ -109,8 +109,8 @@ public class I2CStage extends PronghornStage {
                     
                     int connection = Pipe.takeInt(request);
                     int addr = Pipe.takeInt(request);
-                    int meta = Pipe.takeRingByteMetaData(request);
-                    int len = Pipe.takeRingByteLen(request);
+                    int meta = Pipe.takeByteArrayMetaData(request);
+                    int len = Pipe.takeByteArrayLength(request);
 
                     
                     

@@ -257,8 +257,8 @@ public class PureJavaI2CStage extends PronghornStage {
     private void readCommandMessage() {
         int connection = Pipe.takeInt(activePipe);
         int addrs = Pipe.takeInt(activePipe);
-        int meta = Pipe.takeRingByteMetaData(activePipe);
-        int len = Pipe.takeRingByteLen(activePipe);
+        int meta = Pipe.takeByteArrayMetaData(activePipe);
+        int len = Pipe.takeByteArrayLength(activePipe);
         if (len>0) {
 
           //will mess up time, do not use

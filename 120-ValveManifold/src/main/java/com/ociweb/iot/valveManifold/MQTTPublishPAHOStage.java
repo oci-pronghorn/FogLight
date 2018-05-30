@@ -132,8 +132,8 @@ public class MQTTPublishPAHOStage extends PronghornStage {
 				}
 				case MSG_PRESSUREFAULT_350:
 				case MSG_PARTNUMBER_330: {
-					int meta = Pipe.takeRingByteMetaData(input);
-					int len = Pipe.takeRingByteLen(input);
+					int meta = Pipe.takeByteArrayMetaData((Pipe<S>) input);
+					int len = Pipe.takeByteArrayLength((Pipe<S>) input);
 					int pos = Pipe.bytePosition(meta, input, len);
 					data = new byte[len + 8]; //must be new
 					write64(data, 0, timeStamp);

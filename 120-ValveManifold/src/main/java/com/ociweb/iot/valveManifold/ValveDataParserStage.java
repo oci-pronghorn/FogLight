@@ -177,8 +177,8 @@ public class ValveDataParserStage extends PronghornStage {
 				
 				if (reader.sourceLen>0) {
 					//we have old data so just add the new data to it.						
-					int meta = Pipe.takeRingByteMetaData(input);
-					int length    = Pipe.takeRingByteLen(input);
+					int meta = Pipe.takeByteArrayMetaData(input);
+					int length    = Pipe.takeByteArrayLength(input);
 					int pos = Pipe.bytePosition(meta, input, length); //moves byte counter forward.
 					
 					reader.sourceLen+=length;				

@@ -20,8 +20,8 @@ pi:
 	@arm-linux-gnueabihf-gcc -I"${JAVA_HOME}/include" -I"${JAVA_HOME}/include/linux" -shared -o src/main/resources/jni/arm-Linux/raspicam4j.so -fPIC src/main/c/raspicam4j.c -lv4l2
 
 pi-native:
-    @echo "This target MUST be run on a Raspberry Pi with JAVA_HOME properly configured and libv4l-dev installed."
-    gcc -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin -I${JAVA_HOME}/include/linux -shared -o src/main/resources/jni/arm-Linux/rs232.so -fPIC src/main/c/RS232.c
-    gcc -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin -I${JAVA_HOME}/include/linux -shared -o src/main/resources/jni/arm-Linux/raspicam4j.so -fPIC src/main/c/raspicam4j.c -lv4l2
+	@echo "This target MUST be run on a Raspberry Pi with JAVA_HOME properly configured and libv4l-dev installed."
+	gcc -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin -I${JAVA_HOME}/include/linux -shared -o src/main/resources/jni/arm-Linux/rs232.so -fPIC src/main/c/RS232.c
+	gcc -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin -I${JAVA_HOME}/include/linux -shared -o src/main/resources/jni/arm-Linux/raspicam4j.so -fPIC src/main/c/raspicam4j.c -lv4l2
 
 devices: edison pi

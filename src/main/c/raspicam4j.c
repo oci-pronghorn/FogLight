@@ -31,7 +31,7 @@ struct v4l2_buffer bufferinfo;
 void* buffer_start;
 int buffer_size = -1;
 
-JNIEXPORT jint JNICALL Java_com_objectcomputing_raspicam4j_RaspiCam_open(JNIEnv *env, jobject object, jstring device, jint width, jint height) {
+JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, jobject object, jstring device, jint width, jint height) {
     const char *actualDevice = (*env)->GetStringUTFChars(env, device, NULL);
     int fd = v4l2_open(actualDevice, O_RDWR | O_NONBLOCK, 0);
     if (fd < 0) {
@@ -135,11 +135,11 @@ JNIEXPORT jint JNICALL Java_com_objectcomputing_raspicam4j_RaspiCam_open(JNIEnv 
     }
 }
 
-JNIEXPORT jint JNICALL Java_com_objectcomputing_raspicam4j_RaspiCam_getFrameSizeBytes(JNIEnv *env, jobject object, jint fd) {
+JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameSizeBytes(JNIEnv *env, jobject object, jint fd) {
     return buffer_size;
 }
 
-JNIEXPORT jint JNICALL Java_com_objectcomputing_raspicam4j_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd, jbyteArray rawBytes, jint start) {
+JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd, jbyteArray rawBytes, jint start) {
 
     // The buffer's waiting in the outgoing queue.
     // If -1 is returned, the buffer isn't ready to read yet.
@@ -173,7 +173,7 @@ JNIEXPORT jint JNICALL Java_com_objectcomputing_raspicam4j_RaspiCam_readFrame(JN
     return readBytes;
 }
 
-JNIEXPORT jint JNICALL Java_com_objectcomputing_raspicam4j_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {
+JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {
 
     // Deactivate streaming
     if (v4l2_ioctl(fd, VIDIOC_STREAMOFF, &bufferinfo.type) < 0){

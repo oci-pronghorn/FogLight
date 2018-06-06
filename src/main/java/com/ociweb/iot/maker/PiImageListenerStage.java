@@ -12,6 +12,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -72,8 +73,11 @@ public class PiImageListenerStage extends PronghornStage {
         // TODO: Open camera here.
         frameBytes = new byte[1080 * 1920 * 3];
 
+        // Get a file for the default camera device.
+        File cameraFile = Paths.get(RaspiCam.DEFAULT_CAMERA_DEVICE).toFile();
+
         // Open /dev/video0 on Raspberry Pi.
-        if (!Paths.get("/dev/video0").toFile().exists()) {
+        if (!cameraFile.exists()) {
 
             // Load V4L2 module.
             try {
@@ -83,7 +87,7 @@ public class PiImageListenerStage extends PronghornStage {
             }
 
             // If it still isn't loaded, disable V4L2.
-            if (!Paths.get("/dev/video0").toFile().exists()) {
+            if (!cameraFile.exists()) {
                 v4l2Available = false;
             }
         }
@@ -91,12 +95,11 @@ public class PiImageListenerStage extends PronghornStage {
         // Open camera interface.
         if (v4l2Available) {
             camera = new RaspiCam();
+            cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, FRAME_WIDTH, FRAME_HEIGHT);
         } else {
             camera = new ProxyCam();
+            cameraFd = camera.open("./images", FRAME_WIDTH, FRAME_HEIGHT);
         }
-
-        // Open camera device.
-        cameraFd = camera.open("/dev/video0", FRAME_WIDTH, FRAME_HEIGHT);
 
         // Configure byte array for camera frames.
         frameBytes = new byte[camera.getFrameSizeBytes(cameraFd)];
@@ -121,16 +124,19 @@ public class PiImageListenerStage extends PronghornStage {
             // If there's no frame, read one and publish start.
             if (frameBytesPublishHead == -1) {
 
-                // Capture a frame.
-                camera.readFrame(cameraFd, frameBytes, 0);
-                frameBytesPublishHead = 0;
+                // Attempt a frame capture.
+                if (camera.readFrame(cameraFd, frameBytes, 0) != -1) {
 
-                // Publish frame start.
-                if (PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
-                    PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
-                    PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
-                    PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
-                    PipeWriter.publishWrites(output);
+                    // If a frame was available, reset head to the beginning.
+                    frameBytesPublishHead = 0;
+
+                    // Publish frame start.
+                    if (PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
+                        PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
+                        PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
+                        PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
+                        PipeWriter.publishWrites(output);
+                    }
                 }
 
             // Otherwise, write a frame part if there's space.

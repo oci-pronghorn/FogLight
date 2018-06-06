@@ -1,5 +1,8 @@
 package com.ociweb.iot.maker;
 
+import com.ociweb.iot.camera.Camera;
+import com.ociweb.iot.camera.ProxyCam;
+import com.ociweb.iot.camera.RaspiCam;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +11,9 @@ import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+
+import java.io.IOException;
+import java.nio.file.Paths;
 
 /**
  * Time-based image listener backing for Raspberry Pi hardware.
@@ -38,6 +44,11 @@ public class PiImageListenerStage extends PronghornStage {
     // Output pipe for image data.
     private final Pipe<ImageSchema> output;
 
+    // Camera system.
+    private boolean v4l2Available = true;
+    private Camera camera;
+    private int cameraFd;
+
     // Image buffer information; we only process one image at a time.
     private byte[] frameBytes = null;
     private int frameBytesPublishHead = -1;
@@ -60,6 +71,35 @@ public class PiImageListenerStage extends PronghornStage {
     public void startup() {
         // TODO: Open camera here.
         frameBytes = new byte[1080 * 1920 * 3];
+
+        // Open /dev/video0 on Raspberry Pi.
+        if (!Paths.get("/dev/video0").toFile().exists()) {
+
+            // Load V4L2 module.
+            try {
+                Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
+            } catch (IOException | InterruptedException e) {
+                logger.error(e.getMessage(), e);
+            }
+
+            // If it still isn't loaded, disable V4L2.
+            if (!Paths.get("/dev/video0").toFile().exists()) {
+                v4l2Available = false;
+            }
+        }
+
+        // Open camera interface.
+        if (v4l2Available) {
+            camera = new RaspiCam();
+        } else {
+            camera = new ProxyCam();
+        }
+
+        // Open camera device.
+        cameraFd = camera.open("/dev/video0", FRAME_WIDTH, FRAME_HEIGHT);
+
+        // Configure byte array for camera frames.
+        frameBytes = new byte[camera.getFrameSizeBytes(cameraFd)];
     }
 
     @Override
@@ -68,7 +108,8 @@ public class PiImageListenerStage extends PronghornStage {
 			Pipe.publishEOF(output);
 		}
 
-		// TODO: Release camera here.
+		// Close camera.
+        camera.close(cameraFd);
     }
 
     @Override
@@ -79,8 +120,9 @@ public class PiImageListenerStage extends PronghornStage {
 
             // If there's no frame, read one and publish start.
             if (frameBytesPublishHead == -1) {
-                // Take a picture and load the byte information.
-                // TODO: camera.frame(frameBytes)...
+
+                // Capture a frame.
+                camera.readFrame(cameraFd, frameBytes, 0);
                 frameBytesPublishHead = 0;
 
                 // Publish frame start.

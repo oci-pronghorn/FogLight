@@ -1,5 +1,6 @@
 package com.ociweb.pronghorn.iot.rs232;
 
+import com.ociweb.pronghorn.iot.jni.NativeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

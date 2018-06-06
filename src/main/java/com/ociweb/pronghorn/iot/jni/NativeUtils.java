@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.ociweb.pronghorn.iot.rs232;
+package com.ociweb.pronghorn.iot.jni;
 
 import java.io.*;
 

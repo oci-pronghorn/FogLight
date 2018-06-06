@@ -73,7 +73,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
     private Number stageRate;
     
     private DataInputBlobReader serialStremReader; //must be held as we accumulate serial data.
-    private DataInputBlobReader<ImageSchema> imageStreamReader;
+    private byte[] imageFrameRowBytes;
     
    
     
@@ -346,10 +346,34 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 		while (PipeReader.tryReadFragment(inputPipe)) {
 			int msgIdx = PipeReader.getMsgIdx(inputPipe);
 			switch(msgIdx) {
-				case ImageSchema.MSG_CHUNKEDSTREAM_1:
-					DataInputBlobReader<ImageSchema> fieldByteArray = PipeReader.inputStream(inputPipe, ImageSchema.MSG_CHUNKEDSTREAM_1_FIELD_BYTEARRAY_2);
-					listener.onImage(fieldByteArray.readLine());
+				case ImageSchema.MSG_FRAMESTART_1:
+
+					// Extract message start data.
+					int width = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101);
+					int height = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
+					long timestamp = PipeReader.readLong(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301);
+
+					// Send to listener.
+					listener.onFrameStart(width, height, timestamp);
 					break;
+
+				case ImageSchema.MSG_FRAMECHUNK_2:
+
+					// Calculate row length.
+					int rowLength = PipeReader.readBytesLength(inputPipe, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102);
+
+					// Prepare array if not already ready.
+					if (imageFrameRowBytes == null || imageFrameRowBytes.length != rowLength) {
+						imageFrameRowBytes = new byte[rowLength];
+					}
+
+					// Read bytes into array.
+					PipeReader.readBytes(inputPipe, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, imageFrameRowBytes, 0);
+
+					// Send to listener.
+					listener.onFrameRow(imageFrameRowBytes);
+					break;
+
 				case -1:
 					//requestShutdown();
 					break;

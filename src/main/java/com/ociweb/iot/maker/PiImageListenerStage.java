@@ -1,10 +1,6 @@
 package com.ociweb.iot.maker;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
+import com.ociweb.pronghorn.pipe.PipeWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +12,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 /**
  * Time-based image listener backing for Raspberry Pi hardware.
  *
- * TODO: Does this stage take pictures and pass a file path
- *       or does it actually convert the pictures to bytes and pass
- *       them on the pipe?
+ * This stage passes image frames line-by-line to its consumers.
  *
  * TODO: For total integration
  * - Build a new schema. --Done
@@ -41,39 +35,16 @@ public class PiImageListenerStage extends PronghornStage {
 
     private static final Logger logger = LoggerFactory.getLogger(PiImageListenerStage.class);
 
-    // File name prefix.
-    private final String fileNamePrefix = new File("").getAbsolutePath() + File.separator;
-
     // Output pipe for image data.
     private final Pipe<ImageSchema> output;
 
     // Image buffer information; we only process one image at a time.
-    private byte[] fileNameBytes = null;
-    private int fileBytesReadIndex = -1;
+    private byte[] frameBytes = null;
+    private int frameBytesPublishHead = -1;
 
-    /**
-     * Takes a picture from the currently connected Raspberry Pi camera and
-     * saves it to a file.
-     *
-     * TODO: This method is primitive in that it relies on Pi command line tools
-     *       and unknown delays in order to capture images. It would be preferable
-     *       to leverage the native APIs in the Raspberry Pi, but those are
-     *       extremely complex and undocumented...
-     *
-     * @param fileName Name of the file (without extensions) to save
-     *                 the image to.
-     *
-     * @return The full path name to the created file.
-     */
-    private String takePicture(String fileName) {
-        try {
-            Runtime.getRuntime().exec("raspistill --nopreview --timeout 1 --shutter 2500 --width 1280 --height 960 --quality 75 --output " + fileName + ".jpg");
-        } catch (IOException e) {
-            logger.error("Unable to take picture from Raspberry Pi Camera due to error [{}].", e.getMessage(), e);
-        }
-
-        return fileNamePrefix + fileName + ".jpg"; //TODO: rewrite to be GC free
-    }
+    public static final int FRAME_WIDTH = 1920;
+    public static final int FRAME_HEIGHT = 1080;
+    public static final int ROW_SIZE = FRAME_WIDTH * 3;
 
     public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
         super(graphManager, NONE, output);
@@ -86,11 +57,18 @@ public class PiImageListenerStage extends PronghornStage {
     }
 
     @Override
+    public void startup() {
+        // TODO: Open camera here.
+        frameBytes = new byte[1080 * 1920 * 3];
+    }
+
+    @Override
     public void shutdown() {
 		if (Pipe.hasRoomForWrite(output, Pipe.EOF_SIZE)) {
 			Pipe.publishEOF(output);
 		}
-		//if not the system is already shutting down so this is not an issue
+
+		// TODO: Release camera here.
     }
 
     @Override
@@ -99,39 +77,34 @@ public class PiImageListenerStage extends PronghornStage {
         // Only execute while we have room to write our output.
         if (Pipe.hasRoomForWrite(output)) {
 
-            // Do we have image data? If not, get some!
-            if (fileBytesReadIndex == -1) {
-                // TODO: rewrite to be GC free
-                // TODO: RandomAccessFile may be the best choice once it's available to us...
+            // If there's no frame, read one and publish start.
+            if (frameBytesPublishHead == -1) {
                 // Take a picture and load the byte information.
-                fileNameBytes = (takePicture(
-                        "Pronghorn-Image-Capture-" + System.currentTimeMillis()) + "\n").getBytes(StandardCharsets.UTF_16);
-                fileBytesReadIndex = 0;
+                // TODO: camera.frame(frameBytes)...
+                frameBytesPublishHead = 0;
+
+                // Publish frame start.
+                if (PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
+                    PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
+                    PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
+                    PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
+                    PipeWriter.publishWrites(output);
+                }
+
+            // Otherwise, write a frame part if there's space.
+            } else if (PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2) &&
+                       PipeWriter.hasRoomForFragmentOfSize(output, ROW_SIZE)) {
+                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, frameBytesPublishHead, ROW_SIZE);
+                PipeWriter.publishWrites(output);
+
+                // Progress head.
+                frameBytesPublishHead += ROW_SIZE;
+
+                // If the head exceeds the size of the frame bytes, we're done writing.
+                if (frameBytesPublishHead >= frameBytes.length) {
+                    frameBytesPublishHead = -1;
+                }
             }
-
-            // Load byte buffers from the pipe so we have somewhere to put the image data.
-            ByteBuffer[] buffers = Pipe.wrappedWritingBuffers(output);
-
-            // Determine maximum write size.
-            final int maximumToWrite = Math.min(buffers[0].remaining(), fileNameBytes.length - fileBytesReadIndex);
-
-            // Fill the buffers as much as possible.
-            System.arraycopy(fileNameBytes, fileBytesReadIndex,
-                             buffers[0].array(), buffers[0].position(), maximumToWrite);
-
-            // Progress index by the number of bytes written.
-            fileBytesReadIndex += maximumToWrite;
-
-            // If the index exceeds our bounds, we're done writing.
-            if (fileBytesReadIndex >= fileNameBytes.length) {
-                fileBytesReadIndex = -1;
-            }
-
-            // Publish our changes.
-            final int size = Pipe.addMsgIdx(output, ImageSchema.MSG_CHUNKEDSTREAM_1);
-            Pipe.moveBlobPointerAndRecordPosAndLength(maximumToWrite, output);
-            Pipe.confirmLowLevelWrite(output, size);
-            Pipe.publishWrites(output);
         }
     }
 }

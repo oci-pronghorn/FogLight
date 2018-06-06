@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
 
-    <template name="ChunkedStream" id="1">
-        <byteVector name="ByteArray" id="2"/>
+    <template name="FrameStart" id="1">
+        <uInt32 name="Width" id="101"/>
+        <uInt32 name="Height" id="201"/>
+        <uInt64 name="Timestamp" id="301"/>
+    </template>
+
+    <template name="FrameChunk" id="2">
+        <byteVector name="RowBytes" id="102"/>
     </template>
 
 </templates>

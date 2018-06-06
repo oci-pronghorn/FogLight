@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
-import com.ociweb.gl.api.ClientHostPortInstance;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.impl.BuilderImpl;
@@ -57,13 +56,11 @@ import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.network.schema.ClientHTTPRequestSchema;
-import com.ociweb.pronghorn.network.schema.HTTPRequestSchema;
 import com.ociweb.pronghorn.network.schema.NetPayloadSchema;
 import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
-import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
@@ -127,14 +124,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     private int IDX_I2C = -1;
     private int IDX_SER = -1;
 	
-    private int imageTriggerRateMillis = 1250;
+    private int imageFrameTriggerRateMillis = 33;
 
 	public void setImageTriggerRate(int triggerRateMillis) {
 		if (triggerRateMillis < 1250) {
 			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS.");
 		}
 
-		this.imageTriggerRateMillis = triggerRateMillis;
+		this.imageFrameTriggerRateMillis = triggerRateMillis;
 	}
 
 	public IODevice getConnectedDevice(Port p) {
@@ -766,9 +763,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		if (imageInputPipes.length > 1) {
 			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
-			new PiImageListenerStage(gm, masterImagePipe, imageTriggerRateMillis);
+			new PiImageListenerStage(gm, masterImagePipe, imageFrameTriggerRateMillis);
 		} else if (imageInputPipes.length == 1){
-			new PiImageListenerStage(gm, imageInputPipes[0], imageTriggerRateMillis);
+			new PiImageListenerStage(gm, imageInputPipes[0], imageFrameTriggerRateMillis);
 		}
 		///////////////
 		//only build direct pin output when we detected its use

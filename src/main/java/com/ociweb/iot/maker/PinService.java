@@ -1,6 +1,7 @@
 package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.MsgCommandChannel;
+import com.ociweb.iot.hardware.impl.grovepi.PiCommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 
@@ -11,7 +12,12 @@ public class PinService {
 	public PinService(FogCommandChannel fogCommandChannel) {
 		this.cmd = fogCommandChannel;
 
-		cmd.initFeatures |= FogCommandChannel.PIN_WRITER;
+		if (fogCommandChannel instanceof PiCommandChannel) {
+			cmd.initFeatures |= FogCommandChannel.I2C_WRITER;
+		} else {
+			cmd.initFeatures |= FogCommandChannel.PIN_WRITER;
+		}
+		
 	}
 
 	public PinService(FogCommandChannel fogCommandChannel, int commandCountCapacity, int maxMessageSize) {

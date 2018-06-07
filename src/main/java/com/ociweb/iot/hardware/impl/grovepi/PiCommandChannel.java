@@ -29,6 +29,7 @@ public class PiCommandChannel extends FogCommandChannel{
 			               int instance, PipeConfigManager pcm, 
 			               byte commandIndex) { 
 				
+		//pi needs I2C_WRITER however we get it by calling usesI2C upon detection.
 		super(gm, hardware, features |  ((features&FogRuntime.PIN_WRITER)==0?0:FogRuntime.I2C_WRITER), instance, pcm); 
 	}
 

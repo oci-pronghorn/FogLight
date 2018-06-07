@@ -14,6 +14,7 @@ public class PinService {
 
 		if (fogCommandChannel instanceof PiCommandChannel) {
 			cmd.initFeatures |= FogCommandChannel.I2C_WRITER;
+			cmd.initFeatures |= FogCommandChannel.DYNAMIC_MESSAGING;			
 		} else {
 			cmd.initFeatures |= FogCommandChannel.PIN_WRITER;
 		}
@@ -26,6 +27,7 @@ public class PinService {
 		FogCommandChannel.growCommandCountRoom(cmd, commandCountCapacity);
 		if (fogCommandChannel instanceof PiCommandChannel) {
 			cmd.initFeatures |= FogCommandChannel.I2C_WRITER;
+			cmd.initFeatures |= FogCommandChannel.DYNAMIC_MESSAGING;
 		} else {
 			cmd.initFeatures |= FogCommandChannel.PIN_WRITER;
 		}   

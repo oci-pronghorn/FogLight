@@ -133,7 +133,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 				if ((pm = PiModel.detect()) != PiModel.Unknown){ 
 					logger.info("Detected running on " + pm);
 					this.builder = new GrovePiHardwareImpl(gm, args, pm.i2cBus());
-					//hack not needed?? this.builder.useI2C();//we know this is required for Grove on Pi
+					
 				} 
 				else if(WindowsDesktopModel.detect() != WindowsDesktopModel.Unknown) {
 					this.builder = new TestHardware(gm, args);

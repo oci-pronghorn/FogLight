@@ -24,7 +24,11 @@ public class PinService {
 		this.cmd = fogCommandChannel;
 
 		FogCommandChannel.growCommandCountRoom(cmd, commandCountCapacity);
-		cmd.initFeatures |= FogCommandChannel.PIN_WRITER;    
+		if (fogCommandChannel instanceof PiCommandChannel) {
+			cmd.initFeatures |= FogCommandChannel.I2C_WRITER;
+		} else {
+			cmd.initFeatures |= FogCommandChannel.PIN_WRITER;
+		}   
 		PipeConfig<GroveRequestSchema> config = MsgCommandChannel.PCM(cmd).getConfig(GroveRequestSchema.class);
 		if (FogCommandChannel.isTooSmall(commandCountCapacity, maxMessageSize, config)) {
 			MsgCommandChannel.PCM(cmd).addConfig(Math.max(config.minimumFragmentsOnPipe(), commandCountCapacity),

@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ociweb</groupId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>foglight</name>
     <artifactId>foglight</artifactId>
+    <name>foglight</name>
 
     <description>FogLight is a lightweight runtime that enables makers of all ages and skill levels to create highly
         performant apps for embedded devices like Raspberry Pi's.

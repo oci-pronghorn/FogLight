@@ -3,23 +3,23 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ociweb.oe.foglight.api</groupId>
   <artifactId>apidemo</artifactId>
-  <version>1</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
  
   <modules>
-    <module>Startup</module>
-    <module>CommandChannel</module>
-    <module>StateMachine</module>
-    <module>PubSub</module>
-    <module>CustomDevice</module>
-    <module>Shutdown</module>
-    <module>DeclareConnections</module>
-    <module>DigitalListener</module>
-    <module>AnalogListener</module>
-    <module>I2CListener</module>
-    <module>SerialListener</module>
-    <module>ImageListener</module>
-    <module>AnalogTransducer</module>
-    <module>TransducerDemo</module>
+    <module>startup</module>
+    <module>commandchannel</module>
+    <module>statemachine</module>
+    <module>pubsub</module>
+    <module>customdevice</module>
+    <module>shutdown</module>
+    <module>declareconnections</module>
+    <module>digitallistener</module>
+    <module>analoglistener</module>
+    <module>i2clistener</module>
+    <module>seriallistener</module>
+    <module>imagelistener</module>
+    <module>analogtransducer</module>
+    <module>transducerdemo</module>
   </modules>
 </project>

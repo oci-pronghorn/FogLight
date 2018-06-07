@@ -4,12 +4,10 @@
   <parent>
     <artifactId>apidemo</artifactId>
     <groupId>com.ociweb.oe.foglight.api</groupId>
-    <version>1</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <groupId>com.ociweb.oe.foglight.api</groupId>
-  <artifactId>SerialListener</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  
+  <artifactId>seriallistener</artifactId>
+
   <properties>
     <java.bootstrap.classes>${java.home}/lib/rt.jar</java.bootstrap.classes>
     <java.cryptographic.extension.classes>${java.home}/lib/jce.jar</java.cryptographic.extension.classes>
@@ -53,8 +51,8 @@
   <dependencies>
   		<dependency>
 	  		<groupId>com.ociweb</groupId>
-            <artifactId>FogLight</artifactId>
-            <version>[0.1.2-SNAPSHOT,0.2.0)</version>
+            <artifactId>foglight</artifactId>
+            <version>[1.0.0-SNAPSHOT,1.1.0)</version>
     	</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -151,7 +149,7 @@
           <configuration>
             <archive>
               <manifest>
-                <mainClass>com.ociweb.FogLight</mainClass>
+                <mainClass>com.ociweb.foglight</mainClass>
               </manifest>
             </archive>
             <descriptorRefs>

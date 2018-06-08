@@ -127,9 +127,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     private int imageFrameTriggerRateMillis = 33;
 
 	public void setImageTriggerRate(int triggerRateMillis) {
-		if (triggerRateMillis < 1250) {
-			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS.");
-		}
+		// TODO: No need for a minimum now? Test!
+//		if (triggerRateMillis < 1250) {
+//			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS.");
+//		}
 
 		this.imageFrameTriggerRateMillis = triggerRateMillis;
 	}

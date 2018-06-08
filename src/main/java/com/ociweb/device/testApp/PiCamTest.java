@@ -64,6 +64,7 @@ public class PiCamTest implements FogApp {
                     newWorkingFile.createNewFile();
                     images.add(newWorkingFile);
                     workingFile = new FileOutputStream(newWorkingFile);
+                    System.out.printf("Began new working file for image W%dxH%d\n", width, height);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -73,6 +74,7 @@ public class PiCamTest implements FogApp {
             public void onFrameRow(byte[] frameRowBytes) {
                 try {
                     workingFile.write(frameRowBytes);
+                    System.out.println("Received frame row.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

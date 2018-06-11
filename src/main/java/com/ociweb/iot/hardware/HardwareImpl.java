@@ -609,12 +609,19 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		int commandChannelCount = orderPipes.length;
 
 		int eventSchemas = 0;
-		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;
-		IDX_I2C = i2cPipes.length>0 || i2cResponsePipes.length > 0 ? eventSchemas++ : -1;  //the 'or' check is to ensure that reading without a cmd channel works
+		IDX_PIN = pinRequestPipes.length>0 ? eventSchemas++ : -1;		
+		IDX_I2C = (isUseI2C() || i2cPipes.length>0 || i2cResponsePipes.length > 0) ? eventSchemas++ : -1;  //the 'or' check is to ensure that reading without a cmd channel works
 		IDX_MSG = (IntHashTable.isEmpty(subscriptionPipeLookup2) && subscriptionPipes.length==0 && messagePubSub.length==0) ? -1 : eventSchemas++;
 		IDX_NET = useNetClient(httpClientRequestPipes) ? eventSchemas++ : -1;
 		IDX_SER = serialOutputPipes.length>0 ? eventSchemas++ : -1;
 
+		logger.info("build stages pin {}",IDX_PIN);
+		logger.info("build stages i2c {}",IDX_I2C);
+		logger.info("build stages msg {}",IDX_MSG);
+		logger.info("build stages net {}",IDX_NET);
+		logger.info("build stages ser {}",IDX_SER);
+			
+		
 		long timeout = 20_000; //20 seconds
 
 		//TODO: can we share this while with the parent BuilderImpl, I think so..

@@ -1,6 +1,7 @@
 package com.ociweb.device.testApp;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,6 +22,9 @@ import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 public class PiCamTest implements FogApp {
 
     private final List<File> images = new ArrayList<>();
+    private byte[] frameBytes = null;
+    private int frameBytesLength = -1;
+    private int frameBytesHead = 0;
 
     public static void main( String[] args) {
         FogRuntime.run(new PiCamTest());
@@ -35,21 +39,10 @@ public class PiCamTest implements FogApp {
     public void declareBehavior(FogRuntime runtime) {
         runtime.addImageListener(new ImageListener() {
 
-            FileOutputStream workingFile = null;
+            File workingFile = null;
 
             @Override
             public void onFrameStart(int width, int height, long timestamp) {
-
-                // Close existing file if present.
-                if (workingFile != null) {
-                    try {
-                        System.out.println("Captured full image to disk.");
-                        workingFile.flush();
-                        workingFile.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
 
                 // Clean existing files if there are many.
                 if (images.size() > 50) {
@@ -63,20 +56,41 @@ public class PiCamTest implements FogApp {
                     File newWorkingFile = new File("image-" + timestamp + ".raw");
                     newWorkingFile.createNewFile();
                     images.add(newWorkingFile);
-                    workingFile = new FileOutputStream(newWorkingFile);
+                    workingFile = newWorkingFile;
                     System.out.printf("Began new working file for image W%dxH%d\n", width, height);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+                // Prepare byte array.
+                frameBytesLength = width * height * 3;
+                if (frameBytes == null || frameBytes.length != frameBytesLength) {
+                    frameBytes = new byte[frameBytesLength];
+                    System.out.printf("Created new frame buffer for frames of size %dW x %dH.\n", width, height);
+                }
+                frameBytesHead = 0;
             }
 
             @Override
             public void onFrameRow(byte[] frameRowBytes) {
+
+                // Perform frame copy.
                 try {
-                    workingFile.write(frameRowBytes);
-                    System.out.println("Received frame row.");
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    System.arraycopy(frameRowBytes, 0, frameBytes, frameBytesHead, frameRowBytes.length);
+                    frameBytesHead += frameRowBytes.length;
+
+                    // Flush to disk if we have a full frame.
+                    if (frameBytesHead >= frameBytesLength) {
+                        try (FileOutputStream fos = new FileOutputStream(workingFile)) {
+                            fos.write(frameBytes);
+                            fos.flush();
+                            System.out.printf("Captured new image to disk: %s.\n", images.get(images.size() - 1).getName());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.printf("Frame copy failed: Head=%d, DLength=%d, SLength=%d\n", frameBytesHead, frameBytes.length, frameRowBytes.length);
                 }
             }
         });

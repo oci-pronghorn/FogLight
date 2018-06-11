@@ -21,21 +21,6 @@ import java.nio.file.Paths;
  *
  * This stage passes image frames line-by-line to its consumers.
  *
- * TODO: For total integration
- * - Build a new schema. --Done
- * - As user declares things, the system builds dangling pipes.
- *  - The other end of the pipe is not defined yet.
- *  - When you make the stage, the graph will register it.
- *  - If you run the graph, it'll complain because the stage has dangling pipes.
- *  - BuildGraph asks the graph for the dangling pipes by schema.
- *  - Those dangling pipes are then tied into something.
- *  - This design means we need a unique schema for each kind of special resource.
- * - ImageListener registration creates an instance of the reactor stage.
- *  - That stage needs attached to it an image listener pipe.
- *  - When the graph is built, we track all of the listeners and attach the pipe.
- *  - Use the replicator stage to take one pipe (from picture taker stage) and feed it to the listeners if there
- *    are more than one listener.
- *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class PiImageListenerStage extends PronghornStage {
@@ -70,8 +55,6 @@ public class PiImageListenerStage extends PronghornStage {
 
     @Override
     public void startup() {
-        // TODO: Open camera here.
-        frameBytes = new byte[1080 * 1920 * 3];
 
         // Get a file for the default camera device.
         File cameraFile = Paths.get(RaspiCam.DEFAULT_CAMERA_DEVICE).toFile();
@@ -139,9 +122,8 @@ public class PiImageListenerStage extends PronghornStage {
                     }
                 }
 
-            // Otherwise, write a frame part if there's space.
-            } else if (PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2) &&
-                       PipeWriter.hasRoomForFragmentOfSize(output, ROW_SIZE)) {
+            // Otherwise, write a frame part.
+            } else if (PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
                 PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, frameBytesPublishHead, ROW_SIZE);
                 PipeWriter.publishWrites(output);
 

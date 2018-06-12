@@ -5,8 +5,12 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.file.FileBlobReadStage;
 import com.ociweb.pronghorn.stage.math.HistogramSchema;
+import com.ociweb.pronghorn.stage.math.HistogramSelectPeakStage;
+import com.ociweb.pronghorn.stage.math.HistogramSumStage;
+import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 
 public class ImageGraphBuilder {
@@ -17,6 +21,10 @@ public class ImageGraphBuilder {
 								
 				) {
 				
+		//////////////////////////////////
+		//Pipe definitions
+		/////////////////////////////////
+		
 		Pipe<RawDataSchema> mData  = RawDataSchema.instance.newPipe(8, 1<<12);
 		Pipe<RawDataSchema> mDataR = RawDataSchema.instance.newPipe(8, 1<<12);
 		Pipe<RawDataSchema> mDataG = RawDataSchema.instance.newPipe(8, 1<<12);
@@ -34,6 +42,7 @@ public class ImageGraphBuilder {
 		Pipe<RawDataSchema> mDataMWrite = new Pipe(mDataM.config().grow2x());
 		
 		//TODO: these 4 need to be populated by down res stage
+		//TODO: Brandon these following 4 pipes must be populated by the new stage..
 		Pipe<ImageSchema> imageR = ImageSchema.instance.newPipe(2048, 8096);
 		Pipe<ImageSchema> imageG = ImageSchema.instance.newPipe(2048, 8096);
 		Pipe<ImageSchema> imageB = ImageSchema.instance.newPipe(2048, 8096);
@@ -45,9 +54,15 @@ public class ImageGraphBuilder {
 		Pipe<HistogramSchema> histB = HistogramSchema.instance.newPipe(4, 1<<12);
 		Pipe<HistogramSchema> histM = HistogramSchema.instance.newPipe(4, 1<<12);
 		
-		Pipe<HistogramSchema> histSum = HistogramSchema.instance.newPipe(4, 1<<12);
+		Pipe<HistogramSchema> histSum = HistogramSchema.instance.newPipe(4, 1<<12);		
+		Pipe<ProbabilitySchema> probLocation = ProbabilitySchema.instance.newPipe(4, 1<<14);
+		
+		////////////////////////////////////////
+		//Stage definitions
+		////////////////////////////////////////
 		
 		
+		//data is only read once on startup
 		FileBlobReadStage readStage = FileBlobReadStage.newInstance(gm, mData, dataFilePath);		
 		RawDataSplitter.newInstance(gm, gm.getOutputPipe(gm, readStage),
 				                    mDataR, mDataG, mDataB, mDataM);
@@ -63,7 +78,10 @@ public class ImageGraphBuilder {
 		MapImageStage.newInstance(gm, imageB, histB, mDataRRead);
 		MapImageStage.newInstance(gm, imageM, histM, mDataRRead);
 		
-	///	HistogramSumStage.newInstance(
+		HistogramSumStage.newInstance(gm, histSum, histR, histG, histB, histM);
+
+		HistogramSelectPeakStage.newInstance(gm, histSum, probLocation );
+		
 		//these added just as place holders for now.
 		
 		PipeCleanerStage.newInstance(gm, mDataRWrite); //these go to the image learning mapping to location
@@ -71,6 +89,7 @@ public class ImageGraphBuilder {
 		PipeCleanerStage.newInstance(gm, mDataBWrite);
 		PipeCleanerStage.newInstance(gm, mDataMWrite);
 		
+		ConsoleJSONDumpStage.newInstance(gm, probLocation); //TODO: feed this back to caller, react..
 		
 		
 	}

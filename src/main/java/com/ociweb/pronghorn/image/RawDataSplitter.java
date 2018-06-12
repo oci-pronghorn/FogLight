@@ -38,6 +38,10 @@ public class RawDataSplitter extends PronghornStage {
 		this.source = source;
 		this.targets = targets;
 		this.inputStream = Pipe.inputStream(source);
+		
+		//TODO: class needs unit test
+		//TODO: class needs to be moved into Pronghorn..
+		
 	}
 
 	@Override

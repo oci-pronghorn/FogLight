@@ -31,13 +31,22 @@ public class MapImageStage extends PronghornStage {
 	private final Pipe<HistogramSchema> output;
 
     	
+	public static MapImageStage newInstance(GraphManager graphManager, 
+            Pipe<ImageSchema> monochromeInput, 
+            Pipe<HistogramSchema> output,
+            Pipe<RawDataSchema> ... newMappingData
+            ) {
+		return new MapImageStage(graphManager, monochromeInput, output, newMappingData);
+	}
+	
 	//need outgoing schema for the map.
 	protected MapImageStage(GraphManager graphManager, 
 			                Pipe<ImageSchema> monochromeInput, 
-			                Pipe<RawDataSchema>[] newMappingData,
-			                Pipe<HistogramSchema> output) {
+			                Pipe<HistogramSchema> output,
+			                Pipe<RawDataSchema> ... newMappingData
+			                ) {
 		
-		super(graphManager, monochromeInput, output);
+		super(graphManager, join(monochromeInput,newMappingData), output);
 		
 		this.monochromeInput = monochromeInput;
 		this.newMappingData = newMappingData;

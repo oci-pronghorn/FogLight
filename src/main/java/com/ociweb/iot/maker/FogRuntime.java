@@ -54,6 +54,9 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	private static final int i2cDefaultLength = 300;
 	private static final int i2cDefaultMaxPayload = 16;
 
+	public static final int DEFAULT_IMAGE_CHANNEL_LENGTH = 2048;
+	public static final int DEFAULT_IMAGE_CHANNEL_PAYLOAD = 5760;
+
 	private static final byte edI2C = 6;
 
 	static final String PROVIDED_HARDWARE_IMPL_NAME = "com.ociweb.iot.hardware.impl.ProvidedHardwareImpl";
@@ -328,7 +331,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			inputPipes[--pipesCount] = newSerialInputPipe(new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
 		}
 		if (this.builder.isListeningToCamera(listener)) {
-			inputPipes[--pipesCount] = new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
+			inputPipes[--pipesCount] = new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, DEFAULT_IMAGE_CHANNEL_LENGTH, DEFAULT_IMAGE_CHANNEL_PAYLOAD).grow2x());
 		}
 
 		final int httpClientPipeId = netResponsePipeIdx; //must be grabbed before populateGreenPipes

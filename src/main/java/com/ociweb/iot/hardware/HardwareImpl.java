@@ -769,9 +769,12 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		///////////////
 		// TODO: Is this where we determine what kind of platform to listen on (e.g., Edison, Pi)?
 		if (imageInputPipes.length > 1) {
-			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(FogRuntime.DEFAULT_IMAGE_CHANNEL_LENGTH, FogRuntime.DEFAULT_IMAGE_CHANNEL_PAYLOAD);
 			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
 			new PiImageListenerStage(gm, masterImagePipe, imageFrameTriggerRateMillis);
+			// hook in jpg raster conversion here
+			// second replicator before first
+			// want to write to RAW and jpg to disk as option!
 		} else if (imageInputPipes.length == 1){
 			new PiImageListenerStage(gm, imageInputPipes[0], imageFrameTriggerRateMillis);
 		}

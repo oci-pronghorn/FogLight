@@ -5,8 +5,6 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.file.FileBlobReadStage;
 import com.ociweb.pronghorn.stage.math.HistogramSchema;
-import com.ociweb.pronghorn.stage.math.HistogramSumStage;
-import com.ociweb.pronghorn.stage.math.HistogramTest;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;

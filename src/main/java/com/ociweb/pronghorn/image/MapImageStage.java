@@ -12,21 +12,11 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class MapImageStage extends PronghornStage {
 
-	//disk structure
-	
-	//de res width  (int)
-	//de res height (int)
-	//de depth      (int) //256 default
-	
-	//Each of the <height> rows of data with depth data, length is width*depth
-	//<length of location data> followed by Single location data array
-
 	private int[]   workspace;
-
 	private int[][] rowLookup;// [row][(col*256)+depth] full row stored together.
 	private int[]   locations;//length + location data, each -1 terminated, no 0 offsets. 	
 		
-	private final Pipe<ImageSchema> monochromeInput; 
+	private final Pipe<ImageSchema> imgInput; 
 	private final Pipe<RawDataSchema>[] newMappingData;
 	private final Pipe<HistogramSchema> output;
 
@@ -41,14 +31,14 @@ public class MapImageStage extends PronghornStage {
 	
 	//need outgoing schema for the map.
 	protected MapImageStage(GraphManager graphManager, 
-			                Pipe<ImageSchema> monochromeInput, 
+			                Pipe<ImageSchema> imgInput, 
 			                Pipe<HistogramSchema> output,
 			                Pipe<RawDataSchema> ... newMappingData
 			                ) {
 		
-		super(graphManager, join(monochromeInput,newMappingData), output);
+		super(graphManager, join(imgInput,newMappingData), output);
 		
-		this.monochromeInput = monochromeInput;
+		this.imgInput = imgInput;
 		this.newMappingData = newMappingData;
 		this.output = output;
 	}
@@ -149,9 +139,14 @@ public class MapImageStage extends PronghornStage {
 
 	private void initMapData(DataInputBlobReader<RawDataSchema> inputStream) {
 		//load all the fixed constants here
-		int width  	= inputStream.readPackedInt();
-		int height 	= inputStream.readPackedInt();
-		int depth  	= inputStream.readPackedInt();
+		int width  	  = inputStream.readPackedInt();
+		int height 	  = inputStream.readPackedInt();
+		int depth  	  = inputStream.readPackedInt();
+		int locations = inputStream.readPackedInt();//max location value+1
+		
+		if (null == workspace || workspace.length != locations) {
+			workspace = new int[locations];
+		}
 		
 		//init the image matrix as needed		
 		if (null ==	rowLookup || rowLookup.length != height) {

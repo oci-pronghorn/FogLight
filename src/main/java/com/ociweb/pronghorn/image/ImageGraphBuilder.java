@@ -79,7 +79,6 @@ public class ImageGraphBuilder {
 		MapImageStage.newInstance(gm, imageM, histM, mDataRRead);
 		
 		HistogramSumStage.newInstance(gm, histSum, histR, histG, histB, histM);
-
 		HistogramSelectPeakStage.newInstance(gm, histSum, probLocation );
 		
 		//these added just as place holders for now.

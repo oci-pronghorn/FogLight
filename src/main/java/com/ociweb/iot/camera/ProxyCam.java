@@ -38,6 +38,7 @@ public class ProxyCam implements Camera {
 
         // Discover files.
         File framesDirectory = Paths.get(device).toFile();
+        System.out.println("Reading directory" + framesDirectory.getAbsolutePath());
         assert framesDirectory.isDirectory();
         camerasToFrames.put(cameraFd, framesDirectory.listFiles());
         assert camerasToFrames.get(cameraFd).length >= 1;

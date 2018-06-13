@@ -21,34 +21,42 @@ public class MapImageStage extends PronghornStage {
 	private int[]   locations;//length + location data, each -1 terminated, no 0 offsets. 	
 		
 	private final Pipe<ImageSchema> imgInput; 
-	private final Pipe<RawDataSchema>[] newMappingData;
+    private final Pipe<RawDataSchema> loadingMappingData;
+    private final Pipe<RawDataSchema> savingMappingData; 
+    
 	private final Pipe<HistogramSchema> output;
 	private boolean isShuttingDown = false;
 	private static final Logger logger = LoggerFactory.getLogger(MapImageStage.class);
     	
 	public static MapImageStage newInstance(GraphManager graphManager, 
             Pipe<ImageSchema> monochromeInput, 
+            Pipe<?> stateData,
             Pipe<HistogramSchema> output,
-            Pipe<RawDataSchema> ... newMappingData
+            Pipe<?> done,
+            Pipe<RawDataSchema> loadingMappingData,
+            Pipe<RawDataSchema> savingMappingData            
             ) {
-		return new MapImageStage(graphManager, monochromeInput, output, newMappingData);
+		return new MapImageStage(graphManager, monochromeInput, output, loadingMappingData, savingMappingData);
 	}
 	
 	//need outgoing schema for the map.
 	protected MapImageStage(GraphManager graphManager, 
 			                Pipe<ImageSchema> imgInput, 
 			                Pipe<HistogramSchema> output,
-			                Pipe<RawDataSchema> ... newMappingData
-			                ) {
+			                Pipe<RawDataSchema> loadingMappingData,
+			                Pipe<RawDataSchema> savingMappingData 
+			               ) {
 		
-		super(graphManager, join(imgInput,newMappingData), output);
+		super(graphManager, join(imgInput,loadingMappingData), join(output,savingMappingData) );
 		
 		this.imgInput = imgInput;
-		this.newMappingData = newMappingData;
+		this.loadingMappingData = loadingMappingData;
+		this.savingMappingData = savingMappingData;
+		
 		this.output = output;
 	}
 
-	private int loadingNewMap = -1;	
+	private boolean loadingNewMap = false;	
 	private boolean imageInProgress = false;
 	private int totalRows;
 	private int totalWidth;
@@ -61,14 +69,7 @@ public class MapImageStage extends PronghornStage {
 		
 		if (!isShuttingDown) {
 			if (!imageInProgress) {
-				if (loadingNewMap >= 0) {
-					loadNewMaps(loadingNewMap);
-				} else {
-					int n = newMappingData.length;
-					while (--n>=0) {
-						loadNewMaps(n);
-					}
-				}
+				loadNewMaps();
 			} else {
 				//we are image in progress
 				if (activeRow == totalRows) {
@@ -78,7 +79,7 @@ public class MapImageStage extends PronghornStage {
 			}
 			
 			//if we are not loading a new map check for an image to process
-			if (loadingNewMap<0) {
+			if (!loadingNewMap) {
 				
 				while (Pipe.hasContentToRead(imgInput)) {
 					
@@ -157,10 +158,11 @@ public class MapImageStage extends PronghornStage {
 		}
 	}
 	
-	private void loadNewMaps(int n) {
-		 Pipe<RawDataSchema> pipe = newMappingData[n];
+	private void loadNewMaps() {
+		 Pipe<RawDataSchema> pipe = loadingMappingData;
+		 
 		if (Pipe.hasContentToRead(pipe)) {
-			loadingNewMap = n;
+			loadingNewMap = true;
 		}
 		
 		while (Pipe.hasContentToRead(pipe)) {
@@ -209,7 +211,7 @@ public class MapImageStage extends PronghornStage {
 				Pipe.skipNextFragment(pipe, msgIdx);
 				//shutdown from file system is not recognized as a shutdown of the system.
 				assert(Pipe.inputStream(pipe).available()==0);
-				loadingNewMap = -1;
+				loadingNewMap = false;
 			}
 		}
 	}
@@ -244,7 +246,7 @@ public class MapImageStage extends PronghornStage {
 	
 	private void finishMapData(DataInputBlobReader<RawDataSchema> inputStream) {
 		assert(inputStream.available()==0);
-		loadingNewMap = -1;
+		loadingNewMap = false;
 	}
 
 

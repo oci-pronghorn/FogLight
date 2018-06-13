@@ -35,7 +35,6 @@ public class PiImageListenerStage extends PronghornStage {
     private final Pipe<ImageSchema> output;
 
     // Camera system.
-    private boolean v4l2Available = false;
     private Camera camera;
     private int cameraFd;
 
@@ -47,6 +46,9 @@ public class PiImageListenerStage extends PronghornStage {
     public static final int FRAME_WIDTH = 1920;
     public static final int FRAME_HEIGHT = 1080;
     public static final int ROW_SIZE = FRAME_WIDTH * 3;
+
+    // Proxy data directory.
+    public static final String PROXY_CAMERA_DIRECTORY = "./src/test/images";
 
     public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
         super(graphManager, NONE, output);
@@ -67,30 +69,25 @@ public class PiImageListenerStage extends PronghornStage {
         // Open /dev/video0 on Raspberry Pi.
         if (!cameraFile.exists()) {
 
-            // Try loading the V4L2 module.
+            // Load V4L2 module.
             try {
-                System.out.println("Trying to load modprobe");
                 Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
             } catch (IOException | InterruptedException e) {
-                logger.error(e.getMessage(), e);
+                logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.", e);
             }
-
-            System.out.println("Checking v4l2!");
-
-            // If it still isn't loaded, disable V4L2, which means it will fall back to ProxyCam.
-            v4l2Available = cameraFile.exists();
-            System.out.println("v4l2: " + v4l2Available);
         }
 
-        // Open camera interface.
-        if (v4l2Available) {
-            System.out.println("v4l2 is available?");
+        // Open camera interface if the camera is available.
+        if (cameraFile.exists()) {
             camera = new RaspiCam();
             cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, FRAME_WIDTH, FRAME_HEIGHT);
+            logger.info("Opened camera device {} with FD {}.", RaspiCam.DEFAULT_CAMERA_DEVICE, cameraFd);
+
+        // Otherwise, use a proxy camera.
         } else {
-            System.out.println("Using ProxyCam!");
             camera = new ProxyCam();
-            cameraFd = camera.open("./images", FRAME_WIDTH, FRAME_HEIGHT);
+            cameraFd = camera.open(PROXY_CAMERA_DIRECTORY, FRAME_WIDTH, FRAME_HEIGHT);
+            logger.info("Opened proxy camera in directory {} with FD {}.", PROXY_CAMERA_DIRECTORY, cameraFd);
         }
 
         // Configure byte array for camera frames.

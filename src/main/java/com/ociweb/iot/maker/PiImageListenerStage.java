@@ -27,6 +27,10 @@ public class PiImageListenerStage extends PronghornStage {
 
     private static final Logger logger = LoggerFactory.getLogger(PiImageListenerStage.class);
 
+    // Frame buffer state constants.
+    private static final int FRAME_EMPTY = -1;
+    private static final int FRAME_BUFFERED = -2;
+
     // Output pipe for image data.
     private final Pipe<ImageSchema> output;
 
@@ -37,8 +41,9 @@ public class PiImageListenerStage extends PronghornStage {
 
     // Image buffer information; we only process one image at a time.
     private byte[] frameBytes = null;
-    private int frameBytesPublishHead = -1;
+    private int frameBytesHead = FRAME_EMPTY;
 
+    // Frame size data.
     public static final int FRAME_WIDTH = 1920;
     public static final int FRAME_HEIGHT = 1080;
     public static final int ROW_SIZE = FRAME_WIDTH * 3;
@@ -104,35 +109,37 @@ public class PiImageListenerStage extends PronghornStage {
         // Only execute while we have room to write our output.
         if (Pipe.hasRoomForWrite(output)) {
 
-            // If there's no frame, read one and publish start.
-            if (frameBytesPublishHead == -1) {
+            // Capture a frame if we have no bytes left to transmit.
+            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd, frameBytes, 0) == frameBytes.length) {
+                frameBytesHead = FRAME_BUFFERED;
+            }
 
-                // Attempt a frame capture.
-                if (camera.readFrame(cameraFd, frameBytes, 0) != -1) {
+            // Publish a frame start if we have room to transmit.
+            if (frameBytesHead == FRAME_BUFFERED && PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
+                PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.length);
+                PipeWriter.publishWrites(output);
+                frameBytesHead = 0;
+            }
 
-                    // If a frame was available, reset head to the beginning.
-                    frameBytesPublishHead = 0;
+            // Write rows while there are bytes to write and room for those bytes.
+            while (frameBytesHead >= 0 &&
+                    PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, ImageSchema.MSG_FRAMECHUNK_2)) &&
+                    PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
 
-                    // Publish frame start.
-                    if (PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
-                        PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
-                        PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
-                        PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
-                        PipeWriter.publishWrites(output);
-                    }
-                }
-
-            // Otherwise, write a frame part.
-            } else if (PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
-                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, frameBytesPublishHead, ROW_SIZE);
+                // Write bytes.
+                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
+                                      frameBytes, frameBytesHead, ROW_SIZE);
                 PipeWriter.publishWrites(output);
 
                 // Progress head.
-                frameBytesPublishHead += ROW_SIZE;
+                frameBytesHead += ROW_SIZE;
 
                 // If the head exceeds the size of the frame bytes, we're done writing.
-                if (frameBytesPublishHead >= frameBytes.length) {
-                    frameBytesPublishHead = -1;
+                if (frameBytesHead >= frameBytes.length) {
+                    frameBytesHead = FRAME_EMPTY;
                 }
             }
         }

@@ -35,7 +35,6 @@ public class PiImageListenerStage extends PronghornStage {
     private final Pipe<ImageSchema> output;
 
     // Camera system.
-    private boolean v4l2Available = true;
     private Camera camera;
     private int cameraFd;
 
@@ -47,6 +46,9 @@ public class PiImageListenerStage extends PronghornStage {
     public static final int FRAME_WIDTH = 1920;
     public static final int FRAME_HEIGHT = 1080;
     public static final int ROW_SIZE = FRAME_WIDTH * 3;
+
+    // Proxy data directory.
+    public static final String PROXY_CAMERA_DIRECTORY = "./src/test/images";
 
     public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
         super(graphManager, NONE, output);
@@ -71,22 +73,21 @@ public class PiImageListenerStage extends PronghornStage {
             try {
                 Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
             } catch (IOException | InterruptedException e) {
-                logger.error(e.getMessage(), e);
-            }
-
-            // If it still isn't loaded, disable V4L2.
-            if (!cameraFile.exists()) {
-                v4l2Available = false;
+                logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.", e);
             }
         }
 
-        // Open camera interface.
-        if (v4l2Available) {
+        // Open camera interface if the camera is available.
+        if (cameraFile.exists()) {
             camera = new RaspiCam();
             cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, FRAME_WIDTH, FRAME_HEIGHT);
+            logger.info("Opened camera device {} with FD {}.", RaspiCam.DEFAULT_CAMERA_DEVICE, cameraFd);
+
+        // Otherwise, use a proxy camera.
         } else {
             camera = new ProxyCam();
-            cameraFd = camera.open("./images", FRAME_WIDTH, FRAME_HEIGHT);
+            cameraFd = camera.open(PROXY_CAMERA_DIRECTORY, FRAME_WIDTH, FRAME_HEIGHT);
+            logger.info("Opened proxy camera in directory {} with FD {}.", PROXY_CAMERA_DIRECTORY, cameraFd);
         }
 
         // Configure byte array for camera frames.

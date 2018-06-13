@@ -328,7 +328,9 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			inputPipes[--pipesCount] = newSerialInputPipe(new PipeConfig<SerialInputSchema>(SerialInputSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
 		}
 		if (this.builder.isListeningToCamera(listener)) {
-			inputPipes[--pipesCount] = new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
+
+			// TODO: Specific to Pi implementation.
+			inputPipes[--pipesCount] = new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, defaultCommandChannelLength, PiImageListenerStage.ROW_SIZE).grow2x());
 		}
 
 		final int httpClientPipeId = netResponsePipeIdx; //must be grabbed before populateGreenPipes

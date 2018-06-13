@@ -19,8 +19,9 @@ public interface ImageListenerBase {
      * @param width Width in pixels of the image frame.
      * @param height Height in pixels of the image frame.
      * @param timestamp Timestamp of the image frame.
+     * @param frameBytesCount The number of bytes inside a complete image frame.
      */
-    void onFrameStart(int width, int height, long timestamp);
+    void onFrameStart(int width, int height, long timestamp, int frameBytesCount);
 
     /**
      * Invoked when a new image frame row is received.

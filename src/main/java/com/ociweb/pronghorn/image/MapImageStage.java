@@ -2,8 +2,12 @@ package com.ociweb.pronghorn.image;
 
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
+import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
@@ -19,7 +23,8 @@ public class MapImageStage extends PronghornStage {
 	private final Pipe<ImageSchema> imgInput; 
 	private final Pipe<RawDataSchema>[] newMappingData;
 	private final Pipe<HistogramSchema> output;
-
+	private boolean isShuttingDown = false;
+	private static final Logger logger = LoggerFactory.getLogger(MapImageStage.class);
     	
 	public static MapImageStage newInstance(GraphManager graphManager, 
             Pipe<ImageSchema> monochromeInput, 
@@ -45,39 +50,111 @@ public class MapImageStage extends PronghornStage {
 
 	private int loadingNewMap = -1;	
 	private boolean imageInProgress = false;
+	private int totalRows;
+	private int totalWidth;
+	private long time;
+	private int activeRow;
+	
 	
 	@Override
 	public void run() {
 		
-		if (!imageInProgress) {
-			if (loadingNewMap >= 0) {
-				loadNewMaps(loadingNewMap);
-			} else {
-				int n = newMappingData.length;
-				while (--n>=0) {
-					loadNewMaps(n);
+		if (!isShuttingDown) {
+			if (!imageInProgress) {
+				if (loadingNewMap >= 0) {
+					loadNewMaps(loadingNewMap);
+				} else {
+					int n = newMappingData.length;
+					while (--n>=0) {
+						loadNewMaps(n);
+					}
 				}
+			} else {
+				//we are image in progress
+				if (activeRow == totalRows) {
+					//we have a complete message to send
+					publishHistogram();
+				}				
+			}
+			
+			//if we are not loading a new map check for an image to process
+			if (loadingNewMap<0) {
+				
+				while (Pipe.hasContentToRead(imgInput)) {
+					
+					int msgIdx = Pipe.takeMsgIdx(imgInput);
+					
+					if (ImageSchema.MSG_FRAMECHUNK_2 == msgIdx) {
+						
+						if (activeRow < totalRows) {
+							
+							DataInputBlobReader<ImageSchema> rowData = Pipe.openInputStream(imgInput);
+							
+							for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
+								int color = rowData.readByte();
+								
+								int pos = rowLookup[activeRow][(activeColumn*256)+color];
+								if (pos >= 0) {
+									int idx;
+									while ((idx = locations[pos++])!=-1) {
+											workspace[idx]++;
+									}
+								}
+							}
+							activeRow++;
+							if (activeRow == totalRows) {
+								publishHistogram();
+								break;
+							}							
+						} else {
+							//error too many rows.
+							logger.error("too many rows only expected {}",totalRows);
+							Pipe.skipNextFragment(imgInput, msgIdx);
+						}
+						
+					} else if (ImageSchema.MSG_FRAMESTART_1 == msgIdx) {
+						imageInProgress = true;
+						totalWidth = Pipe.takeInt(imgInput);
+						totalRows = Pipe.takeInt(imgInput);
+						time = Pipe.takeLong(imgInput); 
+						Arrays.fill(workspace, 0);
+						activeRow = 0;
+					} else {
+						//shutdown...
+						isShuttingDown = true;
+						Pipe.confirmLowLevelWrite(imgInput, Pipe.EOF_SIZE);
+						Pipe.releaseReadLock(imgInput);
+						break;
+					}
+				}
+			}		
+		} else {
+			if (Pipe.hasRoomForWrite(output)) {
+				Pipe.publishEOF(output);
+				requestShutdown();
 			}
 		}
-		
-		//if we are not loading a new map check for an image to process
-		if (loadingNewMap<0) {
+	}
+
+	private void publishHistogram() {
+		if (Pipe.hasRoomForWrite(output)) {
+			int size = Pipe.addMsgIdx(output, HistogramSchema.MSG_HISTOGRAM_1);
 			
+			Pipe.addIntValue(workspace.length, output);
 			
-			//read in 1 image and based on the locations look up the summary for the map
+			DataOutputBlobWriter<HistogramSchema> outputStream = Pipe.openOutputStream(output);								
+			int i = workspace.length;
+			while (--i>=0) {
+				outputStream.writePackedInt(workspace[i]);
+			}
+			DataOutputBlobWriter.closeLowLevelField(outputStream);
 			
-			//		int row = 0;
-			//		int column = 0;
-			//		int brightness = 0;
-			//		
-			//		int pos = map[row][column][brightness];
-			//		int idx;
-			//		while ((idx = locations[pos++])!=-1) {
-			//				workspace[idx]++;
-			//		}
-						
+			Pipe.confirmLowLevelWrite(output, size);
+			Pipe.releaseReadLock(output);
 			
-		}		
+			totalRows = 0;//clear we have sent the value.
+			imageInProgress = false;
+		}
 	}
 	
 	private void loadNewMaps(int n) {

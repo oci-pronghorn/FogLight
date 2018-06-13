@@ -352,9 +352,10 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 					int width = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101);
 					int height = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
 					long timestamp = PipeReader.readLong(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301);
+					int frameBytesCount = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401);
 
 					// Send to listener.
-					listener.onFrameStart(width, height, timestamp);
+					listener.onFrameStart(width, height, timestamp, frameBytesCount);
 					break;
 
 				case ImageSchema.MSG_FRAMECHUNK_2:

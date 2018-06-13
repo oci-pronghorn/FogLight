@@ -67,6 +67,10 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
             fprintf(stderr, "Camera used %d height instead of %d.\n", format.fmt.pix.height, height);
         }
 
+        if (format.fmt.pix.bytesperline != width * 3) {
+        	fprintf(stderr, "Camera used %d bytes per line instead of the expected %d.\n", format.fmt.pix.bytesperline, width * 3);
+        }
+
         // Get buffer size based on W x H.
         buffer_size = format.fmt.pix.sizeimage;
 

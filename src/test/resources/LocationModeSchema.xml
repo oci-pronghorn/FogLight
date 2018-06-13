@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+
+    <template name="InitCalibration" id="1">
+        <uInt32 name="StartValue" id="12"/>
+    </template>
+
+    <template name="State" id="2">
+        <uInt32 name="Flags" id="22"/> <!-- moved bit, calibrate bit etc -->
+    </template>
+    
+    
+
+
+</templates>

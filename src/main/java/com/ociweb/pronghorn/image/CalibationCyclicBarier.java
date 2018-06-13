@@ -6,6 +6,13 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 public class CalibationCyclicBarier extends PronghornStage {
 
+	public static CalibationCyclicBarier newInstance(GraphManager gm, 
+			Pipe<?> calibrationDone, 
+			Pipe<?> calibrationDoneR, Pipe<?> calibrationDoneG, Pipe<?> calibrationDoneB, Pipe<?> calibrationDoneM) {
+		return new CalibationCyclicBarier(gm, calibrationDone, 
+				       calibrationDoneR, calibrationDoneG, calibrationDoneB, calibrationDoneM);
+	}
+	
 	public CalibationCyclicBarier(GraphManager gm, 
 				Pipe<?> calibrationDone, 
 				Pipe<?> calibrationDoneR, Pipe<?> calibrationDoneG, Pipe<?> calibrationDoneB, Pipe<?> calibrationDoneM) {

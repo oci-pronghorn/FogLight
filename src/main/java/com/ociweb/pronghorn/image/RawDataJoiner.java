@@ -13,6 +13,14 @@ public class RawDataJoiner extends PronghornStage {
 	private final Pipe<BlockStorageReceiveSchema> saveAck;
 	private final Pipe<RawDataSchema>[] inputs;
     	
+	public static RawDataJoiner newInstance(GraphManager gm, 
+			 Pipe<BlockStorageXmitSchema> saveWrite,
+			 Pipe<BlockStorageReceiveSchema> saveAck,
+            Pipe<RawDataSchema> ... inputs) {
+		return new RawDataJoiner(gm, saveWrite, saveAck, inputs);
+	}
+	
+	
 	public RawDataJoiner(GraphManager gm, 
 						 Pipe<BlockStorageXmitSchema> saveWrite,
 						 Pipe<BlockStorageReceiveSchema> saveAck,

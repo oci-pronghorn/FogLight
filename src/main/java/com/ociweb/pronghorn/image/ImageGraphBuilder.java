@@ -12,11 +12,8 @@ import com.ociweb.pronghorn.stage.math.HistogramSchema;
 import com.ociweb.pronghorn.stage.math.HistogramSelectPeakStage;
 import com.ociweb.pronghorn.stage.math.HistogramSumStage;
 import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
-import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
-import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
-import com.ociweb.pronghorn.stage.test.PipeNoOp;
 
 public class ImageGraphBuilder {
 
@@ -89,10 +86,10 @@ public class ImageGraphBuilder {
 	    Pipe<?> calibrationDoneB = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
 	    Pipe<?> calibrationDoneM = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
 	    
-	    new ModeManageState(gm, tickTrigger, calibrationDone,
+	    ModeManageState.newInstance(gm, tickTrigger, calibrationDone,
 	    		            imageStateDataR, imageStateDataG, imageStateDataB, imageStateDataM );
 	    
-	    new CalibationCyclicBarier(gm, 
+	    CalibationCyclicBarier.newInstance(gm, 
 	    					calibrationDone,
 	    		            calibrationDoneR, calibrationDoneG, calibrationDoneB, calibrationDoneM);
 	    
@@ -108,8 +105,9 @@ public class ImageGraphBuilder {
 		HistogramSumStage.newInstance(gm, histSum, histR, histG, histB, histM);
 		HistogramSelectPeakStage.newInstance(gm, histSum, probLocation );
 
-		new RawDataJoiner(gm, 
-				          saveWrite, saveAck, saveDataRed, saveDataGreen, saveDataBlue, saveDataMono);
+		RawDataJoiner.newInstance(gm, 
+				          saveWrite, saveAck, 
+				          saveDataRed, saveDataGreen, saveDataBlue, saveDataMono);
 		
 		String targetFilePath = "";//only used for save on shutdown logic
 		BlockStorageStage.newInstance(gm, targetFilePath, saveWrite, saveAck);

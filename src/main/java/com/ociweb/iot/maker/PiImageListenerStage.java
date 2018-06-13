@@ -14,6 +14,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 /**
@@ -49,6 +50,9 @@ public class PiImageListenerStage extends PronghornStage {
 
     // Proxy data directory.
     public static final String PROXY_CAMERA_DIRECTORY = "./src/test/images";
+
+    // Output encoding.
+    public static final byte[] OUTPUT_ENCODING = "RGB24".getBytes(StandardCharsets.US_ASCII);
 
     public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
         super(graphManager, NONE, output);
@@ -108,6 +112,7 @@ public class PiImageListenerStage extends PronghornStage {
     public void run() {
 
         // Only execute while we have room to write our output.
+        // TODO: Is this check required, or does tryWriteFragment already do it?
         if (Pipe.hasRoomForWrite(output)) {
 
             // Capture a frame if we have no bytes left to transmit.
@@ -121,6 +126,8 @@ public class PiImageListenerStage extends PronghornStage {
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
                 PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.length);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 24);
+                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING);
                 PipeWriter.publishWrites(output);
                 frameBytesHead = 0;
             }

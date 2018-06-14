@@ -4,12 +4,11 @@
   <parent>
     <artifactId>examples</artifactId>
     <groupId>com.ociweb</groupId>
-    <version>1</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
   <groupId>com.ociweb.iot.snake</groupId>
-  <artifactId>006-Snake</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  
+  <artifactId>006-snake</artifactId>
+
   <properties>
     <java.bootstrap.classes>${java.home}/lib/rt.jar</java.bootstrap.classes>
     <java.cryptographic.extension.classes>${java.home}/lib/jce.jar</java.cryptographic.extension.classes>
@@ -53,24 +52,20 @@
   <dependencies>
   		<dependency>
 	  		<groupId>com.ociweb</groupId>
-            <artifactId>FogLight</artifactId>
-            <version>[0.1.2-SNAPSHOT,0.2.0)</version>
+            <artifactId>foglight</artifactId>
     	</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
-		</dependency>	
+		</dependency>
         <dependency>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-simple</artifactId>
-          <version>1.7.25</version>
           <scope>runtime</scope>
         </dependency>
       	<dependency>
 		      <groupId>junit</groupId>
 		      <artifactId>junit</artifactId>
-		      <version>4.12</version>
 		  	  <type>jar</type>
 		  	  <scope>test</scope>
 		</dependency>
@@ -79,7 +74,6 @@
   	<build>
 
      <plugins>
-     
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>

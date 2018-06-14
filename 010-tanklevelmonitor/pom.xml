@@ -3,11 +3,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.ociweb</groupId>
+    <groupId>com.ociweb.iot.examples</groupId>
     <artifactId>examples</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <groupId>com.ociweb.iot.project.tankLevelMonitor</groupId>
   <artifactId>010-tanklevelmonitor</artifactId>
 
   <properties>
@@ -135,7 +134,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.ociweb.iot.project.tankLevelMonitor.IoTApp</mainClass>
+              <mainClass>com.ociweb.iot.examples.IoTApp</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

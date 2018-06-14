@@ -3,11 +3,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.ociweb</groupId>
+    <groupId>com.ociweb.iot.examples</groupId>
     <artifactId>examples</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <groupId>com.ociweb.gateway</groupId>
   <artifactId>400-iotgateway</artifactId>
 
   <properties>
@@ -145,7 +144,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.ociweb.gateway.IoTApp</mainClass>
+              <mainClass>com.ociweb.iot.examples.IoTApp</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

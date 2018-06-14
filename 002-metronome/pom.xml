@@ -6,7 +6,7 @@
         <version>1.0.0-SNAPSHOT</version>
         <groupId>com.ociweb.iot.examples</groupId>
     </parent>
-  <artifactId>001-lightusingbutton</artifactId>
+  <artifactId>002-metronome</artifactId>
 
     <properties>
     <java.bootstrap.classes>
@@ -155,7 +155,7 @@
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
 
-            <finalName>uber001-lightusingbutton</finalName>
+            <finalName>uber002-metronome</finalName>
             <appendAssemblyId>false</appendAssemblyId>    
   
           </configuration>
@@ -211,8 +211,8 @@
 	            <lib>${java.cryptographic.extension.classes}</lib>
 	            <lib>${java.secure.socket.extension.classes}</lib>
 	          </libs>
-	          <injar>uber001-lightusingbutton.jar</injar>
-	          <outjar>001-lightusingbutton.jar</outjar>
+	          <injar>uber002-metronome.jar</injar>
+	          <outjar>002-metronome.jar</outjar>
 	        </configuration>
 	        <dependencies>
 	          <dependency>

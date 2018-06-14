@@ -147,7 +147,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber003-Stopwatch</finalName>
+          <finalName>uber003-stopwatch</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -198,8 +198,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber003-Stopwatch.jar</injar>
-          <outjar>003-Stopwatch.jar</outjar>
+          <injar>uber003-stopwatch.jar</injar>
+          <outjar>003-stopwatch.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

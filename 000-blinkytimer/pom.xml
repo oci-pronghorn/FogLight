@@ -156,7 +156,7 @@
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
 
-            <finalName>uber000-BlinkyTimer</finalName>  
+            <finalName>uber000-blinkytimer</finalName>
             <appendAssemblyId>false</appendAssemblyId>    
   
           </configuration>
@@ -212,8 +212,8 @@
 	            <lib>${java.cryptographic.extension.classes}</lib>
 	            <lib>${java.secure.socket.extension.classes}</lib>
 	          </libs>
-	          <injar>uber000-BlinkyTimer.jar</injar>
-	          <outjar>000-BlinkyTimer.jar</outjar>
+	          <injar>uber000-blinkytimer.jar</injar>
+	          <outjar>000-blinkytimer.jar</outjar>
 	        </configuration>
 	        <dependencies>
 	          <dependency>

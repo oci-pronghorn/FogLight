@@ -141,7 +141,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber500-MatrixTest</finalName>
+          <finalName>uber500-matrixtest</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -192,8 +192,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber500-MatrixTest.jar</injar>
-          <outjar>500-MatrixTest.jar</outjar>
+          <injar>uber500-matrixtest.jar</injar>
+          <outjar>500-matrixtest.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

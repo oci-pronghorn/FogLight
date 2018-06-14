@@ -148,7 +148,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <finalName>uber01B-Clock</finalName>
+                    <finalName>uber01b-clock</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
             </plugin>
@@ -202,8 +202,8 @@
                         <lib>${java.cryptographic.extension.classes}</lib>
                         <lib>${java.secure.socket.extension.classes}</lib>
                     </libs>
-                    <injar>uber01B-Clock.jar</injar>
-                    <outjar>01B-Clock.jar</outjar>
+                    <injar>uber01b-clock.jar</injar>
+                    <outjar>01b-clock.jar</outjar>
                 </configuration>
             </plugin>
         </plugins>

@@ -145,7 +145,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber110-GasPumpSimulator</finalName>
+          <finalName>uber110-gaspumpsimulator</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -197,8 +197,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber110-GasPumpSimulator.jar</injar>
-          <outjar>110-GasPumpSimulator.jar</outjar>
+          <injar>uber110-gaspumpsimulator.jar</injar>
+          <outjar>110-gaspumpsimulator.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

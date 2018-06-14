@@ -145,7 +145,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber120-ValveManifold</finalName>
+          <finalName>uber120-valvemanifold</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -197,8 +197,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber120-ValveManifold.jar</injar>
-          <outjar>120-ValveManifold.jar</outjar>
+          <injar>uber120-valvemanifold.jar</injar>
+          <outjar>120-valvemanifold.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

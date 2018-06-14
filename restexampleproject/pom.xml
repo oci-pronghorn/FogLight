@@ -149,7 +149,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uberRestExampleProject</finalName>
+          <finalName>uberrestexampleproject</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -193,8 +193,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uberRestExampleProject.jar</injar>
-          <outjar>RestExampleProject.jar</outjar>
+          <injar>uberrestexampleproject.jar</injar>
+          <outjar>restexampleproject.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

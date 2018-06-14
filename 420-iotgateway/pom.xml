@@ -150,7 +150,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber400-IoTGateway</finalName>
+          <finalName>uber400-iotgateway</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -195,8 +195,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber420-IoTGateway.jar</injar>
-          <outjar>420-IoTGateway.jar</outjar>
+          <injar>uber420-iotgateway.jar</injar>
+          <outjar>420-iotgateway.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

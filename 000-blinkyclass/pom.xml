@@ -155,7 +155,7 @@
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
 
-            <finalName>uber000-BlinkyClass</finalName>  
+            <finalName>uber000-blinkyclass</finalName>
             <appendAssemblyId>false</appendAssemblyId>    
   
           </configuration>
@@ -211,8 +211,8 @@
 	            <lib>${java.cryptographic.extension.classes}</lib>
 	            <lib>${java.secure.socket.extension.classes}</lib>
 	          </libs>
-	          <injar>uber000-BlinkyClass.jar</injar>
-	          <outjar>000-BlinkyClass.jar</outjar>
+	          <injar>uber000-blinkyclass.jar</injar>
+	          <outjar>000-blinkyclass.jar</outjar>
 	        </configuration>
 	        <dependencies>
 	          <dependency>

@@ -151,7 +151,7 @@
               <descriptorRef>jar-with-dependencies</descriptorRef>
             </descriptorRefs>
 
-            <finalName>uber006-Snake</finalName>  
+            <finalName>uber006-snake</finalName>
             <appendAssemblyId>false</appendAssemblyId>    
   
           </configuration>
@@ -188,8 +188,8 @@
 	            <lib>${java.cryptographic.extension.classes}</lib>
 	            <lib>${java.secure.socket.extension.classes}</lib>
 	          </libs>
-	          <injar>uber006-Snake.jar</injar>
-	          <outjar>006-Snake.jar</outjar>
+	          <injar>uber006-snake.jar</injar>
+	          <outjar>006-snake.jar</outjar>
 	          
 	          <outputDirectory>${project.build.directory}</outputDirectory>
               <proguardInclude>${basedir}/proguard.conf</proguardInclude>

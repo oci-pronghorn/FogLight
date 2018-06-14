@@ -146,7 +146,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber01A-NightLight</finalName>
+          <finalName>uber01a-nightlight</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -197,8 +197,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber01A-NightLight.jar</injar>
-          <outjar>01A-NightLight.jar</outjar>
+          <injar>uber01a-nightlight.jar</injar>
+          <outjar>01a-nightlight.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

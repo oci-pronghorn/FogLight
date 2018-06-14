@@ -145,7 +145,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber600-HZDemo</finalName>
+          <finalName>uber600-hzdemo</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -196,8 +196,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber600-HZDemo.jar</injar>
-          <outjar>600-HZDemo.jar</outjar>
+          <injar>uber600-hzdemo.jar</injar>
+          <outjar>600-hzdemo.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

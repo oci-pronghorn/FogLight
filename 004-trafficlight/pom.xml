@@ -146,7 +146,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber004-TrafficLight</finalName>
+          <finalName>uber004-trafficlight</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -198,8 +198,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber004-TrafficLight.jar</injar>
-          <outjar>004-TrafficLight.jar</outjar>
+          <injar>uber004-trafficlight.jar</injar>
+          <outjar>004-trafficlight.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

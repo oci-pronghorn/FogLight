@@ -140,7 +140,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>uber010-TankLevelMonitor</finalName>
+          <finalName>uber010-tanklevelmonitor</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
@@ -191,8 +191,8 @@
             <lib>${java.cryptographic.extension.classes}</lib>
             <lib>${java.secure.socket.extension.classes}</lib>
           </libs>
-          <injar>uber010-TankLevelMonitor.jar</injar>
-          <outjar>010-TankLevelMonitor.jar</outjar>
+          <injar>uber010-tanklevelmonitor.jar</injar>
+          <outjar>010-tanklevelmonitor.jar</outjar>
         </configuration>
       </plugin>
     </plugins>

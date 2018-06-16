@@ -77,7 +77,7 @@ public class PiImageListenerStage extends PronghornStage {
             try {
                 Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
             } catch (IOException | InterruptedException e) {
-                logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.", e);
+                logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.");
             }
         }
 

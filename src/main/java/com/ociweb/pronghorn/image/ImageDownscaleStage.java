@@ -33,8 +33,7 @@ public class ImageDownscaleStage extends PronghornStage {
 
     // Input pipe information.
     private int imageFrameWidth = -1;
-    private int imageFrameheight = -1;
-    private int imageFrameSizeBytes = -1;
+    private int imageFrameHeight = -1;
     private int imageFrameRowsReceived = 0;
     private byte[] imageFrameRowBytes = null;
     private int[] imageFrameRowBytesDownsampled = null;
@@ -82,8 +81,11 @@ public class ImageDownscaleStage extends PronghornStage {
 
                     // Extract message start data.
                     imageFrameWidth = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101);
-                    imageFrameheight = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
-                    imageFrameSizeBytes = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401);
+                    imageFrameHeight = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
+
+                    // Ensure source resolution is evenly divisible by target resolution.
+                    assert imageFrameWidth % outputWidth == 0 &&
+                           imageFrameHeight % outputHeight == 0 : "Source resolution must be evenly divisible by target resolution.";
 
                     // Extract and verify encoding.
                     encodingBytes.position(0);
@@ -134,7 +136,7 @@ public class ImageDownscaleStage extends PronghornStage {
 
                     // Calculate working frame sizes.
                     int inputFrameColumnsPerOutputColumn = imageFrameWidth / outputWidth;
-                    int inputFrameRowsPerOutputFrameRow = imageFrameheight / outputHeight;
+                    int inputFrameRowsPerOutputFrameRow = imageFrameHeight / outputHeight;
 
                     // Determine row length.
                     int rowLength = PipeReader.readBytesLength(input, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102);
@@ -150,16 +152,19 @@ public class ImageDownscaleStage extends PronghornStage {
 
                     // Downsample frame width.
                     int i = 0;
+                    int k = 0;
                     for (int j = 0; j < imageFrameRowBytes.length; j += 3) {
 
                         // Add bytes to sum.
                         imageFrameRowBytesDownsampled[i] += imageFrameRowBytes[j];
                         imageFrameRowBytesDownsampled[i + 1] += imageFrameRowBytes[j + 1];
                         imageFrameRowBytesDownsampled[i + 2] += imageFrameRowBytes[j + 2];
+                        k++;
 
-                        // If we've summed enough bytes, move to next output pixel.
-                        if ((j / 3) >= inputFrameColumnsPerOutputColumn) {
+                        // If we have summed enough pixels for one cell, reset and progress to next cell.
+                        if (k >= inputFrameColumnsPerOutputColumn) {
                             i += 3;
+                            k = 0;
                         }
                     }
                     assert i == imageFrameRowBytesDownsampled.length;

@@ -14,6 +14,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
@@ -40,7 +41,7 @@ public class PiImageListenerStage extends PronghornStage {
     private int cameraFd;
 
     // Image buffer information; we only process one image at a time.
-    private byte[] frameBytes = null;
+    private ByteBuffer frameBytes = null;
     private int frameBytesHead = FRAME_EMPTY;
 
     // Frame size data.
@@ -95,7 +96,7 @@ public class PiImageListenerStage extends PronghornStage {
         }
 
         // Configure byte array for camera frames.
-        frameBytes = new byte[camera.getFrameSizeBytes(cameraFd)];
+        frameBytes = ByteBuffer.allocateDirect(camera.getFrameSizeBytes(cameraFd));
     }
 
     @Override
@@ -116,7 +117,7 @@ public class PiImageListenerStage extends PronghornStage {
         if (Pipe.hasRoomForWrite(output)) {
 
             // Capture a frame if we have no bytes left to transmit.
-            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd, frameBytes, 0) == frameBytes.length) {
+            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd, frameBytes, 0) == frameBytes.capacity()) {
                 frameBytesHead = FRAME_BUFFERED;
             }
 
@@ -125,7 +126,7 @@ public class PiImageListenerStage extends PronghornStage {
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
                 PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.length);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.capacity());
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 24);
                 PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING);
                 PipeWriter.publishWrites(output);
@@ -138,15 +139,15 @@ public class PiImageListenerStage extends PronghornStage {
                     PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
 
                 // Write bytes.
-                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
-                                      frameBytes, frameBytesHead, ROW_SIZE);
+                frameBytes.position(frameBytesHead);
+                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, ROW_SIZE);
                 PipeWriter.publishWrites(output);
 
                 // Progress head.
                 frameBytesHead += ROW_SIZE;
 
                 // If the head exceeds the size of the frame bytes, we're done writing.
-                if (frameBytesHead >= frameBytes.length) {
+                if (frameBytesHead >= frameBytes.capacity()) {
                     frameBytesHead = FRAME_EMPTY;
                 }
             }

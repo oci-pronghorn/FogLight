@@ -143,7 +143,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameSizeBytes(JNI
     return buffer_size;
 }
 
-JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd, jbyteArray rawBytes, jint start) {
+JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd, jobject buffer, jint start) {
 
     // The buffer's waiting in the outgoing queue.
     // If -1 is returned, the buffer isn't ready to read yet.
@@ -158,30 +158,27 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
         return -1;
     }
 
-    // If -1 is returned, the buffer isn't ready to read yet.buffer
     // Prepare Java array for writing.
-    jbyte* bytes = (*env)->GetByteArrayElements(env, rawBytes, NULL);
+    void* bytes = env->GetDirectBufferAddress(buffer);
+    jlong bytesLength = env->GetDirectBufferCapacity(buffer);
+    int bytesToRead = bufferinfo.length;
 
-    // Track read bytes.
-    int readBytes = 0;
+    // Ensure there is space for write and then write bytes.
+    if (bytesLength >= bufferinfo.length) {
+        memcpy(bytes, buffer_start, bytesToRead);
 
-    // Place buffer bytes into Java bytes.
-    for (int i = 0; i < bufferinfo.length; i++) {
-        bytes[start + i] = ((char *) buffer_start)[i];
-        readBytes++;
+    // Print an error.
+    } else {
+        fprintf(stderr, "Byte buffer did not have enough room for a write operation.\n");
+        bytesToRead = -1;
     }
-
-    // Cleanup Java array.
-    (*env)->ReleaseByteArrayElements(env, rawBytes, bytes, 0);
 
     // Put the buffer in the incoming queue.
     if (v4l2_ioctl(fd, VIDIOC_QBUF, &bufferinfo) < 0) {
         fprintf(stderr, "Could not queue buffer (during read).\n");
-        return -1; // TODO: More descriptive error?
     }
 
-    // Success.
-    return readBytes;
+    return bytesToRead;
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {

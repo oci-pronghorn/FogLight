@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Native wrapper for accessing Raspberry Pi camera data.
@@ -52,7 +53,7 @@ public final class RaspiCam implements Camera {
     public native int getFrameSizeBytes(int fd);
 
     @Override
-    public native int readFrame(int fd, byte[] bytes, int start);
+    public native int readFrame(int fd, ByteBuffer bytes, int start);
 
     @Override
     public native int close(int fd);

@@ -193,6 +193,9 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrameBenchmark(JN
     while (true) {
 
         // Try a frame capture.
+        memset(&(bufferinfo), 0, sizeof(bufferinfo));
+        bufferinfo.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        bufferinfo.memory = V4L2_MEMORY_USERPTR;
         if (v4l2_ioctl(fd, VIDIOC_DQBUF, &bufferinfo) >= 0) {
 
             // TODO: Do nothing with the buffer.

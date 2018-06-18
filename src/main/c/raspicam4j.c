@@ -177,6 +177,46 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
     return readBytes;
 }
 
+/* TODO: Temporary test for image capture speed. */
+#include <time.h>
+JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrameBenchmark(JNIEnv *env, jobject object, jint fd, jint durationMillis) {
+
+    // Get current time.
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    double start = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
+
+    // Track frames captured.
+    int framesCaptured = 0;
+
+    // Loop until quit.
+    while (true) {
+
+        // Try a frame capture.
+        if (v4l2_ioctl(fd, VIDIOC_DQBUF, &bufferinfo) >= 0) {
+
+            // TODO: Do nothing with the buffer.
+
+            // Put the buffer in the incoming queue.
+            if (v4l2_ioctl(fd, VIDIOC_QBUF, &bufferinfo) < 0) {
+                fprintf(stderr, "Could not queue buffer (during read).\n");
+            }
+
+            // Increment counter.
+            framesCaptured++;
+        }
+
+        // If we're out of time, quit.
+        gettimeofday(&tv, NULL);
+        double now = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
+        if (now > start + durationMillis) {
+            break;
+        }
+    }
+
+    printf("Captured %d frames in %d milliseconds.\n", framesCaptured, durationMillis);
+}
+
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {
 
     // Deactivate streaming

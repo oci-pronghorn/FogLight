@@ -219,7 +219,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrameBenchmark(JN
         }
     }
 
-    printf(stderr, "Captured %d frames in %d milliseconds.\n", framesCaptured, durationMillis);
+    fprintf(stderr, "Captured %d frames in %d milliseconds.\n", framesCaptured, durationMillis);
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {

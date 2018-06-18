@@ -21,12 +21,7 @@ public class PiCamTest implements FogApp {
     private int frameBytesHead = 0;
 
     public static void main( String[] args) {
-
-        RaspiCam raspiCam = new RaspiCam();
-        int fd = raspiCam.open("/dev/video0", PiImageListenerStage.FRAME_WIDTH, PiImageListenerStage.FRAME_HEIGHT);
-        raspiCam.readFrameBenchmark(fd, 10_000);
-
-//        FogRuntime.run(new PiCamTest());
+        FogRuntime.run(new PiCamTest());
     }
 
     @Override

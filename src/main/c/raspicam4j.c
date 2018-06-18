@@ -147,7 +147,14 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
 
     // The buffer's waiting in the outgoing queue.
     // If -1 is returned, the buffer isn't ready to read yet.
+    memset(&(bufferinfo), 0, sizeof(bufferinfo));
+    bufferinfo.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    bufferinfo.memory = V4L2_MEMORY_USERPTR;
     if (v4l2_ioctl(fd, VIDIOC_DQBUF, &bufferinfo) < 0) {
+        if (errno != EAGAIN) {
+            fprintf(stderr, "Unknown error code %d when reading frame from camera.");
+        }
+
         return -1;
     }
 
@@ -175,54 +182,6 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
 
     // Success.
     return readBytes;
-}
-
-/* TODO: Temporary test for image capture speed. */
-#include <time.h>
-JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrameBenchmark(JNIEnv *env, jobject object, jint fd, jint durationMillis) {
-
-    // Get current time.
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    double start = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-
-    // Track frames captured.
-    int framesCaptured = 0;
-
-    // Loop until quit.
-    while (true) {
-
-        // Try a frame capture.
-        memset(&(bufferinfo), 0, sizeof(bufferinfo));
-        bufferinfo.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        bufferinfo.memory = V4L2_MEMORY_USERPTR;
-        if (v4l2_ioctl(fd, VIDIOC_DQBUF, &bufferinfo) >= 0) {
-
-            // TODO: Do nothing with the buffer.
-
-            // Put the buffer in the incoming queue.
-            if (v4l2_ioctl(fd, VIDIOC_QBUF, &bufferinfo) < 0) {
-                fprintf(stderr, "Could not queue buffer (during read).\n");
-            }
-
-            // Increment counter.
-            framesCaptured++;
-
-        // Frame capture failed. Why?
-        } else {
-            fprintf(stderr, "Frame capture failed with ERRNO %d.\n", errno);
-            fprintf(stderr, "Standard codes are: %d - EAGAIN\n%d - EINVAL\n%d - EIO\n%d - EPIPE\n", EAGAIN, EINVAL, EIO, EPIPE);
-        }
-
-        // If we're out of time, quit.
-        gettimeofday(&tv, NULL);
-        double now = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-        if (now > start + durationMillis) {
-            break;
-        }
-    }
-
-    fprintf(stderr, "Captured %d frames in %d milliseconds.\n", framesCaptured, durationMillis);
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {

@@ -44,8 +44,8 @@ public class PiImageListenerStage extends PronghornStage {
     private int frameBytesHead = FRAME_EMPTY;
 
     // Frame size data.
-    public static final int FRAME_WIDTH = 1920;
-    public static final int FRAME_HEIGHT = 1080;
+    public static final int FRAME_WIDTH = 1280;
+    public static final int FRAME_HEIGHT = 720;
     public static final int ROW_SIZE = FRAME_WIDTH * 3;
 
     // Proxy data directory.

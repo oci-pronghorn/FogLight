@@ -54,9 +54,6 @@ public final class RaspiCam implements Camera {
     @Override
     public native int readFrame(int fd, byte[] bytes, int start);
 
-    /* TODO: Temporary test for image capture speed. */
-    public native int readFrameBenchmark(int fd, int durationMillis);
-
     @Override
     public native int close(int fd);
 }

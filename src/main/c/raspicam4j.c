@@ -204,6 +204,11 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrameBenchmark(JN
 
             // Increment counter.
             framesCaptured++;
+
+        // Frame capture failed. Why?
+        } else {
+            fprintf(stderr, "Frame capture failed with ERRNO %d.\n", errno);
+            fprintf(stderr, "Standard codes are: %d - EAGAIN\n%d - EINVAL\n%d - EIO\n%d - EPIPE\n", EAGAIN, EINVAL, EIO, EPIPE);
         }
 
         // If we're out of time, quit.
@@ -214,7 +219,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrameBenchmark(JN
         }
     }
 
-    printf("Captured %d frames in %d milliseconds.\n", framesCaptured, durationMillis);
+    printf(stderr, "Captured %d frames in %d milliseconds.\n", framesCaptured, durationMillis);
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {

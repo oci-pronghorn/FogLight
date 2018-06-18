@@ -1,8 +1,8 @@
 package com.ociweb.iot.camera;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +22,7 @@ public class ProxyCam implements Camera {
     private int cameraFds = 0;
 
     // Image files mapped by camera file descriptor.
-    private Map<Integer, File[]> camerasToFrames = new HashMap<>();
+    private Map<Integer, RandomAccessFile[]> camerasToFrames = new HashMap<>();
     private Map<Integer, Integer> camerasToFrameSizes = new HashMap<>();
     private Map<Integer, Integer> camerasToNextFrameIndices = new HashMap<>();
 
@@ -39,7 +39,16 @@ public class ProxyCam implements Camera {
         // Discover files.
         File framesDirectory = Paths.get(device).toFile();
         assert framesDirectory.isDirectory();
-        camerasToFrames.put(cameraFd, framesDirectory.listFiles());
+        File[] directoryFiles = framesDirectory.listFiles();
+        RandomAccessFile[] files = new RandomAccessFile[directoryFiles.length];
+        for (int i = 0; i < files.length; i++) {
+            try {
+                files[i] = new RandomAccessFile(directoryFiles[i], "rw");
+            }  catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        camerasToFrames.put(cameraFd, files);
         assert camerasToFrames.get(cameraFd).length >= 1;
 
         return cameraFd;
@@ -51,18 +60,20 @@ public class ProxyCam implements Camera {
     }
 
     @Override
-    public int readFrame(int fd, byte[] bytes, int start) {
+    public int readFrame(int fd, ByteBuffer bytes, int start) {
 
         // Only read if the FD is valid.
         if (camerasToFrames.containsKey(fd)) {
-            File[] frames = camerasToFrames.get(fd);
+            RandomAccessFile[] frames = camerasToFrames.get(fd);
 
             // Calculate index of the next frame to read.
             int nextFrameIndex = camerasToNextFrameIndices.get(fd) % frames.length;
 
             // Perform file read.
-            try (FileInputStream fis = new FileInputStream(frames[nextFrameIndex])) {
-                return fis.read(bytes, start, camerasToFrameSizes.get(fd));
+            try (FileChannel fis = frames[nextFrameIndex].getChannel()) {
+                bytes.position(0);
+                bytes.limit(bytes.capacity());
+                return fis.read(bytes);
 
             } catch (IOException e) {
                 e.printStackTrace();

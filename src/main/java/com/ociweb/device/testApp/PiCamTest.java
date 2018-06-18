@@ -19,6 +19,7 @@ public class PiCamTest implements FogApp {
     private final List<File> images = new ArrayList<>();
     private byte[] frameBytes = null;
     private int frameBytesHead = 0;
+    private long start = -1;
 
     public static void main( String[] args) {
         FogRuntime.run(new PiCamTest());
@@ -26,7 +27,7 @@ public class PiCamTest implements FogApp {
 
     @Override
     public void declareConnections(Hardware hardware) {
-        hardware.setImageTriggerRate(30);
+        hardware.setImageTriggerRate(1);
     }
 
     @Override
@@ -40,6 +41,7 @@ public class PiCamTest implements FogApp {
 
                 // Prepare file.
                 workingFile = new File("image-" + timestamp + ".raw");
+                start = System.currentTimeMillis();
 
                 // Prepare byte array.
                 if (frameBytes == null || frameBytes.length != frameBytesCount) {
@@ -70,17 +72,17 @@ public class PiCamTest implements FogApp {
                     }
 
                     // Write file.
-                    try {
-                        workingFile.createNewFile();
-                        FileOutputStream fos = new FileOutputStream(workingFile);
-                        fos.write(frameBytes);
-                        fos.flush();
-                        fos.close();
-                        images.add(workingFile);
-                        System.out.printf("Captured image to disk (%s) @ %d.\n", workingFile.getName(), System.currentTimeMillis());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        workingFile.createNewFile();
+//                        FileOutputStream fos = new FileOutputStream(workingFile);
+//                        fos.write(frameBytes);
+//                        fos.flush();
+//                        fos.close();
+//                        images.add(workingFile);
+                        System.out.printf("Captured image to disk (%s) @ %d (took %d milliseconds).\n", workingFile.getName(), System.currentTimeMillis(), System.currentTimeMillis() - start);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 }
             }
         });

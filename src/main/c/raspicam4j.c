@@ -139,11 +139,11 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
     }
 }
 
-JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameSizeBytes(JNIEnv *env, jobject object, jint fd) {
-    return buffer_size;
+JNIEXPORT jobject JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameBuffer(JNIEnv *env, jobject object, jint fd) {
+    return (*env)->NewDirectByteBuffer(buffer_start, buffer_size);
 }
 
-JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd, jobject buffer, jint start) {
+JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd) {
 
     // The buffer's waiting in the outgoing queue.
     // If -1 is returned, the buffer isn't ready to read yet.
@@ -158,27 +158,12 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
         return -1;
     }
 
-    // Prepare Java array for writing.
-    void* bytes = (*env)->GetDirectBufferAddress(env, buffer);
-    jlong bytesLength = (*env)->GetDirectBufferCapacity(env, buffer);
-    int bytesToRead = bufferinfo.length;
-
-    // Ensure there is space for write and then write bytes.
-    if (bytesLength >= bufferinfo.length) {
-        memcpy(bytes, buffer_start, bytesToRead);
-
-    // Print an error.
-    } else {
-        fprintf(stderr, "Byte buffer did not have enough room for a write operation.\n");
-        bytesToRead = -1;
-    }
-
     // Put the buffer in the incoming queue.
     if (v4l2_ioctl(fd, VIDIOC_QBUF, &bufferinfo) < 0) {
         fprintf(stderr, "Could not queue buffer (during read).\n");
     }
 
-    return bytesToRead;
+    return bufferinfo.length;
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {

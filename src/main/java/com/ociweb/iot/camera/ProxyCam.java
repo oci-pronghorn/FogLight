@@ -23,7 +23,7 @@ public class ProxyCam implements Camera {
 
     // Image files mapped by camera file descriptor.
     private Map<Integer, RandomAccessFile[]> camerasToFrames = new HashMap<>();
-    private Map<Integer, Integer> camerasToFrameSizes = new HashMap<>();
+    private Map<Integer, ByteBuffer> camerasToBuffers = new HashMap<>();
     private Map<Integer, Integer> camerasToNextFrameIndices = new HashMap<>();
 
     @Override
@@ -33,7 +33,7 @@ public class ProxyCam implements Camera {
         int cameraFd = cameraFds++;
 
         // Calculate frame size and initialize indices.
-        camerasToFrameSizes.put(cameraFd,width * height * 3);
+        camerasToBuffers.put(cameraFd, ByteBuffer.allocateDirect(width * height * 3));
         camerasToNextFrameIndices.put(cameraFd, 0);
 
         // Discover files.
@@ -55,12 +55,12 @@ public class ProxyCam implements Camera {
     }
 
     @Override
-    public int getFrameSizeBytes(int fd) {
-        return camerasToFrameSizes.getOrDefault(fd, -1);
+    public ByteBuffer getFrameBuffer(int fd) {
+        return camerasToBuffers.getOrDefault(fd, null);
     }
 
     @Override
-    public int readFrame(int fd, ByteBuffer bytes, int start) {
+    public int readFrame(int fd) {
 
         // Only read if the FD is valid.
         if (camerasToFrames.containsKey(fd)) {
@@ -71,9 +71,10 @@ public class ProxyCam implements Camera {
 
             // Perform file read.
             try (FileChannel fis = frames[nextFrameIndex].getChannel()) {
-                bytes.position(0);
-                bytes.limit(bytes.capacity());
-                return fis.read(bytes);
+                ByteBuffer buffer = camerasToBuffers.get(fd);
+                buffer.position(0);
+                buffer.limit(buffer.capacity());
+                return fis.read(buffer);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -91,7 +92,7 @@ public class ProxyCam implements Camera {
     @Override
     public int close(int fd) {
         camerasToFrames.remove(fd);
-        camerasToFrameSizes.remove(fd);
+        camerasToBuffers.remove(fd);
         camerasToNextFrameIndices.remove(fd);
         return 0;
     }

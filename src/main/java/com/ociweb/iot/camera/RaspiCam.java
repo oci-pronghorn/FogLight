@@ -50,10 +50,10 @@ public final class RaspiCam implements Camera {
     public native int open(String device, int width, int height);
 
     @Override
-    public native int getFrameSizeBytes(int fd);
+    public native ByteBuffer getFrameBuffer(int fd);
 
     @Override
-    public native int readFrame(int fd, ByteBuffer bytes, int start);
+    public native int readFrame(int fd);
 
     @Override
     public native int close(int fd);

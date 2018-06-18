@@ -96,7 +96,7 @@ public class PiImageListenerStage extends PronghornStage {
         }
 
         // Configure byte array for camera frames.
-        frameBytes = ByteBuffer.allocateDirect(camera.getFrameSizeBytes(cameraFd));
+        frameBytes = camera.getFrameBuffer(cameraFd);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class PiImageListenerStage extends PronghornStage {
         if (Pipe.hasRoomForWrite(output)) {
 
             // Capture a frame if we have no bytes left to transmit.
-            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd, frameBytes, 0) == frameBytes.capacity()) {
+            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd) == frameBytes.capacity()) {
                 frameBytesHead = FRAME_BUFFERED;
             }
 

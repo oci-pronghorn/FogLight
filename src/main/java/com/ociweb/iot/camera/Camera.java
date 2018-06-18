@@ -28,7 +28,7 @@ public interface Camera {
      *
      * @return The size in bytes of a complete image frame. -1 if the passed fd is invalid.
      */
-    public int getFrameSizeBytes(int fd);
+    public ByteBuffer getFrameBuffer(int fd);
 
     /**
      * Reads the next frame from the Raspberry Pi camera into a byte array.
@@ -48,7 +48,7 @@ public interface Camera {
      *
      * @return The number of bytes read.
      */
-    public int readFrame(int fd, ByteBuffer bytes, int start);
+    public int readFrame(int fd);
 
     /**
      * Closes a camera file descriptor.

@@ -159,8 +159,8 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
     }
 
     // Prepare Java array for writing.
-    void* bytes = env->GetDirectBufferAddress(buffer);
-    jlong bytesLength = env->GetDirectBufferCapacity(buffer);
+    void* bytes = (*env)->GetDirectBufferAddress(env, buffer);
+    jlong bytesLength = (*env)->GetDirectBufferCapacity(env, buffer);
     int bytesToRead = bufferinfo.length;
 
     // Ensure there is space for write and then write bytes.

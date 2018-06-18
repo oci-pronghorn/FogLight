@@ -40,7 +40,7 @@ public class PiCamTest implements FogApp {
             public void onFrameStart(int width, int height, long timestamp, int frameBytesCount) {
 
                 // Prepare file.
-                workingFile = new File("image-" + timestamp + ".raw");
+//                workingFile = new File("image-" + timestamp + ".raw");
                 start = System.currentTimeMillis();
 
                 // Prepare byte array.
@@ -48,8 +48,6 @@ public class PiCamTest implements FogApp {
                     frameBytes = new byte[frameBytesCount];
                     System.out.printf("Created new frame buffer for frames of size %dW x %dH with %d bytes.\n", width, height, frameBytesCount);
                 }
-
-                System.out.printf("Started new frame (%d) @ %d.\n", timestamp, System.currentTimeMillis());
 
                 frameBytesHead = 0;
             }
@@ -65,11 +63,11 @@ public class PiCamTest implements FogApp {
                 if (frameBytesHead >= frameBytes.length) {
 
                     // Clean existing files if there are too many.
-                    if (images.size() > 50) {
-                        File f = images.get(0);
-                        images.remove(0);
-                        f.delete();
-                    }
+//                    if (images.size() > 50) {
+//                        File f = images.get(0);
+//                        images.remove(0);
+//                        f.delete();
+//                    }
 
                     // Write file.
 //                    try {
@@ -79,7 +77,7 @@ public class PiCamTest implements FogApp {
 //                        fos.flush();
 //                        fos.close();
 //                        images.add(workingFile);
-                        System.out.printf("Captured image to disk (%s) @ %d (took %d milliseconds).\n", workingFile.getName(), System.currentTimeMillis(), System.currentTimeMillis() - start);
+                        System.out.printf("Captured image to disk @ %d (took %d milliseconds).\n", System.currentTimeMillis(), System.currentTimeMillis() - start);
 //                    } catch (IOException e) {
 //                        e.printStackTrace();
 //                    }

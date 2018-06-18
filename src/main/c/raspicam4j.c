@@ -140,7 +140,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
 }
 
 JNIEXPORT jobject JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameBuffer(JNIEnv *env, jobject object, jint fd) {
-    return (*env)->NewDirectByteBuffer(buffer_start, buffer_size);
+    return (*env)->NewDirectByteBuffer(env, buffer_start, buffer_size);
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd) {

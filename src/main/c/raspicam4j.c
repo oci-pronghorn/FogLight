@@ -29,7 +29,7 @@
 struct Buffer {
     void* start;
     size_t size;
-    v4l2_buffer info;
+    struct v4l2_buffer info;
     int fd;
 };
 
@@ -160,9 +160,9 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
 
 JNIEXPORT jobject JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameBuffer(JNIEnv *env, jobject object, jint fd) {
     if (!userBufferCreated) {
-        jclass byteBufferClass; = (*env)->FindClass(env, "java/nio/Buffer");
+        jclass byteBufferClass = (*env)->FindClass(env, "java/nio/Buffer");
         byteBufferAddressField = (*env)->GetFieldID(env, byteBufferClass, "address", "J");
-        userByteBuffer = (*env)->NewDirectByteBuffer(env, buffer[0].start, buffer[0].size);
+        userByteBuffer = (*env)->NewDirectByteBuffer(env, buffers[0].start, buffers[0].size);
         userBufferCreated = true;
     }
 

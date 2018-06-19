@@ -7,6 +7,7 @@ import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -155,6 +156,7 @@ public class ImageDownscaleStageTest {
     }
 
     @Test
+    @Ignore
     public void shouldDownscaleImages() {
 
         // Create test scheduler.

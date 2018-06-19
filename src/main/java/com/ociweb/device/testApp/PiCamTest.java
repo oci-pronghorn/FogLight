@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ociweb.iot.camera.RaspiCam;
 import com.ociweb.iot.maker.*;
 
 /**
@@ -40,7 +39,7 @@ public class PiCamTest implements FogApp {
             public void onFrameStart(int width, int height, long timestamp, int frameBytesCount) {
 
                 // Prepare file.
-//                workingFile = new File("image-" + timestamp + ".raw");
+                workingFile = new File("image-" + timestamp + ".raw");
                 start = System.currentTimeMillis();
 
                 // Prepare byte array.
@@ -63,24 +62,24 @@ public class PiCamTest implements FogApp {
                 if (frameBytesHead >= frameBytes.length) {
 
                     // Clean existing files if there are too many.
-//                    if (images.size() > 50) {
-//                        File f = images.get(0);
-//                        images.remove(0);
-//                        f.delete();
-//                    }
+                    if (images.size() > 50) {
+                        File f = images.get(0);
+                        images.remove(0);
+                        f.delete();
+                    }
 
                     // Write file.
-//                    try {
-//                        workingFile.createNewFile();
-//                        FileOutputStream fos = new FileOutputStream(workingFile);
-//                        fos.write(frameBytes);
-//                        fos.flush();
-//                        fos.close();
-//                        images.add(workingFile);
+                    try {
+                        workingFile.createNewFile();
+                        FileOutputStream fos = new FileOutputStream(workingFile);
+                        fos.write(frameBytes);
+                        fos.flush();
+                        fos.close();
+                        images.add(workingFile);
                         System.out.printf("Captured image to disk @ %d (took %d milliseconds).\n", System.currentTimeMillis(), System.currentTimeMillis() - start);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });

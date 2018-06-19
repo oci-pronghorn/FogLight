@@ -138,11 +138,14 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
 
             // Clean buffer data.
             memset(buffer.start, 0, buffer.info.length);
+
+            // Place buffer in array.
+            buffers[i] = buffer;
         }
 
         // Put the first buffer in the incoming queue.
         if (v4l2_ioctl(fd, VIDIOC_QBUF, &(buffers[0].info)) < 0) {
-            fprintf(stderr, "Could not queue buffer (during open).\n");
+            fprintf(stderr, "Could not queue buffer (during open) with error: %d.\n", errno);
             return -1; // TODO: More descriptive error?
         }
 

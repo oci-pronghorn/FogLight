@@ -6,19 +6,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
+import com.ociweb.pronghorn.pipe.ChannelReader;
+import com.ociweb.pronghorn.pipe.ChannelWriter;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
+import com.ociweb.pronghorn.pipe.RawDataSchemaUtil;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.math.HistogramSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.primitive.Lois;
+import com.ociweb.pronghorn.util.primitive.LoisVisitor;
 
 public class MapImageStage extends PronghornStage {
 
 	private int[]   workspace;
-	private int[][] rowLookup;// [row][(col*256)+depth] full row stored together.
-	private int[]   locations;//length + location data, each -1 terminated, no 0 offsets. 	
+	private Lois locations; 	
+	private int [] imageLookup;
+	private int imageWidth;
+	private int imageHeight;
+	private int imageDepth = 256;//default value
 		
 	private final Pipe<ImageSchema> imgInput; 
     private final Pipe<RawDataSchema> loadingMappingData;
@@ -26,6 +34,28 @@ public class MapImageStage extends PronghornStage {
     
 	private final Pipe<HistogramSchema> output;
 	private boolean isShuttingDown = false;
+	
+	private boolean loadingNewMap = false;	
+	private boolean imageInProgress = false;
+	private int totalRows;
+	private int totalWidth;
+	private long time;
+	private int activeRow;
+	private LoisVisitor sumVisitor = new LoisVisitor() {
+
+	//TODO: ad traning of loop
+    //TODO: must pass in uppper range so we can detect this when encountered.
+		
+		
+		
+		@Override
+		public boolean visit(int value) {
+			workspace[value]++;
+			return true;
+		}
+		
+	};
+	
 	private static final Logger logger = LoggerFactory.getLogger(MapImageStage.class);
     	
 	public static MapImageStage newInstance(GraphManager graphManager, 
@@ -56,20 +86,39 @@ public class MapImageStage extends PronghornStage {
 		this.output = output;
 	}
 
-	private boolean loadingNewMap = false;	
-	private boolean imageInProgress = false;
-	private int totalRows;
-	private int totalWidth;
-	private long time;
-	private int activeRow;
 	
 	
 	@Override
 	public void run() {
 		
+		assert(savePosition!=-2 || loadPosition!=-2) : "Can only load or save but not do both at same time.";
+		
+		//NOTE: if we are still saving the data do this first
+		if (savePosition == -2) {
+			if (locations.save(savingMappingData)) {
+				savePosition = -3;//done				
+			} else {
+				return;
+			}
+		}
+		
+		//NOTE: if we are still loading the data do this first.
+		if (loadPosition == -2) {
+			if (locations.load(loadingMappingData)) {
+				loadPosition = -1;//done					
+			} else {
+				//need to try load again later
+				return;
+			}
+		}
+		
 		if (!isShuttingDown) {
 			if (!imageInProgress) {
-				loadNewMaps();
+				if (Pipe.hasContentToRead(loadingMappingData)) {
+					if (!load(loadingMappingData)) {
+						return;
+					}
+				}	
 			} else {
 				//we are image in progress
 				if (activeRow == totalRows) {
@@ -91,16 +140,12 @@ public class MapImageStage extends PronghornStage {
 							
 							DataInputBlobReader<ImageSchema> rowData = Pipe.openInputStream(imgInput);
 							
+							int rowBase = activeRow*(imageWidth*256);
 							for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
-								int color = rowData.readByte();
-								
-								int pos = rowLookup[activeRow][(activeColumn*256)+color];
-								if (pos >= 0) {
-									int idx;
-									while ((idx = locations[pos++])!=-1) {
-											workspace[idx]++;
-									}
-								}
+								locations.visitSet(imageLookup[
+								                               rowBase                            
+								                               +(activeColumn*256)
+								                               +(int)rowData.readByte()], sumVisitor );
 							}
 							activeRow++;
 							if (activeRow == totalRows) {
@@ -129,12 +174,107 @@ public class MapImageStage extends PronghornStage {
 					}
 				}
 			}		
-		} else {
-			if (Pipe.hasRoomForWrite(output)) {
-				Pipe.publishEOF(output);
-				requestShutdown();
+		} else {			
+			if (savePosition==-3 || save(savingMappingData)) {
+				if (Pipe.hasRoomForWrite(output)) {
+					Pipe.publishEOF(output);
+					requestShutdown();
+				}
 			}
 		}
+	}
+
+	private transient int loadPosition = -1;
+	private transient int savePosition = -1;
+	
+	public boolean save(Pipe<RawDataSchema> pipe) {
+		assert (pipe.maxVarLen<(ChannelReader.PACKED_INT_SIZE*4)) : "Pipes must hold longer messages to write this content";
+				
+		while (Pipe.hasRoomForWrite(pipe)) {					
+			int size = Pipe.addMsgIdx(pipe, RawDataSchema.MSG_CHUNKEDSTREAM_1);
+			ChannelWriter writer = Pipe.openOutputStream(pipe);
+			if (savePosition==-1) { //new file
+				
+				writer.writePackedInt(imageWidth);
+				writer.writePackedInt(imageHeight);
+				writer.writePackedInt(imageDepth);
+				writer.writePackedInt(workspace.length); //locations
+		
+				savePosition = 0;
+			}
+			while (savePosition<imageLookup.length && writer.remaining()>=ChannelReader.PACKED_INT_SIZE) {
+				writer.writePackedInt(imageLookup[savePosition++]);				
+			}			
+			writer.closeLowLevelField();
+			Pipe.confirmLowLevelWrite(pipe, size);
+			Pipe.publishWrites(pipe);
+		
+			if (savePosition==imageLookup.length) {
+				savePosition = -2;
+				
+				boolean result = locations.save(pipe); //if in this state keep calling.
+				if (result) {
+					loadPosition = -1;//done					
+				}
+				
+				return result;
+			}
+		}
+		return false;
+	}
+	
+	private boolean load(Pipe<RawDataSchema> pipe) {
+		
+		while (Pipe.hasContentToRead(pipe)) {
+			boolean isEnd = RawDataSchemaUtil.accumulateInputStream(pipe);
+			ChannelReader reader = Pipe.inputStream(pipe);			
+			int startingAvailable = reader.available();
+			
+			if (loadPosition == -1) {
+				
+				//note this value here forces us to keep init at 16 and min block at 4
+				if (reader.available() < (ChannelReader.PACKED_INT_SIZE*4)) {
+					return false;//not enough data yet to read header cleanly
+				}
+			
+				//load all the fixed constants here
+				int width  	  = reader.readPackedInt();
+				int height 	  = reader.readPackedInt();
+				int depth  	  = reader.readPackedInt();
+				int locations = reader.readPackedInt();//max location value+1
+				
+				if (null == workspace || workspace.length != locations) {
+					workspace = new int[locations];
+				}
+				imageWidth = width;
+				imageHeight = height;
+				imageDepth = depth;
+				final int imageLookupLength = width*height*depth;
+				
+				//init the image matrix as needed		
+				if (null ==	imageLookup || imageLookup.length != imageLookupLength) {
+					imageLookup = new int[imageLookupLength];
+				}
+				loadPosition = 0;
+			}
+
+			while ( ((reader.available() >= ChannelReader.PACKED_INT_SIZE) || isEnd) 
+					&& loadPosition<imageLookup.length ) {
+				imageLookup[loadPosition++] = reader.readPackedInt();
+			}
+						
+			RawDataSchemaUtil.releaseConsumed(pipe, reader, startingAvailable);
+			
+			if (loadPosition == imageLookup.length) {
+				loadPosition = -2;
+				boolean result = locations.load(pipe); //if in this state keep calling.
+				if (result) {
+					loadPosition = -1;//done					
+				}
+				return result;
+			}
+		}
+		return false;
 	}
 
 	private void publishHistogram() {
@@ -158,114 +298,5 @@ public class MapImageStage extends PronghornStage {
 		}
 	}
 	
-	private void loadNewMaps() {
-		 Pipe<RawDataSchema> pipe = loadingMappingData;
-		 
-		if (Pipe.hasContentToRead(pipe)) {
-			loadingNewMap = true;
-		}
-		
-		while (Pipe.hasContentToRead(pipe)) {
-		
-			int msgIdx = Pipe.takeMsgIdx(pipe);		
-			if (msgIdx == RawDataSchema.MSG_CHUNKEDSTREAM_1) {
-				DataInputBlobReader.accumLowLevelAPIField(Pipe.inputStream(pipe));
-				Pipe.confirmLowLevelRead(pipe, Pipe.sizeOf(pipe, RawDataSchema.MSG_CHUNKEDSTREAM_1));
-				Pipe.readNextWithoutReleasingReadLock(pipe);
-					
-				DataInputBlobReader<RawDataSchema> inputStream = Pipe.inputStream(pipe);
-				
-				//consume data if possible, note full pipe of data must be large enough for a block.
-				if (inputStream.available()>=8) {
-					int tempPos = inputStream.absolutePosition();//in case we need to roll back
-					int blockType = inputStream.readInt();//4 bytes
-					int blockSize = inputStream.readInt();//4 bytes
-					if (inputStream.available()>=blockSize) {
-						//consume we have all the data for this block
-					    if (blockType>=0) {
-					    	//row of data
-					    	loadRowData(inputStream, blockType);					    	
-					    } else {
-					    	switch (blockType) {
-					    		case -1:
-					    			//location data
-					    			loadLocationData(inputStream);					    			
-					    			break;
-					    		case -2:
-					    			//meta data
-					    			initMapData(inputStream); //this message will be first
-						    		break;
-					    		case -3:
-					    			//end of file  //this message will be last
-					    			finishMapData(inputStream);					    			
-						    		break;						    			
-					    	}
-					    }
-					} else {
-						//roll back and try again later
-						inputStream.absolutePosition(tempPos);
-					}
-				}
-			} else {
-				assert(-1 == msgIdx); //shutdown logic				
-				Pipe.skipNextFragment(pipe, msgIdx);
-				//shutdown from file system is not recognized as a shutdown of the system.
-				assert(Pipe.inputStream(pipe).available()==0);
-				loadingNewMap = false;
-			}
-		}
-	}
-
-	private void initMapData(DataInputBlobReader<RawDataSchema> inputStream) {
-		//load all the fixed constants here
-		int width  	  = inputStream.readPackedInt();
-		int height 	  = inputStream.readPackedInt();
-		int depth  	  = inputStream.readPackedInt();
-		int locations = inputStream.readPackedInt();//max location value+1
-		
-		if (null == workspace || workspace.length != locations) {
-			workspace = new int[locations];
-		}
-		
-		//init the image matrix as needed		
-		if (null ==	rowLookup || rowLookup.length != height) {
-			rowLookup = new int[height][];
-		}
-		
-		int rowLen = width*depth;
-		int i = height;
-		while (--i>=0) {
-			if (null == rowLookup[i] ||  rowLookup[i].length != rowLen) {
-				rowLookup[i] = new int[rowLen];
-			} else {
-				Arrays.fill(rowLookup[i], 0);
-			}
-		}
-		
-	}
-	
-	private void finishMapData(DataInputBlobReader<RawDataSchema> inputStream) {
-		assert(inputStream.available()==0);
-		loadingNewMap = false;
-	}
-
-
-	private void loadLocationData(DataInputBlobReader<RawDataSchema> inputStream) {
-		int arrayLength = inputStream.readPackedInt();
-		if (null==locations || arrayLength != locations.length) {
-			locations = new int[arrayLength];
-		}
-		for(int i = 0; i<arrayLength; i++) {
-			locations[i] = inputStream.readPackedInt();
-		}
-	}
-
-	private void loadRowData(DataInputBlobReader<RawDataSchema> inputStream, int row) {
-		int[] target = rowLookup[row];
-		int len = target.length;
-		for(int i = 0; i<len; i++) {
-			target[i] = inputStream.readPackedInt();
-		}
-	}
 
 }

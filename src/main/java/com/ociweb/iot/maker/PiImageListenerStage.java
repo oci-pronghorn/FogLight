@@ -113,8 +113,7 @@ public class PiImageListenerStage extends PronghornStage {
     public void run() {
 
         // Only execute while we have room to write our output.
-        // TODO: Is this check required, or does tryWriteFragment already do it?
-        if (Pipe.hasRoomForWrite(output)) {
+        if (PipeWriter.hasRoomForWrite(output)) {
 
             // Capture a frame if we have no bytes left to transmit.
             if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd) == frameBytes.capacity()) {
@@ -135,12 +134,13 @@ public class PiImageListenerStage extends PronghornStage {
 
             // Write rows while there are bytes to write and room for those bytes.
             while (frameBytesHead >= 0 &&
-                    PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, ImageSchema.MSG_FRAMECHUNK_2)) &&
                     PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
 
                 // Write bytes.
                 frameBytes.position(frameBytesHead);
                 PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, ROW_SIZE);
+
+                // TODO: Check for wrap-around?
                 PipeWriter.publishWrites(output);
 
                 // Progress head.

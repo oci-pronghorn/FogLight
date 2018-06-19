@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -194,7 +195,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
     }
 
     // Set user buffer address to the newly filled buffer.
-    (*env)->SetObjectField(env, userByteBuffer, byteBufferAddressField, buffers[nextBufferToDequeue].start);
+    (*env)->SetObjectField(env, userByteBuffer, byteBufferAddressField, (intptr_t) buffers[nextBufferToDequeue].start);
 
     // Increment next buffer.
     nextBufferToDequeue++;

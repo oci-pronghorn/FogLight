@@ -141,13 +141,13 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
         }
 
         // Put the first buffer in the incoming queue.
-        if (v4l2_ioctl(fd, VIDIOC_QBUF, &buffers[0].info) < 0) {
+        if (v4l2_ioctl(fd, VIDIOC_QBUF, &(buffers[0].info)) < 0) {
             fprintf(stderr, "Could not queue buffer (during open).\n");
             return -1; // TODO: More descriptive error?
         }
 
         // Activate streaming
-        if (v4l2_ioctl(fd, VIDIOC_STREAMON, &buffers[0].info.type) < 0) {
+        if (v4l2_ioctl(fd, VIDIOC_STREAMON, &(buffers[0].info.type)) < 0) {
             v4l2_close(fd);
             fprintf(stderr, "Could not activate streaming.\n");
             return -1; // TODO: More descriptive error?
@@ -182,9 +182,9 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
     memset(&(buffers[nextBufferToDequeue].info), 0, sizeof(buffers[nextBufferToDequeue].info));
     buffers[nextBufferToDequeue].info.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buffers[nextBufferToDequeue].info.memory = V4L2_MEMORY_USERPTR;
-    if (v4l2_ioctl(fd, VIDIOC_DQBUF, &buffers[nextBufferToDequeue].info) < 0) {
+    if (v4l2_ioctl(fd, VIDIOC_DQBUF, &(buffers[nextBufferToDequeue].info)) < 0) {
         if (errno != EAGAIN) {
-            fprintf(stderr, "Unknown error code %d when reading frame from camera.");
+            fprintf(stderr, "Unknown error code %d when reading frame from camera.", errno);
         }
 
         return -1;
@@ -198,7 +198,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
     nextBufferToDequeue = nextBufferToDequeue % BUFFERS_COUNT;
 
     // Put the buffer in the incoming queue.
-    if (v4l2_ioctl(fd, VIDIOC_QBUF, &buffers[nextBufferToDequeue].info) < 0) {
+    if (v4l2_ioctl(fd, VIDIOC_QBUF, &(buffers[nextBufferToDequeue].info)) < 0) {
         fprintf(stderr, "Could not queue buffer (during read).\n");
     }
 
@@ -208,7 +208,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {
 
     // Deactivate streaming
-    if (v4l2_ioctl(fd, VIDIOC_STREAMOFF, &buffers[0].info.type) < 0){
+    if (v4l2_ioctl(fd, VIDIOC_STREAMOFF, &(buffers[0].info.type)) < 0){
         return -1; // TODO: More descriptive error?
     } else {
         v4l2_close(fd);

@@ -6,6 +6,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,21 +14,22 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class ImageDownscaleStageTest {
 
-    public static final int SOURCE_WIDTH = 1920;
+    public static final int SOURCE_WIDTH = 640;
     public static final int SOURCE_ROW_SIZE = SOURCE_WIDTH * 3;
-    public static final int SOURCE_HEIGHT = 1080;
-
-    public static final int[] DOWNSCALE_RESOLUTION_ONE = {640, 360};
+    public static final int SOURCE_HEIGHT = 480;
+    public static final int[] DOWNSCALE_RESOLUTION_ONE = {320, 240};
 
     public static class DownsamplePipeReaderState {
         File file = new File("");
         byte[] currentRow = null;
         byte[] currentFrame = null;
         int frameHead = 0;
+        int filesWritten = 0;
     }
 
     public static void readFromDownsamplePipe(Pipe<ImageSchema> pipe, DownsamplePipeReaderState state, byte[] pipeEncoding) {
@@ -46,9 +48,6 @@ public class ImageDownscaleStageTest {
 
                     // Validate data.
                     assert Arrays.equals(encoding, pipeEncoding);
-
-                    // Print data.
-                    System.out.printf("New Frame: W%dxH%d @ %d [Frame Bytes: %d, Bits per pixel: %d].\n", width, height, time, frameSize, bps);
 
                     // Prep buffer.
                     state.currentFrame = new byte[frameSize * 3];
@@ -81,15 +80,15 @@ public class ImageDownscaleStageTest {
                         // Switch by format.
                         if (pipeEncoding.equals(ImageDownscaleStage.R_OUTPUT_ENCODING)) {
                             state.currentFrame[state.frameHead] = state.currentRow[i];
-                            state.currentFrame[state.frameHead + 1] = 0;
-                            state.currentFrame[state.frameHead + 2] = 0;
+                            state.currentFrame[state.frameHead + 1] = Byte.MAX_VALUE;
+                            state.currentFrame[state.frameHead + 2] = Byte.MAX_VALUE;
                         } else if (pipeEncoding.equals(ImageDownscaleStage.G_OUTPUT_ENCODING)) {
-                            state.currentFrame[state.frameHead] = 0;
+                            state.currentFrame[state.frameHead] = Byte.MAX_VALUE;
                             state.currentFrame[state.frameHead + 1] = state.currentRow[i];
-                            state.currentFrame[state.frameHead + 2] = 0;
+                            state.currentFrame[state.frameHead + 2] = Byte.MAX_VALUE;
                         } else if (pipeEncoding.equals(ImageDownscaleStage.B_OUTPUT_ENCODING)) {
-                            state.currentFrame[state.frameHead] = 0;
-                            state.currentFrame[state.frameHead + 1] = 0;
+                            state.currentFrame[state.frameHead] = Byte.MAX_VALUE;
+                            state.currentFrame[state.frameHead + 1] = Byte.MAX_VALUE;
                             state.currentFrame[state.frameHead + 2] = state.currentRow[i];
                         } else if (pipeEncoding.equals(ImageDownscaleStage.MONO_OUTPUT_ENCODING)) {
                             state.currentFrame[state.frameHead] = state.currentRow[i];
@@ -102,20 +101,21 @@ public class ImageDownscaleStageTest {
 
                     // If frame is full, flush.
                     if (state.frameHead >= state.currentFrame.length) {
-                        System.out.println("Wrote " + state.file.getName().toString() + " to disk.");
+                        System.out.println("Wrote " + state.file.getName() + " to disk.");
                         try {
                             state.file.createNewFile();
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Assert.fail(e.getMessage());
                         }
-
 
                         try (FileOutputStream fos = new FileOutputStream(state.file)) {
                             fos.write(state.currentFrame);
                             fos.flush();
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Assert.fail(e.getMessage());
                         }
+
+                        state.filesWritten++;
                     }
 
                     break;
@@ -167,14 +167,15 @@ public class ImageDownscaleStageTest {
         NonThreadScheduler scheduler = new NonThreadScheduler(gm);
         scheduler.startup();
 
-        // Run until the output pipes have data.
-        // TODO: Stop condition?
-        while (true) {
+        // Run untill all pipes have written a file.
+        boolean allWritten = false;
+        while (!allWritten) {
 
             // Run scheduler pipe.
             scheduler.run();
 
             // Read from pipes.
+            allWritten = true;
             for (int i = 0; i < downsampleOutputPipes.length; i++) {
                 switch (i) {
                     case ImageDownscaleStage.R_OUTPUT_IDX:
@@ -190,6 +191,8 @@ public class ImageDownscaleStageTest {
                         readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.MONO_OUTPUT_ENCODING);
                         break;
                 }
+
+                allWritten = allWritten && downsamplePipeReaderStates[i].filesWritten > 0;
             }
         }
     }

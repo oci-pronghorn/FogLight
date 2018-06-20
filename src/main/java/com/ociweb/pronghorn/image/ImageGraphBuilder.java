@@ -73,20 +73,20 @@ public class ImageGraphBuilder {
 				                    gm.getOutputPipe(gm, readStage),
 				                    loadDataRed, loadDataGreen, loadDataBlue, loadDataMono);
 
-		Pipe<?> tickTrigger     = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-		Pipe<?> calibrationDone = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-	    Pipe<?> imageStateDataR = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-	    Pipe<?> imageStateDataG = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-	    Pipe<?> imageStateDataB = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-	    Pipe<?> imageStateDataM = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-		//TODO: brandon: must feed tickTicker from the image capture stage
+		Pipe<LocationModeSchema>   modePipe   = LocationModeSchema.instance.newPipe(6, 100); 
+		Pipe<CalibrationStatusSchema> calibrationDone = CalibrationStatusSchema.instance.newPipe(6, 0);
+	    Pipe<LocationModeSchema> imageStateDataR = LocationModeSchema.instance.newPipe(6, 100); 
+	    Pipe<LocationModeSchema> imageStateDataG = LocationModeSchema.instance.newPipe(6, 100); 
+	    Pipe<LocationModeSchema> imageStateDataB = LocationModeSchema.instance.newPipe(6, 100); 
+	    Pipe<LocationModeSchema> imageStateDataM = LocationModeSchema.instance.newPipe(6, 100);
+		
 	    
-	    Pipe<?> calibrationDoneR = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-	    Pipe<?> calibrationDoneG = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-	    Pipe<?> calibrationDoneB = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
-	    Pipe<?> calibrationDoneM = RawDataSchema.instance.newPipe(1, 1); //HACK until we define this schema
+	    Pipe<CalibrationStatusSchema> calibrationDoneR = CalibrationStatusSchema.instance.newPipe(6, 0);
+	    Pipe<CalibrationStatusSchema> calibrationDoneG = CalibrationStatusSchema.instance.newPipe(6, 0); 
+	    Pipe<CalibrationStatusSchema> calibrationDoneB = CalibrationStatusSchema.instance.newPipe(6, 0);
+	    Pipe<CalibrationStatusSchema> calibrationDoneM = CalibrationStatusSchema.instance.newPipe(6, 0); 
 	    
-	    ModeManageState.newInstance(gm, tickTrigger, calibrationDone,
+	    ModeManageState.newInstance(gm, modePipe, calibrationDone,
 	    		            imageStateDataR, imageStateDataG, imageStateDataB, imageStateDataM );
 	    
 	    CalibationCyclicBarier.newInstance(gm, 
@@ -118,6 +118,8 @@ public class ImageGraphBuilder {
 		//      the external caller will take this pipe and connect it to the reactive listener...
 		ConsoleJSONDumpStage.newInstance(gm, probLocation); //TODO: feed this back to caller, react..
 		
+		
+		//TODO: modePipe must be written to by some external stage to begin learning mode..
 		
 	}
 	

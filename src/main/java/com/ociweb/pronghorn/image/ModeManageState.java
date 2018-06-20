@@ -8,16 +8,16 @@ public class ModeManageState extends PronghornStage {
 
 	
 	public static ModeManageState newInstance(GraphManager gm,
-            Pipe<?> tickTrigger, Pipe<?> calibrationDone, 
-            Pipe<?> imageStateDataR,	Pipe<?> imageStateDataG, Pipe<?> imageStateDataB, Pipe<?> imageStateDataM) {
-		return new ModeManageState(gm, tickTrigger, calibrationDone, imageStateDataR, imageStateDataG, imageStateDataB, imageStateDataM);
+            Pipe<LocationModeSchema> modeIn, Pipe<CalibrationStatusSchema> calibrationDone, 
+            Pipe<LocationModeSchema> imageStateDataR,	Pipe<LocationModeSchema> imageStateDataG, Pipe<LocationModeSchema> imageStateDataB, Pipe<LocationModeSchema> imageStateDataM) {
+		return new ModeManageState(gm, modeIn, calibrationDone, imageStateDataR, imageStateDataG, imageStateDataB, imageStateDataM);
 	}
 
 	
 	public ModeManageState(GraphManager gm,
-			               Pipe<?> tickTrigger, Pipe<?> calibrationDone, 
-			               Pipe<?> imageStateDataR,	Pipe<?> imageStateDataG, Pipe<?> imageStateDataB, Pipe<?> imageStateDataM) {
-		super(gm, join(tickTrigger,calibrationDone), join(imageStateDataR, imageStateDataG, imageStateDataB, imageStateDataM) );
+			               Pipe<LocationModeSchema> modeIn, Pipe<CalibrationStatusSchema> calibrationDone, 
+			               Pipe<LocationModeSchema> imageStateDataR,	Pipe<LocationModeSchema> imageStateDataG, Pipe<LocationModeSchema> imageStateDataB, Pipe<LocationModeSchema> imageStateDataM) {
+		super(gm, join(modeIn,calibrationDone), join(imageStateDataR, imageStateDataG, imageStateDataB, imageStateDataM) );
 	}
 
 	@Override

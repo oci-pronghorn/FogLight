@@ -1,5 +1,7 @@
 package com.ociweb.iot.camera;
 
+import java.nio.ByteBuffer;
+
 /**
  * TODO:
  *
@@ -19,17 +21,16 @@ public interface Camera {
     public int open(String device, int width, int height);
 
     /**
-     * Returns the size of a complete image frame in bytes for the camera
-     * denoted by the given file descriptor.
+     * Returns the {@link ByteBuffer} that a camera writes its frames to.
      *
-     * @param fd File descriptor of the camera to read from. Obtained from {@link #open(String, int, int)}.
+     * @param fd File descriptor of the camera to get a buffer for. Obtained from {@link #open(String, int, int)}.
      *
-     * @return The size in bytes of a complete image frame. -1 if the passed fd is invalid.
+     * @return The byte buffer for the given camera. -1 if the passed fd is invalid.
      */
-    public int getFrameSizeBytes(int fd);
+    public ByteBuffer getFrameBuffer(int fd);
 
     /**
-     * Reads the next frame from the Raspberry Pi camera into a byte array.
+     * Reads the next frame from the Raspberry Pi camera into the camera's {@link ByteBuffer}.
      *
      * The bytes are in RGB24 format:
      * - Byte [0] is the R byte
@@ -39,14 +40,10 @@ public interface Camera {
      * - ...And so on.
      *
      * @param fd File descriptor of the camera to read from. Obtained from {@link #open(String, int, int)}.
-     * @param bytes Byte array to read the frame into.
-     * @param start Position to start reading bytes into in the byte array. The difference between the
-     *              byte array's length and the start position must be greater than or equal
-     *              to the returned value of {@link #getFrameSizeBytes(int)} for this file descriptor.
      *
-     * @return The number of bytes read.
+     * @return The number of bytes read. -1 if no bytes are read.
      */
-    public int readFrame(int fd, byte[] bytes, int start);
+    public int readFrame(int fd);
 
     /**
      * Closes a camera file descriptor.

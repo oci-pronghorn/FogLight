@@ -6,10 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.FogApp;
-import com.ociweb.iot.maker.ImageListener;
+import com.ociweb.iot.maker.*;
 
 /**
  * Simple Pi image capture test.
@@ -21,6 +18,7 @@ public class PiCamTest implements FogApp {
     private final List<File> images = new ArrayList<>();
     private byte[] frameBytes = null;
     private int frameBytesHead = 0;
+    private long start = -1;
 
     public static void main( String[] args) {
         FogRuntime.run(new PiCamTest());
@@ -28,7 +26,7 @@ public class PiCamTest implements FogApp {
 
     @Override
     public void declareConnections(Hardware hardware) {
-        hardware.setImageTriggerRate(30);
+        hardware.setImageTriggerRate(1);
     }
 
     @Override
@@ -42,14 +40,13 @@ public class PiCamTest implements FogApp {
 
                 // Prepare file.
                 workingFile = new File("image-" + timestamp + ".raw");
+                start = System.currentTimeMillis();
 
                 // Prepare byte array.
                 if (frameBytes == null || frameBytes.length != frameBytesCount) {
                     frameBytes = new byte[frameBytesCount];
                     System.out.printf("Created new frame buffer for frames of size %dW x %dH with %d bytes.\n", width, height, frameBytesCount);
                 }
-
-                System.out.printf("Started new frame (%d) @ %d.\n", timestamp, System.currentTimeMillis());
 
                 frameBytesHead = 0;
             }
@@ -79,7 +76,7 @@ public class PiCamTest implements FogApp {
                         fos.flush();
                         fos.close();
                         images.add(workingFile);
-                        System.out.printf("Captured image to disk (%s) @ %d.\n", workingFile.getName(), System.currentTimeMillis());
+                        System.out.printf("Captured image to disk @ %d (took %d milliseconds).\n", System.currentTimeMillis(), System.currentTimeMillis() - start);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

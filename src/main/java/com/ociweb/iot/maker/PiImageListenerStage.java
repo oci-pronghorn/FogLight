@@ -14,6 +14,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
@@ -40,12 +41,12 @@ public class PiImageListenerStage extends PronghornStage {
     private int cameraFd;
 
     // Image buffer information; we only process one image at a time.
-    private byte[] frameBytes = null;
+    private ByteBuffer frameBytes = null;
     private int frameBytesHead = FRAME_EMPTY;
 
     // Frame size data.
-    public static final int FRAME_WIDTH = 1920;
-    public static final int FRAME_HEIGHT = 1080;
+    public static final int FRAME_WIDTH = 1280;
+    public static final int FRAME_HEIGHT = 720;
     public static final int ROW_SIZE = FRAME_WIDTH * 3;
 
     // Proxy data directory.
@@ -77,7 +78,7 @@ public class PiImageListenerStage extends PronghornStage {
             try {
                 Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
             } catch (IOException | InterruptedException e) {
-                logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.", e);
+                logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.");
             }
         }
 
@@ -95,7 +96,7 @@ public class PiImageListenerStage extends PronghornStage {
         }
 
         // Configure byte array for camera frames.
-        frameBytes = new byte[camera.getFrameSizeBytes(cameraFd)];
+        frameBytes = camera.getFrameBuffer(cameraFd);
     }
 
     @Override
@@ -112,11 +113,10 @@ public class PiImageListenerStage extends PronghornStage {
     public void run() {
 
         // Only execute while we have room to write our output.
-        // TODO: Is this check required, or does tryWriteFragment already do it?
-        if (Pipe.hasRoomForWrite(output)) {
+        if (PipeWriter.hasRoomForWrite(output)) {
 
             // Capture a frame if we have no bytes left to transmit.
-            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd, frameBytes, 0) == frameBytes.length) {
+            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd) == frameBytes.capacity()) {
                 frameBytesHead = FRAME_BUFFERED;
             }
 
@@ -125,7 +125,7 @@ public class PiImageListenerStage extends PronghornStage {
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
                 PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.length);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.capacity());
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 24);
                 PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING);
                 PipeWriter.publishWrites(output);
@@ -134,19 +134,20 @@ public class PiImageListenerStage extends PronghornStage {
 
             // Write rows while there are bytes to write and room for those bytes.
             while (frameBytesHead >= 0 &&
-                    PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, ImageSchema.MSG_FRAMECHUNK_2)) &&
                     PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
 
                 // Write bytes.
-                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
-                                      frameBytes, frameBytesHead, ROW_SIZE);
+                frameBytes.position(frameBytesHead);
+                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, ROW_SIZE);
+
+                // TODO: Check for wrap-around?
                 PipeWriter.publishWrites(output);
 
                 // Progress head.
                 frameBytesHead += ROW_SIZE;
 
                 // If the head exceeds the size of the frame bytes, we're done writing.
-                if (frameBytesHead >= frameBytes.length) {
+                if (frameBytesHead >= frameBytes.capacity()) {
                     frameBytesHead = FRAME_EMPTY;
                 }
             }

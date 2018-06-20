@@ -17,6 +17,10 @@ import java.util.Arrays;
 
 public class ImageDownscaleStageTest {
 
+    public static final int SOURCE_WIDTH = 1920;
+    public static final int SOURCE_ROW_SIZE = SOURCE_WIDTH * 3;
+    public static final int SOURCE_HEIGHT = 1080;
+
     public static final int[] DOWNSCALE_RESOLUTION_ONE = {640, 360};
 
     public static class DownsamplePipeReaderState {
@@ -133,7 +137,7 @@ public class ImageDownscaleStageTest {
         gm = new GraphManager();
 
         // Setup image production pipe.
-        imageInputPipe = ImageSchema.instance.newPipe(1, PiImageListenerStage.ROW_SIZE * PiImageListenerStage.FRAME_HEIGHT);
+        imageInputPipe = ImageSchema.instance.newPipe(1, SOURCE_ROW_SIZE * SOURCE_HEIGHT);
         imageInputPipe.initBuffers();
 
         // Setup downsampling output pipes.
@@ -148,7 +152,7 @@ public class ImageDownscaleStageTest {
         }
 
         // Setup stages.
-        PiImageListenerStage imageListenerStage = new PiImageListenerStage(gm, imageInputPipe, 1);
+        PiImageListenerStage imageListenerStage = new PiImageListenerStage(gm, imageInputPipe, 1, SOURCE_WIDTH, SOURCE_HEIGHT);
         ImageDownscaleStage imageDownscaleStage = new ImageDownscaleStage(gm, imageInputPipe,
                                                                           downsampleOutputPipes,
                                                                           DOWNSCALE_RESOLUTION_ONE[0],

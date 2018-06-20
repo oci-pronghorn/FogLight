@@ -37,6 +37,9 @@ public class PiImageListenerStage extends PronghornStage {
     private final Pipe<ImageSchema> output;
 
     // Camera system.
+    private final int width;
+    private final int height;
+    private final int rowSize;
     private Camera camera;
     private int cameraFd;
 
@@ -45,10 +48,10 @@ public class PiImageListenerStage extends PronghornStage {
     private long frameBytesTimestamp = -1;
     private int frameBytesHead = FRAME_EMPTY;
 
-    // Frame size data.
-    public static final int FRAME_WIDTH = 1280;
-    public static final int FRAME_HEIGHT = 720;
-    public static final int ROW_SIZE = FRAME_WIDTH * 3;
+    // Default frame size data.
+    public static final int DEFAULT_FRAME_WIDTH = 1280;
+    public static final int DEFAULT_FRAME_HEIGHT = 720;
+    public static final int DEFAULT_ROW_SIZE = DEFAULT_FRAME_WIDTH * 3;
 
     // Proxy data directory.
     public static final String PROXY_CAMERA_DIRECTORY = "./src/test/images";
@@ -57,6 +60,10 @@ public class PiImageListenerStage extends PronghornStage {
     public static final byte[] OUTPUT_ENCODING = "RGB24".getBytes(StandardCharsets.US_ASCII);
 
     public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
+        this(graphManager, output, triggerRateMilliseconds, DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT);
+    }
+
+    public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds, int width, int height) {
         super(graphManager, NONE, output);
 
         // Attach to our output pipe.
@@ -64,6 +71,11 @@ public class PiImageListenerStage extends PronghornStage {
 
         // Add this listener to the graph.
         GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMilliseconds * 1000000L, this);
+
+        // Configure height data.
+        this.width = width;
+        this.height = height;
+        this.rowSize = width * 3;
     }
 
     @Override
@@ -86,13 +98,13 @@ public class PiImageListenerStage extends PronghornStage {
         // Open camera interface if the camera is available.
         if (cameraFile.exists()) {
             camera = new RaspiCam();
-            cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, FRAME_WIDTH, FRAME_HEIGHT);
+            cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, width, height);
             logger.info("Opened camera device {} with FD {}.", RaspiCam.DEFAULT_CAMERA_DEVICE, cameraFd);
 
         // Otherwise, use a proxy camera.
         } else {
             camera = new ProxyCam();
-            cameraFd = camera.open(PROXY_CAMERA_DIRECTORY, FRAME_WIDTH, FRAME_HEIGHT);
+            cameraFd = camera.open(PROXY_CAMERA_DIRECTORY, width, height);
             logger.info("Opened proxy camera in directory {} with FD {}.", PROXY_CAMERA_DIRECTORY, cameraFd);
         }
 
@@ -130,8 +142,8 @@ public class PiImageListenerStage extends PronghornStage {
 
             // Publish a frame start if we have room to transmit.
             if (frameBytesHead == FRAME_BUFFERED && PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, width);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, height);
                 PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, frameBytesTimestamp);
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.capacity());
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 24);
@@ -146,13 +158,13 @@ public class PiImageListenerStage extends PronghornStage {
 
                 // Write bytes.
                 frameBytes.position(frameBytesHead);
-                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, ROW_SIZE);
+                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, rowSize);
 
                 // TODO: Check for wrap-around?
                 PipeWriter.publishWrites(output);
 
                 // Progress head.
-                frameBytesHead += ROW_SIZE;
+                frameBytesHead += rowSize;
 
                 // If the head exceeds the size of the frame bytes, we're done writing.
                 if (frameBytesHead >= frameBytes.capacity()) {

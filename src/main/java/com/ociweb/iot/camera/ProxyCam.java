@@ -60,7 +60,7 @@ public class ProxyCam implements Camera {
     }
 
     @Override
-    public int readFrame(int fd) {
+    public long readFrame(int fd) {
 
         // Only read if the FD is valid.
         if (camerasToFrames.containsKey(fd)) {
@@ -74,7 +74,13 @@ public class ProxyCam implements Camera {
                 ByteBuffer buffer = camerasToBuffers.get(fd);
                 buffer.position(0);
                 buffer.limit(buffer.capacity());
-                return fis.read(buffer);
+
+                // Read size must be exactly a frame, or else we return -1.
+                if (fis.read(buffer) == camerasToBuffers.get(fd).capacity()) {
+                    return System.currentTimeMillis();
+                } else {
+                    return -1;
+                }
 
             } catch (IOException e) {
                 e.printStackTrace();

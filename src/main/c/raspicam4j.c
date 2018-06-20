@@ -25,6 +25,15 @@
 #define true (1==1)
 #define false (!true)
 
+// Utility to get current time in milliseconds.
+// Courtesy of: https://stackoverflow.com/a/17083824
+long long currentTimeMillis() {
+    struct timeval te;
+    gettimeofday(&te, NULL);
+    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000;
+    return milliseconds;
+}
+
 // Shared buffer info across all calls.
 // TODO: If open is called multiple times, the behavior of this variable will be undefined.
 struct v4l2_buffer bufferinfo;
@@ -146,7 +155,7 @@ JNIEXPORT jobject JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameBuffer(JNI
     return (*env)->NewDirectByteBuffer(env, buffer_start, buffer_size);
 }
 
-JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd) {
+JNIEXPORT jlong JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd) {
 
     // Put the buffer in the incoming queue if we are not currently buffering.
     // We do not automatically re-insert the buffer into the camera's queue
@@ -177,7 +186,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env
             buffering = false;
         }
 
-        return bufferinfo.length;
+        return currentTimeMillis();
     }
 
     // If we either can't queue the buffer or we simply aren't buffering, return.

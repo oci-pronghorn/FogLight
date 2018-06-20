@@ -42,6 +42,7 @@ public class PiImageListenerStage extends PronghornStage {
 
     // Image buffer information; we only process one image at a time.
     private ByteBuffer frameBytes = null;
+    private long frameBytesTimestamp = -1;
     private int frameBytesHead = FRAME_EMPTY;
 
     // Frame size data.
@@ -116,15 +117,22 @@ public class PiImageListenerStage extends PronghornStage {
         if (PipeWriter.hasRoomForWrite(output)) {
 
             // Capture a frame if we have no bytes left to transmit.
-            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd) == frameBytes.capacity()) {
-                frameBytesHead = FRAME_BUFFERED;
+            if (frameBytesHead == FRAME_EMPTY) {
+
+                // Get the timestamp of the image.
+                frameBytesTimestamp = camera.readFrame(cameraFd);
+
+                // If the timestamp was not -1 (valid), we now have a frame buffered.
+                if (frameBytesTimestamp != -1) {
+                    frameBytesHead = FRAME_BUFFERED;
+                }
             }
 
             // Publish a frame start if we have room to transmit.
             if (frameBytesHead == FRAME_BUFFERED && PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
-                PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
+                PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, frameBytesTimestamp);
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.capacity());
                 PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 24);
                 PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING);

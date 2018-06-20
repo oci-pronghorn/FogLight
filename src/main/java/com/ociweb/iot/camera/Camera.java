@@ -41,9 +41,9 @@ public interface Camera {
      *
      * @param fd File descriptor of the camera to read from. Obtained from {@link #open(String, int, int)}.
      *
-     * @return The number of bytes read. -1 if no bytes are read.
+     * @return The time at which the image was captured by c. -1 is returned if no image was captured.
      */
-    public int readFrame(int fd);
+    public long readFrame(int fd);
 
     /**
      * Closes a camera file descriptor.

@@ -53,7 +53,7 @@ public final class RaspiCam implements Camera {
     public native ByteBuffer getFrameBuffer(int fd);
 
     @Override
-    public native int readFrame(int fd);
+    public native long readFrame(int fd);
 
     @Override
     public native int close(int fd);

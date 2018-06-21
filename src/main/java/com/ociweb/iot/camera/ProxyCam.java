@@ -70,7 +70,9 @@ public class ProxyCam implements Camera {
             int nextFrameIndex = camerasToNextFrameIndices.get(fd) % frames.length;
 
             // Perform file read.
-            try (FileChannel fis = frames[nextFrameIndex].getChannel()) {
+            try {
+                FileChannel fis = frames[nextFrameIndex].getChannel();
+                fis.position(0);
                 ByteBuffer buffer = camerasToBuffers.get(fd);
                 buffer.position(0);
                 buffer.limit(buffer.capacity());

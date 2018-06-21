@@ -156,9 +156,9 @@ public class ImageDownscaleStage extends PronghornStage {
                     for (int j = 0; j < imageFrameRowBytes.length; j += 3) {
 
                         // Add bytes to sum.
-                        imageFrameRowBytesDownsampled[i] += imageFrameRowBytes[j];
-                        imageFrameRowBytesDownsampled[i + 1] += imageFrameRowBytes[j + 1];
-                        imageFrameRowBytesDownsampled[i + 2] += imageFrameRowBytes[j + 2];
+                        imageFrameRowBytesDownsampled[i] += imageFrameRowBytes[j] & 0xFF;
+                        imageFrameRowBytesDownsampled[i + 1] += imageFrameRowBytes[j + 1] & 0xFF;
+                        imageFrameRowBytesDownsampled[i + 2] += imageFrameRowBytes[j + 2] & 0xFF;
                         k++;
 
                         // If we have summed enough pixels for one cell, reset and progress to next cell.
@@ -172,6 +172,7 @@ public class ImageDownscaleStage extends PronghornStage {
                     // If we've summed enough frames to downsample height, generate an output frame.
                     imageFrameRowsReceived++;
                     if (imageFrameRowsReceived >= inputFrameRowsPerOutputFrameRow) {
+                        imageFrameRowsReceived = 0;
 
                         // Divide image frames by total pixels per cell.
                         int inputPixelsPerOutputPixel = inputFrameColumnsPerOutputColumn * inputFrameRowsPerOutputFrameRow;
@@ -192,9 +193,9 @@ public class ImageDownscaleStage extends PronghornStage {
 
                             // Average bytes into mono channel.
                             int temp = 0;
-                            temp += imageFrameRowBytesR[i];
-                            temp += imageFrameRowBytesG[i];
-                            temp += imageFrameRowBytesB[i];
+                            temp += imageFrameRowBytesDownsampled[j];
+                            temp += imageFrameRowBytesDownsampled[j + 1];
+                            temp += imageFrameRowBytesDownsampled[j + 2];
                             temp = temp / 3;
                             imageFrameRowBytesMono[i] = (byte) temp;
 

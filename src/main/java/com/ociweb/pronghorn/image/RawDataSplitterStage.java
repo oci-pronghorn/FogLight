@@ -7,7 +7,7 @@ import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class RawDataSplitter extends PronghornStage {
+public class RawDataSplitterStage extends PronghornStage {
 
 	private final Pipe<RawDataSchema> source; 
     private final Pipe<RawDataSchema>[] targets;
@@ -16,10 +16,10 @@ public class RawDataSplitter extends PronghornStage {
 	private DataInputBlobReader<RawDataSchema> inputStream;
     private boolean isShuttingDown = false;
 	
-    public static RawDataSplitter newInstance(GraphManager gm, 
+    public static RawDataSplitterStage newInstance(GraphManager gm, 
             	Pipe<RawDataSchema> source, 
             	Pipe<RawDataSchema> ... targets) {
-    	return new RawDataSplitter(gm, source, targets);
+    	return new RawDataSplitterStage(gm, source, targets);
     }
     
     /**
@@ -31,7 +31,7 @@ public class RawDataSplitter extends PronghornStage {
      * @param source RawDataSchema Pipe to read from
      * @param targets an array of outgoing target pipes
      */
-	public RawDataSplitter(GraphManager gm, 
+	public RawDataSplitterStage(GraphManager gm, 
 			               Pipe<RawDataSchema> source, 
 			               Pipe<RawDataSchema> ... targets) {
 		super(gm, source,  targets);

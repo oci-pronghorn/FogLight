@@ -1,4 +1,4 @@
-package com.ociweb.pronghorn.image;
+package com.ociweb.pronghorn.image.schema;
 
 import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.MessageSchema;

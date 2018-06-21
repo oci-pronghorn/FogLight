@@ -7,21 +7,21 @@ import com.ociweb.pronghorn.stage.file.schema.BlockStorageReceiveSchema;
 import com.ociweb.pronghorn.stage.file.schema.BlockStorageXmitSchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
-public class RawDataJoiner extends PronghornStage {
+public class RawDataJoinerStage extends PronghornStage {
 
 	private final Pipe<BlockStorageXmitSchema> saveWrite;
 	private final Pipe<BlockStorageReceiveSchema> saveAck;
 	private final Pipe<RawDataSchema>[] inputs;
     	
-	public static RawDataJoiner newInstance(GraphManager gm, 
+	public static RawDataJoinerStage newInstance(GraphManager gm, 
 			 Pipe<BlockStorageXmitSchema> saveWrite,
 			 Pipe<BlockStorageReceiveSchema> saveAck,
             Pipe<RawDataSchema> ... inputs) {
-		return new RawDataJoiner(gm, saveWrite, saveAck, inputs);
+		return new RawDataJoinerStage(gm, saveWrite, saveAck, inputs);
 	}
 	
 	
-	public RawDataJoiner(GraphManager gm, 
+	public RawDataJoinerStage(GraphManager gm, 
 						 Pipe<BlockStorageXmitSchema> saveWrite,
 						 Pipe<BlockStorageReceiveSchema> saveAck,
 			             Pipe<RawDataSchema> ... inputs) {

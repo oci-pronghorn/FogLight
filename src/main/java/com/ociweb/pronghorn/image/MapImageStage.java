@@ -5,6 +5,8 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
+import com.ociweb.pronghorn.image.schema.LocationModeSchema;
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.pipe.ChannelWriter;
@@ -36,6 +38,8 @@ public class MapImageStage extends PronghornStage {
     private final Pipe<RawDataSchema> savingMappingData; 
     private final Pipe<LocationModeSchema> modeIn;
     private final Pipe<CalibrationStatusSchema> statusOut;
+    private final Pipe<CalibrationStatusSchema> ack;
+    
 	private final Pipe<HistogramSchema> output;
 	
 	private boolean isShuttingDown = false;
@@ -57,32 +61,23 @@ public class MapImageStage extends PronghornStage {
 		
 	};
 
-	
-	//TODO: these are not yet done....
-	private boolean isLearning = false; //from mode
-	private int activeLearningLocationBase = 10000000; //from mode
-	private int learningMaxSlices = 100000; //fixed,from mode control
-	private int cycleStep = 0; //member... clear on mode							
+	private boolean isLearning = false; 
+	private int activeLearningLocationBase;
+	private int learningMaxSlices; //cycle may use less but not more than this or the location will change
+	private int cycleStep;//total steps in this cycle
 
-
-
-	//TODO: ad traning of loop
-	//TODO: must pass in uppper range so we can detect this when encountered.
-	
-	
-	
-	
 	private static final Logger logger = LoggerFactory.getLogger(MapImageStage.class);
     	
 	public static MapImageStage newInstance(GraphManager graphManager, 
             Pipe<ImageSchema> imgInput, 
             Pipe<LocationModeSchema> stateData,
             Pipe<HistogramSchema> output,
+            Pipe<CalibrationStatusSchema> ack, 
             Pipe<CalibrationStatusSchema> done,
             Pipe<RawDataSchema> loadingMappingData,
             Pipe<RawDataSchema> savingMappingData            
             ) {
-		return new MapImageStage(graphManager, imgInput, stateData, output, done, loadingMappingData, savingMappingData);
+		return new MapImageStage(graphManager, imgInput, stateData, output, ack, done, loadingMappingData, savingMappingData);
 	}
 	
 	//need outgoing schema for the map.
@@ -90,12 +85,13 @@ public class MapImageStage extends PronghornStage {
 			                Pipe<ImageSchema> imgInput, 
 			                Pipe<LocationModeSchema> modeIn,
 			                Pipe<HistogramSchema> output,
+			                Pipe<CalibrationStatusSchema> ack,
 			                Pipe<CalibrationStatusSchema> statusOut,
 			                Pipe<RawDataSchema> loadingMappingData,
 			                Pipe<RawDataSchema> savingMappingData 
 			               ) {
 		
-		super(graphManager, join(imgInput,loadingMappingData, modeIn), join(output,savingMappingData, statusOut) );
+		super(graphManager, join(imgInput,loadingMappingData, modeIn, ack), join(output,savingMappingData, statusOut) );
 		
 		this.imgInput = imgInput;
 		this.loadingMappingData = loadingMappingData;
@@ -103,6 +99,7 @@ public class MapImageStage extends PronghornStage {
 		this.modeIn = modeIn;
 		this.output = output;
 		this.statusOut = statusOut;
+		this.ack = ack;
 	}
 
 	
@@ -138,6 +135,10 @@ public class MapImageStage extends PronghornStage {
 						return;
 					}
 				}	
+
+				if (Pipe.hasContentToRead(ack)) {
+					readAckData(ack);	
+				}
 				
 				if (Pipe.hasContentToRead(modeIn)) {
 					readModeData(modeIn);	
@@ -196,7 +197,12 @@ public class MapImageStage extends PronghornStage {
 								} 
 								
 								//generate new location id
-								int activeLocation = activeLearningLocationBase + cycleStep++;
+								int activeLocation = activeLearningLocationBase + cycleStep;
+								//ensure steps stays under the max slice value so location base is not disturbed.
+								if (++cycleStep >= learningMaxSlices) {
+									cycleStep = 0; 
+								}
+								
 								//learn this new location
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
 									
@@ -209,7 +215,6 @@ public class MapImageStage extends PronghornStage {
 								}
 								
 							}
-							
 							
 							
 						} else {
@@ -251,39 +256,62 @@ public class MapImageStage extends PronghornStage {
 		while (Pipe.hasContentToRead(pipe)) {
 			
 			int msgIdx = Pipe.takeMsgIdx(pipe);
+			switch (msgIdx) {
+				case LocationModeSchema.MSG_CYCLELEARNINGSTART_1:
+					activeLearningLocationBase = Pipe.takeInt(pipe);
+					learningMaxSlices = Pipe.takeInt(pipe);					
+					isLearning = true;
+					cycleStep = 0;
+					break;
+				case LocationModeSchema.MSG_CYCLELEARNINGCANCEL_3:
+					
+					isLearning = false;
+					int j = cycleStep;
+					while (--j>=0) {
+						locations.removeFromAll(activeLearningLocationBase+j);
+					}
+					break;
+					
+			}
+			Pipe.confirmLowLevelRead(pipe, Pipe.sizeOf(pipe, msgIdx));
+			Pipe.publishWrites(pipe);								
 			
-			
-//			public static final int MSG_CYCLELEARNINGSTART_1 = 0x00000000; //Group/OpenTempl/3
-//			public static final int MSG_CYCLELEARNINGSTART_1_FIELD_STARTVALUE_12 = 0x00000001; //IntegerUnsigned/None/0
-//			public static final int MSG_CYCLELEARNINGSTART_1_FIELD_MAXSTEPS_13 = 0x00000002; //IntegerUnsigned/None/1
-//			public static final int MSG_CYCLELEARNINGCOMPLETED_2 = 0x00000004; //Group/OpenTempl/3
-//			public static final int MSG_CYCLELEARNINGCOMPLETED_2_FIELD_STARTVALUE_12 = 0x00000001; //IntegerUnsigned/None/0
-//			public static final int MSG_CYCLELEARNINGCOMPLETED_2_FIELD_TOTALSTEPS_23 = 0x00000002; //IntegerUnsigned/None/2
-//			public static final int MSG_CYCLELEARNINGCANCEL_3 = 0x00000008; //Group/OpenTempl/1
-			
-			
-			
-		}
-		
-		
-		//read the start learning... (sent by request to start learning, clears on its own)
-		///    base value
-		///    max steps
-		
-		
-		//stop learning as of position x  (sent by consensus and cyclic barier sent to listener..) 
-		//     remove following y locations
-		
-		
-		//remove tick...
-		
-		
-		// TODO do we need one of these per every image?
-		
-		
+		}				
 		
 	}
 
+	private void readAckData(Pipe<CalibrationStatusSchema> pipe) {
+		
+		while (Pipe.hasContentToRead(pipe)) {
+			
+			int msgIdx = Pipe.takeMsgIdx(pipe);
+			switch (msgIdx) {
+
+				case CalibrationStatusSchema.MSG_CYCLECALIBRATED_1:
+					
+					isLearning = false;
+					
+					final int locationBase = Pipe.takeInt(pipe);
+					assert(activeLearningLocationBase == locationBase) : "Completed message did not match location for learning start"; 
+					
+					final int totalSteps = Pipe.takeInt(pipe);
+					
+					//un-learn the steps after the point where all agreed.
+					int i = cycleStep;
+					while (--i>=totalSteps) {
+						locations.removeFromAll(locationBase+i);
+					}
+					
+					break;
+
+			}
+			Pipe.confirmLowLevelRead(pipe, Pipe.sizeOf(pipe, msgIdx));
+			Pipe.publishWrites(pipe);								
+			
+		}				
+		
+	}
+	
 	private void publishCycleDone(int activeLearningLocationBase, int cycleStep) {
 		
 		Pipe.presumeRoomForWrite(statusOut);
@@ -314,6 +342,12 @@ public class MapImageStage extends PronghornStage {
 	}
 
 	private int locationSetId(DataInputBlobReader<ImageSchema> rowData, int rowBase, int activeColumn) {
+		
+		
+		//TODO: if image depth is changed to 64? must adjust read byte
+		//TODO: if color is near top or lower edge need to record position in both locations....
+		
+		
 		return imageLookup[
 		                               rowBase                            
 		                               +(activeColumn*imageDepth)

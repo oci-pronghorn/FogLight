@@ -5,6 +5,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
+import com.ociweb.pronghorn.image.schema.LocationModeSchema;
 import com.ociweb.pronghorn.pipe.util.build.FROMValidation;
 
 public class ImageLocatorSchemasTest {

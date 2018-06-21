@@ -6,11 +6,6 @@
         <uInt32 name="MaxSteps" id="13"/>        
     </template>
 
-    <template name="CycleLearningCompleted" id="2">
-        <uInt32 name="StartValue" id="12"/>
-        <uInt32 name="TotalSteps" id="23"/>
-    </template>
-    
     <template name="CycleLearningCancel" id="3">
          <!--  dumps all information it has learned since CycleLearningStart  -->
     </template>    

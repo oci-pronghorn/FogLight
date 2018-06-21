@@ -50,7 +50,7 @@ public class ImageDownscaleStageTest {
                     assert Arrays.equals(encoding, pipeEncoding);
 
                     // Prep buffer.
-                    state.currentFrame = new byte[frameSize * 3];
+                    state.currentFrame = new byte[frameSize];
                     state.frameHead = 0;
                     state.file = new File(new String(pipeEncoding) + "-" + time + ".raw");
 
@@ -76,27 +76,8 @@ public class ImageDownscaleStageTest {
 
                     // Send bytes to frame.
                     for (int i = 0; i < state.currentRow.length; i++) {
-
-                        // Switch by format.
-                        if (pipeEncoding.equals(ImageDownscaleStage.R_OUTPUT_ENCODING)) {
-                            state.currentFrame[state.frameHead] = state.currentRow[i];
-                            state.currentFrame[state.frameHead + 1] = ZERO_BYTE;
-                            state.currentFrame[state.frameHead + 2] = ZERO_BYTE;
-                        } else if (pipeEncoding.equals(ImageDownscaleStage.G_OUTPUT_ENCODING)) {
-                            state.currentFrame[state.frameHead] = ZERO_BYTE;
-                            state.currentFrame[state.frameHead + 1] = state.currentRow[i];
-                            state.currentFrame[state.frameHead + 2] = ZERO_BYTE;
-                        } else if (pipeEncoding.equals(ImageDownscaleStage.B_OUTPUT_ENCODING)) {
-                            state.currentFrame[state.frameHead] = ZERO_BYTE;
-                            state.currentFrame[state.frameHead + 1] = ZERO_BYTE;
-                            state.currentFrame[state.frameHead + 2] = state.currentRow[i];
-                        } else if (pipeEncoding.equals(ImageDownscaleStage.MONO_OUTPUT_ENCODING)) {
-                            state.currentFrame[state.frameHead] = state.currentRow[i];
-                            state.currentFrame[state.frameHead + 1] = state.currentRow[i];
-                            state.currentFrame[state.frameHead + 2] = state.currentRow[i];
-                        }
-
-                        state.frameHead += 3;
+                        state.currentFrame[state.frameHead] = state.currentRow[i];
+                        state.frameHead++;
                     }
 
                     // If frame is full, flush.
@@ -167,7 +148,7 @@ public class ImageDownscaleStageTest {
         NonThreadScheduler scheduler = new NonThreadScheduler(gm);
         scheduler.startup();
 
-        // Run untill all pipes have written a file.
+        // Run until all pipes have written a file.
         boolean allWritten = false;
         while (!allWritten) {
 

@@ -6,15 +6,14 @@ import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
-import com.ociweb.pronghorn.stage.file.BlockStorageStage;
 import com.ociweb.pronghorn.stage.file.FileBlobReadStage;
 import com.ociweb.pronghorn.stage.file.FileBlobWriteStage;
-import com.ociweb.pronghorn.stage.file.schema.BlockStorageReceiveSchema;
-import com.ociweb.pronghorn.stage.file.schema.BlockStorageXmitSchema;
 import com.ociweb.pronghorn.stage.math.HistogramSchema;
 import com.ociweb.pronghorn.stage.math.HistogramSelectPeakStage;
 import com.ociweb.pronghorn.stage.math.HistogramSumStage;
 import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
+import com.ociweb.pronghorn.stage.route.RawDataJoinerStage;
+import com.ociweb.pronghorn.stage.route.RawDataSplitterStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
@@ -62,9 +61,6 @@ public class ImageGraphBuilder {
 		Pipe<HistogramSchema> histSum = HistogramSchema.instance.newPipe(4, 1<<12);		
 		
 		
-		Pipe<BlockStorageXmitSchema> saveWrite = BlockStorageXmitSchema.instance.newPipe(8, 1<<12);		
-		Pipe<BlockStorageReceiveSchema> saveAck = BlockStorageReceiveSchema.instance.newPipe(8, 1<<12);
-		
 		Pipe<CalibrationStatusSchema> calibrationDoneRoot = PipeConfig.pipe(calibrationDone.config().shrink2x());
 		
 		Pipe<CalibrationStatusSchema> calibrationDoneAckR = PipeConfig.pipe(calibrationDone.config());
@@ -92,7 +88,6 @@ public class ImageGraphBuilder {
 		//data is only read once on startup
 		FileBlobReadStage.newInstance(gm, loadDataRaw, loadFilePath);		
 		
-		//TODO: does this match the save blocks approach? needs rewrite...
 		RawDataSplitterStage.newInstance(gm, loadDataRaw,
 				                    loadDataRed, loadDataGreen, loadDataBlue, loadDataMono);
 
@@ -114,13 +109,9 @@ public class ImageGraphBuilder {
 		HistogramSumStage.newInstance(gm, histSum, histR, histG, histB, histM);
 		HistogramSelectPeakStage.newInstance(gm, histSum, probLocation );
 
-		//TODO: not sure.. 
-		RawDataJoinerStage.newInstance(gm, 
-				          saveWrite, saveAck, 
+		RawDataJoinerStage.newInstance(gm, saveDataRaw, 
 				          saveDataRed, saveDataGreen, saveDataBlue, saveDataMono);
 
-		BlockStorageStage.newInstance(gm, saveFilePath, saveWrite, saveAck);
-		
 		FileBlobWriteStage.newInstance(gm, saveDataRaw, saveFilePath);
 
 	}

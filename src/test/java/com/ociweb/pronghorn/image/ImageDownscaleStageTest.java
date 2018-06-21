@@ -1,5 +1,6 @@
 package com.ociweb.pronghorn.image;
 
+import com.ociweb.iot.camera.ProxyCam;
 import com.ociweb.iot.maker.PiImageListenerStage;
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -29,7 +30,7 @@ public class ImageDownscaleStageTest {
         byte[] currentRow = null;
         byte[] currentFrame = null;
         int frameHead = 0;
-        int filesWritten = 0;
+        int framesProcessed = 0;
     }
 
     public static void readFromDownsamplePipe(Pipe<ImageSchema> pipe, DownsamplePipeReaderState state, byte[] pipeEncoding) {
@@ -96,7 +97,7 @@ public class ImageDownscaleStageTest {
 //                            Assert.fail(e.getMessage());
 //                        }
 
-                        state.filesWritten++;
+                        state.framesProcessed++;
                     }
 
                     break;
@@ -132,8 +133,12 @@ public class ImageDownscaleStageTest {
             downsamplePipeReaderStates[i] = new DownsamplePipeReaderState();
         }
 
+        // Prepare proxy camera.
+        ProxyCam proxyCam = new ProxyCam();
+        int proxyCamFd = proxyCam.open("./src/test/images", SOURCE_WIDTH, SOURCE_HEIGHT);
+
         // Setup stages.
-        PiImageListenerStage imageListenerStage = new PiImageListenerStage(gm, imageInputPipe, 1, SOURCE_WIDTH, SOURCE_HEIGHT);
+        PiImageListenerStage imageListenerStage = new PiImageListenerStage(gm, imageInputPipe, 1, SOURCE_WIDTH, SOURCE_HEIGHT, proxyCam, proxyCamFd);
         ImageDownscaleStage imageDownscaleStage = new ImageDownscaleStage(gm, imageInputPipe,
                                                                           downsampleOutputPipes,
                                                                           DOWNSCALE_RESOLUTION_ONE[0],
@@ -147,7 +152,7 @@ public class ImageDownscaleStageTest {
         NonThreadScheduler scheduler = new NonThreadScheduler(gm);
         scheduler.startup();
 
-        // Run until all pipes have filled their frames.
+        // Run until all pipes have written a frame.
         boolean allWritten = false;
         while (!allWritten) {
 
@@ -172,7 +177,7 @@ public class ImageDownscaleStageTest {
                         break;
                 }
 
-                allWritten = allWritten && downsamplePipeReaderStates[i].filesWritten > 0;
+                allWritten = allWritten && downsamplePipeReaderStates[i].framesProcessed > 0;
             }
         }
 

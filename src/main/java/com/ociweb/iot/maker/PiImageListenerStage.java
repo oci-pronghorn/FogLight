@@ -60,10 +60,10 @@ public class PiImageListenerStage extends PronghornStage {
     public static final byte[] OUTPUT_ENCODING = "RGB24".getBytes(StandardCharsets.US_ASCII);
 
     public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
-        this(graphManager, output, triggerRateMilliseconds, DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT);
+        this(graphManager, output, triggerRateMilliseconds, DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT, null, -1);
     }
 
-    public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds, int width, int height) {
+    public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds, int width, int height, Camera camera, int cameraFd) {
         super(graphManager, NONE, output);
 
         // Attach to our output pipe.
@@ -76,37 +76,47 @@ public class PiImageListenerStage extends PronghornStage {
         this.width = width;
         this.height = height;
         this.rowSize = width * 3;
+
+        // Configure camera data.
+        this.camera = camera;
+        this.cameraFd = cameraFd;
     }
 
     @Override
     public void startup() {
 
-        // Get a file for the default camera device.
-        File cameraFile = Paths.get(RaspiCam.DEFAULT_CAMERA_DEVICE).toFile();
+        // Automatically detect a camera if one is not already set.
+        if (camera == null) {
 
-        // Open /dev/video0 on Raspberry Pi.
-        if (!cameraFile.exists()) {
+            // Get a file for the default camera device.
+            File cameraFile = Paths.get(RaspiCam.DEFAULT_CAMERA_DEVICE).toFile();
 
-            // Load V4L2 module.
-            try {
-                Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
-            } catch (IOException | InterruptedException e) {
-                logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.");
+            // Open /dev/video0 on Raspberry Pi.
+            if (!cameraFile.exists()) {
+
+                // Load V4L2 module.
+                try {
+                    Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
+                } catch (IOException | InterruptedException e) {
+                    logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.");
+                }
+            }
+
+            // Open camera interface if the camera is available.
+            if (cameraFile.exists()) {
+                camera = new RaspiCam();
+                cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, width, height);
+                logger.info("Opened camera device {} with FD {}.", RaspiCam.DEFAULT_CAMERA_DEVICE, cameraFd);
+
+                // Otherwise, use a proxy camera.
+            } else {
+                camera = new ProxyCam();
+                cameraFd = camera.open(PROXY_CAMERA_DIRECTORY, width, height);
+                logger.info("Opened proxy camera in directory {} with FD {}.", PROXY_CAMERA_DIRECTORY, cameraFd);
             }
         }
 
-        // Open camera interface if the camera is available.
-        if (cameraFile.exists()) {
-            camera = new RaspiCam();
-            cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, width, height);
-            logger.info("Opened camera device {} with FD {}.", RaspiCam.DEFAULT_CAMERA_DEVICE, cameraFd);
-
-        // Otherwise, use a proxy camera.
-        } else {
-            camera = new ProxyCam();
-            cameraFd = camera.open(PROXY_CAMERA_DIRECTORY, width, height);
-            logger.info("Opened proxy camera in directory {} with FD {}.", PROXY_CAMERA_DIRECTORY, cameraFd);
-        }
+        assert cameraFd != -1;
 
         // Configure byte array for camera frames.
         frameBytes = camera.getFrameBuffer(cameraFd);

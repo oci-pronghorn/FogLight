@@ -9,6 +9,7 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * Image processing stage which accepts an input image and outputs four
@@ -186,6 +187,10 @@ public class ImageDownscaleStage extends PronghornStage {
                         i = 0;
                         for (int j = 0; j < imageFrameRowBytesDownsampled.length; j += 3) {
 
+                            assert imageFrameRowBytesDownsampled[j] <= 255;
+                            assert imageFrameRowBytesDownsampled[j + 1] <= 255;
+                            assert imageFrameRowBytesDownsampled[j + 2] <= 255;
+
                             // Extract RGB channels.
                             imageFrameRowBytesR[i] = (byte) imageFrameRowBytesDownsampled[j];
                             imageFrameRowBytesG[i] = (byte) imageFrameRowBytesDownsampled[j + 1];
@@ -202,6 +207,9 @@ public class ImageDownscaleStage extends PronghornStage {
                             // Progress counter.
                             i++;
                         }
+
+                        // Clear downsample bytes.
+                        Arrays.fill(imageFrameRowBytesDownsampled, 0);
 
                         // Send channels to clients.
                         // TODO: Refactor so that if a try-write fails, the row will be written during the next time slice.

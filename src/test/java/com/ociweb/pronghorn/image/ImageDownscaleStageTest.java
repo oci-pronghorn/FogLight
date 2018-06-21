@@ -8,17 +8,17 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class ImageDownscaleStageTest {
 
-    public static final byte ZERO_BYTE = 0x00;
     public static final int SOURCE_WIDTH = 640;
     public static final int SOURCE_ROW_SIZE = SOURCE_WIDTH * 3;
     public static final int SOURCE_HEIGHT = 480;
@@ -82,19 +82,19 @@ public class ImageDownscaleStageTest {
 
                     // If frame is full, flush.
                     if (state.frameHead >= state.currentFrame.length) {
-                        System.out.println("Wrote " + state.file.getName() + " to disk.");
-                        try {
-                            state.file.createNewFile();
-                        } catch (IOException e) {
-                            Assert.fail(e.getMessage());
-                        }
-
-                        try (FileOutputStream fos = new FileOutputStream(state.file)) {
-                            fos.write(state.currentFrame);
-                            fos.flush();
-                        } catch (IOException e) {
-                            Assert.fail(e.getMessage());
-                        }
+//                        System.out.println("Wrote " + state.file.getName() + " to disk.");
+//                        try {
+//                            state.file.createNewFile();
+//                        } catch (IOException e) {
+//                            Assert.fail(e.getMessage());
+//                        }
+//
+//                        try (FileOutputStream fos = new FileOutputStream(state.file)) {
+//                            fos.write(state.currentFrame);
+//                            fos.flush();
+//                        } catch (IOException e) {
+//                            Assert.fail(e.getMessage());
+//                        }
 
                         state.filesWritten++;
                     }
@@ -141,14 +141,13 @@ public class ImageDownscaleStageTest {
     }
 
     @Test
-    @Ignore
     public void shouldDownscaleImages() {
 
         // Create test scheduler.
         NonThreadScheduler scheduler = new NonThreadScheduler(gm);
         scheduler.startup();
 
-        // Run until all pipes have written a file.
+        // Run until all pipes have filled their frames.
         boolean allWritten = false;
         while (!allWritten) {
 
@@ -174,6 +173,35 @@ public class ImageDownscaleStageTest {
                 }
 
                 allWritten = allWritten && downsamplePipeReaderStates[i].filesWritten > 0;
+            }
+        }
+
+        // Verify each frame is valid.
+        for (int i = 0; i < downsampleOutputPipes.length; i++) {
+
+            // Discover frame file.
+            Path filePath = null;
+            switch (i) {
+                case ImageDownscaleStage.R_OUTPUT_IDX:
+                    filePath = Paths.get("src", "test", "images", "cat1-320-240.r8");
+                    break;
+                case ImageDownscaleStage.G_OUTPUT_IDX:
+                    filePath = Paths.get("src", "test", "images", "cat1-320-240.g8");
+                    break;
+                case ImageDownscaleStage.B_OUTPUT_IDX:
+                    filePath = Paths.get("src", "test", "images", "cat1-320-240.b8");
+                    break;
+                case ImageDownscaleStage.MONO_OUTPUT_IDX:
+                    filePath = Paths.get("src", "test", "images", "cat1-320-240.mono");
+                    break;
+            }
+
+            // Read and compare.
+            try {
+                byte[] fileBytes = Files.readAllBytes(filePath);
+                Assert.assertTrue(Arrays.equals(fileBytes, downsamplePipeReaderStates[i].currentFrame));
+            } catch (IOException e) {
+                Assert.fail(e.getMessage());
             }
         }
     }

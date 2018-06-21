@@ -804,14 +804,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 		
 		//////////////
-		//before creating image producer and replicator check for locatino and training listeners
-		/////////////
-		
-		//if empty then we have nothing to listen to training results
+		//setup location detection from images
+		//////////////
+		//if empty then we have no behaviors listening to training results
 		Pipe<CalibrationStatusSchema>[] calibrationDone =  GraphManager.allPipesOfTypeWithNoProducer(gm2, CalibrationStatusSchema.instance);
-		//if empty then we have nothing reading location data
+		//if empty then we have no behaviors reading location data
 		Pipe<ProbabilitySchema>[] probLocation =  GraphManager.allPipesOfTypeWithNoProducer(gm2, ProbabilitySchema.instance);		
-		//if empty then we have no caller to turn on training.
+		//if empty then we have behavior command channel controlling training on/off mode.
 		Pipe<LocationModeSchema>[] modeSelectionPipe = GraphManager.allPipesOfTypeWithNoConsumer(gm2, LocationModeSchema.instance);
 		////////
 		if (calibrationDone.length>0 || probLocation.length>0 || modeSelectionPipe.length>0) {
@@ -820,23 +819,37 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 				throw new UnsupportedOperationException("Can not support more than 1 behavior/command channel turning on/off learning mode");
 			}
 			
-			Pipe<ImageSchema> imagePipe = null; //create new based on how image listener does it?
+			Pipe<ImageSchema> imagePipe = newImageSchemaPipe();
 			
-			//convert propLocation array as out from replicator
-			//convert calibration done as out from replicator
+			Pipe<CalibrationStatusSchema> rootCalibrationDone;
+			if (calibrationDone.length>1) {
+				rootCalibrationDone = PipeConfig.pipe(calibrationDone[0].config().shrink2x());
+				ReplicatorStage.newInstance(gm2, rootCalibrationDone, calibrationDone);
+			} else {
+				if (calibrationDone.length==1) {				
+					rootCalibrationDone = calibrationDone[0];
+				} else {
+					rootCalibrationDone = null;
+				}
+			}
 			
-			//mode selection pass in as is? what about the others???
-						
+			Pipe<ProbabilitySchema> rootProbLocation;
+			if (probLocation.length>1) {
+				rootProbLocation = PipeConfig.pipe(probLocation[0].config().shrink2x());
+				ReplicatorStage.newInstance(gm2, rootProbLocation, probLocation);
+			} else {
+				if (probLocation.length==1) {				
+					rootProbLocation = probLocation[0];
+				} else {
+					rootProbLocation = null;
+				}
+			}
 			
-//			ImageGraphBuilder.buildLocationDetectionGraph(gm2, loadLocationDataFilePath, saveLocationDataFilePath, imagePipe,
-//														  modeSelectionPipe.length==0 ? null :modeSelectionPipe[0], 
-//					                                      probLocation, 
-//					                                      calibrationDone);
+			ImageGraphBuilder.buildLocationDetectionGraph(gm2, loadLocationDataFilePath, saveLocationDataFilePath, imagePipe,
+														  modeSelectionPipe.length==0 ? null :modeSelectionPipe[0], 
+														  rootProbLocation, 
+					                                      rootCalibrationDone);
 		}
-		
-		
-		
-		
 		
 		
 		///////////////
@@ -889,6 +902,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			Pipe<TrafficReleaseSchema>[] masterGoOut, Pipe<TrafficAckSchema>[] masterAckIn) {
 		new SerialDataWriterStage(gm, runtime, serialOutputPipes, masterGoOut, masterAckIn,
 				this, this.buildSerialClient());
+	}
+	
+
+	public Pipe<ImageSchema> newImageSchemaPipe() {
+		return new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, 
+				// TODO: Specific to Pi implementation. This just needs a rename...
+				PiImageListenerStage.DEFAULT_FRAME_HEIGHT + 1, 
+				PiImageListenerStage.DEFAULT_ROW_SIZE * 3).grow2x());
 	}
 
 	public static int serialIndex(HardwareImpl hardware) {

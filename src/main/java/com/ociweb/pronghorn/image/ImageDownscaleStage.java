@@ -212,18 +212,22 @@ public class ImageDownscaleStage extends PronghornStage {
                                         PipeWriter.writeBytes(outputs[i],
                                                               ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
                                                               imageFrameRowBytesR, 0, imageFrameRowBytesR.length);
+                                        break;
                                     case G_OUTPUT_IDX:
                                         PipeWriter.writeBytes(outputs[i],
                                                               ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
                                                               imageFrameRowBytesG, 0, imageFrameRowBytesG.length);
+                                        break;
                                     case B_OUTPUT_IDX:
                                         PipeWriter.writeBytes(outputs[i],
                                                               ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
                                                               imageFrameRowBytesB, 0, imageFrameRowBytesB.length);
+                                        break;
                                     case MONO_OUTPUT_IDX:
                                         PipeWriter.writeBytes(outputs[i],
                                                               ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
                                                               imageFrameRowBytesMono, 0, imageFrameRowBytesMono.length);
+                                        break;
                                 }
 
                                 PipeWriter.publishWrites(outputs[i]);

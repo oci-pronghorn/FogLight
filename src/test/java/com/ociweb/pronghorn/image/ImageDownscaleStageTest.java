@@ -14,11 +14,11 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class ImageDownscaleStageTest {
 
+    public static final byte ZERO_BYTE = 0x00;
     public static final int SOURCE_WIDTH = 640;
     public static final int SOURCE_ROW_SIZE = SOURCE_WIDTH * 3;
     public static final int SOURCE_HEIGHT = 480;
@@ -80,15 +80,15 @@ public class ImageDownscaleStageTest {
                         // Switch by format.
                         if (pipeEncoding.equals(ImageDownscaleStage.R_OUTPUT_ENCODING)) {
                             state.currentFrame[state.frameHead] = state.currentRow[i];
-                            state.currentFrame[state.frameHead + 1] = Byte.MAX_VALUE;
-                            state.currentFrame[state.frameHead + 2] = Byte.MAX_VALUE;
+                            state.currentFrame[state.frameHead + 1] = ZERO_BYTE;
+                            state.currentFrame[state.frameHead + 2] = ZERO_BYTE;
                         } else if (pipeEncoding.equals(ImageDownscaleStage.G_OUTPUT_ENCODING)) {
-                            state.currentFrame[state.frameHead] = Byte.MAX_VALUE;
+                            state.currentFrame[state.frameHead] = ZERO_BYTE;
                             state.currentFrame[state.frameHead + 1] = state.currentRow[i];
-                            state.currentFrame[state.frameHead + 2] = Byte.MAX_VALUE;
+                            state.currentFrame[state.frameHead + 2] = ZERO_BYTE;
                         } else if (pipeEncoding.equals(ImageDownscaleStage.B_OUTPUT_ENCODING)) {
-                            state.currentFrame[state.frameHead] = Byte.MAX_VALUE;
-                            state.currentFrame[state.frameHead + 1] = Byte.MAX_VALUE;
+                            state.currentFrame[state.frameHead] = ZERO_BYTE;
+                            state.currentFrame[state.frameHead + 1] = ZERO_BYTE;
                             state.currentFrame[state.frameHead + 2] = state.currentRow[i];
                         } else if (pipeEncoding.equals(ImageDownscaleStage.MONO_OUTPUT_ENCODING)) {
                             state.currentFrame[state.frameHead] = state.currentRow[i];

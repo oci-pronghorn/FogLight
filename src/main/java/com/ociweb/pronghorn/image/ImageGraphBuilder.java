@@ -16,10 +16,12 @@ import com.ociweb.pronghorn.stage.route.RawDataJoinerStage;
 import com.ociweb.pronghorn.stage.route.RawDataSplitterStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.test.PipeNoOp;
 
 public class ImageGraphBuilder {
 
-	
+
+
 	public static void buildLocationDetectionGraph(GraphManager gm, 
 			String loadFilePath, String saveFilePath,
 			Pipe<ImageSchema> imagePipe, //input pipe for the raw image data
@@ -68,6 +70,12 @@ public class ImageGraphBuilder {
 		Pipe<CalibrationStatusSchema> calibrationDoneAckB = PipeConfig.pipe(calibrationDone.config());
 		Pipe<CalibrationStatusSchema> calibrationDoneAckM = PipeConfig.pipe(calibrationDone.config());
 		
+		//build an empty selector if one is not provided
+		if (null == modeSelectionPipe) {
+			modeSelectionPipe = LocationModeSchema.instance.newPipe(6,0);
+			PipeNoOp.newInstance(gm, modeSelectionPipe);
+		}
+		
 		PipeConfig<LocationModeSchema> msConfig = modeSelectionPipe.config().grow2x();		
 		Pipe<LocationModeSchema> modeSelectionR = PipeConfig.pipe(msConfig);
 		Pipe<LocationModeSchema> modeSelectionG = PipeConfig.pipe(msConfig);
@@ -91,7 +99,10 @@ public class ImageGraphBuilder {
 		RawDataSplitterStage.newInstance(gm, loadDataRaw,
 				                    loadDataRed, loadDataGreen, loadDataBlue, loadDataMono);
 
+		
 		ReplicatorStage.newInstance(gm, modeSelectionPipe, modeSelectionR, modeSelectionG, modeSelectionB, modeSelectionM);
+				
+		
 		ReplicatorStage.newInstance(gm, calibrationDoneRoot, calibrationDone, calibrationDoneAckR, calibrationDoneAckG, calibrationDoneAckB, calibrationDoneAckM );
 		
 	    
@@ -115,6 +126,7 @@ public class ImageGraphBuilder {
 		FileBlobWriteStage.newInstance(gm, saveDataRaw, saveFilePath);
 
 	}
+
 	
 	
 }

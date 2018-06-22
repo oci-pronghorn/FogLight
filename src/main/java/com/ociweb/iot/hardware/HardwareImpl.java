@@ -2,6 +2,8 @@ package com.ociweb.iot.hardware;
 
 import static com.ociweb.iot.hardware.HardwareConnection.DEFAULT_AVERAGE_WINDOW_MS;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -43,6 +45,9 @@ import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.iot.transducer.ImageListenerTransducer;
 import com.ociweb.iot.transducer.RotaryListenerTransducer;
 import com.ociweb.iot.transducer.SerialListenerTransducer;
+import com.ociweb.pronghorn.image.ImageGraphBuilder;
+import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
+import com.ociweb.pronghorn.image.schema.LocationModeSchema;
 import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
 import com.ociweb.pronghorn.iot.ReadDeviceInputStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -61,7 +66,9 @@ import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
+import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
+import com.ociweb.pronghorn.stage.route.RoundRobinRouteStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 import com.ociweb.pronghorn.util.math.PMath;
@@ -102,6 +109,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	protected final IODevice[] deviceOnPort= new IODevice[Port.values().length];
 
+	
+	private String loadLocationDataFilePath = null;	
+	private String saveLocationDataFilePath = generateFilePath("savedLocation",".dat");
+	
 	/////////////////
 	///Pipes for initial startup declared subscriptions. (Not part of graph)
 	private final int maxStartupSubs = 64;
@@ -577,6 +588,34 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		MsgCommandChannel.publishGo(count, IDX_MSG, gcc);
 	}
 
+	public static String generateFilePath(String prefix, String suffix) {
+		String home = System.getenv().get("HOME");
+		if (null==home) {
+			return tempFilePath(prefix, suffix);
+		} else {
+			try {
+				File createTempFile = File.createTempFile(prefix, suffix, new File(home));
+				String absolutePath = createTempFile.getAbsolutePath();
+				createTempFile.delete();
+				return absolutePath;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+	
+	public static String tempFilePath(String prefix, String suffix) {
+
+		try {
+			File createTempFile = File.createTempFile(prefix, suffix);
+			String absolutePath = createTempFile.getAbsolutePath();
+			createTempFile.delete();
+			return absolutePath;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	public void buildStages(MsgRuntime runtime) {
 
 		IntHashTable subscriptionPipeLookup2 = MsgRuntime.getSubPipeLookup(runtime);
@@ -589,7 +628,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<I2CCommandSchema>[] i2cPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, I2CCommandSchema.instance);
 		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm2, GroveRequestSchema.instance);
 		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, SerialInputSchema.instance);
-		Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, ImageSchema.instance);
+
 		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, NetResponseSchema.instance);
 		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, MessageSubscription.instance);
 
@@ -764,13 +803,63 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			}
 		}
 		
-				///////////////
+		//////////////
+		//setup location detection from images
+		//////////////
+		//if empty then we have no behaviors listening to training results
+		Pipe<CalibrationStatusSchema>[] calibrationDone =  GraphManager.allPipesOfTypeWithNoProducer(gm2, CalibrationStatusSchema.instance);
+		//if empty then we have no behaviors reading location data
+		Pipe<ProbabilitySchema>[] probLocation =  GraphManager.allPipesOfTypeWithNoProducer(gm2, ProbabilitySchema.instance);		
+		//if empty then we have behavior command channel controlling training on/off mode.
+		Pipe<LocationModeSchema>[] modeSelectionPipe = GraphManager.allPipesOfTypeWithNoConsumer(gm2, LocationModeSchema.instance);
+		////////
+		if (calibrationDone.length>0 || probLocation.length>0 || modeSelectionPipe.length>0) {
+			
+			if (modeSelectionPipe.length>1) {
+				throw new UnsupportedOperationException("Can not support more than 1 behavior/command channel turning on/off learning mode");
+			}
+			
+			Pipe<ImageSchema> imagePipe = newImageSchemaPipe();
+			
+			Pipe<CalibrationStatusSchema> rootCalibrationDone;
+			if (calibrationDone.length>1) {
+				rootCalibrationDone = PipeConfig.pipe(calibrationDone[0].config().shrink2x());
+				ReplicatorStage.newInstance(gm2, rootCalibrationDone, calibrationDone);
+			} else {
+				if (calibrationDone.length==1) {				
+					rootCalibrationDone = calibrationDone[0];
+				} else {
+					rootCalibrationDone = null;
+				}
+			}
+			
+			Pipe<ProbabilitySchema> rootProbLocation;
+			if (probLocation.length>1) {
+				rootProbLocation = PipeConfig.pipe(probLocation[0].config().shrink2x());
+				ReplicatorStage.newInstance(gm2, rootProbLocation, probLocation);
+			} else {
+				if (probLocation.length==1) {				
+					rootProbLocation = probLocation[0];
+				} else {
+					rootProbLocation = null;
+				}
+			}
+			
+			ImageGraphBuilder.buildLocationDetectionGraph(gm2, loadLocationDataFilePath, saveLocationDataFilePath, imagePipe,
+														  modeSelectionPipe.length==0 ? null :modeSelectionPipe[0], 
+														  rootProbLocation, 
+					                                      rootCalibrationDone);
+		}
+		
+		
+		///////////////
 		//only build image input if the data is consumed
 		///////////////
-		// TODO: Is this where we determine what kind of platform to listen on (e.g., Edison, Pi)?
+		Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, ImageSchema.instance);//done late to ensure we capture new consumers
 		if (imageInputPipes.length > 1) {
 			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
+			//TODO: rename PiImageListenerStage to LinuxImageCaptureStage or something without the word Listener
 			new PiImageListenerStage(gm, masterImagePipe, imageFrameTriggerRateMillis);
 		} else if (imageInputPipes.length == 1){
 			new PiImageListenerStage(gm, imageInputPipes[0], imageFrameTriggerRateMillis);
@@ -813,6 +902,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			Pipe<TrafficReleaseSchema>[] masterGoOut, Pipe<TrafficAckSchema>[] masterAckIn) {
 		new SerialDataWriterStage(gm, runtime, serialOutputPipes, masterGoOut, masterAckIn,
 				this, this.buildSerialClient());
+	}
+	
+
+	public Pipe<ImageSchema> newImageSchemaPipe() {
+		return new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, 
+				// TODO: Specific to Pi implementation. This just needs a rename...
+				PiImageListenerStage.DEFAULT_FRAME_HEIGHT + 1, 
+				PiImageListenerStage.DEFAULT_ROW_SIZE * 3).grow2x());
 	}
 
 	public static int serialIndex(HardwareImpl hardware) {

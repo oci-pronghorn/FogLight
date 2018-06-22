@@ -5,16 +5,16 @@ import com.ociweb.pronghorn.image.schema.LocationModeSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 
-public class LocationModeSerivce {
+public class LocationModeService {
 
 	private final FogCommandChannel cmd;
 	
-	public LocationModeSerivce(FogCommandChannel fogCommandChannel) {
+	public LocationModeService(FogCommandChannel fogCommandChannel) {
 		this.cmd = fogCommandChannel;
 		cmd.initFeatures |= FogCommandChannel.IMG_LOC_MODE;
 	}
 
-	public LocationModeSerivce(FogCommandChannel fogCommandChannel, int commandCountCapacity, int maxMessageSize) {
+	public LocationModeService(FogCommandChannel fogCommandChannel, int commandCountCapacity, int maxMessageSize) {
 		this.cmd = fogCommandChannel;
 		FogCommandChannel.growCommandCountRoom(cmd, commandCountCapacity);
 		cmd.initFeatures |= FogCommandChannel.IMG_LOC_MODE;

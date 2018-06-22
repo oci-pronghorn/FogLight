@@ -136,13 +136,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     private int IDX_I2C = -1;
     private int IDX_SER = -1;
 
-    private int imageFrameTriggerRateMillis = 33;
+    private int imageFrameTriggerRateMicros = 333;
     private int imageWidth = LinuxImageCaptureStage.DEFAULT_FRAME_WIDTH;
     private int imageHeight = LinuxImageCaptureStage.DEFAULT_FRAME_HEIGHT;
     private Path testImageSource = null;
 
-	public Hardware setImageTriggerRate(int triggerRateMillis) {
-		this.imageFrameTriggerRateMillis = triggerRateMillis;
+	public Hardware setImageTriggerRate(int triggerRateMicros) {
+		this.imageFrameTriggerRateMicros = triggerRateMicros;
 		return this;
 	}
 
@@ -893,15 +893,15 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 			Pipe<ImageSchema> masterImagePipe = PipeConfig.pipe(imageInputPipes[0].config().shrink2x());
 			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
             if (!isTestHardware()) {
-                new LinuxImageCaptureStage(gm, masterImagePipe, imageFrameTriggerRateMillis, imageWidth, imageHeight);
+                new LinuxImageCaptureStage(gm, masterImagePipe, imageFrameTriggerRateMicros, imageWidth, imageHeight);
             } else {
-                new LinuxImageCaptureStage(gm, masterImagePipe, imageFrameTriggerRateMillis, imageWidth, imageHeight, testImageSource);
+                new LinuxImageCaptureStage(gm, masterImagePipe, imageFrameTriggerRateMicros, imageWidth, imageHeight, testImageSource);
             }
 		} else if (imageInputPipes.length == 1){
             if (!isTestHardware()) {
-                new LinuxImageCaptureStage(gm, imageInputPipes[0], imageFrameTriggerRateMillis, imageWidth, imageHeight);
+                new LinuxImageCaptureStage(gm, imageInputPipes[0], imageFrameTriggerRateMicros, imageWidth, imageHeight);
             } else {
-                new LinuxImageCaptureStage(gm, imageInputPipes[0], imageFrameTriggerRateMillis, imageWidth, imageHeight, testImageSource);
+                new LinuxImageCaptureStage(gm, imageInputPipes[0], imageFrameTriggerRateMicros, imageWidth, imageHeight, testImageSource);
             }
 		}
 		///////////////

@@ -37,7 +37,7 @@ public class ImageListenerTest {
 
         @Override
         public void declareConnections(Hardware builder) {
-            builder.setImageTriggerRate(1);
+            builder.setImageTriggerRate(1000);
             builder.setImageSize(BACKPRESSURE_FRAME_WIDTH, BACKPRESSURE_FRAME_HEIGHT);
             builder.setTestImageSource(BACKPRESSURE_FRAME_SOURCE);
         }

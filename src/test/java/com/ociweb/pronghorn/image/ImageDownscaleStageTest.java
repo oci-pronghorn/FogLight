@@ -133,7 +133,7 @@ public class ImageDownscaleStageTest {
         }
 
         // Setup stages.
-        LinuxImageCaptureStage imageListenerStage = new LinuxImageCaptureStage(gm, imageInputPipe, 1, SOURCE_WIDTH, SOURCE_HEIGHT, Paths.get("src", "test", "images"));
+        LinuxImageCaptureStage imageListenerStage = new LinuxImageCaptureStage(gm, imageInputPipe, 1000, SOURCE_WIDTH, SOURCE_HEIGHT, Paths.get("src", "test", "images"));
         ImageDownscaleStage imageDownscaleStage = new ImageDownscaleStage(gm, imageInputPipe,
                                                                           downsampleOutputPipes,
                                                                           DOWNSCALE_RESOLUTION_ONE[0],

@@ -78,19 +78,19 @@ public class LinuxImageCaptureStage extends PronghornStage {
      *
      * @param graphManager Graph manager this stage is a part of.
      * @param output Output pipe which images are published to.
-     * @param triggerRateMilliseconds Interval in milliseconds that this stage will run.
+     * @param triggerRateMicroseconds Interval in microseconds that this stage will run.
      * @param width Width of images captures from the camera.
      * @param height Height of images captured from the camera.
      * @param imageSource Directory or file to read images from using a proxy camera.
      */
-    public LinuxImageCaptureStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds, int width, int height, Path imageSource) {
+    public LinuxImageCaptureStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMicroseconds, int width, int height, Path imageSource) {
         super(graphManager, NONE, output);
 
         // Attach to our output pipe.
         this.output = output;
 
         // Add this listener to the graph.
-        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMilliseconds * 1000000L, this);
+        GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMicroseconds * 1_000L, this);
 
         // Configure height data.
         this.width = width;
@@ -102,6 +102,11 @@ public class LinuxImageCaptureStage extends PronghornStage {
             this.camera = new ProxyCam();
             this.cameraFd = this.camera.open(imageSource.toString(), width, height);
         }
+        
+        if (output.maxVarLen<this.rowSize) {
+        	throw new UnsupportedOperationException("Input pipe must accept blocks as large as "+rowSize+" but it only takes "+output.maxVarLen);
+        }
+        
     }
 
     @Override

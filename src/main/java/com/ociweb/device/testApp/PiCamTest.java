@@ -26,7 +26,7 @@ public class PiCamTest implements FogApp {
 
     @Override
     public void declareConnections(Hardware hardware) {
-        hardware.setImageTriggerRate(1);
+        hardware.setImageTriggerRate(1000);
     }
 
     @Override

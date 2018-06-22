@@ -1,4 +1,4 @@
-package com.ociweb.pronghorn.iot.schema;
+package com.ociweb.pronghorn.image.schema;
 
 import com.ociweb.pronghorn.pipe.*;
 

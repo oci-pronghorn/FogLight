@@ -1,7 +1,7 @@
 package com.ociweb.pronghorn.image;
 
 import com.ociweb.iot.maker.LinuxImageCaptureStage;
-import com.ociweb.pronghorn.iot.schema.ImageSchema;
+import com.ociweb.pronghorn.image.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;

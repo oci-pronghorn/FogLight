@@ -8,6 +8,7 @@ import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
+import com.ociweb.pronghorn.image.schema.LocationModeSchema;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
@@ -30,6 +31,8 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     protected Pipe<I2CCommandSchema> i2cOutput;  
     protected Pipe<GroveRequestSchema> pinOutput;
     protected Pipe<SerialOutputSchema> serialOutput;
+    protected Pipe<LocationModeSchema> locationModeOutput = null;
+    
     
     public static final int ANALOG_BIT = 0x40; //added to connection to track if this is the analog .0vs digital
     protected static final long MS_TO_NS = 1_000_000;
@@ -41,6 +44,8 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     public static final int PIN_WRITER      = 1<<28;
     public static final int SERIAL_WRITER   = 1<<27;
     public static final int BT_WRITER       = 1<<26;
+    public static final int IMG_LOC_MODE   = 1<<25;
+    
 
    	
     protected FogCommandChannel(GraphManager gm, HardwareImpl hardware, 
@@ -52,6 +57,14 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     	   hardware.useI2C();//critical for hardware to know that I2C is really really  in use.
        }
     }
+    
+    public LocationModeSerivce newLocationModeSerivce() {
+    	return new LocationModeSerivce(this);    	
+    }
+    
+    public LocationModeSerivce newLocationModeSerivce(int commandCountCapacity, int maxMessageSize) {
+    	return new LocationModeSerivce(this, commandCountCapacity, maxMessageSize);    	
+    }    
     
     public I2CService newI2CService() {
     	return new I2CService(this);
@@ -187,6 +200,13 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
 				   serialOutput = null;
 			   }
 			   
+			   
+			   
+			   boolean setupLocationMode = (0 != (this.initFeatures & IMG_LOC_MODE));
+			   if (setupLocationMode) {
+				   locationModeOutput = PipeConfig.pipe(pcm.getConfig(LocationModeSchema.class));
+			   }			   
+			   
 			   boolean setupI2C = (I2C_WRITER & this.initFeatures) != 0;
 
 			   if (setupI2C) { 
@@ -222,18 +242,21 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
 			   if (null != i2cOutput) {
 				   optionalPipeCount++;
 			   }
+			   if (null != locationModeOutput) {
+				   optionalPipeCount++;
+			   }
 			   optionalOutputPipes = new Pipe<?>[optionalPipeCount];
 			   
-			   
+			   if (null != locationModeOutput) {
+				   optionalOutputPipes[(int) (byte)--optionalPipeCount] = locationModeOutput;
+			   }			   
 			   if (null!=serialOutput) {
-				   int serialPipeIdx = (byte)--optionalPipeCount;
-				   optionalOutputPipes[serialPipeIdx] = serialOutput;
+				   optionalOutputPipes[(int) (byte)--optionalPipeCount] = serialOutput;
 			   }
 			   if (null!=i2cOutput) {
-				   int i2cPipeIdx = (byte)(--optionalPipeCount);
-				   optionalOutputPipes[i2cPipeIdx] = i2cOutput;
+				   optionalOutputPipes[(int) (byte)(--optionalPipeCount)] = i2cOutput;
 			   }
-			   if (null!=pinOutput) {
+			   if (null!=pinOutput) {//always last??
 				   optionalOutputPipes[--optionalPipeCount] = pinOutput;
 			   }
 			   

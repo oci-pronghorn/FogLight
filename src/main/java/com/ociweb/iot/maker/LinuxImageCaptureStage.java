@@ -16,18 +16,19 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Time-based image listener backing for Raspberry Pi hardware.
+ * Time-based image listener backing for Linux backed by V4L2.
  *
  * This stage passes image frames line-by-line to its consumers.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
  */
-public class PiImageListenerStage extends PronghornStage {
+public class LinuxImageCaptureStage extends PronghornStage {
 
-    private static final Logger logger = LoggerFactory.getLogger(PiImageListenerStage.class);
+    private static final Logger logger = LoggerFactory.getLogger(LinuxImageCaptureStage.class);
 
     // Frame buffer state constants.
     private static final int FRAME_EMPTY = -1;
@@ -59,11 +60,30 @@ public class PiImageListenerStage extends PronghornStage {
     // Output encoding.
     public static final byte[] OUTPUT_ENCODING = "RGB24".getBytes(StandardCharsets.US_ASCII);
 
-    public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
-        this(graphManager, output, triggerRateMilliseconds, DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT, null, -1);
+    /**
+     * Creates a new image listener stage.
+     *
+     * @param graphManager Graph manager this stage is a part of.
+     * @param output Output pipe which images are published to.
+     * @param triggerRateMilliseconds Interval in milliseconds that this stage will run.
+     * @param width Width of images captures from the camera.
+     * @param height Height of images captured from the camera.
+     */
+    public LinuxImageCaptureStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds, int width, int height) {
+        this(graphManager, output, triggerRateMilliseconds, width, height, null);
     }
 
-    public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds, int width, int height, Camera camera, int cameraFd) {
+    /**
+     * Creates a new image listener stage in test mode that uses a proxy camera.
+     *
+     * @param graphManager Graph manager this stage is a part of.
+     * @param output Output pipe which images are published to.
+     * @param triggerRateMilliseconds Interval in milliseconds that this stage will run.
+     * @param width Width of images captures from the camera.
+     * @param height Height of images captured from the camera.
+     * @param imageSource Directory or file to read images from using a proxy camera.
+     */
+    public LinuxImageCaptureStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds, int width, int height, Path imageSource) {
         super(graphManager, NONE, output);
 
         // Attach to our output pipe.
@@ -77,9 +97,11 @@ public class PiImageListenerStage extends PronghornStage {
         this.height = height;
         this.rowSize = width * 3;
 
-        // Configure camera data.
-        this.camera = camera;
-        this.cameraFd = cameraFd;
+        // Configure test camera data if provided.
+        if (imageSource != null) {
+            this.camera = new ProxyCam();
+            this.cameraFd = this.camera.open(imageSource.toString(), width, height);
+        }
     }
 
     @Override

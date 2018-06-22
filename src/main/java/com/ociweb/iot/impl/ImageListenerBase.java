@@ -20,13 +20,19 @@ public interface ImageListenerBase {
      * @param height Height in pixels of the image frame.
      * @param timestamp Timestamp of the image frame.
      * @param frameBytesCount The number of bytes inside a complete image frame.
+     *
+     * @return True if the frame start message was processed. If false is returned,
+     *         the frame start message will be sent again at a later point.
      */
-    void onFrameStart(int width, int height, long timestamp, int frameBytesCount);
+    boolean onFrameStart(int width, int height, long timestamp, int frameBytesCount);
 
     /**
      * Invoked when a new image frame row is received.
      *
      * @param frameRowBytes A byte array containing a row of image data.
+     *
+     * @return True if the frame row message was processed. If false is returned,
+     *         the frame row message will be sent again at a later point.
      */
-    void onFrameRow(byte[] frameRowBytes);
+    boolean onFrameRow(byte[] frameRowBytes);
 }

@@ -1,7 +1,6 @@
 package com.ociweb.pronghorn.image;
 
-import com.ociweb.iot.camera.ProxyCam;
-import com.ociweb.iot.maker.PiImageListenerStage;
+import com.ociweb.iot.maker.LinuxImageCaptureStage;
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
@@ -133,12 +132,8 @@ public class ImageDownscaleStageTest {
             downsamplePipeReaderStates[i] = new DownsamplePipeReaderState();
         }
 
-        // Prepare proxy camera.
-        ProxyCam proxyCam = new ProxyCam();
-        int proxyCamFd = proxyCam.open("./src/test/images", SOURCE_WIDTH, SOURCE_HEIGHT);
-
         // Setup stages.
-        PiImageListenerStage imageListenerStage = new PiImageListenerStage(gm, imageInputPipe, 1, SOURCE_WIDTH, SOURCE_HEIGHT, proxyCam, proxyCamFd);
+        LinuxImageCaptureStage imageListenerStage = new LinuxImageCaptureStage(gm, imageInputPipe, 1, SOURCE_WIDTH, SOURCE_HEIGHT, Paths.get("src", "test", "images"));
         ImageDownscaleStage imageDownscaleStage = new ImageDownscaleStage(gm, imageInputPipe,
                                                                           downsampleOutputPipes,
                                                                           DOWNSCALE_RESOLUTION_ONE[0],

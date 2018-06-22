@@ -233,7 +233,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	public ListenerFilterIoT addImageListener(ImageListener listener) {
 		switch (builder.getPlatformType()) {
-			case GROVE_PI:
+			case GROVE_PI: case TEST:
 				return registerListener(listener);
 			default:
 				throw new UnsupportedOperationException("Image listeners are not supported for [" +

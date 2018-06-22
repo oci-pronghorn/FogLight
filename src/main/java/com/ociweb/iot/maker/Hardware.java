@@ -5,6 +5,8 @@ import com.ociweb.iot.hardware.ADIODevice;
 import com.ociweb.iot.hardware.I2CIODevice;
 import com.ociweb.iot.hardware.IODevice;
 
+import java.nio.file.Path;
+
 /**
  * Base interface for an IoT device's hardware.
  * <p>
@@ -22,9 +24,30 @@ public interface Hardware extends Builder {
      *
      * @param triggerRateMillis Number of milliseconds between image capture events.
      *
-     * @throws RuntimeException if the trigger rate is less than 1,250.
+     * @return A reference to this hardware instance.
      */
-    public void setImageTriggerRate(int triggerRateMillis) throws RuntimeException;
+    Hardware setImageTriggerRate(int triggerRateMillis);
+
+    /**
+     * Sets the size of images that are taken on this hardware.
+     *
+     * @param width Width in pixels of the images.
+     * @param height Height in pixels of the images.
+     *
+     * @return A reference to this hardware instance.
+     */
+    Hardware setImageSize(int width, int height);
+
+    /**
+     * Sets the directory to load images from during testing.
+     *
+     * @param path A {@link Path} to load images from during testing.
+     *
+     * @return A reference to this hardware instance.
+     *
+     * @throws UnsupportedOperationException If {@link #isTestHardware()} is false.
+     */
+    Hardware setTestImageSource(Path path) throws UnsupportedOperationException;
 
     /**
      * Connects a new {@link IODevice} to this hardware on a given {@link Port}.

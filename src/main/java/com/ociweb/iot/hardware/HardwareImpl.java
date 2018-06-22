@@ -152,6 +152,12 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
         return this;
     }
 
+    @Override
+    public Hardware setLocationDataFilePath(String path) {
+    	this.loadLocationDataFilePath = path;
+    	return this;
+    }
+    
     public Hardware setTestImageSource(Path path) throws UnsupportedOperationException {
 
 	    if (!isTestHardware()) {

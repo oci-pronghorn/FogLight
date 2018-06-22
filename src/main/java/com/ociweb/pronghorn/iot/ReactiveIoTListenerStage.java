@@ -38,6 +38,7 @@ import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.util.Appendables;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
 public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl> implements ListenerFilterIoT {
@@ -195,21 +196,52 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 		while (PipeReader.peekMsg(input, ProbabilitySchema.MSG_SELECTION_1)) {
 			
 			int buckets = PipeReader.peekInt(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_TOTALBUCKETS_13);
+			assert(buckets>=1) : "Why was this called without any data?";
 			long totalSum = PipeReader.peekInt(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_TOTALSUM_12);
 			ChannelReader orderedStream = PipeReader.peekInputStream(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_ORDEREDSELECTIONS_14);
 	
-			//TODO:
-//			orderedStream.readPackedInt()
-//			orderedStream.readPackedInt()
+			//we are doing the lazy thing and just picking the first one... we need a smarter approach
+			long oddsOfRightLocation = orderedStream.readPackedLong();
+			int location = (int) orderedStream.readPackedLong();			
 			
+			if (target.location(location, oddsOfRightLocation, totalSum)) {
+				//was consumed, so actually consume the fragment
+				PipeReader.tryReadFragment(input);
+				
+				///
+				boolean debug = true;
+				
+				if (debug) {
 			
-//			if (target.location(location, oddsOfRightLocation, totalSum)) {
-//				//was consumed, so actually consume the fragment
-//				PipeReader.tryReadFragment(input);
-//				PipeReader.releaseReadLock(input);
-//			} else {
-//				return;//consumer did not take message so we need leave and try again later.				
-//			}	
+					//show all the results..
+					System.out.print("Detected Location data ");
+					Appendables.appendValue(System.out, "Buckets: ", buckets);
+					Appendables.appendValue(System.out, "TotalSum:: ", totalSum);
+					System.out.println();
+					
+					ChannelReader reader = PipeReader.inputStream(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_ORDEREDSELECTIONS_14);
+										
+					
+					int x = buckets;
+					while (--x>=0) {
+						
+						long pct = ((100000L*orderedStream.readPackedLong())/totalSum);						
+						int loc = (int) orderedStream.readPackedLong();
+						
+						Appendables.appendValue(System.out, "location: ", loc);
+						System.out.append("pct: ");
+						Appendables.appendDecimalValue(System.out, pct, (byte)-3);
+						System.out.println();						
+						
+					}
+					
+				}
+				
+				
+				PipeReader.releaseReadLock(input);
+			} else {
+				return;//consumer did not take message so we need leave and try again later.				
+			}	
 		}
 		if (PipeReader.peekMsg(input, -1)) {
 			//if shutdown message we just ignore it

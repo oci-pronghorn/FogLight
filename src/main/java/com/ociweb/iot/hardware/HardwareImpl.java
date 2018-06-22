@@ -4,9 +4,11 @@ import static com.ociweb.iot.hardware.HardwareConnection.DEFAULT_AVERAGE_WINDOW_
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.ociweb.iot.maker.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +36,7 @@ import com.ociweb.iot.impl.I2CListenerBase;
 import com.ociweb.iot.impl.ImageListenerBase;
 import com.ociweb.iot.impl.RotaryListenerBase;
 import com.ociweb.iot.impl.SerialListenerBase;
-import com.ociweb.iot.maker.Baud;
-import com.ociweb.iot.maker.FogRuntime;
-import com.ociweb.iot.maker.Hardware;
-import com.ociweb.iot.maker.PiImageListenerStage;
-import com.ociweb.iot.maker.Port;
+import com.ociweb.iot.maker.LinuxImageCaptureStage;
 import com.ociweb.iot.transducer.AnalogListenerTransducer;
 import com.ociweb.iot.transducer.DigitalListenerTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
@@ -68,7 +66,6 @@ import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
 import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
-import com.ociweb.pronghorn.stage.route.RoundRobinRouteStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 import com.ociweb.pronghorn.util.math.PMath;
@@ -134,17 +131,32 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
     private int IDX_PIN = -1;
     private int IDX_I2C = -1;
     private int IDX_SER = -1;
-	
+
     private int imageFrameTriggerRateMillis = 33;
+    private int imageWidth = LinuxImageCaptureStage.DEFAULT_FRAME_WIDTH;
+    private int imageHeight = LinuxImageCaptureStage.DEFAULT_FRAME_HEIGHT;
+    private Path testImageSource = null;
 
-	public void setImageTriggerRate(int triggerRateMillis) {
-		// TODO: No need for a minimum now? Test!
-//		if (triggerRateMillis < 1250) {
-//			throw new RuntimeException("Image listeners cannot be used with trigger rates of less than 1250 MS.");
-//		}
-
+	public Hardware setImageTriggerRate(int triggerRateMillis) {
 		this.imageFrameTriggerRateMillis = triggerRateMillis;
+		return this;
 	}
+
+    public Hardware setImageSize(int width, int height) {
+	    this.imageWidth = width;
+        this.imageHeight = height;
+        return this;
+    }
+
+    public Hardware setTestImageSource(Path path) throws UnsupportedOperationException {
+
+	    if (!isTestHardware()) {
+	        throw new UnsupportedOperationException("Test image data is only allowed on test hardware.");
+        }
+
+        this.testImageSource = path;
+        return this;
+    }
 
 	public IODevice getConnectedDevice(Port p) {
     	return deviceOnPort[p.ordinal()];
@@ -859,10 +871,17 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		if (imageInputPipes.length > 1) {
 			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
 			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
-			//TODO: rename PiImageListenerStage to LinuxImageCaptureStage or something without the word Listener
-			new PiImageListenerStage(gm, masterImagePipe, imageFrameTriggerRateMillis);
+            if (!isTestHardware()) {
+                new LinuxImageCaptureStage(gm, masterImagePipe, imageFrameTriggerRateMillis, imageWidth, imageHeight);
+            } else {
+                new LinuxImageCaptureStage(gm, masterImagePipe, imageFrameTriggerRateMillis, imageWidth, imageHeight, testImageSource);
+            }
 		} else if (imageInputPipes.length == 1){
-			new PiImageListenerStage(gm, imageInputPipes[0], imageFrameTriggerRateMillis);
+            if (!isTestHardware()) {
+                new LinuxImageCaptureStage(gm, imageInputPipes[0], imageFrameTriggerRateMillis, imageWidth, imageHeight);
+            } else {
+                new LinuxImageCaptureStage(gm, imageInputPipes[0], imageFrameTriggerRateMillis, imageWidth, imageHeight, testImageSource);
+            }
 		}
 		///////////////
 		//only build direct pin output when we detected its use
@@ -906,10 +925,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	
 
 	public Pipe<ImageSchema> newImageSchemaPipe() {
-		return new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance, 
-				// TODO: Specific to Pi implementation. This just needs a rename...
-				PiImageListenerStage.DEFAULT_FRAME_HEIGHT + 1, 
-				PiImageListenerStage.DEFAULT_ROW_SIZE * 3).grow2x());
+		return new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance,
+                                                                 LinuxImageCaptureStage.DEFAULT_FRAME_HEIGHT + 1,
+                                                                 LinuxImageCaptureStage.DEFAULT_ROW_SIZE * 3).grow2x());
 	}
 
 	public static int serialIndex(HardwareImpl hardware) {

@@ -36,7 +36,7 @@ public class PiCamTest implements FogApp {
             File workingFile = null;
 
             @Override
-            public void onFrameStart(int width, int height, long timestamp, int frameBytesCount) {
+            public boolean onFrameStart(int width, int height, long timestamp, int frameBytesCount) {
 
                 // Prepare file.
                 workingFile = new File("image-" + timestamp + ".raw");
@@ -49,10 +49,12 @@ public class PiCamTest implements FogApp {
                 }
 
                 frameBytesHead = 0;
+
+                return true;
             }
 
             @Override
-            public void onFrameRow(byte[] frameRowBytes) {
+            public boolean onFrameRow(byte[] frameRowBytes) {
 
                 // Copy bytes.
                 System.arraycopy(frameRowBytes, 0, frameBytes, frameBytesHead, frameRowBytes.length);
@@ -81,6 +83,8 @@ public class PiCamTest implements FogApp {
                         e.printStackTrace();
                     }
                 }
+
+                return true;
             }
         });
     }

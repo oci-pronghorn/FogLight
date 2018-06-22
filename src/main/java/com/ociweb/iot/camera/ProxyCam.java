@@ -11,7 +11,7 @@ import java.util.Map;
  * Proxy implementation of {@link Camera} that loads 1080p RGB24
  * raw images from the filesystem.
  *
- * In this implementation, the "device" is a path to a folder
+ * In this implementation, the "device" is a path to a folder or file
  * containing images on the filesystem.
  *
  * @author Brandon Sanders [brandon@alicorn.io]
@@ -37,18 +37,30 @@ public class ProxyCam implements Camera {
         camerasToNextFrameIndices.put(cameraFd, 0);
 
         // Discover files.
-        File framesDirectory = Paths.get(device).toFile();
-        assert framesDirectory.isDirectory();
-        File[] directoryFiles = framesDirectory.listFiles();
-        RandomAccessFile[] files = new RandomAccessFile[directoryFiles.length];
-        for (int i = 0; i < files.length; i++) {
+        File deviceFile = Paths.get(device).toFile();
+
+        // If a directory, pre-load all files.
+        if (deviceFile.isDirectory()) {
+            File[] directoryFiles = deviceFile.listFiles();
+            RandomAccessFile[] files = new RandomAccessFile[directoryFiles.length];
+            for (int i = 0; i < files.length; i++) {
+                try {
+                    files[i] = new RandomAccessFile(directoryFiles[i], "rw");
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            camerasToFrames.put(cameraFd, files);
+
+        // If a file, load just the file.
+        } else {
             try {
-                files[i] = new RandomAccessFile(directoryFiles[i], "rw");
-            }  catch (FileNotFoundException e) {
+                camerasToFrames.put(cameraFd, new RandomAccessFile[]{new RandomAccessFile(deviceFile, "rw")});
+            } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
-        camerasToFrames.put(cameraFd, files);
+
         assert camerasToFrames.get(cameraFd).length >= 1;
 
         return cameraFd;

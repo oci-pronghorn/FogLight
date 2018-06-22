@@ -73,9 +73,22 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
     private Number stageRate;
     
     private DataInputBlobReader serialStremReader; //must be held as we accumulate serial data.
-    private byte[] imageFrameRowBytes;
-    
-   
+
+	// Image data.
+	private enum ImageDataState {
+		EMPTY,
+		FRAME_START_BUFFERED,
+		FRAME_ROW_BUFFERED
+	}
+	private class ImageData {
+		ImageDataState state = ImageDataState.EMPTY;
+		int width;
+		int height;
+		long timestamp;
+		int frameBytesCount;
+		byte[] currentRowBytes;
+	}
+	private final ImageData workingImageData = new ImageData();
     
     public static void initOperators(ReactiveOperators operators) {
     	
@@ -343,36 +356,75 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 	}
 
 	protected void consumeImageMessage(ImageListenerBase listener, Pipe<ImageSchema> inputPipe) {
-		while (PipeReader.tryReadFragment(inputPipe)) {
+
+    	// TODO: There may be some code duplication here that could be simplified after testing.
+
+    	// If the last invocation of this method exited due to backpressure
+		// (state is not empty), try to relieve the backpressure before continuing.
+		if (workingImageData.state != ImageDataState.EMPTY) {
+			switch (workingImageData.state) {
+				case FRAME_START_BUFFERED:
+					if (listener.onFrameStart(workingImageData.width, workingImageData.height, workingImageData.timestamp, workingImageData.frameBytesCount)) {
+						workingImageData.state = ImageDataState.EMPTY;
+					}
+
+					break;
+
+				case FRAME_ROW_BUFFERED:
+					if (listener.onFrameRow(workingImageData.currentRowBytes)) {
+						workingImageData.state = ImageDataState.EMPTY;
+					}
+
+					break;
+
+				// If the frame is somehow empty, exit.
+				case EMPTY: default: break;
+			}
+		}
+
+    	// Perform normal pipe reads while there is no backpressure.
+		while (workingImageData.state == ImageDataState.EMPTY && PipeReader.tryReadFragment(inputPipe)) {
 			int msgIdx = PipeReader.getMsgIdx(inputPipe);
 			switch(msgIdx) {
 				case ImageSchema.MSG_FRAMESTART_1:
 
-					// Extract message start data.
-					int width = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101);
-					int height = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
-					long timestamp = PipeReader.readLong(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301);
-					int frameBytesCount = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401);
+					assert workingImageData.state == ImageDataState.EMPTY;
 
-					// Send to listener.
-					listener.onFrameStart(width, height, timestamp, frameBytesCount);
+					// Extract message start data.
+					workingImageData.width = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101);
+					workingImageData.height = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
+					workingImageData.timestamp = PipeReader.readLong(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301);
+					workingImageData.frameBytesCount = PipeReader.readInt(inputPipe, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401);
+					workingImageData.state = ImageDataState.FRAME_START_BUFFERED;
+
+					// Send to listener. If the listener returns false, our state will be buffered.
+					if (listener.onFrameStart(workingImageData.width, workingImageData.height, workingImageData.timestamp, workingImageData.frameBytesCount)) {
+						workingImageData.state = ImageDataState.EMPTY;
+					}
+
 					break;
 
 				case ImageSchema.MSG_FRAMECHUNK_2:
+
+					assert workingImageData.state == ImageDataState.EMPTY;
 
 					// Calculate row length.
 					int rowLength = PipeReader.readBytesLength(inputPipe, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102);
 
 					// Prepare array if not already ready.
-					if (imageFrameRowBytes == null || imageFrameRowBytes.length != rowLength) {
-						imageFrameRowBytes = new byte[rowLength];
+					if (workingImageData.currentRowBytes == null || workingImageData.currentRowBytes.length != rowLength) {
+						workingImageData.currentRowBytes = new byte[rowLength];
 					}
 
 					// Read bytes into array.
-					PipeReader.readBytes(inputPipe, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, imageFrameRowBytes, 0);
+					PipeReader.readBytes(inputPipe, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, workingImageData.currentRowBytes, 0);
+					workingImageData.state = ImageDataState.FRAME_ROW_BUFFERED;
 
-					// Send to listener.
-					listener.onFrameRow(imageFrameRowBytes);
+					// Send to listener. If the listener returns false, our state will be buffered.
+					if (listener.onFrameRow(workingImageData.currentRowBytes)) {
+						workingImageData.state = ImageDataState.EMPTY;
+					}
+
 					break;
 
 				case -1:

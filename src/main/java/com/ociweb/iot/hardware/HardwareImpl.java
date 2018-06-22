@@ -68,6 +68,7 @@ import com.ociweb.pronghorn.network.schema.NetResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.util.hash.IntHashTable;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -890,8 +891,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		///////////////
 		Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, ImageSchema.instance);//done late to ensure we capture new consumers
 		if (imageInputPipes.length > 1) {
+			
 			Pipe<ImageSchema> masterImagePipe = PipeConfig.pipe(imageInputPipes[0].config().shrink2x());
-			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
+						
+			ReplicatorStage.newInstance(gm, masterImagePipe, imageInputPipes);
             if (!isTestHardware()) {
                 new LinuxImageCaptureStage(gm, masterImagePipe, imageFrameTriggerRateMicros, imageWidth, imageHeight);
             } else {

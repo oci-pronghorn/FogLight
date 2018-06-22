@@ -100,6 +100,9 @@ public class MapImageStage extends PronghornStage {
 		this.output = output;
 		this.statusOut = statusOut;
 		this.ack = ack;
+		
+		GraphManager.addNota(graphManager, GraphManager.DOT_RANK_NAME, "ModuleStage", this);
+		
 	}
 
 	

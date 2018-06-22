@@ -195,7 +195,6 @@ public class LinuxImageCaptureStage extends PronghornStage {
             frameBytes.position(frameBytesHead);
             PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, rowSize);
 
-            // TODO: Check for wrap-around?
             PipeWriter.publishWrites(output);
 
             // Progress head.

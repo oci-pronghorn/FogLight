@@ -4,6 +4,7 @@
     <template name="RotationRequest" id="1">
         <uInt64 name="Numerator" id="101"/>
         <uInt64 name="Denominator" id="201"/>
+        <uInt64 name="Timestamp" id="301"/>
     </template>
 
 </templates>

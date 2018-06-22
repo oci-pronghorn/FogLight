@@ -31,16 +31,20 @@ import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
 import com.ociweb.iot.hardware.impl.edison.EdisonConstants;
 import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.impl.CalibrationListenerBase;
 import com.ociweb.iot.impl.DigitalListenerBase;
 import com.ociweb.iot.impl.I2CListenerBase;
 import com.ociweb.iot.impl.ImageListenerBase;
+import com.ociweb.iot.impl.LocationListenerBase;
 import com.ociweb.iot.impl.RotaryListenerBase;
 import com.ociweb.iot.impl.SerialListenerBase;
 import com.ociweb.iot.maker.LinuxImageCaptureStage;
 import com.ociweb.iot.transducer.AnalogListenerTransducer;
+import com.ociweb.iot.transducer.CalibrationListenerTransducer;
 import com.ociweb.iot.transducer.DigitalListenerTransducer;
 import com.ociweb.iot.transducer.I2CListenerTransducer;
 import com.ociweb.iot.transducer.ImageListenerTransducer;
+import com.ociweb.iot.transducer.LocationListenerTransducer;
 import com.ociweb.iot.transducer.RotaryListenerTransducer;
 import com.ociweb.iot.transducer.SerialListenerTransducer;
 import com.ociweb.pronghorn.image.ImageGraphBuilder;
@@ -445,6 +449,17 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return listener instanceof ImageListenerBase
 				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, ImageListenerTransducer.class);
 	}
+	
+	public boolean isListeningToLocationViaCamera(Object listener) {
+		return listener instanceof LocationListenerBase
+				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, LocationListenerTransducer.class);
+	}
+	
+	public boolean isListeningToTrainingViaCamera(Object listener) {
+		return listener instanceof CalibrationListenerBase
+				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, CalibrationListenerTransducer.class);
+	}
+		
 	public boolean isListeningToI2C(Object listener) {
 		return listener instanceof I2CListenerBase
 				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, I2CListenerTransducer.class);
@@ -928,6 +943,14 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance,
                                                                  LinuxImageCaptureStage.DEFAULT_FRAME_HEIGHT + 1,
                                                                  LinuxImageCaptureStage.DEFAULT_ROW_SIZE * 3).grow2x());
+	}
+
+	public Pipe<ProbabilitySchema> newLocationSchemaPipe() {
+		return ProbabilitySchema.instance.newPipe(4, 1<<12);
+	}
+
+	public Pipe<CalibrationStatusSchema> newCalibrationSchemaPipe() {
+		return CalibrationStatusSchema.instance.newPipe(4, 0);
 	}
 
 	public static int serialIndex(HardwareImpl hardware) {

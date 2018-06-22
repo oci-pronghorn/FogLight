@@ -312,6 +312,15 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		if (this.builder.isListeningToCamera(listener)) {
 			pipesCount++;
 		}
+		
+		if (this.builder.isListeningToLocationViaCamera(listener)) {
+			pipesCount++;
+		}
+		
+		if (this.builder.isListeningToTrainingViaCamera(listener)) {
+			pipesCount++;
+		}
+
 
 		pipesCount = addGreenPipesCount(listener, pipesCount);
 
@@ -330,7 +339,16 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		if (this.builder.isListeningToCamera(listener)) {
 			inputPipes[--pipesCount] = ((HardwareImpl) builder).newImageSchemaPipe();
 		}
+		
+		if (this.builder.isListeningToLocationViaCamera(listener)) {
+			inputPipes[--pipesCount] = ((HardwareImpl) builder).newLocationSchemaPipe();
+		}
 
+		if (this.builder.isListeningToTrainingViaCamera(listener)) {
+			inputPipes[--pipesCount] = ((HardwareImpl) builder).newCalibrationSchemaPipe();
+		}		
+
+		
 		final int httpClientPipeId = netResponsePipeIdx; //must be grabbed before populateGreenPipes
 		
 		populateGreenPipes(listener, pipesCount, inputPipes);

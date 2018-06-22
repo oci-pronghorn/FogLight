@@ -2,7 +2,7 @@ package com.ociweb.pronghorn.image;
 
 import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
 import com.ociweb.pronghorn.image.schema.LocationModeSchema;
-import com.ociweb.pronghorn.iot.schema.ImageSchema;
+import com.ociweb.pronghorn.image.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;

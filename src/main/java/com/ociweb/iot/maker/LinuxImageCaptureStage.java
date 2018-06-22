@@ -7,7 +7,7 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.pronghorn.iot.schema.ImageSchema;
+import com.ociweb.pronghorn.image.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;

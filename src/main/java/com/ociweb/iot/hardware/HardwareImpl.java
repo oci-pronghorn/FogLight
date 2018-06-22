@@ -890,7 +890,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		///////////////
 		Pipe<ImageSchema>[] imageInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm2, ImageSchema.instance);//done late to ensure we capture new consumers
 		if (imageInputPipes.length > 1) {
-			Pipe<ImageSchema> masterImagePipe = ImageSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+			Pipe<ImageSchema> masterImagePipe = PipeConfig.pipe(imageInputPipes[0].config().shrink2x());
 			new ReplicatorStage<ImageSchema>(gm, masterImagePipe, imageInputPipes);
             if (!isTestHardware()) {
                 new LinuxImageCaptureStage(gm, masterImagePipe, imageFrameTriggerRateMillis, imageWidth, imageHeight);

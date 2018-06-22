@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
 import com.ociweb.pronghorn.image.schema.LocationModeSchema;
-import com.ociweb.pronghorn.iot.schema.ImageSchema;
+import com.ociweb.pronghorn.image.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.pipe.ChannelWriter;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;

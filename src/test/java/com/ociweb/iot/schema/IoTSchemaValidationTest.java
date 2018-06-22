@@ -2,6 +2,8 @@ package com.ociweb.iot.schema;
 
 import static org.junit.Assert.assertTrue;
 
+import com.ociweb.pronghorn.image.schema.ImageRotationSchema;
+import com.ociweb.pronghorn.image.schema.ImageSchema;
 import com.ociweb.pronghorn.iot.schema.*;
 import org.junit.Test;
 
@@ -96,5 +98,17 @@ public class IoTSchemaValidationTest {
     	else {
         assertTrue(FROMValidation.checkSchema("/ImageSchema.xml", ImageSchema.class));
     	}
-    }	
+    }
+
+	@Test
+	public void imageRotationSchemaFROMTest() {
+
+		if ("arm".equals(System.getProperty("os.arch"))) {
+			assertTrue(true);
+		}
+
+		else {
+			assertTrue(FROMValidation.checkSchema("/ImageRotationSchema.xml", ImageRotationSchema.class));
+		}
+	}
 }

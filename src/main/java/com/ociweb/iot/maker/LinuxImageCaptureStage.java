@@ -7,7 +7,7 @@ import com.ociweb.pronghorn.pipe.PipeWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ociweb.pronghorn.iot.schema.ImageSchema;
+import com.ociweb.pronghorn.image.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
@@ -157,51 +157,48 @@ public class LinuxImageCaptureStage extends PronghornStage {
     @Override
     public void run() {
 
-        // Only execute while we have room to write our output.
-        if (PipeWriter.hasRoomForWrite(output)) {
+        // Capture a frame if we have no bytes left to transmit.
+        if (frameBytesHead == FRAME_EMPTY) {
 
-            // Capture a frame if we have no bytes left to transmit.
-            if (frameBytesHead == FRAME_EMPTY) {
+            // Get the timestamp of the image.
+            frameBytesTimestamp = camera.readFrame(cameraFd);
 
-                // Get the timestamp of the image.
-                frameBytesTimestamp = camera.readFrame(cameraFd);
-
-                // If the timestamp was not -1 (valid), we now have a frame buffered.
-                if (frameBytesTimestamp != -1) {
-                    frameBytesHead = FRAME_BUFFERED;
-                }
+            // If the timestamp was not -1 (valid), we now have a frame buffered.
+            if (frameBytesTimestamp != -1) {
+                frameBytesHead = FRAME_BUFFERED;
             }
+        }
 
-            // Publish a frame start if we have room to transmit.
-            if (frameBytesHead == FRAME_BUFFERED && PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, width);
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, height);
-                PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, frameBytesTimestamp);
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.capacity());
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 24);
-                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING);
-                PipeWriter.publishWrites(output);
-                frameBytesHead = 0;
-            }
+        // Publish a frame start if we have bytes to transmit and room to transmit.
+        if (frameBytesHead == FRAME_BUFFERED &&
+            PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
+            PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, width);
+            PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, height);
+            PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, frameBytesTimestamp);
+            PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.capacity());
+            PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 24);
+            PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING);
+            PipeWriter.publishWrites(output);
+            frameBytesHead = 0;
+        }
 
-            // Write rows while there are bytes to write and room for those bytes.
-            while (frameBytesHead >= 0 &&
-                    PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
+        // Write rows while there are bytes to write and room for those bytes.
+        while (frameBytesHead >= 0 &&
+               PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
 
-                // Write bytes.
-                frameBytes.position(frameBytesHead);
-                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, rowSize);
+            // Write bytes.
+            frameBytes.position(frameBytesHead);
+            PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, rowSize);
 
-                // TODO: Check for wrap-around?
-                PipeWriter.publishWrites(output);
+            // TODO: Check for wrap-around?
+            PipeWriter.publishWrites(output);
 
-                // Progress head.
-                frameBytesHead += rowSize;
+            // Progress head.
+            frameBytesHead += rowSize;
 
-                // If the head exceeds the size of the frame bytes, we're done writing.
-                if (frameBytesHead >= frameBytes.capacity()) {
-                    frameBytesHead = FRAME_EMPTY;
-                }
+            // If the head exceeds the size of the frame bytes, we're done writing.
+            if (frameBytesHead >= frameBytes.capacity()) {
+                frameBytesHead = FRAME_EMPTY;
             }
         }
     }

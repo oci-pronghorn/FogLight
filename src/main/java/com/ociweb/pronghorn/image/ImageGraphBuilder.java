@@ -16,6 +16,7 @@ import com.ociweb.pronghorn.stage.route.RawDataJoinerStage;
 import com.ociweb.pronghorn.stage.route.RawDataSplitterStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 import com.ociweb.pronghorn.stage.test.PipeNoOp;
 
 public class ImageGraphBuilder {
@@ -31,6 +32,18 @@ public class ImageGraphBuilder {
 			) {
 			
 							
+		
+		if (null == calibrationDone) {					
+			calibrationDone = CalibrationStatusSchema.instance.newPipe(8, 0);
+			PipeCleanerStage.newInstance(gm, calibrationDone);
+		}
+		
+		
+		if (null == probLocation) {					
+			probLocation = ProbabilitySchema.instance.newPipe(8, 10);
+			PipeCleanerStage.newInstance(gm, probLocation);
+		}
+		
 		//////////////////////////////////
 		//Pipe definitions
 		/////////////////////////////////
@@ -61,14 +74,15 @@ public class ImageGraphBuilder {
 		Pipe<HistogramSchema> histM = HistogramSchema.instance.newPipe(4, 1<<12);
 		
 		Pipe<HistogramSchema> histSum = HistogramSchema.instance.newPipe(4, 1<<12);		
+
 		
-		
-		Pipe<CalibrationStatusSchema> calibrationDoneRoot = PipeConfig.pipe(calibrationDone.config().shrink2x());
+		Pipe<CalibrationStatusSchema> calibrationDoneRoot = PipeConfig.pipe(calibrationDone.config().shrink2x());			
 		
 		Pipe<CalibrationStatusSchema> calibrationDoneAckR = PipeConfig.pipe(calibrationDone.config());
 		Pipe<CalibrationStatusSchema> calibrationDoneAckG = PipeConfig.pipe(calibrationDone.config());
 		Pipe<CalibrationStatusSchema> calibrationDoneAckB = PipeConfig.pipe(calibrationDone.config());
 		Pipe<CalibrationStatusSchema> calibrationDoneAckM = PipeConfig.pipe(calibrationDone.config());
+		
 		
 		//build an empty selector if one is not provided
 		if (null == modeSelectionPipe) {

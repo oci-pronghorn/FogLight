@@ -58,12 +58,12 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
        }
     }
     
-    public LocationModeSerivce newLocationModeSerivce() {
-    	return new LocationModeSerivce(this);    	
+    public LocationModeService newLocationModeSerivce() {
+    	return new LocationModeService(this);    	
     }
     
-    public LocationModeSerivce newLocationModeSerivce(int commandCountCapacity, int maxMessageSize) {
-    	return new LocationModeSerivce(this, commandCountCapacity, maxMessageSize);    	
+    public LocationModeService newLocationModeSerivce(int commandCountCapacity, int maxMessageSize) {
+    	return new LocationModeService(this, commandCountCapacity, maxMessageSize);    	
     }    
     
     public I2CService newI2CService() {

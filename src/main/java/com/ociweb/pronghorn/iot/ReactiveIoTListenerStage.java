@@ -14,9 +14,11 @@ import com.ociweb.iot.hardware.HardwareConnection;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.impl.AnalogListenerBase;
+import com.ociweb.iot.impl.CalibrationListenerBase;
 import com.ociweb.iot.impl.DigitalListenerBase;
 import com.ociweb.iot.impl.I2CListenerBase;
 import com.ociweb.iot.impl.ImageListenerBase;
+import com.ociweb.iot.impl.LocationListenerBase;
 import com.ociweb.iot.impl.RotaryListenerBase;
 import com.ociweb.iot.impl.SerialListenerBase;
 import com.ociweb.iot.maker.AnalogListener;
@@ -26,12 +28,14 @@ import com.ociweb.iot.maker.ListenerFilterIoT;
 import com.ociweb.iot.maker.Port;
 import com.ociweb.iot.maker.RotaryListener;
 import com.ociweb.iot.maker.SerialListener;
+import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
 import com.ociweb.pronghorn.iot.schema.GroveResponseSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
+import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.ma.MAvgRollerLong;
 
@@ -97,6 +101,22 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 				 ((ReactiveIoTListenerStage) r).consumeImageMessage((ImageListenerBase) target, input);
 			 }
 		 })
+		.addOperator(LocationListenerBase.class,
+				ProbabilitySchema.instance,
+				 new ReactiveOperator() {
+			 @Override
+			 public void apply(int index, Object target, Pipe input, ReactiveListenerStage r) {
+				 ((ReactiveIoTListenerStage) r).consumeLocationMessage((LocationListenerBase) target, input);
+			 }
+	     })
+		.addOperator(CalibrationListenerBase.class,
+				CalibrationStatusSchema.instance,
+				 new ReactiveOperator() {
+		 @Override
+		 public void apply(int index, Object target, Pipe input, ReactiveListenerStage r) {
+			 ((ReactiveIoTListenerStage) r).consumeCalibrationMessage((CalibrationListenerBase) target, input);
+		 }
+		})
         .addOperator(AnalogListenerBase.class,
         		GroveResponseSchema.instance,
 	       		 new ReactiveOperator() {
@@ -131,7 +151,57 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 	        });    	
     }
     
-    public ReactiveIoTListenerStage(GraphManager graphManager, Behavior listener, 
+    protected void consumeCalibrationMessage(CalibrationListenerBase target, Pipe<CalibrationStatusSchema> input) {
+		while (PipeReader.tryReadFragment(input)) {
+			int msgIdx = PipeReader.getMsgIdx(input);
+			if (CalibrationStatusSchema.MSG_CYCLECALIBRATED_1 == msgIdx) {
+				
+				int start = PipeReader.readInt(input, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_STARTVALUE_12);
+				int units = PipeReader.readInt(input, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_TOTALUNITS_13);
+				
+//				if (target.finishedCalibration(start, units)) {
+//					
+//					
+//				}
+				
+				
+				
+			} else {
+				//eof
+				
+			}
+			
+			PipeReader.releaseReadLock(input);
+		}
+		
+	}
+
+	protected void consumeLocationMessage(LocationListenerBase target, Pipe<ProbabilitySchema> input) {
+		while (PipeReader.tryReadFragment(input)) {
+			int msgIdx = PipeReader.getMsgIdx(input);
+			if (ProbabilitySchema.MSG_SELECTION_1 == msgIdx) {
+				
+				int buckets = PipeReader.readInt(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_TOTALBUCKETS_13);
+				long totalSum = PipeReader.readLong(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_TOTALSUM_12);
+				
+				PipeReader.inputStream(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_ORDEREDSELECTIONS_14);
+				
+				//TODO: consume.
+				//compute the most likely position?,  just return the top
+				
+				//if (target.location(location, pct) {
+				//}
+				
+				
+			} else {
+				// eof
+			}
+			
+			PipeReader.releaseReadLock(input);
+		}
+	}
+
+	public ReactiveIoTListenerStage(GraphManager graphManager, Behavior listener, 
     		                        Pipe<?>[] inputPipes, 
     		                        Pipe<?>[] outputPipes, 
     		                        ArrayList<ReactiveManagerPipeConsumer> consumers,

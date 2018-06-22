@@ -14,6 +14,8 @@ import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 /**
@@ -35,22 +37,33 @@ public class PiImageListenerStage extends PronghornStage {
     private final Pipe<ImageSchema> output;
 
     // Camera system.
+    private final int width;
+    private final int height;
+    private final int rowSize;
     private Camera camera;
     private int cameraFd;
 
     // Image buffer information; we only process one image at a time.
-    private byte[] frameBytes = null;
+    private ByteBuffer frameBytes = null;
+    private long frameBytesTimestamp = -1;
     private int frameBytesHead = FRAME_EMPTY;
 
-    // Frame size data.
-    public static final int FRAME_WIDTH = 1920;
-    public static final int FRAME_HEIGHT = 1080;
-    public static final int ROW_SIZE = FRAME_WIDTH * 3;
+    // Default frame size data.
+    public static final int DEFAULT_FRAME_WIDTH = 1280;
+    public static final int DEFAULT_FRAME_HEIGHT = 720;
+    public static final int DEFAULT_ROW_SIZE = DEFAULT_FRAME_WIDTH * 3;
 
     // Proxy data directory.
     public static final String PROXY_CAMERA_DIRECTORY = "./src/test/images";
 
+    // Output encoding.
+    public static final byte[] OUTPUT_ENCODING = "RGB24".getBytes(StandardCharsets.US_ASCII);
+
     public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds) {
+        this(graphManager, output, triggerRateMilliseconds, DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT, null, -1);
+    }
+
+    public PiImageListenerStage(GraphManager graphManager, Pipe<ImageSchema> output, int triggerRateMilliseconds, int width, int height, Camera camera, int cameraFd) {
         super(graphManager, NONE, output);
 
         // Attach to our output pipe.
@@ -58,40 +71,55 @@ public class PiImageListenerStage extends PronghornStage {
 
         // Add this listener to the graph.
         GraphManager.addNota(graphManager, GraphManager.SCHEDULE_RATE, triggerRateMilliseconds * 1000000L, this);
+
+        // Configure height data.
+        this.width = width;
+        this.height = height;
+        this.rowSize = width * 3;
+
+        // Configure camera data.
+        this.camera = camera;
+        this.cameraFd = cameraFd;
     }
 
     @Override
     public void startup() {
 
-        // Get a file for the default camera device.
-        File cameraFile = Paths.get(RaspiCam.DEFAULT_CAMERA_DEVICE).toFile();
+        // Automatically detect a camera if one is not already set.
+        if (camera == null) {
 
-        // Open /dev/video0 on Raspberry Pi.
-        if (!cameraFile.exists()) {
+            // Get a file for the default camera device.
+            File cameraFile = Paths.get(RaspiCam.DEFAULT_CAMERA_DEVICE).toFile();
 
-            // Load V4L2 module.
-            try {
-                Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
-            } catch (IOException | InterruptedException e) {
-                logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.", e);
+            // Open /dev/video0 on Raspberry Pi.
+            if (!cameraFile.exists()) {
+
+                // Load V4L2 module.
+                try {
+                    Runtime.getRuntime().exec("modprobe bcm2835-v4l2").waitFor();
+                } catch (IOException | InterruptedException e) {
+                    logger.warn("Could not load V4L2 driver via modprobe. Proxy camera will be used.");
+                }
+            }
+
+            // Open camera interface if the camera is available.
+            if (cameraFile.exists()) {
+                camera = new RaspiCam();
+                cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, width, height);
+                logger.info("Opened camera device {} with FD {}.", RaspiCam.DEFAULT_CAMERA_DEVICE, cameraFd);
+
+                // Otherwise, use a proxy camera.
+            } else {
+                camera = new ProxyCam();
+                cameraFd = camera.open(PROXY_CAMERA_DIRECTORY, width, height);
+                logger.info("Opened proxy camera in directory {} with FD {}.", PROXY_CAMERA_DIRECTORY, cameraFd);
             }
         }
 
-        // Open camera interface if the camera is available.
-        if (cameraFile.exists()) {
-            camera = new RaspiCam();
-            cameraFd = camera.open(RaspiCam.DEFAULT_CAMERA_DEVICE, FRAME_WIDTH, FRAME_HEIGHT);
-            logger.info("Opened camera device {} with FD {}.", RaspiCam.DEFAULT_CAMERA_DEVICE, cameraFd);
-
-        // Otherwise, use a proxy camera.
-        } else {
-            camera = new ProxyCam();
-            cameraFd = camera.open(PROXY_CAMERA_DIRECTORY, FRAME_WIDTH, FRAME_HEIGHT);
-            logger.info("Opened proxy camera in directory {} with FD {}.", PROXY_CAMERA_DIRECTORY, cameraFd);
-        }
+        assert cameraFd != -1;
 
         // Configure byte array for camera frames.
-        frameBytes = new byte[camera.getFrameSizeBytes(cameraFd)];
+        frameBytes = camera.getFrameBuffer(cameraFd);
     }
 
     @Override
@@ -108,38 +136,48 @@ public class PiImageListenerStage extends PronghornStage {
     public void run() {
 
         // Only execute while we have room to write our output.
-        if (Pipe.hasRoomForWrite(output)) {
+        if (PipeWriter.hasRoomForWrite(output)) {
 
             // Capture a frame if we have no bytes left to transmit.
-            if (frameBytesHead == FRAME_EMPTY && camera.readFrame(cameraFd, frameBytes, 0) == frameBytes.length) {
-                frameBytesHead = FRAME_BUFFERED;
+            if (frameBytesHead == FRAME_EMPTY) {
+
+                // Get the timestamp of the image.
+                frameBytesTimestamp = camera.readFrame(cameraFd);
+
+                // If the timestamp was not -1 (valid), we now have a frame buffered.
+                if (frameBytesTimestamp != -1) {
+                    frameBytesHead = FRAME_BUFFERED;
+                }
             }
 
             // Publish a frame start if we have room to transmit.
             if (frameBytesHead == FRAME_BUFFERED && PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMESTART_1)) {
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, FRAME_WIDTH);
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, FRAME_HEIGHT);
-                PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
-                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.length);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, width);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, height);
+                PipeWriter.writeLong(output, ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, frameBytesTimestamp);
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, frameBytes.capacity());
+                PipeWriter.writeInt(output, ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 24);
+                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING);
                 PipeWriter.publishWrites(output);
                 frameBytesHead = 0;
             }
 
             // Write rows while there are bytes to write and room for those bytes.
             while (frameBytesHead >= 0 &&
-                    PipeWriter.hasRoomForFragmentOfSize(output, Pipe.sizeOf(output, ImageSchema.MSG_FRAMECHUNK_2)) &&
                     PipeWriter.tryWriteFragment(output, ImageSchema.MSG_FRAMECHUNK_2)) {
 
                 // Write bytes.
-                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
-                                      frameBytes, frameBytesHead, ROW_SIZE);
+                frameBytes.position(frameBytesHead);
+                PipeWriter.writeBytes(output, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, frameBytes, rowSize);
+
+                // TODO: Check for wrap-around?
                 PipeWriter.publishWrites(output);
 
                 // Progress head.
-                frameBytesHead += ROW_SIZE;
+                frameBytesHead += rowSize;
 
                 // If the head exceeds the size of the frame bytes, we're done writing.
-                if (frameBytesHead >= frameBytes.length) {
+                if (frameBytesHead >= frameBytes.capacity()) {
                     frameBytesHead = FRAME_EMPTY;
                 }
             }

@@ -25,11 +25,21 @@
 #define true (1==1)
 #define false (!true)
 
+// Utility to get current time in milliseconds.
+// Courtesy of: https://stackoverflow.com/a/17083824
+long long currentTimeMillis() {
+    struct timeval te;
+    gettimeofday(&te, NULL);
+    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000;
+    return milliseconds;
+}
+
 // Shared buffer info across all calls.
 // TODO: If open is called multiple times, the behavior of this variable will be undefined.
 struct v4l2_buffer bufferinfo;
 void* buffer_start;
 int buffer_size = -1;
+int buffering = false;
 
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, jobject object, jstring device, jint width, jint height) {
     const char *actualDevice = (*env)->GetStringUTFChars(env, device, NULL);
@@ -78,7 +88,7 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
         struct v4l2_requestbuffers bufrequest;
         bufrequest.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         bufrequest.memory = V4L2_MEMORY_MMAP;
-        bufrequest.count = 2;
+        bufrequest.count = 1;
 
         // Configure buffer format.
         if (v4l2_ioctl(fd, VIDIOC_REQBUFS, &bufrequest) < 0) {
@@ -125,6 +135,8 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
         if (v4l2_ioctl(fd, VIDIOC_QBUF, &bufferinfo) < 0) {
             fprintf(stderr, "Could not queue buffer (during open).\n");
             return -1; // TODO: More descriptive error?
+        } else {
+            buffering = true;
         }
 
         // Activate streaming
@@ -139,42 +151,46 @@ JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_open(JNIEnv *env, job
     }
 }
 
-JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameSizeBytes(JNIEnv *env, jobject object, jint fd) {
-    return buffer_size;
+JNIEXPORT jobject JNICALL Java_com_ociweb_iot_camera_RaspiCam_getFrameBuffer(JNIEnv *env, jobject object, jint fd) {
+    return (*env)->NewDirectByteBuffer(env, buffer_start, buffer_size);
 }
 
-JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd, jbyteArray rawBytes, jint start) {
+JNIEXPORT jlong JNICALL Java_com_ociweb_iot_camera_RaspiCam_readFrame(JNIEnv *env, jobject object, jint fd) {
 
-    // The buffer's waiting in the outgoing queue.
+    // Put the buffer in the incoming queue if we are not currently buffering.
+    // We do not automatically re-insert the buffer into the camera's queue
+    // in order to prevent the user's data from being overwritten before they
+    // are ready to read the next frame.
+    if (!buffering) {
+        if (v4l2_ioctl(fd, VIDIOC_QBUF, &bufferinfo) < 0) {
+            fprintf(stderr, "Could not queue buffer (during read).\n");
+        } else {
+            buffering = true;
+        }
+    }
+
+    // Read data from the buffer in the incoming queue.
     // If -1 is returned, the buffer isn't ready to read yet.
-    if (v4l2_ioctl(fd, VIDIOC_DQBUF, &bufferinfo) < 0) {
-        return -1;
+    // The buffer most likely will not be ready to read immediately.
+    if (buffering) {
+        memset(&(bufferinfo), 0, sizeof(bufferinfo));
+        bufferinfo.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        bufferinfo.memory = V4L2_MEMORY_USERPTR;
+        if (v4l2_ioctl(fd, VIDIOC_DQBUF, &bufferinfo) < 0) {
+            if (errno != EAGAIN) {
+                fprintf(stderr, "Unknown error code %d when reading frame from camera.");
+            }
+
+            return -1;
+        } else {
+            buffering = false;
+        }
+
+        return currentTimeMillis();
     }
 
-    // If -1 is returned, the buffer isn't ready to read yet.buffer
-    // Prepare Java array for writing.
-    jbyte* bytes = (*env)->GetByteArrayElements(env, rawBytes, NULL);
-
-    // Track read bytes.
-    int readBytes = 0;
-
-    // Place buffer bytes into Java bytes.
-    for (int i = 0; i < bufferinfo.length; i++) {
-        bytes[start + i] = ((char *) buffer_start)[i];
-        readBytes++;
-    }
-
-    // Cleanup Java array.
-    (*env)->ReleaseByteArrayElements(env, rawBytes, bytes, 0);
-
-    // Put the buffer in the incoming queue.
-    if (v4l2_ioctl(fd, VIDIOC_QBUF, &bufferinfo) < 0) {
-        fprintf(stderr, "Could not queue buffer (during read).\n");
-        return -1; // TODO: More descriptive error?
-    }
-
-    // Success.
-    return readBytes;
+    // If we either can't queue the buffer or we simply aren't buffering, return.
+    return -1;
 }
 
 JNIEXPORT jint JNICALL Java_com_ociweb_iot_camera_RaspiCam_close(JNIEnv *env, jobject object, jint fd) {

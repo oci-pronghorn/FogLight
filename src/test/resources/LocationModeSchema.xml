@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xmlns="http://www.fixprotocol.org/ns/fast/td/1.1">
+
+    <template name="CycleLearningStart" id="1">
+        <uInt32 name="StartValue" id="12"/>
+        <uInt32 name="MaxSteps" id="13"/>        
+    </template>
+
+    <template name="CycleLearningCancel" id="3">
+         <!--  dumps all information it has learned since CycleLearningStart  -->
+    </template>    
+
+</templates>

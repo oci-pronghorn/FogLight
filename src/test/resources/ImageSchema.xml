@@ -5,7 +5,9 @@
         <uInt32 name="Width" id="101"/>
         <uInt32 name="Height" id="201"/>
         <uInt64 name="Timestamp" id="301"/>
-        <uInt64 name="FrameBytes" id="401"/>
+        <uInt32 name="FrameBytes" id="401"/>
+        <uInt32 name="BitsPerPixel" id="501"/>
+        <byteVector name="Encoding" id="601"/>
     </template>
 
     <template name="FrameChunk" id="2">

@@ -1,52 +1,58 @@
 package com.ociweb.pronghorn.image;
 
+import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
+import com.ociweb.pronghorn.image.schema.LocationModeSchema;
 import com.ociweb.pronghorn.iot.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
+import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.stage.file.FileBlobReadStage;
+import com.ociweb.pronghorn.stage.file.FileBlobWriteStage;
 import com.ociweb.pronghorn.stage.math.HistogramSchema;
 import com.ociweb.pronghorn.stage.math.HistogramSelectPeakStage;
 import com.ociweb.pronghorn.stage.math.HistogramSumStage;
 import com.ociweb.pronghorn.stage.math.ProbabilitySchema;
+import com.ociweb.pronghorn.stage.route.RawDataJoinerStage;
+import com.ociweb.pronghorn.stage.route.RawDataSplitterStage;
 import com.ociweb.pronghorn.stage.route.ReplicatorStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
-import com.ociweb.pronghorn.stage.test.ConsoleJSONDumpStage;
-import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
+import com.ociweb.pronghorn.stage.test.PipeNoOp;
 
 public class ImageGraphBuilder {
 
-	
-	public static void buildLocationDetectionGraph(
-								GraphManager gm, String dataFilePath
-								
-				) {
-				
+
+
+	public static void buildLocationDetectionGraph(GraphManager gm, 
+			String loadFilePath, String saveFilePath,
+			Pipe<ImageSchema> imagePipe, //input pipe for the raw image data
+			Pipe<LocationModeSchema> modeSelectionPipe, //input pipe to turn on learning mode or cancel learning mode.
+			Pipe<ProbabilitySchema> probLocation, //output pipe sending probable locations
+			Pipe<CalibrationStatusSchema> calibrationDone //output pipe sending training is complete
+			) {
+			
+							
 		//////////////////////////////////
 		//Pipe definitions
 		/////////////////////////////////
 		
-		Pipe<RawDataSchema> mData  = RawDataSchema.instance.newPipe(8, 1<<12);
-		Pipe<RawDataSchema> mDataR = RawDataSchema.instance.newPipe(8, 1<<12);
-		Pipe<RawDataSchema> mDataG = RawDataSchema.instance.newPipe(8, 1<<12);
-		Pipe<RawDataSchema> mDataB = RawDataSchema.instance.newPipe(8, 1<<12);
-		Pipe<RawDataSchema> mDataM = RawDataSchema.instance.newPipe(8, 1<<12);
+		Pipe<RawDataSchema> loadDataRaw   = RawDataSchema.instance.newPipe(4, 1<<10);
+		Pipe<RawDataSchema> loadDataRed   = RawDataSchema.instance.newPipe(4, 1<<10);
+		Pipe<RawDataSchema> loadDataGreen = RawDataSchema.instance.newPipe(4, 1<<10);
+		Pipe<RawDataSchema> loadDataBlue  = RawDataSchema.instance.newPipe(4, 1<<10);
+		Pipe<RawDataSchema> loadDataMono  = RawDataSchema.instance.newPipe(4, 1<<10);
 		
-		Pipe<RawDataSchema> mDataRRead = new Pipe(mDataR.config().grow2x());
-		Pipe<RawDataSchema> mDataGRead = new Pipe(mDataG.config().grow2x());
-		Pipe<RawDataSchema> mDataBRead = new Pipe(mDataB.config().grow2x());
-		Pipe<RawDataSchema> mDataMRead = new Pipe(mDataM.config().grow2x());
+	
+		Pipe<RawDataSchema> saveDataRaw   = RawDataSchema.instance.newPipe(4, 1<<10);
+		Pipe<RawDataSchema> saveDataRed   = RawDataSchema.instance.newPipe(4, 1<<10);
+		Pipe<RawDataSchema> saveDataGreen = RawDataSchema.instance.newPipe(4, 1<<10);
+		Pipe<RawDataSchema> saveDataBlue  = RawDataSchema.instance.newPipe(4, 1<<10);
+		Pipe<RawDataSchema> saveDataMono  = RawDataSchema.instance.newPipe(4, 1<<10);
+
 		
-		Pipe<RawDataSchema> mDataRWrite = new Pipe(mDataR.config().grow2x());
-		Pipe<RawDataSchema> mDataGWrite = new Pipe(mDataG.config().grow2x());
-		Pipe<RawDataSchema> mDataBWrite = new Pipe(mDataB.config().grow2x());
-		Pipe<RawDataSchema> mDataMWrite = new Pipe(mDataM.config().grow2x());
-		
-		//TODO: these 4 need to be populated by down res stage
-		//TODO: Brandon these following 4 pipes must be populated by the new stage..
-		Pipe<ImageSchema> imageR = ImageSchema.instance.newPipe(2048, 8096);
-		Pipe<ImageSchema> imageG = ImageSchema.instance.newPipe(2048, 8096);
-		Pipe<ImageSchema> imageB = ImageSchema.instance.newPipe(2048, 8096);
-		Pipe<ImageSchema> imageM = ImageSchema.instance.newPipe(2048, 8096);
+		Pipe<ImageSchema> imageR = ImageSchema.instance.newPipe(300, 1<<9); 
+		Pipe<ImageSchema> imageG = ImageSchema.instance.newPipe(300, 1<<9);
+		Pipe<ImageSchema> imageB = ImageSchema.instance.newPipe(300, 1<<9);
+		Pipe<ImageSchema> imageM = ImageSchema.instance.newPipe(300, 1<<9);
 
 		
 		Pipe<HistogramSchema> histR = HistogramSchema.instance.newPipe(4, 1<<12);
@@ -55,43 +61,72 @@ public class ImageGraphBuilder {
 		Pipe<HistogramSchema> histM = HistogramSchema.instance.newPipe(4, 1<<12);
 		
 		Pipe<HistogramSchema> histSum = HistogramSchema.instance.newPipe(4, 1<<12);		
-		Pipe<ProbabilitySchema> probLocation = ProbabilitySchema.instance.newPipe(4, 1<<14);
 		
+		
+		Pipe<CalibrationStatusSchema> calibrationDoneRoot = PipeConfig.pipe(calibrationDone.config().shrink2x());
+		
+		Pipe<CalibrationStatusSchema> calibrationDoneAckR = PipeConfig.pipe(calibrationDone.config());
+		Pipe<CalibrationStatusSchema> calibrationDoneAckG = PipeConfig.pipe(calibrationDone.config());
+		Pipe<CalibrationStatusSchema> calibrationDoneAckB = PipeConfig.pipe(calibrationDone.config());
+		Pipe<CalibrationStatusSchema> calibrationDoneAckM = PipeConfig.pipe(calibrationDone.config());
+		
+		//build an empty selector if one is not provided
+		if (null == modeSelectionPipe) {
+			modeSelectionPipe = LocationModeSchema.instance.newPipe(6,0);
+			PipeNoOp.newInstance(gm, modeSelectionPipe);
+		}
+		
+		PipeConfig<LocationModeSchema> msConfig = modeSelectionPipe.config().grow2x();		
+		Pipe<LocationModeSchema> modeSelectionR = PipeConfig.pipe(msConfig);
+		Pipe<LocationModeSchema> modeSelectionG = PipeConfig.pipe(msConfig);
+		Pipe<LocationModeSchema> modeSelectionB = PipeConfig.pipe(msConfig);
+		Pipe<LocationModeSchema> modeSelectionM = PipeConfig.pipe(msConfig);		
+	    
+	    Pipe<CalibrationStatusSchema> calibrationDoneR = CalibrationStatusSchema.instance.newPipe(6, 0);
+	    Pipe<CalibrationStatusSchema> calibrationDoneG = CalibrationStatusSchema.instance.newPipe(6, 0); 
+	    Pipe<CalibrationStatusSchema> calibrationDoneB = CalibrationStatusSchema.instance.newPipe(6, 0);
+	    Pipe<CalibrationStatusSchema> calibrationDoneM = CalibrationStatusSchema.instance.newPipe(6, 0); 
 		////////////////////////////////////////
 		//Stage definitions
 		////////////////////////////////////////
 		
 		
+		new ImageDownscaleStage(gm, imagePipe, new Pipe[] {imageR, imageG, imageB, imageM}, 200, 200 ) ;
+	    
 		//data is only read once on startup
-		FileBlobReadStage readStage = FileBlobReadStage.newInstance(gm, mData, dataFilePath);		
-		RawDataSplitter.newInstance(gm, gm.getOutputPipe(gm, readStage),
-				                    mDataR, mDataG, mDataB, mDataM);
+		FileBlobReadStage.newInstance(gm, loadDataRaw, loadFilePath);		
 		
-		ReplicatorStage.newInstance(gm, mDataR, mDataRRead, mDataRWrite);
-		ReplicatorStage.newInstance(gm, mDataG, mDataGRead, mDataGWrite);
-		ReplicatorStage.newInstance(gm, mDataB, mDataBRead, mDataBWrite);
-		ReplicatorStage.newInstance(gm, mDataM, mDataMRead, mDataMWrite);
-		
+		RawDataSplitterStage.newInstance(gm, loadDataRaw,
+				                    loadDataRed, loadDataGreen, loadDataBlue, loadDataMono);
 
-		MapImageStage.newInstance(gm, imageR, histR, mDataRRead);
-		MapImageStage.newInstance(gm, imageG, histG, mDataRRead);
-		MapImageStage.newInstance(gm, imageB, histB, mDataRRead);
-		MapImageStage.newInstance(gm, imageM, histM, mDataRRead);
+		
+		ReplicatorStage.newInstance(gm, modeSelectionPipe, modeSelectionR, modeSelectionG, modeSelectionB, modeSelectionM);
+				
+		
+		ReplicatorStage.newInstance(gm, calibrationDoneRoot, calibrationDone, calibrationDoneAckR, calibrationDoneAckG, calibrationDoneAckB, calibrationDoneAckM );
+		
+	    
+	    CalibrationCyclicBarierStage.newInstance(gm, 
+	    					calibrationDoneRoot,
+	    		            calibrationDoneR, calibrationDoneG, calibrationDoneB, calibrationDoneM);
+	    
+	    //modeSelectionPipe
+		MapImageStage.newInstance(gm, imageR, modeSelectionR, histR, calibrationDoneAckR, calibrationDoneR, loadDataRed,   saveDataRed);
+		MapImageStage.newInstance(gm, imageG, modeSelectionG, histG, calibrationDoneAckG, calibrationDoneG, loadDataGreen, saveDataGreen);
+		MapImageStage.newInstance(gm, imageB, modeSelectionB, histB, calibrationDoneAckB, calibrationDoneB, loadDataBlue,  saveDataBlue);
+		MapImageStage.newInstance(gm, imageM, modeSelectionM, histM, calibrationDoneAckM, calibrationDoneM, loadDataMono,  saveDataMono);
+		
 		
 		HistogramSumStage.newInstance(gm, histSum, histR, histG, histB, histM);
 		HistogramSelectPeakStage.newInstance(gm, histSum, probLocation );
-		
-		//these added just as place holders for now.
-		
-		PipeCleanerStage.newInstance(gm, mDataRWrite); //these go to the image learning mapping to location
-		PipeCleanerStage.newInstance(gm, mDataGWrite);
-		PipeCleanerStage.newInstance(gm, mDataBWrite);
-		PipeCleanerStage.newInstance(gm, mDataMWrite);
-		
-		ConsoleJSONDumpStage.newInstance(gm, probLocation); //TODO: feed this back to caller, react..
-		
-		
+
+		RawDataJoinerStage.newInstance(gm, saveDataRaw, 
+				          saveDataRed, saveDataGreen, saveDataBlue, saveDataMono);
+
+		FileBlobWriteStage.newInstance(gm, saveDataRaw, saveFilePath);
+
 	}
+
 	
 	
 }

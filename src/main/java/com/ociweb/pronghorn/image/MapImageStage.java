@@ -175,7 +175,6 @@ public class MapImageStage extends PronghornStage {
 							DataInputBlobReader<ImageSchema> rowData = Pipe.openInputStream(imgInput);							
 							int rowBase = (imageWidth*imageDepth)*activeRow++;
 
-							
 							if (!isLearning) {
 								///////////////////////
 								//normal location scanning
@@ -218,7 +217,8 @@ public class MapImageStage extends PronghornStage {
 								}
 								
 							}
-							
+							Pipe.confirmLowLevelRead(imgInput, Pipe.sizeOf(imgInput, msgIdx));
+							Pipe.releaseReadLock(imgInput);	
 							
 						} else {
 							//error too many rows.
@@ -246,11 +246,16 @@ public class MapImageStage extends PronghornStage {
 						//clear histogram totals
 						Arrays.fill(workspace, 0);
 						activeRow = 0;
+						Pipe.confirmLowLevelRead(imgInput, Pipe.sizeOf(imgInput, msgIdx));
+						Pipe.releaseReadLock(imgInput);
 						
 					} else {
+						if (-1 != msgIdx) {
+							throw new UnsupportedOperationException("Unexpected message idx of:"+msgIdx);
+						}
 						
 						isShuttingDown = true;
-						Pipe.confirmLowLevelWrite(imgInput, Pipe.EOF_SIZE);
+						Pipe.confirmLowLevelRead(imgInput, Pipe.EOF_SIZE);
 						Pipe.releaseReadLock(imgInput);
 						break;
 					}

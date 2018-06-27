@@ -23,7 +23,7 @@ import com.ociweb.pronghorn.util.primitive.LoisVisitor;
 
 public class MapImageStage extends PronghornStage {
 
-	private int[]   workspace;
+//	private int[]   workspace;
 	private Lois locations; 	
 	private int [] imageLookup;
 	private int imageWidth;
@@ -241,7 +241,7 @@ public class MapImageStage extends PronghornStage {
 						
 						if (null == workspace || imageWidth!=totalWidth || imageHeight!=totalRows) {
 							int localDepth=256;
-							int maxLocatons = 1<<16;//TODO: need a way to set this
+							int maxLocatons = output.maxVarLen/ChannelReader.PACKED_INT_SIZE;
 							initProcessing(totalWidth, totalRows, localDepth, maxLocatons);
 						}
 						

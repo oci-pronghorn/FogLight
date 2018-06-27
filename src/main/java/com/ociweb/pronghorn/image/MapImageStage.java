@@ -23,7 +23,7 @@ import com.ociweb.pronghorn.util.primitive.LoisVisitor;
 
 public class MapImageStage extends PronghornStage {
 
-//	private int[]   workspace;
+	private int[]   workspace;
 	private Lois locations; 	
 	private int [] imageLookup;
 	private int imageWidth;
@@ -366,15 +366,15 @@ public class MapImageStage extends PronghornStage {
 
 	private int locationSetId(DataInputBlobReader<ImageSchema> rowData, int rowBase, int activeColumn) {
 		
+		assert(rowBase>=0);
+		assert(activeColumn>=0);
+		assert(imageDepth>=0);
 		
-		//TODO: if image depth is changed to 64? must adjust read byte
-		//TODO: if color is near top or lower edge need to record position in both locations....
-		
-		
+		int readByte = 0xFF&rowData.readByte();
 		return imageLookup[
 		                               rowBase                            
 		                               +(activeColumn*imageDepth)
-		                               +(int)rowData.readByte()];
+		                               +readByte];
 	}
 
 

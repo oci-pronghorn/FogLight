@@ -63,10 +63,10 @@ public class ImageGraphBuilder {
 		Pipe<RawDataSchema> saveDataMono  = RawDataSchema.instance.newPipe(4, 1<<10);
 
 		
-		Pipe<ImageSchema> imageR = ImageSchema.instance.newPipe(300, 1<<9); 
-		Pipe<ImageSchema> imageG = ImageSchema.instance.newPipe(300, 1<<9);
-		Pipe<ImageSchema> imageB = ImageSchema.instance.newPipe(300, 1<<9);
-		Pipe<ImageSchema> imageM = ImageSchema.instance.newPipe(300, 1<<9);
+		Pipe<ImageSchema> imageR = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH); 
+		Pipe<ImageSchema> imageG = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH);
+		Pipe<ImageSchema> imageB = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH);
+		Pipe<ImageSchema> imageM = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH);
 
 		
 		Pipe<HistogramSchema> histR = HistogramSchema.instance.newPipe(4, 1<<12);

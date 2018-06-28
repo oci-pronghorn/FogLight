@@ -21,7 +21,8 @@ import com.ociweb.pronghorn.stage.test.PipeNoOp;
 
 public class ImageGraphBuilder {
 
-
+	public static final int DOWNSCALE_WIDTH = 320;
+	public static final int DOWNSCALE_HEIGHT = 180;
 
 	public static void buildLocationDetectionGraph(GraphManager gm, 
 			String loadFilePath, String saveFilePath,
@@ -105,7 +106,7 @@ public class ImageGraphBuilder {
 		////////////////////////////////////////
 		
 		
-		new ImageDownscaleStage(gm, imagePipe, new Pipe[] {imageR, imageG, imageB, imageM}, 200, 200 ) ;
+		new ImageDownscaleStage(gm, imagePipe, new Pipe[] {imageR, imageG, imageB, imageM}, DOWNSCALE_WIDTH, DOWNSCALE_HEIGHT) ;
 	    
 		//data is only read once on startup
 		FileBlobReadStage.newInstance(gm, loadDataRaw, loadFilePath, false);		

@@ -25,16 +25,35 @@ import java.util.Arrays;
  */
 public class ImageDownscaleStage extends PronghornStage {
 
+    // Encoding assertion check
+    private final ByteBuffer encodingBytes = ByteBuffer.wrap(new byte[32]);
+    private final boolean assertEncoding() {
+
+        // Read encoding.
+        encodingBytes.position(0);
+        encodingBytes.limit(encodingBytes.capacity());
+        PipeReader.readBytes(input, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, encodingBytes);
+
+        // Encoding bytes should be the same as our expected input encoding.
+        boolean assertResult = encodingBytes.position() == INPUT_ENCODING.length;
+        for (int i = 0; i < encodingBytes.position(); i++) {
+            assertResult = assertResult && (encodingBytes.get(i) == INPUT_ENCODING[i]);
+        }
+
+        return assertResult;
+    }
+
     // Output pipe constants.
     private final Pipe<ImageSchema> input;
     private final Pipe<ImageSchema>[] outputs;
     private final int outputHeight;
     private final int outputWidth;
-    private final ByteBuffer encodingBytes = ByteBuffer.wrap(new byte[32]);
 
     // Input pipe information.
     private int imageFrameWidth = -1;
     private int imageFrameHeight = -1;
+    private int inputFrameColumnsPerOutputColumn = -1;
+    private int inputFrameRowsPerOutputFrameRow = -1;
     private int imageFrameRowsReceived = 0;
     private byte[] imageFrameRowBytes = null;
     private int[] imageFrameRowBytesDownsampled = null;
@@ -42,6 +61,7 @@ public class ImageDownscaleStage extends PronghornStage {
     private final byte[] imageFrameRowBytesG;
     private final byte[] imageFrameRowBytesB;
     private final byte[] imageFrameRowBytesMono;
+    private final byte[][] imageFrameRowBytesLookup;
 
     // Pipe indices and encodings.
     public static final int R_OUTPUT_IDX = 0;
@@ -53,6 +73,9 @@ public class ImageDownscaleStage extends PronghornStage {
     public static final byte[] G_OUTPUT_ENCODING = "G8".getBytes(StandardCharsets.US_ASCII);
     public static final byte[] B_OUTPUT_ENCODING = "B8".getBytes(StandardCharsets.US_ASCII);
     public static final byte[] MONO_OUTPUT_ENCODING = "MONO8".getBytes(StandardCharsets.US_ASCII);
+
+    // Lookup table for encodings.
+    public static final byte[][] OUTPUT_ENCODING_LOOKUP = new byte[][]{R_OUTPUT_ENCODING, G_OUTPUT_ENCODING, B_OUTPUT_ENCODING, MONO_OUTPUT_ENCODING};
 
     public static ImageDownscaleStage newInstance(GraphManager graphManager, Pipe<ImageSchema> input, Pipe<ImageSchema>[] outputs, int outputWidth, int outputHeight) {
         return new ImageDownscaleStage(graphManager, input, outputs, outputWidth, outputHeight);
@@ -75,6 +98,7 @@ public class ImageDownscaleStage extends PronghornStage {
         this.imageFrameRowBytesG = new byte[outputWidth];
         this.imageFrameRowBytesB = new byte[outputWidth];
         this.imageFrameRowBytesMono = new byte[outputWidth];
+        this.imageFrameRowBytesLookup = new byte[][]{imageFrameRowBytesR, imageFrameRowBytesG, imageFrameRowBytesB, imageFrameRowBytesMono};
     }
 
     @Override
@@ -82,176 +106,122 @@ public class ImageDownscaleStage extends PronghornStage {
 
         while (PipeReader.tryReadFragment(input)) {
             int msgIdx = PipeReader.getMsgIdx(input);
-            switch(msgIdx) { //TODO: Brandon, change to use if msdIdx==MSG_FRAMECHUNK_2   this is teh most common first checking. then else ==MSG_FRAMESTART_1
-                case ImageSchema.MSG_FRAMESTART_1:
+            if (msgIdx == ImageSchema.MSG_FRAMECHUNK_2) {
 
-                    // Extract message start data.
-                    imageFrameWidth = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101);
-                    imageFrameHeight = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
+                // Read bytes into array.
+                PipeReader.readBytes(input, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, imageFrameRowBytes, 0);
 
-                    // Ensure source resolution is evenly divisible by target resolution.
-                    assert imageFrameWidth % outputWidth == 0 &&
-                           imageFrameHeight % outputHeight == 0 : "Source resolution must be evenly divisible by target resolution. width=" + outputWidth + ", height=" + outputHeight;
+                // Downsample frame width.
+                int i = 0;
+                int k = 0;
+                for (int j = 0; j < imageFrameRowBytes.length; j += 3) {
 
-                    // Extract and verify encoding.
-                    encodingBytes.position(0);
-                    encodingBytes.limit(encodingBytes.capacity());
-                    PipeReader.readBytes(input, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, encodingBytes);
-                    assert encodingBytes.position() == INPUT_ENCODING.length;
-                    for (int i = 0; i < encodingBytes.position(); i++) { //TODO: Brandon: put this loop inside assert method...
-                        assert encodingBytes.get(i) == INPUT_ENCODING[i];
+                    // Add bytes to sum.
+                    imageFrameRowBytesDownsampled[i] += imageFrameRowBytes[j] & 0xFF;
+                    imageFrameRowBytesDownsampled[i + 1] += imageFrameRowBytes[j + 1] & 0xFF;
+                    imageFrameRowBytesDownsampled[i + 2] += imageFrameRowBytes[j + 2] & 0xFF;
+                    k++;
+
+                    // If we have summed enough pixels for one cell, reset and progress to next cell.
+                    if (k >= inputFrameColumnsPerOutputColumn) {
+                        i += 3;
+                        k = 0;
+                    }
+                }
+                assert i == imageFrameRowBytesDownsampled.length;
+
+                // If we've summed enough frames to downsample height, generate an output frame.
+                imageFrameRowsReceived++;
+                if (imageFrameRowsReceived >= inputFrameRowsPerOutputFrameRow) {
+                    imageFrameRowsReceived = 0;
+
+                    // Divide image frames by total pixels per cell.
+                    int inputPixelsPerOutputPixel = inputFrameColumnsPerOutputColumn * inputFrameRowsPerOutputFrameRow;
+                    for (i = 0; i < imageFrameRowBytesDownsampled.length; i += 3) {
+                        imageFrameRowBytesDownsampled[i] = imageFrameRowBytesDownsampled[i] / inputPixelsPerOutputPixel;
+                        imageFrameRowBytesDownsampled[i + 1] = imageFrameRowBytesDownsampled[i + 1] / inputPixelsPerOutputPixel;
+                        imageFrameRowBytesDownsampled[i + 2] = imageFrameRowBytesDownsampled[i + 2] / inputPixelsPerOutputPixel;
                     }
 
-                    // Write frame start to outputs.
-                    for (int i = 0; i < outputs.length; i++) {
-                        if (PipeWriter.tryWriteFragment(outputs[i], ImageSchema.MSG_FRAMESTART_1)) {
+                    // Extract RGB and Mono channels.
+                    i = 0;
+                    for (int j = 0; j < imageFrameRowBytesDownsampled.length; j += 3) {
 
-                            // Write basic data.
-                            PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, outputWidth);
-                            PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, outputHeight);
-                            PipeWriter.writeLong(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
-                            PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, outputWidth * outputHeight);
-                            PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 8);
+                        assert imageFrameRowBytesDownsampled[j] <= 255;
+                        assert imageFrameRowBytesDownsampled[j + 1] <= 255;
+                        assert imageFrameRowBytesDownsampled[j + 2] <= 255;
 
-                            // Write encoding.
-                            
-                            //TODO: Brandon: remove this switch, put the R_OUTPUT_ENCODING in array of 4 and look them up with encoding[i]
-                            switch (i) {
-                                case R_OUTPUT_IDX:
-                                    PipeWriter.writeBytes(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, R_OUTPUT_ENCODING);
-                                    break;
+                        // Extract RGB channels.
+                        imageFrameRowBytesR[i] = (byte) imageFrameRowBytesDownsampled[j];
+                        imageFrameRowBytesG[i] = (byte) imageFrameRowBytesDownsampled[j + 1];
+                        imageFrameRowBytesB[i] = (byte) imageFrameRowBytesDownsampled[j + 2];
 
-                                case G_OUTPUT_IDX:
-                                    PipeWriter.writeBytes(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, G_OUTPUT_ENCODING);
-                                    break;
+                        // Average bytes into mono channel.
+                        int temp = 0;
+                        temp += imageFrameRowBytesDownsampled[j];
+                        temp += imageFrameRowBytesDownsampled[j + 1];
+                        temp += imageFrameRowBytesDownsampled[j + 2];
+                        temp = temp / 3;
+                        imageFrameRowBytesMono[i] = (byte) temp;
 
-                                case B_OUTPUT_IDX:
-                                    PipeWriter.writeBytes(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, B_OUTPUT_ENCODING);
-                                    break;
+                        // Progress counter.
+                        i++;
+                    }
 
-                                case MONO_OUTPUT_IDX:
-                                    PipeWriter.writeBytes(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, MONO_OUTPUT_ENCODING);
-                                    break;
-                            }
+                    // Clear downsample bytes.
+                    Arrays.fill(imageFrameRowBytesDownsampled, 0);
 
+                    // Send channels to clients.
+                    // TODO: Refactor so that if a try-write fails, the row will be written during the next time slice.
+                    for (i = 0; i < outputs.length; i++) {
+                        if (PipeWriter.tryWriteFragment(outputs[i], ImageSchema.MSG_FRAMECHUNK_2)) {
+                            PipeWriter.writeBytes(outputs[i],
+                                                  ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
+                                                  imageFrameRowBytesLookup[i], 0, imageFrameRowBytesLookup[i].length);
                             PipeWriter.publishWrites(outputs[i]);
                         }
                     }
+                }
 
-                    break;
+            } else if (msgIdx == ImageSchema.MSG_FRAMESTART_1) {
+                // Extract message start data.
+                imageFrameWidth = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101);
+                imageFrameHeight = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
 
-                case ImageSchema.MSG_FRAMECHUNK_2:
+                // Ensure source resolution is evenly divisible by target resolution.
+                assert imageFrameWidth % outputWidth == 0 &&
+                       imageFrameHeight % outputHeight == 0 : "Source resolution must be evenly divisible by target resolution. width=" + outputWidth + ", height=" + outputHeight;
 
-                    // Calculate working frame sizes.
-                    int inputFrameColumnsPerOutputColumn = imageFrameWidth / outputWidth; //TODO: Brandon: these invariants do not change per row and should be computed once be frame
-                    int inputFrameRowsPerOutputFrameRow = imageFrameHeight / outputHeight; //TODO: Brandon: these invariants do not change per row and should be computed once be frame
+                // Validate encoding.
+                assert assertEncoding() : "Encoding is not valid.";
 
-                    // Determine row length.
-                    int rowLength = PipeReader.readBytesLength(input, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102);
+                // Write frame start to outputs.
+                for (int i = 0; i < outputs.length; i++) {
+                    if (PipeWriter.tryWriteFragment(outputs[i], ImageSchema.MSG_FRAMESTART_1)) {
 
-                    // Prepare arrays if not already ready.
-                    //TODO: Brandon: would be better to do at top of frame to avoid this conditional onevery row
-                    if (imageFrameRowBytes == null || imageFrameRowBytes.length != rowLength) {
-                        imageFrameRowBytes = new byte[rowLength];
-                        imageFrameRowBytesDownsampled = new int[outputWidth * 3];
+                        // Write basic data.
+                        PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, outputWidth);
+                        PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, outputHeight);
+                        PipeWriter.writeLong(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_TIMESTAMP_301, System.currentTimeMillis());
+                        PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401, outputWidth * outputHeight);
+                        PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 8);
+
+                        // Write encoding.
+                        PipeWriter.writeBytes(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING_LOOKUP[i]);
+
+                        PipeWriter.publishWrites(outputs[i]);
                     }
+                }
 
-                    // Read bytes into array.
-                    PipeReader.readBytes(input, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, imageFrameRowBytes, 0);
+                // Prepare arrays if not already ready.
+                if (imageFrameRowBytes == null || imageFrameRowBytes.length != imageFrameWidth * 3) {
+                    imageFrameRowBytes = new byte[imageFrameWidth * 3];
+                    imageFrameRowBytesDownsampled = new int[outputWidth * 3];
+                }
 
-                    // Downsample frame width.
-                    int i = 0;
-                    int k = 0;
-                    for (int j = 0; j < imageFrameRowBytes.length; j += 3) {
-
-                        // Add bytes to sum.
-                        imageFrameRowBytesDownsampled[i] += imageFrameRowBytes[j] & 0xFF;
-                        imageFrameRowBytesDownsampled[i + 1] += imageFrameRowBytes[j + 1] & 0xFF;
-                        imageFrameRowBytesDownsampled[i + 2] += imageFrameRowBytes[j + 2] & 0xFF;
-                        k++;
-
-                        // If we have summed enough pixels for one cell, reset and progress to next cell.
-                        if (k >= inputFrameColumnsPerOutputColumn) {
-                            i += 3;
-                            k = 0;
-                        }
-                    }
-                    assert i == imageFrameRowBytesDownsampled.length;
-
-                    // If we've summed enough frames to downsample height, generate an output frame.
-                    imageFrameRowsReceived++;
-                    if (imageFrameRowsReceived >= inputFrameRowsPerOutputFrameRow) {
-                        imageFrameRowsReceived = 0;
-
-                        // Divide image frames by total pixels per cell.
-                        int inputPixelsPerOutputPixel = inputFrameColumnsPerOutputColumn * inputFrameRowsPerOutputFrameRow;
-                        for (i = 0; i < imageFrameRowBytesDownsampled.length; i += 3) {
-                            imageFrameRowBytesDownsampled[i] = imageFrameRowBytesDownsampled[i] / inputPixelsPerOutputPixel;
-                            imageFrameRowBytesDownsampled[i + 1] = imageFrameRowBytesDownsampled[i + 1] / inputPixelsPerOutputPixel;
-                            imageFrameRowBytesDownsampled[i + 2] = imageFrameRowBytesDownsampled[i + 2] / inputPixelsPerOutputPixel;
-                        }
-
-                        // Extract RGB and Mono channels.
-                        i = 0;
-                        for (int j = 0; j < imageFrameRowBytesDownsampled.length; j += 3) {
-
-                            assert imageFrameRowBytesDownsampled[j] <= 255;
-                            assert imageFrameRowBytesDownsampled[j + 1] <= 255;
-                            assert imageFrameRowBytesDownsampled[j + 2] <= 255;
-
-                            // Extract RGB channels.
-                            imageFrameRowBytesR[i] = (byte) imageFrameRowBytesDownsampled[j];
-                            imageFrameRowBytesG[i] = (byte) imageFrameRowBytesDownsampled[j + 1];
-                            imageFrameRowBytesB[i] = (byte) imageFrameRowBytesDownsampled[j + 2];
-
-                            // Average bytes into mono channel.
-                            int temp = 0;
-                            temp += imageFrameRowBytesDownsampled[j];
-                            temp += imageFrameRowBytesDownsampled[j + 1];
-                            temp += imageFrameRowBytesDownsampled[j + 2];
-                            temp = temp / 3;
-                            imageFrameRowBytesMono[i] = (byte) temp;
-
-                            // Progress counter.
-                            i++;
-                        }
-
-                        // Clear downsample bytes.
-                        Arrays.fill(imageFrameRowBytesDownsampled, 0);
-
-                        // Send channels to clients.
-                        // TODO: Refactor so that if a try-write fails, the row will be written during the next time slice.
-                        for (i = 0; i < outputs.length; i++) {
-                            if (PipeWriter.tryWriteFragment(outputs[i], ImageSchema.MSG_FRAMECHUNK_2)) {
-                                switch (i) { //TODO: Brandon: remove switch and lookup imageFrameRowBytesR from an array of 4 from xxxx[i] aproach.
-                                    case R_OUTPUT_IDX:
-                                        PipeWriter.writeBytes(outputs[i],
-                                                              ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
-                                                              imageFrameRowBytesR, 0, imageFrameRowBytesR.length);
-                                        break;
-                                    case G_OUTPUT_IDX:
-                                        PipeWriter.writeBytes(outputs[i],
-                                                              ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
-                                                              imageFrameRowBytesG, 0, imageFrameRowBytesG.length);
-                                        break;
-                                    case B_OUTPUT_IDX:
-                                        PipeWriter.writeBytes(outputs[i],
-                                                              ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
-                                                              imageFrameRowBytesB, 0, imageFrameRowBytesB.length);
-                                        break;
-                                    case MONO_OUTPUT_IDX:
-                                        PipeWriter.writeBytes(outputs[i],
-                                                              ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
-                                                              imageFrameRowBytesMono, 0, imageFrameRowBytesMono.length);
-                                        break;
-                                }
-
-                                PipeWriter.publishWrites(outputs[i]);
-                            }
-                        }
-                    }
-
-                    break;
+                // Calculate working frame sizes.
+                inputFrameColumnsPerOutputColumn = imageFrameWidth / outputWidth;
+                inputFrameRowsPerOutputFrameRow = imageFrameHeight / outputHeight;
             }
 
             PipeReader.releaseReadLock(input);

@@ -112,7 +112,7 @@ public class MapImageStage extends PronghornStage {
 	
 	@Override
 	public void run() {
-		
+
 		assert(savePosition!=-2 || loadPosition!=-2) : "Can only load or save but not do both at same time.";
 		
 		//NOTE: if we are still saving the data do this first
@@ -297,7 +297,7 @@ public class MapImageStage extends PronghornStage {
 					
 			}
 			Pipe.confirmLowLevelRead(pipe, Pipe.sizeOf(pipe, msgIdx));
-			Pipe.publishWrites(pipe);								
+			Pipe.releaseReadLock(pipe);								
 			
 		}				
 		
@@ -329,7 +329,7 @@ public class MapImageStage extends PronghornStage {
 
 			}
 			Pipe.confirmLowLevelRead(pipe, Pipe.sizeOf(pipe, msgIdx));
-			Pipe.publishWrites(pipe);								
+			Pipe.releaseReadLock(pipe);								
 			
 		}				
 		
@@ -473,6 +473,7 @@ public class MapImageStage extends PronghornStage {
 	}
 
 	private void publishHistogram() {
+		
 		Pipe.presumeRoomForWrite(output);
 
 		int size = Pipe.addMsgIdx(output, HistogramSchema.MSG_HISTOGRAM_1);
@@ -487,7 +488,7 @@ public class MapImageStage extends PronghornStage {
 		DataOutputBlobWriter.closeLowLevelField(outputStream);
 		
 		Pipe.confirmLowLevelWrite(output, size);
-		Pipe.releaseReadLock(output);
+		Pipe.publishWrites(output);
 	}
 
 	private void finishedImageProcessing() {

@@ -75,6 +75,7 @@ public class ImageDownscaleStage extends PronghornStage {
 
     @Override
     public void run() {
+
         while (PipeReader.tryReadFragment(input)) {
             int msgIdx = PipeReader.getMsgIdx(input);
             switch(msgIdx) {

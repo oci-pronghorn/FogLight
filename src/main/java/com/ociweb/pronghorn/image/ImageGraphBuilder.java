@@ -106,7 +106,7 @@ public class ImageGraphBuilder {
 		////////////////////////////////////////
 		
 		
-		new ImageDownscaleStage(gm, imagePipe, new Pipe[] {imageR, imageG, imageB, imageM}, DOWNSCALE_WIDTH, DOWNSCALE_HEIGHT) ;
+		ImageDownscaleStage.newInstance(gm, imagePipe, new Pipe[] {imageR, imageG, imageB, imageM}, DOWNSCALE_WIDTH, DOWNSCALE_HEIGHT) ;
 	    
 		//data is only read once on startup
 		FileBlobReadStage.newInstance(gm, loadDataRaw, loadFilePath, false);		

@@ -54,6 +54,10 @@ public class ImageDownscaleStage extends PronghornStage {
     public static final byte[] B_OUTPUT_ENCODING = "B8".getBytes(StandardCharsets.US_ASCII);
     public static final byte[] MONO_OUTPUT_ENCODING = "MONO8".getBytes(StandardCharsets.US_ASCII);
 
+    public static ImageDownscaleStage newInstance(GraphManager graphManager, Pipe<ImageSchema> input, Pipe<ImageSchema>[] outputs, int outputWidth, int outputHeight) {
+        return new ImageDownscaleStage(graphManager, input, outputs, outputWidth, outputHeight);
+    }
+
     public ImageDownscaleStage(GraphManager graphManager, Pipe<ImageSchema> input, Pipe<ImageSchema>[] outputs, int outputWidth, int outputHeight) {
         super(graphManager, input, outputs);
 
@@ -87,7 +91,7 @@ public class ImageDownscaleStage extends PronghornStage {
 
                     // Ensure source resolution is evenly divisible by target resolution.
                     assert imageFrameWidth % outputWidth == 0 &&
-                           imageFrameHeight % outputHeight == 0 : "Source resolution must be evenly divisible by target resolution.";
+                           imageFrameHeight % outputHeight == 0 : "Source resolution must be evenly divisible by target resolution. width=" + outputWidth + ", height=" + outputHeight;
 
                     // Extract and verify encoding.
                     encodingBytes.position(0);

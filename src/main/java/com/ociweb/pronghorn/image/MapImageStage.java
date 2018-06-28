@@ -157,6 +157,10 @@ public class MapImageStage extends PronghornStage {
 					publishHistogram();
 					
 					finishedImageProcessing();
+					
+					if (Pipe.hasContentToRead(modeIn)) {
+						readModeData(modeIn);	
+					}
 				}				
 			}
 			
@@ -294,7 +298,6 @@ public class MapImageStage extends PronghornStage {
 						locations.removeFromAll(activeLearningLocationBase+j);
 					}
 					break;
-					
 			}
 			Pipe.confirmLowLevelRead(pipe, Pipe.sizeOf(pipe, msgIdx));
 			Pipe.releaseReadLock(pipe);								

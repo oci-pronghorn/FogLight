@@ -229,7 +229,8 @@ public class MapImageStage extends PronghornStage {
 							Pipe.skipNextFragment(imgInput, msgIdx);
 						}
 					} else if (ImageSchema.MSG_FRAMESTART_1 == msgIdx) {
-						
+
+						activeRow = 0; //Tobi's change
 						imageInProgress = true;
 						totalWidth = Pipe.takeInt(imgInput);
 						totalRows = Pipe.takeInt(imgInput);

@@ -78,7 +78,7 @@ public class ImageDownscaleStage extends PronghornStage {
 
         while (PipeReader.tryReadFragment(input)) {
             int msgIdx = PipeReader.getMsgIdx(input);
-            switch(msgIdx) {
+            switch(msgIdx) { //TODO: Brandon, change to use if msdIdx==MSG_FRAMECHUNK_2   this is teh most common first checking. then else ==MSG_FRAMESTART_1
                 case ImageSchema.MSG_FRAMESTART_1:
 
                     // Extract message start data.
@@ -94,7 +94,7 @@ public class ImageDownscaleStage extends PronghornStage {
                     encodingBytes.limit(encodingBytes.capacity());
                     PipeReader.readBytes(input, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, encodingBytes);
                     assert encodingBytes.position() == INPUT_ENCODING.length;
-                    for (int i = 0; i < encodingBytes.position(); i++) {
+                    for (int i = 0; i < encodingBytes.position(); i++) { //TODO: Brandon: put this loop inside assert method...
                         assert encodingBytes.get(i) == INPUT_ENCODING[i];
                     }
 
@@ -110,6 +110,8 @@ public class ImageDownscaleStage extends PronghornStage {
                             PipeWriter.writeInt(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_BITSPERPIXEL_501, 8);
 
                             // Write encoding.
+                            
+                            //TODO: Brandon: remove this switch, put the R_OUTPUT_ENCODING in array of 4 and look them up with encoding[i]
                             switch (i) {
                                 case R_OUTPUT_IDX:
                                     PipeWriter.writeBytes(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, R_OUTPUT_ENCODING);
@@ -137,13 +139,14 @@ public class ImageDownscaleStage extends PronghornStage {
                 case ImageSchema.MSG_FRAMECHUNK_2:
 
                     // Calculate working frame sizes.
-                    int inputFrameColumnsPerOutputColumn = imageFrameWidth / outputWidth;
-                    int inputFrameRowsPerOutputFrameRow = imageFrameHeight / outputHeight;
+                    int inputFrameColumnsPerOutputColumn = imageFrameWidth / outputWidth; //TODO: Brandon: these invariants do not change per row and should be computed once be frame
+                    int inputFrameRowsPerOutputFrameRow = imageFrameHeight / outputHeight; //TODO: Brandon: these invariants do not change per row and should be computed once be frame
 
                     // Determine row length.
                     int rowLength = PipeReader.readBytesLength(input, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102);
 
                     // Prepare arrays if not already ready.
+                    //TODO: Brandon: would be better to do at top of frame to avoid this conditional onevery row
                     if (imageFrameRowBytes == null || imageFrameRowBytes.length != rowLength) {
                         imageFrameRowBytes = new byte[rowLength];
                         imageFrameRowBytesDownsampled = new int[outputWidth * 3];
@@ -216,7 +219,7 @@ public class ImageDownscaleStage extends PronghornStage {
                         // TODO: Refactor so that if a try-write fails, the row will be written during the next time slice.
                         for (i = 0; i < outputs.length; i++) {
                             if (PipeWriter.tryWriteFragment(outputs[i], ImageSchema.MSG_FRAMECHUNK_2)) {
-                                switch (i) {
+                                switch (i) { //TODO: Brandon: remove switch and lookup imageFrameRowBytesR from an array of 4 from xxxx[i] aproach.
                                     case R_OUTPUT_IDX:
                                         PipeWriter.writeBytes(outputs[i],
                                                               ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,

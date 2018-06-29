@@ -233,8 +233,6 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 							System.out.append("pct: ");
 							Appendables.appendDecimalValue(System.out, pct, (byte) -3);
 							System.out.println();
-						} else {
-							System.out.println("totalSum is 0");
 						}
 						
 					}

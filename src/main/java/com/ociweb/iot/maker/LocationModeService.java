@@ -28,7 +28,7 @@ public class LocationModeService {
 	}
 	
 	public boolean learnCycle(int baseLocation, int maxSteps) {
-		
+
 		if (Pipe.hasRoomForWrite(cmd.locationModeOutput)) {
 			int size = Pipe.addMsgIdx(cmd.locationModeOutput, LocationModeSchema.MSG_CYCLELEARNINGSTART_1);
 			Pipe.addIntValue(baseLocation, cmd.locationModeOutput);

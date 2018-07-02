@@ -235,7 +235,7 @@ public class MapImageStage extends PronghornStage {
 										
 									} else {
 										//store single value as negative until a second needs to be stored
-										locationSetId(rowData, rowBase, activeColumn, SINGLE_BASE-locationSetId);
+										locationSetId(rowData, rowBase, activeColumn, SINGLE_BASE-activeLocation);
 									}
 									
 								}

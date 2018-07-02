@@ -687,11 +687,11 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		IDX_NET = useNetClient(httpClientRequestPipes) ? eventSchemas++ : -1;
 		IDX_SER = serialOutputPipes.length>0 ? eventSchemas++ : -1;
 
-		logger.info("build stages pin {}",IDX_PIN);
-		logger.info("build stages i2c {}",IDX_I2C);
-		logger.info("build stages msg {}",IDX_MSG);
-		logger.info("build stages net {}",IDX_NET);
-		logger.info("build stages ser {}",IDX_SER);
+//		logger.info("build stages pin {}",IDX_PIN);
+//		logger.info("build stages i2c {}",IDX_I2C);
+//		logger.info("build stages msg {}",IDX_MSG);
+//		logger.info("build stages net {}",IDX_NET);
+//		logger.info("build stages ser {}",IDX_SER);
 			
 		
 		long timeout = 20_000; //20 seconds

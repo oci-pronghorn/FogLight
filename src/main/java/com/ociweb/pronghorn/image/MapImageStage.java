@@ -24,6 +24,8 @@ import com.ociweb.pronghorn.util.primitive.LoisVisitor;
 public class MapImageStage extends PronghornStage {
 
 	private static final int NO_DATA = -1;
+	private static final int SINGLE_BASE = -2;
+	
 	private int[]   workspace;
 	private Lois locations; 	
 	private int [] imageLookup;
@@ -178,8 +180,13 @@ public class MapImageStage extends PronghornStage {
 								///////////////////////
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
 									int locationSetId = locationSetId(rowData, rowBase, activeColumn);
-									if (NO_DATA!=locationSetId) {
-										locations.visitSet(locationSetId, sumVisitor );
+									if (NO_DATA != locationSetId) {
+										if (locationSetId<0) {										
+											//we have a single value so convert and match it
+											sumVisitor.visit(SINGLE_BASE - locationSetId);											
+										} else {
+											locations.visitSet(locationSetId, sumVisitor );
+										}
 									}
 								}
 								if (activeRow == totalRows) {
@@ -213,18 +220,24 @@ public class MapImageStage extends PronghornStage {
 								
 								//learn this new location
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
-									
-									//TODO: dramatic memory savings if we use -2+ values for storage
-									//      of a single value....
-									
+
 									int locationSetId = locationSetId(rowData, rowBase, activeColumn);
-									if (NO_DATA!=locationSetId) {
-										locations.insert(locationSetId, activeLocation);
-									} else {
-										locationSetId = locations.newSet();
+									if (NO_DATA != locationSetId) {
+										if (locationSetId<0) {
+											//we now have 2 values stored here so extract first and collect both
+											int firstValue = SINGLE_BASE-locationSetId;
+
+											locationSetId = locations.newSet();
+											locations.insert(locationSetId, firstValue);
+											locationSetId(rowData, rowBase, activeColumn, locationSetId);
+										}
 										System.out.println("locationSetId: " + locationSetId + " | activeLocation: " + activeLocation);
 										locations.insert(locationSetId, activeLocation);
-										locationSetId(rowData, rowBase, activeColumn, locationSetId);
+										
+									} else {
+										System.out.println("storing single value as negative until a second needs to be stored!");
+										//store single value as negative until a second needs to be stored
+										locationSetId(rowData, rowBase, activeColumn, SINGLE_BASE-locationSetId);
 									}
 									
 								}
@@ -243,7 +256,7 @@ public class MapImageStage extends PronghornStage {
 							Pipe.skipNextFragment(imgInput, msgIdx);
 						}
 					} else if (ImageSchema.MSG_FRAMESTART_1 == msgIdx) {
-
+						
 						imageInProgress = true;
 						totalWidth = Pipe.takeInt(imgInput);
 						totalRows = Pipe.takeInt(imgInput);
@@ -367,14 +380,27 @@ public class MapImageStage extends PronghornStage {
 		int countLimit = (totalWidth*4)/3;
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
 			int locationSetId = locationSetId(rowData, rowBase, activeColumn);
-			if (NO_DATA!=locationSetId) {
-				if (locations.containsAny(locationSetId,
-						                  activeLearningLocationBase, endValue)) {
-					if (isLoopCompleted=(++totalMatches>countLimit)) {											
-						break;
+			if (NO_DATA != locationSetId) {
+				
+				if (locationSetId<0) {
+					//we have just 1 value so we check it
+					int value = (SINGLE_BASE-locationSetId);
+					if ((value>=activeLearningLocationBase) && (value<endValue)) {
+						if (isLoopCompleted=(++totalMatches>countLimit)) {											
+							break;
+						}
 					}
+				} else {
 					
-				};							
+					if (locations.containsAny(locationSetId,
+							                  activeLearningLocationBase, endValue)) {
+						if (isLoopCompleted=(++totalMatches>countLimit)) {											
+							break;
+						}
+						
+					}
+				}
+				
 			}
 		}
 		return isLoopCompleted;

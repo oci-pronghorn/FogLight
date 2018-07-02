@@ -42,8 +42,7 @@ public class MapImageStage extends PronghornStage {
     
 	private final Pipe<HistogramSchema> output;
 	
-	private boolean isShuttingDown = false;
-	
+	private boolean isShuttingDown = false;	
 	private boolean loadingNewMap = false;	
 	private boolean imageInProgress = false;
 	
@@ -51,6 +50,7 @@ public class MapImageStage extends PronghornStage {
 	private int totalWidth;
 	private long time;
 	private int activeRow;
+
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override
@@ -61,6 +61,7 @@ public class MapImageStage extends PronghornStage {
 		
 	};
 
+	private boolean hasLiveDataSet = false;
 	private boolean isLearning = false; 
 	private int activeLearningLocationBase;
 	private int learningMaxSlices; //cycle may use less but not more than this or the location will change
@@ -150,18 +151,6 @@ public class MapImageStage extends PronghornStage {
 					readModeData(modeIn);	
 				}
 				
-			} else {
-				//we are image in progress
-				if (activeRow == totalRows) {
-					//we have a complete message to send
-					publishHistogram();
-					
-					finishedImageProcessing();
-					
-					if (Pipe.hasContentToRead(modeIn)) {
-						readModeData(modeIn);	
-					}
-				}				
 			}
 			
 			//if we are not loading a new map check for an image to process
@@ -190,7 +179,12 @@ public class MapImageStage extends PronghornStage {
 									locations.visitSet(locationSetId(rowData, rowBase, activeColumn), sumVisitor );
 								}
 								if (activeRow == totalRows) {
-									publishHistogram();									
+									
+									if (hasLiveDataSet) {		
+										//only publish if is valid									
+										publishHistogram();	
+									}
+									
 									finishedImageProcessing();
 								}						
 							} else {
@@ -201,6 +195,7 @@ public class MapImageStage extends PronghornStage {
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status								
 								if (isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
+									hasLiveDataSet = true;
 									//send done status to see if the other actors agree									
 									publishCycleDone(activeLearningLocationBase, cycleStep);
 								} 
@@ -451,7 +446,8 @@ public class MapImageStage extends PronghornStage {
 				loadPosition = -2;
 				boolean result = locations.load(pipe); //if in this state keep calling.
 				if (result) {
-					loadPosition = -1;//done					
+					loadPosition = -1;//done
+					hasLiveDataSet = true;
 				}
 				return result;
 			}

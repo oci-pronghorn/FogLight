@@ -115,7 +115,7 @@ public class ImageDownscaleStage extends PronghornStage {
                 // Downsample frame width.
                 int i = 0;
                 int k = 0;
-                for (int j = 0; j < imageFrameWidth*3; j += 3) {
+                for (int j = 0; j < imageFrameWidth * 3; j += 3) {
 
                     // Add bytes to sum.
                     imageFrameRowBytesDownsampled[i] += inputStream.readByte() & 0xFF;
@@ -138,31 +138,26 @@ public class ImageDownscaleStage extends PronghornStage {
 
                     // Divide image frames by total pixels per cell.
                     // Extract RGB and Mono channels.
-                    
                     int inputPixelsPerOutputPixel = inputFrameColumnsPerOutputColumn * inputFrameRowsPerOutputFrameRow;
 
                     i = 0;
                     for (int j = 0; j < imageFrameRowBytesDownsampled.length; j += 3) {
-                    	int a = imageFrameRowBytesDownsampled[j] / inputPixelsPerOutputPixel;
-                    	int b = imageFrameRowBytesDownsampled[j + 1] / inputPixelsPerOutputPixel;
-                    	int c = imageFrameRowBytesDownsampled[j + 2] / inputPixelsPerOutputPixel;
-
-                        assert a <= 255;
-                        assert b <= 255;
-                        assert c <= 255;
 
                         // Extract RGB channels.
-                        imageFrameRowBytesR[i] = (byte) a;
-                        imageFrameRowBytesG[i] = (byte) b;
-                        imageFrameRowBytesB[i] = (byte) c;
+                    	int r = imageFrameRowBytesDownsampled[j] / inputPixelsPerOutputPixel;
+                    	int g = imageFrameRowBytesDownsampled[j + 1] / inputPixelsPerOutputPixel;
+                    	int b = imageFrameRowBytesDownsampled[j + 2] / inputPixelsPerOutputPixel;
 
-                        // Average bytes into mono channel.
-                        int temp = 0;
-                        temp += a;
-                        temp += b;
-                        temp += c;
-                        temp = temp / 3;
-                        imageFrameRowBytesMono[i] = (byte) temp;
+                        assert r <= 255;
+                        assert g <= 255;
+                        assert b <= 255;
+
+                        imageFrameRowBytesR[i] = (byte) r;
+                        imageFrameRowBytesG[i] = (byte) g;
+                        imageFrameRowBytesB[i] = (byte) b;
+
+                        // Convert RGB24 pixel into monochrome.
+                        imageFrameRowBytesMono[i] = (byte) ((0.2125 * r) + (0.7154 * g) + (0.0721 * b));
 
                         // Progress counter.
                         i++;

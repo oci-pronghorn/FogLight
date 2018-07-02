@@ -220,10 +220,7 @@ public class MapImageStage extends PronghornStage {
 								
 								//learn this new location
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
-									
-									//TODO: dramatic memory savings if we use -2+ values for storage
-									//      of a single value....
-									
+
 									int locationSetId = locationSetId(rowData, rowBase, activeColumn);
 									if (NO_DATA != locationSetId) {
 										if (locationSetId<0) {

@@ -1,6 +1,7 @@
 package com.ociweb.pronghorn.image;
 
 import com.ociweb.pronghorn.image.schema.ImageSchema;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -55,7 +56,7 @@ public class ImageDownscaleStage extends PronghornStage {
     private int inputFrameColumnsPerOutputColumn = -1;
     private int inputFrameRowsPerOutputFrameRow = -1;
     private int imageFrameRowsReceived = 0;
-    private byte[] imageFrameRowBytes = null;
+   
     private int[] imageFrameRowBytesDownsampled = null;
     private final byte[] imageFrameRowBytesR;
     private final byte[] imageFrameRowBytesG;
@@ -104,22 +105,22 @@ public class ImageDownscaleStage extends PronghornStage {
     @Override
     public void run() {
 
-        while (PipeReader.tryReadFragment(input)) {
+        while (outputsHaveRoom() && PipeReader.tryReadFragment(input)) {
             int msgIdx = PipeReader.getMsgIdx(input);
             if (msgIdx == ImageSchema.MSG_FRAMECHUNK_2) {
 
                 // Read bytes into array.
-                PipeReader.readBytes(input, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, imageFrameRowBytes, 0);
-
+            	ChannelReader inputStream = PipeReader.inputStream(input, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102);
+            	           	            	
                 // Downsample frame width.
                 int i = 0;
                 int k = 0;
-                for (int j = 0; j < imageFrameRowBytes.length; j += 3) {
+                for (int j = 0; j < imageFrameWidth * 3; j += 3) {
 
                     // Add bytes to sum.
-                    imageFrameRowBytesDownsampled[i] += imageFrameRowBytes[j] & 0xFF;
-                    imageFrameRowBytesDownsampled[i + 1] += imageFrameRowBytes[j + 1] & 0xFF;
-                    imageFrameRowBytesDownsampled[i + 2] += imageFrameRowBytes[j + 2] & 0xFF;
+                    imageFrameRowBytesDownsampled[i] += inputStream.readByte() & 0xFF;
+                    imageFrameRowBytesDownsampled[i + 1] += inputStream.readByte() & 0xFF;
+                    imageFrameRowBytesDownsampled[i + 2] += inputStream.readByte() & 0xFF;
                     k++;
 
                     // If we have summed enough pixels for one cell, reset and progress to next cell.
@@ -136,25 +137,21 @@ public class ImageDownscaleStage extends PronghornStage {
                     imageFrameRowsReceived = 0;
 
                     // Divide image frames by total pixels per cell.
-                    int inputPixelsPerOutputPixel = inputFrameColumnsPerOutputColumn * inputFrameRowsPerOutputFrameRow;
-                    for (i = 0; i < imageFrameRowBytesDownsampled.length; i += 3) {
-                        imageFrameRowBytesDownsampled[i] = imageFrameRowBytesDownsampled[i] / inputPixelsPerOutputPixel;
-                        imageFrameRowBytesDownsampled[i + 1] = imageFrameRowBytesDownsampled[i + 1] / inputPixelsPerOutputPixel;
-                        imageFrameRowBytesDownsampled[i + 2] = imageFrameRowBytesDownsampled[i + 2] / inputPixelsPerOutputPixel;
-                    }
-
                     // Extract RGB and Mono channels.
+                    int inputPixelsPerOutputPixel = inputFrameColumnsPerOutputColumn * inputFrameRowsPerOutputFrameRow;
+
                     i = 0;
                     for (int j = 0; j < imageFrameRowBytesDownsampled.length; j += 3) {
 
-                        assert imageFrameRowBytesDownsampled[j] <= 255;
-                        assert imageFrameRowBytesDownsampled[j + 1] <= 255;
-                        assert imageFrameRowBytesDownsampled[j + 2] <= 255;
-
                         // Extract RGB channels.
-                        long r = imageFrameRowBytesDownsampled[j];
-                        long g = imageFrameRowBytesDownsampled[j + 1];
-                        long b = imageFrameRowBytesDownsampled[j + 2];
+                    	int r = imageFrameRowBytesDownsampled[j] / inputPixelsPerOutputPixel;
+                    	int g = imageFrameRowBytesDownsampled[j + 1] / inputPixelsPerOutputPixel;
+                    	int b = imageFrameRowBytesDownsampled[j + 2] / inputPixelsPerOutputPixel;
+
+                        assert r <= 255;
+                        assert g <= 255;
+                        assert b <= 255;
+
                         imageFrameRowBytesR[i] = (byte) r;
                         imageFrameRowBytesG[i] = (byte) g;
                         imageFrameRowBytesB[i] = (byte) b;
@@ -177,6 +174,8 @@ public class ImageDownscaleStage extends PronghornStage {
                                                   ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102,
                                                   imageFrameRowBytesLookup[i], 0, imageFrameRowBytesLookup[i].length);
                             PipeWriter.publishWrites(outputs[i]);
+                        } else {
+                        	throw new UnsupportedOperationException("Should not happen since we checked already");
                         }
                     }
                 }
@@ -208,12 +207,13 @@ public class ImageDownscaleStage extends PronghornStage {
                         PipeWriter.writeBytes(outputs[i], ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING_LOOKUP[i]);
 
                         PipeWriter.publishWrites(outputs[i]);
+                    } else {
+                    	throw new UnsupportedOperationException("Should not happen since we checked already");
                     }
                 }
 
                 // Prepare arrays if not already ready.
-                if (imageFrameRowBytes == null || imageFrameRowBytes.length != imageFrameWidth * 3) {
-                    imageFrameRowBytes = new byte[imageFrameWidth * 3];
+                if (imageFrameRowBytesDownsampled == null || imageFrameRowBytesDownsampled.length != outputWidth * 3) {
                     imageFrameRowBytesDownsampled = new int[outputWidth * 3];
                 }
 
@@ -225,4 +225,14 @@ public class ImageDownscaleStage extends PronghornStage {
             PipeReader.releaseReadLock(input);
         }
     }
+
+	private boolean outputsHaveRoom() {
+		int i = outputs.length;
+		while (--i >= 0) {
+			if (!PipeWriter.hasRoomForWrite(outputs[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

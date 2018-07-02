@@ -152,17 +152,15 @@ public class ImageDownscaleStage extends PronghornStage {
                         assert imageFrameRowBytesDownsampled[j + 2] <= 255;
 
                         // Extract RGB channels.
-                        imageFrameRowBytesR[i] = (byte) imageFrameRowBytesDownsampled[j];
-                        imageFrameRowBytesG[i] = (byte) imageFrameRowBytesDownsampled[j + 1];
-                        imageFrameRowBytesB[i] = (byte) imageFrameRowBytesDownsampled[j + 2];
+                        long r = imageFrameRowBytesDownsampled[j];
+                        long g = imageFrameRowBytesDownsampled[j + 1];
+                        long b = imageFrameRowBytesDownsampled[j + 2];
+                        imageFrameRowBytesR[i] = (byte) r;
+                        imageFrameRowBytesG[i] = (byte) g;
+                        imageFrameRowBytesB[i] = (byte) b;
 
-                        // Average bytes into mono channel.
-                        int temp = 0;
-                        temp += imageFrameRowBytesDownsampled[j];
-                        temp += imageFrameRowBytesDownsampled[j + 1];
-                        temp += imageFrameRowBytesDownsampled[j + 2];
-                        temp = temp / 3;
-                        imageFrameRowBytesMono[i] = (byte) temp;
+                        // Convert RGB24 pixel into monochrome.
+                        imageFrameRowBytesMono[i] = (byte) ((0.2125 * r) + (0.7154 * g) + (0.0721 * b));
 
                         // Progress counter.
                         i++;

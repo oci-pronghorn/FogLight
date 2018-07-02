@@ -23,6 +23,7 @@ import com.ociweb.pronghorn.util.primitive.LoisVisitor;
 
 public class MapImageStage extends PronghornStage {
 
+	private static final int NO_DATA = -1;
 	private int[]   workspace;
 	private Lois locations; 	
 	private int [] imageLookup;
@@ -30,8 +31,8 @@ public class MapImageStage extends PronghornStage {
 	private int imageHeight;
 	private int imageDepth = 256;//default value
 		
-	private transient int loadPosition = -1;
-	private transient int savePosition = -1;
+	private transient int loadPosition = NO_DATA;
+	private transient int savePosition = NO_DATA;
 	
 	private final Pipe<ImageSchema> imgInput; 
     private final Pipe<RawDataSchema> loadingMappingData;
@@ -61,7 +62,7 @@ public class MapImageStage extends PronghornStage {
 		
 	};
 
-	private boolean hasLiveDataSet = false;
+	private boolean hasDataSet = false;
 	private boolean isLearning = false; 
 	private int activeLearningLocationBase;
 	private int learningMaxSlices; //cycle may use less but not more than this or the location will change
@@ -128,7 +129,7 @@ public class MapImageStage extends PronghornStage {
 		//NOTE: if we are still loading the data do this first.
 		if (loadPosition == -2) {
 			if (locations.load(loadingMappingData)) {
-				loadPosition = -1;//done					
+				loadPosition = NO_DATA;//done					
 			} else {
 				//need to try load again later
 				return;
@@ -176,11 +177,14 @@ public class MapImageStage extends PronghornStage {
 								//normal location scanning
 								///////////////////////
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
-									locations.visitSet(locationSetId(rowData, rowBase, activeColumn), sumVisitor );
+									int locationSetId = locationSetId(rowData, rowBase, activeColumn);
+									if (NO_DATA!=locationSetId) {
+										locations.visitSet(locationSetId, sumVisitor );
+									}
 								}
 								if (activeRow == totalRows) {
 									
-									if (hasLiveDataSet) {		
+									if (hasDataSet) {		
 										//only publish if is valid									
 										publishHistogram();	
 									}
@@ -195,7 +199,7 @@ public class MapImageStage extends PronghornStage {
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status								
 								if (isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
-									hasLiveDataSet = true;
+									hasDataSet = true;
 									//send done status to see if the other actors agree									
 									publishCycleDone(activeLearningLocationBase, cycleStep);
 								} 
@@ -210,8 +214,18 @@ public class MapImageStage extends PronghornStage {
 								//learn this new location
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
 									
-									locations.insert(locationSetId(rowData, rowBase, activeColumn), 
-													 activeLocation);
+									//TODO: dramatic memory savings if we use -2+ values for storage
+									//      of a single value....
+									
+									int locationSetId = locationSetId(rowData, rowBase, activeColumn);
+									if (NO_DATA!=locationSetId) {
+										locations.insert(locationSetId, activeLocation);
+									} else {
+										locationSetId = locations.newSet();
+										locationSetId(rowData, rowBase, activeColumn, locationSetId);
+										locations.insert(locationSetId, activeLocation);
+									}
+									
 								}
 								if (activeRow == totalRows) {
 									//no histogram to send..
@@ -252,7 +266,7 @@ public class MapImageStage extends PronghornStage {
 						Pipe.releaseReadLock(imgInput);
 						
 					} else {
-						if (-1 != msgIdx) {
+						if (NO_DATA != msgIdx) {
 							throw new UnsupportedOperationException("Unexpected message idx of:"+msgIdx);
 						}
 						
@@ -351,13 +365,16 @@ public class MapImageStage extends PronghornStage {
 		int totalMatches = 0;
 		int countLimit = (totalWidth*4)/3;
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
-			if (locations.containsAny(locationSetId(rowData, rowBase, activeColumn),
-					                  activeLearningLocationBase, endValue)) {
-				if (isLoopCompleted=(++totalMatches>countLimit)) {											
-					break;
-				}
-				
-			};									
+			int locationSetId = locationSetId(rowData, rowBase, activeColumn);
+			if (NO_DATA!=locationSetId) {
+				if (locations.containsAny(locationSetId,
+						                  activeLearningLocationBase, endValue)) {
+					if (isLoopCompleted=(++totalMatches>countLimit)) {											
+						break;
+					}
+					
+				};							
+			}
 		}
 		return isLoopCompleted;
 	}
@@ -375,6 +392,18 @@ public class MapImageStage extends PronghornStage {
 		                               +readByte];
 	}
 
+	private void locationSetId(DataInputBlobReader<ImageSchema> rowData, int rowBase, int activeColumn, int newId) {
+		
+		assert(rowBase>=0);
+		assert(activeColumn>=0);
+		assert(imageDepth>=0);
+		
+		int readByte = 0xFF&rowData.readByte();
+		imageLookup[  rowBase                            
+		              +(activeColumn*imageDepth)
+		              +readByte] = newId;
+	}
+	
 
 	public boolean save(Pipe<RawDataSchema> pipe) {
 		assert (pipe.maxVarLen<(ChannelReader.PACKED_INT_SIZE*4)) : "Pipes must hold longer messages to write this content";
@@ -382,7 +411,7 @@ public class MapImageStage extends PronghornStage {
 		while (Pipe.hasRoomForWrite(pipe)) {					
 			int size = Pipe.addMsgIdx(pipe, RawDataSchema.MSG_CHUNKEDSTREAM_1);
 			ChannelWriter writer = Pipe.openOutputStream(pipe);
-			if (savePosition==-1) { //new file
+			if (savePosition==NO_DATA) { //new file
 				
 				writer.writePackedInt(imageWidth);
 				writer.writePackedInt(imageHeight);
@@ -403,7 +432,7 @@ public class MapImageStage extends PronghornStage {
 				
 				boolean result = locations.save(pipe); //if in this state keep calling.
 				if (result) {
-					loadPosition = -1;//done					
+					loadPosition = NO_DATA;//done					
 				}
 				
 				return result;
@@ -419,7 +448,7 @@ public class MapImageStage extends PronghornStage {
 			ChannelReader reader = Pipe.inputStream(pipe);			
 			int startingAvailable = reader.available();
 			
-			if (loadPosition == -1) {
+			if (loadPosition == NO_DATA) {
 				
 				//note this value here forces us to keep init at 16 and min block at 4
 				if (reader.available() < (ChannelReader.PACKED_INT_SIZE*4)) {
@@ -446,8 +475,8 @@ public class MapImageStage extends PronghornStage {
 				loadPosition = -2;
 				boolean result = locations.load(pipe); //if in this state keep calling.
 				if (result) {
-					loadPosition = -1;//done
-					hasLiveDataSet = true;
+					loadPosition = NO_DATA;//done
+					hasDataSet = true;
 				}
 				return result;
 			}
@@ -467,6 +496,7 @@ public class MapImageStage extends PronghornStage {
 		//init the image matrix as needed		
 		if (null ==	imageLookup || imageLookup.length != imageLookupLength) {
 			imageLookup = new int[imageLookupLength];
+			Arrays.fill(imageLookup, NO_DATA);//this is a marker for no data
 		}
 		loadPosition = 0;
 	}

@@ -222,8 +222,9 @@ public class MapImageStage extends PronghornStage {
 										locations.insert(locationSetId, activeLocation);
 									} else {
 										locationSetId = locations.newSet();
-										locationSetId(rowData, rowBase, activeColumn, locationSetId);
+										System.out.println("locationSetId: " + locationSetId + " | activeLocation: " + activeLocation);
 										locations.insert(locationSetId, activeLocation);
+										locationSetId(rowData, rowBase, activeColumn, locationSetId);
 									}
 									
 								}

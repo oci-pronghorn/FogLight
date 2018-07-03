@@ -4,8 +4,12 @@ import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CalibrationCyclicBarierStage extends PronghornStage {
+
+	private static final Logger logger = LoggerFactory.getLogger(CalibrationCyclicBarierStage.class);
 
 	private Pipe<CalibrationStatusSchema> calibrationDone; 
 	private Pipe<CalibrationStatusSchema>[] calibrationDoneInputs;
@@ -43,6 +47,7 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 			sum += process(calibrationDoneInputs[i]);
 		}
 		if ((4 == sum) && Pipe.hasRoomForWrite(calibrationDone)) {
+			logger.info("sum={}, had room for calibrationDone write.", sum);
 			//send selection
 			int size = Pipe.addMsgIdx(calibrationDone, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1);			
 			Pipe.addIntValue(activeLocation, calibrationDone);
@@ -57,12 +62,12 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 			
 			//clear the pipes
 			clearOld();
-			
 		}
 		
 	}
 
 	private void clearOld() {
+		logger.info("Clearing old");
 		int i = calibrationDoneInputs.length;
 		while (--i>=0) {
 			while (
@@ -82,10 +87,11 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 				activeLocation = base;
 			}
 			if (base == activeLocation) {
+				// This is the one we actually care about:
 				int units = Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_TOTALUNITS_13);
 				if (units>activeCount) {
 					activeCount = units;
-				} else if (units<activeCount) {
+				} else if (units < activeCount) {
 					do {
 						//consume message because some other pipe does not have anything this low.
 						Pipe.skipNextFragment(pipe);

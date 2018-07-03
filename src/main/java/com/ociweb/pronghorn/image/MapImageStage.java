@@ -98,7 +98,7 @@ public class MapImageStage extends PronghornStage {
 							String colorLabel
 			               ) {
 		
-		super(graphManager, join(imgInput,loadingMappingData, modeIn, ack), join(output,savingMappingData, statusOut) );
+		super(graphManager, join(imgInput,loadingMappingData, modeIn, ack), join(output, savingMappingData, statusOut) );
 		
 		this.imgInput = imgInput;
 		this.loadingMappingData = loadingMappingData;

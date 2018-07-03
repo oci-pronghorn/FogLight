@@ -215,7 +215,7 @@ public class MapImageStage extends PronghornStage {
 								
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status								
-								if (hasDataSet || isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
+								if (isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
 									
 									hasDataSet = true;
 									//send done status to see if the other actors agree									
@@ -225,11 +225,7 @@ public class MapImageStage extends PronghornStage {
 								
 								//generate new location id
 								int activeLocation = activeLearningLocationBase + cycleStep;
-								//ensure steps stays under the max slice value so location base is not disturbed.
-								if (++cycleStep >= learningMaxSlices) {
-									cycleStep = 0; 
-								}
-								
+											
 								//learn this new location
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
 
@@ -256,6 +252,10 @@ public class MapImageStage extends PronghornStage {
 									
 								}
 								if (activeRow == totalRows) {
+									//ensure steps stays under the max slice value so location base is not disturbed.
+									if (++cycleStep >= learningMaxSlices) {
+										cycleStep = 0; 
+									}
 									//no histogram to send..
 									finishedImageProcessing();
 								}

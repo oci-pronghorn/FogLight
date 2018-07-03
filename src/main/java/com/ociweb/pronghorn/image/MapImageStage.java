@@ -54,7 +54,7 @@ public class MapImageStage extends PronghornStage {
 	private long time;
 	private int activeRow;
 	
-	private final int shiftColors = 1;
+	private final int shiftColors = 2;
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override
@@ -421,7 +421,8 @@ public class MapImageStage extends PronghornStage {
 			//}
 				
 		}
-		logger.info("found only {} total matches of {} but must have {}", totalMatches, totalWidth, countLimit);
+				
+		logger.info("found only {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
 		
 		return isLoopCompleted;
 	}

@@ -64,7 +64,18 @@ public class MapImageStage extends PronghornStage {
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override
 		public boolean visit(int location) {
-			workspace[location%learningMaxSlices]++; 
+			int cycleUnit = location%learningMaxSlices;
+			if (cycleUnit < workspace.length) {	
+				
+				workspace[cycleUnit]++; 
+				
+			} else {
+				int [] newWork = new int[Math.max(cycleUnit,workspace.length)*2];
+				System.arraycopy(workspace, 0, newWork, 0, workspace.length);
+				workspace = newWork;
+				workspace[cycleUnit]++;				
+				
+			}
  			return true;
 		}
 		
@@ -287,8 +298,8 @@ public class MapImageStage extends PronghornStage {
 						
 						if (null == workspace || imageWidth!=totalWidth || imageHeight!=totalRows) {
 			
-							int maxLocatons = output.maxVarLen/ChannelReader.PACKED_INT_SIZE;
-							initProcessing(totalWidth, totalRows, maxLocatons);
+							//int maxLocatons = output.maxVarLen/ChannelReader.PACKED_LONG_SIZE; //hack
+							initProcessing(totalWidth, totalRows, 1000);
 						}
 						
 						

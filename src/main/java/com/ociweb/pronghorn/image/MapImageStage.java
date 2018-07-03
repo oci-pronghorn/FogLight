@@ -217,7 +217,7 @@ public class MapImageStage extends PronghornStage {
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status	
 								int dataPos = rowData.absolutePosition();
-								logger.info("cycleStep: {}", cycleStep);
+								logger.info("cycleStep: {} for stage {}", cycleStep, this.toString());
 								if (cycleStep>minCycles && isCycleComplete(rowData, rowBase, activeLearningLocationBase)) {
 									
 									hasDataSet = true;

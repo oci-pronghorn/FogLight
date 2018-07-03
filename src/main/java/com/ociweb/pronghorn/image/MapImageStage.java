@@ -53,7 +53,6 @@ public class MapImageStage extends PronghornStage {
 	private int totalWidth;
 	private long time;
 	private int activeRow;
-
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override
@@ -206,9 +205,11 @@ public class MapImageStage extends PronghornStage {
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status								
 								if (isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
+									
 									hasDataSet = true;
 									//send done status to see if the other actors agree									
 									publishCycleDone(activeLearningLocationBase, cycleStep);
+									
 								} 
 								
 								//generate new location id
@@ -376,8 +377,12 @@ public class MapImageStage extends PronghornStage {
 			int activeLearningLocationBase, int learningMaxSlices) {
 		boolean isLoopCompleted = false;
 		int endValue = activeLearningLocationBase+learningMaxSlices;
+		
+		logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
+		
 		int totalMatches = 0;
 		int countLimit = (totalWidth*4)/3;
+		logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
 			int locationSetId = locationSetId(rowData, rowBase, activeColumn);
 			if (NO_DATA != locationSetId) {
@@ -385,24 +390,32 @@ public class MapImageStage extends PronghornStage {
 				if (locationSetId<0) {
 					//we have just 1 value so we check it
 					int value = (SINGLE_BASE-locationSetId);
+					logger.info("looking at single value {}", value);
+					
 					if ((value>=activeLearningLocationBase) && (value<endValue)) {
-						if (isLoopCompleted=(++totalMatches>countLimit)) {											
+						if (isLoopCompleted=(++totalMatches>countLimit)) {
 							break;
 						}
 					}
 				} else {
 					
+					logger.info("looking into range in a set");
 					if (locations.containsAny(locationSetId,
 							                  activeLearningLocationBase, endValue)) {
-						if (isLoopCompleted=(++totalMatches>countLimit)) {											
+						if (isLoopCompleted=(++totalMatches>countLimit)) {
 							break;
 						}
 						
 					}
 				}
 				
+			} else {
+				logger.info("no locations have been trained at this position");
 			}
+				
 		}
+		logger.info("found only {} total matches", totalMatches);
+		
 		return isLoopCompleted;
 	}
 

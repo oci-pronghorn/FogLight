@@ -215,8 +215,9 @@ public class MapImageStage extends PronghornStage {
 								/////////////////////
 								
 								//given this root have we already seen this position recorded
-								//if so we are done, sent back done status								
-								if (cycleStep>minCycles && isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
+								//if so we are done, sent back done status	
+								int dataPos = rowData.absolutePosition();
+								if (cycleStep>minCycles && isCycleComplete(rowData, rowBase, activeLearningLocationBase)) {
 									
 									hasDataSet = true;
 									//send done status to see if the other actors agree									
@@ -227,6 +228,8 @@ public class MapImageStage extends PronghornStage {
 								//generate new location id
 								int activeLocation = activeLearningLocationBase + cycleStep;
 											
+								//restore beginning of data to read again
+								rowData.absolutePosition(dataPos);								
 								//learn this new location
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
 
@@ -388,9 +391,11 @@ public class MapImageStage extends PronghornStage {
 	}
 
 	private boolean isCycleComplete(DataInputBlobReader<ImageSchema> rowData, int rowBase,
-			int activeLearningLocationBase, int learningMaxSlices) {
+			int activeLearningLocationBase) {
 		boolean isLoopCompleted = false;
-		int endValue = activeLearningLocationBase+learningMaxSlices;
+		
+		 //the location is a small value so we have come back around
+		int endValue = activeLearningLocationBase+minCycles;
 		
 		//logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		
@@ -406,18 +411,20 @@ public class MapImageStage extends PronghornStage {
 					//we have just 1 value so we check it
 					int value = (SINGLE_BASE-locationSetId);
 					//logger.info("looking at single value {}", value);
-					
+										
 					if ((value>=activeLearningLocationBase) && (value<endValue)) {
-						if (isLoopCompleted=(++totalMatches>countLimit)) {
-							break;
-						}
+									   
+							if (isLoopCompleted = (++totalMatches>countLimit)) {
+								break;
+							}
+						
 					}
 				} else {
 					
 					//logger.info("looking into range in a set");
-					if (locations.containsAny(locationSetId,
-							                  activeLearningLocationBase, endValue)) {
-						if (isLoopCompleted=(++totalMatches>countLimit)) {
+					if (locations.containsAny(locationSetId, activeLearningLocationBase, endValue)) {
+						
+						if (isLoopCompleted = (++totalMatches>countLimit)) {
 							break;
 						}
 						

@@ -59,6 +59,7 @@ public class MapImageStage extends PronghornStage {
 	//   * significant reduction in memory consumption
 	private int shiftColors = 2;
 	private int localDepth = 256 >> shiftColors;
+	private int minCycles = 12;
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override
@@ -215,7 +216,7 @@ public class MapImageStage extends PronghornStage {
 								
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status								
-								if (isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
+								if (cycleStep>minCycles && isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
 									
 									hasDataSet = true;
 									//send done status to see if the other actors agree									

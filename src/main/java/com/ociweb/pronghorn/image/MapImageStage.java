@@ -298,8 +298,8 @@ public class MapImageStage extends PronghornStage {
 						
 						if (null == workspace || imageWidth!=totalWidth || imageHeight!=totalRows) {
 			
-							int maxLocatons = output.maxVarLen/ChannelReader.PACKED_INT_SIZE;
-							initProcessing(totalWidth, totalRows, maxLocatons);
+							//int maxLocatons = output.maxVarLen/ChannelReader.PACKED_LONG_SIZE; //hack
+							initProcessing(totalWidth, totalRows, 1000);
 						}
 						
 						

@@ -57,8 +57,9 @@ public class MapImageStage extends PronghornStage {
 	//this provides for 64 colors which both helps with
 	//   * simplification of what needs to be seen
 	//   * significant reduction in memory consumption
-	private int shiftColors = 0;
+	private int shiftColors = 2;
 	private int localDepth = 256 >> shiftColors;
+	private int minCycles = 12;
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override
@@ -215,7 +216,7 @@ public class MapImageStage extends PronghornStage {
 								
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status								
-								if (isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
+								if (cycleStep>minCycles && isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
 									
 									hasDataSet = true;
 									//send done status to see if the other actors agree									
@@ -394,7 +395,7 @@ public class MapImageStage extends PronghornStage {
 		//logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		
 		int totalMatches = 0;
-		int countLimit = (totalWidth*7)/8;
+		int countLimit = (totalWidth*3)/4;
 		//logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
 			int readByte = (0xFF&rowData.readByte()>>shiftColors);

@@ -31,7 +31,7 @@ public class MapImageStage extends PronghornStage {
 	private int [] imageLookup;
 	private int imageWidth;
 	private int imageHeight;
-	private int imageDepth = 256;//default value
+
 		
 	private transient int loadPosition = NO_DATA;
 	private transient int savePosition = NO_DATA;
@@ -54,7 +54,11 @@ public class MapImageStage extends PronghornStage {
 	private long time;
 	private int activeRow;
 	
-	private final int shiftColors = 2;
+	//this provides for 64 colors which both helps with
+	//   * simplification of what needs to be seen
+	//   * significant reduction in memory consumption
+	private int shiftColors = 2;
+	private int localDepth = 256 >> shiftColors;
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override
@@ -176,7 +180,7 @@ public class MapImageStage extends PronghornStage {
 			
 							
 							DataInputBlobReader<ImageSchema> rowData = Pipe.openInputStream(imgInput);							
-							int rowBase = (imageWidth*imageDepth)*activeRow++;
+							int rowBase = (imageWidth*localDepth)*activeRow++;
 
 							if (!isLearning) {
 								///////////////////////
@@ -277,9 +281,9 @@ public class MapImageStage extends PronghornStage {
 						ChannelReader reader = Pipe.openInputStream(imgInput);
 						
 						if (null == workspace || imageWidth!=totalWidth || imageHeight!=totalRows) {
-							int localDepth=256;
+			
 							int maxLocatons = output.maxVarLen/ChannelReader.PACKED_INT_SIZE;
-							initProcessing(totalWidth, totalRows, localDepth, maxLocatons);
+							initProcessing(totalWidth, totalRows, maxLocatons);
 						}
 						
 						
@@ -433,19 +437,19 @@ public class MapImageStage extends PronghornStage {
 	private int getLocationSetId(int rowBase, int activeColumn, int readByte) {
 		assert(rowBase>=0);
 		assert(activeColumn>=0);
-		assert(imageDepth>=0);
+		assert(localDepth>=0);
 		return imageLookup[
 		                               rowBase                            
-		                               +(activeColumn*imageDepth)
+		                               +(activeColumn*localDepth)
 		                               +readByte];
 	}
 
 	private void setLocationSetId(int rowBase, int activeColumn, int newId, int readByte) {
 		assert(rowBase>=0);
 		assert(activeColumn>=0);
-		assert(imageDepth>=0);
+		assert(localDepth>=0);
 		imageLookup[  rowBase                            
-		              +(activeColumn*imageDepth)
+		              +(activeColumn*localDepth)
 		              +readByte] = newId;
 	}
 	
@@ -460,7 +464,7 @@ public class MapImageStage extends PronghornStage {
 				
 				writer.writePackedInt(imageWidth);
 				writer.writePackedInt(imageHeight);
-				writer.writePackedInt(imageDepth);
+				writer.writePackedInt(shiftColors);
 				writer.writePackedInt(workspace.length); //locations
 		
 				savePosition = 0;
@@ -503,10 +507,13 @@ public class MapImageStage extends PronghornStage {
 				//load all the fixed constants here
 				int width  	  = reader.readPackedInt();
 				int height 	  = reader.readPackedInt();
-				int depth  	  = reader.readPackedInt();
+				
+				shiftColors = reader.readPackedInt();
+				localDepth = 256>>shiftColors;
+	
 				int locations = reader.readPackedInt();//max location value+1
 				
-				initProcessing(width, height, depth, locations);
+				initProcessing(width, height, locations);
 			}
 
 			while ( ((reader.available() >= ChannelReader.PACKED_INT_SIZE) || isEnd) 
@@ -529,14 +536,13 @@ public class MapImageStage extends PronghornStage {
 		return false;
 	}
 
-	private void initProcessing(int width, int height, int depth, int locations) {
+	private void initProcessing(int width, int height, int locations) {
 		if (null == workspace || workspace.length != locations) {
 			workspace = new int[locations];
 		}
 		imageWidth = width;
 		imageHeight = height;
-		imageDepth = depth;
-		final int imageLookupLength = width*height*depth;
+		final int imageLookupLength = width*height*localDepth;
 		
 		//init the image matrix as needed		
 		if (null ==	imageLookup || imageLookup.length != imageLookupLength) {

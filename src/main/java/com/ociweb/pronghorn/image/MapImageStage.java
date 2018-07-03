@@ -57,7 +57,7 @@ public class MapImageStage extends PronghornStage {
 	//this provides for 64 colors which both helps with
 	//   * simplification of what needs to be seen
 	//   * significant reduction in memory consumption
-	private int shiftColors = 2;
+	private int shiftColors = 0;
 	private int localDepth = 256 >> shiftColors;
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
@@ -394,7 +394,7 @@ public class MapImageStage extends PronghornStage {
 		//logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		
 		int totalMatches = 0;
-		int countLimit = (totalWidth*3)/4;
+		int countLimit = (totalWidth*7)/8;
 		//logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
 			int readByte = (0xFF&rowData.readByte()>>shiftColors);

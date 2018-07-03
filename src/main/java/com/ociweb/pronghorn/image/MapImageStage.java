@@ -294,7 +294,7 @@ public class MapImageStage extends PronghornStage {
 						
 						//clear histogram totals
 						Arrays.fill(workspace, 0);
-						if ((activeRow<=0) || (activeRow!=totalRows) ) {
+						if ((activeRow>0) && (activeRow!=totalRows) ) {
 							
 							logger.error("Image was to have {} rows but only sent {}, producer of images must be fixed", activeRow, totalRows);
 							

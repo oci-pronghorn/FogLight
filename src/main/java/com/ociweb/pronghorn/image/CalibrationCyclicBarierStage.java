@@ -87,19 +87,19 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 			int base = Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_STARTVALUE_12);
 			if (activeLocation<0) {
 				activeLocation = base;
-				logger.info("activeLocation<0, setting activeLocation = {}", base);
+				//logger.info("activeLocation<0, setting activeLocation = {}", base);
 			}
 			// Make sure we are talking about the same calibration (this in startValue).
 			if (base == activeLocation) {
 				// This is the one we actually care about:
 				int units = Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_TOTALUNITS_13);
 
-				logger.info("received base={}, units={}", base, units);
+				//logger.info("received base={}, units={}", base, units);
 
 				// found our max unit
 				if (units > activeCount) {
 					activeCount = units;
-					logger.info("units > activeCount, setting activeCount = {}", activeCount);
+					//logger.info("units > activeCount, setting activeCount = {}", activeCount);
 					// found one less than max unit
 				} else if (units < activeCount) {
 					// keep going until we find a unit that is equal to activeCount
@@ -111,16 +111,16 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 							 && (activeLocation == Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_STARTVALUE_12))
 							 && ((units = Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_TOTALUNITS_13)) < activeCount) );
 					if (units == activeCount) {
-						logger.info("adding 1, units == activeCount (inner)");
+					//	logger.info("adding 1, units == activeCount (inner)");
 						return 1;
 					} else if( units > activeCount) {
 						activeCount = units;
-						logger.info("units > activeCount, setting activeCount = {}", activeCount);
+					//	logger.info("units > activeCount, setting activeCount = {}", activeCount);
 					}
 				// found one agreeing with max unit!
 				} else {
 					//they equal, we may have something...
-					logger.info("adding 1, units == activeCount (last)");
+					//logger.info("adding 1, units == activeCount (last)");
 					return 1;					
 				}
 			} else {

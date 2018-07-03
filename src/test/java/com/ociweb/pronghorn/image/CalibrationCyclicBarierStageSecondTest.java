@@ -82,6 +82,11 @@ public class CalibrationCyclicBarierStageSecondTest {
 		
 		
 		publishData(tracks, pub, calibrationDoneInputs);
+		try {
+			//add delay to force code to deal with each part
+			Thread.sleep(400);
+		} catch (InterruptedException e) {
+		}
 		publishEOF(tracks, calibrationDoneInputs);
 		
 		

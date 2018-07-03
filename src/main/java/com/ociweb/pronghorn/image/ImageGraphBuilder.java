@@ -126,10 +126,10 @@ public class ImageGraphBuilder {
 	    		            calibrationDoneR, calibrationDoneG, calibrationDoneB, calibrationDoneM);
 	    
 	    //modeSelectionPipe
-		MapImageStage.newInstance(gm, imageR, modeSelectionR, histR, calibrationDoneAckR, calibrationDoneR, loadDataRed,   saveDataRed);
-		MapImageStage.newInstance(gm, imageG, modeSelectionG, histG, calibrationDoneAckG, calibrationDoneG, loadDataGreen, saveDataGreen);
-		MapImageStage.newInstance(gm, imageB, modeSelectionB, histB, calibrationDoneAckB, calibrationDoneB, loadDataBlue,  saveDataBlue);
-		MapImageStage.newInstance(gm, imageM, modeSelectionM, histM, calibrationDoneAckM, calibrationDoneM, loadDataMono,  saveDataMono);
+		MapImageStage.newInstance(gm, imageR, modeSelectionR, histR, calibrationDoneAckR, calibrationDoneR, loadDataRed,   saveDataRed, "Red");
+		MapImageStage.newInstance(gm, imageG, modeSelectionG, histG, calibrationDoneAckG, calibrationDoneG, loadDataGreen, saveDataGreen, "Green");
+		MapImageStage.newInstance(gm, imageB, modeSelectionB, histB, calibrationDoneAckB, calibrationDoneB, loadDataBlue,  saveDataBlue, "Blue");
+		MapImageStage.newInstance(gm, imageM, modeSelectionM, histM, calibrationDoneAckM, calibrationDoneM, loadDataMono,  saveDataMono, "Mono");
 		
 		
 		HistogramSumStage.newInstance(gm, histSum, histR, histG, histB, histM);

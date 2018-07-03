@@ -80,9 +80,10 @@ public class MapImageStage extends PronghornStage {
             Pipe<CalibrationStatusSchema> ack, 
             Pipe<CalibrationStatusSchema> done,
             Pipe<RawDataSchema> loadingMappingData,
-            Pipe<RawDataSchema> savingMappingData            
+            Pipe<RawDataSchema> savingMappingData,
+			String colorLabel
             ) {
-		return new MapImageStage(graphManager, imgInput, stateData, output, ack, done, loadingMappingData, savingMappingData);
+		return new MapImageStage(graphManager, imgInput, stateData, output, ack, done, loadingMappingData, savingMappingData, colorLabel);
 	}
 	
 	//need outgoing schema for the map.
@@ -93,7 +94,8 @@ public class MapImageStage extends PronghornStage {
 			                Pipe<CalibrationStatusSchema> ack,
 			                Pipe<CalibrationStatusSchema> statusOut,
 			                Pipe<RawDataSchema> loadingMappingData,
-			                Pipe<RawDataSchema> savingMappingData 
+			                Pipe<RawDataSchema> savingMappingData,
+							String colorLabel
 			               ) {
 		
 		super(graphManager, join(imgInput,loadingMappingData, modeIn, ack), join(output,savingMappingData, statusOut) );
@@ -107,7 +109,8 @@ public class MapImageStage extends PronghornStage {
 		this.ack = ack;
 		
 		GraphManager.addNota(graphManager, GraphManager.DOT_RANK_NAME, "ModuleStage", this);
-		
+		GraphManager.addNota(graphManager, GraphManager.STAGE_NAME, colorLabel, this);
+
 	}
 
 	@Override

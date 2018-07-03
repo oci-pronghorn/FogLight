@@ -21,8 +21,8 @@ import com.ociweb.pronghorn.stage.test.PipeNoOp;
 
 public class ImageGraphBuilder {
 
-	public static final int DOWNSCALE_WIDTH = 320;
-	public static final int DOWNSCALE_HEIGHT = 180;
+	public static final int DOWNSCALE_WIDTH = 256;
+	public static final int DOWNSCALE_HEIGHT = 144;
 
 	public static void buildLocationDetectionGraph(GraphManager gm, 
 			String loadFilePath, String saveFilePath,
@@ -41,7 +41,7 @@ public class ImageGraphBuilder {
 		
 		
 		if (null == probLocation) {					
-			probLocation = ProbabilitySchema.instance.newPipe(8, 10);
+			probLocation = ProbabilitySchema.instance.newPipe(8, 50);
 			PipeCleanerStage.newInstance(gm, probLocation);
 		}
 		
@@ -106,7 +106,7 @@ public class ImageGraphBuilder {
 		////////////////////////////////////////
 		
 		
-		new ImageDownscaleStage(gm, imagePipe, new Pipe[] {imageR, imageG, imageB, imageM}, DOWNSCALE_WIDTH, DOWNSCALE_HEIGHT) ;
+		ImageDownscaleStage.newInstance(gm, imagePipe, new Pipe[] {imageR, imageG, imageB, imageM}, DOWNSCALE_WIDTH, DOWNSCALE_HEIGHT) ;
 	    
 		//data is only read once on startup
 		FileBlobReadStage.newInstance(gm, loadDataRaw, loadFilePath, false);		
@@ -126,10 +126,10 @@ public class ImageGraphBuilder {
 	    		            calibrationDoneR, calibrationDoneG, calibrationDoneB, calibrationDoneM);
 	    
 	    //modeSelectionPipe
-		MapImageStage.newInstance(gm, imageR, modeSelectionR, histR, calibrationDoneAckR, calibrationDoneR, loadDataRed,   saveDataRed);
-		MapImageStage.newInstance(gm, imageG, modeSelectionG, histG, calibrationDoneAckG, calibrationDoneG, loadDataGreen, saveDataGreen);
-		MapImageStage.newInstance(gm, imageB, modeSelectionB, histB, calibrationDoneAckB, calibrationDoneB, loadDataBlue,  saveDataBlue);
-		MapImageStage.newInstance(gm, imageM, modeSelectionM, histM, calibrationDoneAckM, calibrationDoneM, loadDataMono,  saveDataMono);
+		MapImageStage.newInstance(gm, imageR, modeSelectionR, histR, calibrationDoneAckR, calibrationDoneR, loadDataRed,   saveDataRed, "Red");
+		MapImageStage.newInstance(gm, imageG, modeSelectionG, histG, calibrationDoneAckG, calibrationDoneG, loadDataGreen, saveDataGreen, "Green");
+		MapImageStage.newInstance(gm, imageB, modeSelectionB, histB, calibrationDoneAckB, calibrationDoneB, loadDataBlue,  saveDataBlue, "Blue");
+		MapImageStage.newInstance(gm, imageM, modeSelectionM, histM, calibrationDoneAckM, calibrationDoneM, loadDataMono,  saveDataMono, "Mono");
 		
 		
 		HistogramSumStage.newInstance(gm, histSum, histR, histG, histB, histM);

@@ -295,6 +295,11 @@ public class MapImageStage extends PronghornStage {
 						
 						//clear histogram totals
 						Arrays.fill(workspace, 0);
+						if ((activeRow<=0) || (activeRow!=totalRows) ) {
+							
+							logger.error("Image was to have {} rows but only sent {}, producer of images must be fixed", activeRow, totalRows);
+							
+						}
 						activeRow = 0;
 						Pipe.confirmLowLevelRead(imgInput, Pipe.sizeOf(imgInput, msgIdx));
 						Pipe.releaseReadLock(imgInput);

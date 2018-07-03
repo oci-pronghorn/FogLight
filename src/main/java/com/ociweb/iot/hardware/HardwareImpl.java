@@ -789,8 +789,13 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		//////////////////
 		Pipe<I2CResponseSchema> masterI2CResponsePipe = null;
 		if (i2cResponsePipes.length>0) {
-			masterI2CResponsePipe =  I2CResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
-			ReplicatorStage.newInstance(gm, masterI2CResponsePipe, i2cResponsePipes);
+			if (i2cResponsePipes.length==1) {
+				//skip ReplicatorStage for only single listener
+				masterI2CResponsePipe = i2cResponsePipes[0];				
+			} else {			
+				masterI2CResponsePipe =  I2CResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+				ReplicatorStage.newInstance(gm, masterI2CResponsePipe, i2cResponsePipes);
+			}
 		}
 
 		if (i2cPipes.length>0 || (null!=masterI2CResponsePipe)) {

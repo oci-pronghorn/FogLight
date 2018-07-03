@@ -381,7 +381,7 @@ public class MapImageStage extends PronghornStage {
 		logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		
 		int totalMatches = 0;
-		int countLimit = (totalWidth*4)/3;
+		int countLimit = (totalWidth*3)/4;
 		logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
 			int locationSetId = locationSetId(rowData, rowBase, activeColumn);

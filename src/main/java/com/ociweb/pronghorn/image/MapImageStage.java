@@ -259,6 +259,7 @@ public class MapImageStage extends PronghornStage {
 								if (activeRow == totalRows) {
 									//ensure steps stays under the max slice value so location base is not disturbed.
 									if (++cycleStep >= learningMaxSlices) {
+										logger.warn("the cycle step was too large {} and over {}", cycleStep, learningMaxSlices);
 										cycleStep = 0; 
 									}
 									//no histogram to send..

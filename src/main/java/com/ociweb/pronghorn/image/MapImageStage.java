@@ -216,7 +216,7 @@ public class MapImageStage extends PronghornStage {
 								
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status	
-								int dataPos = rowData.absolutePosition();
+								final int dataPos = rowData.absolutePosition();
 								if (cycleStep>minCycles && isCycleComplete(rowData, rowBase, activeLearningLocationBase)) {
 									
 									hasDataSet = true;
@@ -304,7 +304,7 @@ public class MapImageStage extends PronghornStage {
 						Pipe.releaseReadLock(imgInput);
 						
 					} else {
-						if (NO_DATA != msgIdx) {
+						if (-1 != msgIdx) {
 							throw new UnsupportedOperationException("Unexpected message idx of:"+msgIdx);
 						}
 						

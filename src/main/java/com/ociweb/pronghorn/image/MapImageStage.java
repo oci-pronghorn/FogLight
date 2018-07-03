@@ -395,7 +395,8 @@ public class MapImageStage extends PronghornStage {
 		boolean isLoopCompleted = false;
 		
 		 //the location is a small value so we have come back around
-		int endValue = activeLearningLocationBase+minCycles;
+		int endValue = activeLearningLocationBase+learningMaxSlices;
+				//minCycles;
 		
 		//logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		

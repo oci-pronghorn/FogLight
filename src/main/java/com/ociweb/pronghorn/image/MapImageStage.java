@@ -395,7 +395,7 @@ public class MapImageStage extends PronghornStage {
 		//logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		
 		int totalMatches = 0;
-		int countLimit = (totalWidth*3)/4;
+		int countLimit = (totalWidth*3)/5; //(tW*3)/5 =~ 153
 		//logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
 			int readByte = (0xFF&rowData.readByte()>>shiftColors);

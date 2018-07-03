@@ -63,9 +63,9 @@ public class MapImageStage extends PronghornStage {
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override
-		public boolean visit(int value) {
-			workspace[value]++;
-			return true;
+		public boolean visit(int location) {
+			workspace[location%learningMaxSlices]++; 
+ 			return true;
 		}
 		
 	};

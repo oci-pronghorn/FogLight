@@ -216,8 +216,7 @@ public class MapImageStage extends PronghornStage {
 								
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status	
-								int dataPos = rowData.absolutePosition();
-								logger.info("cycleStep: {} for stage {}", cycleStep, this.toString());
+								final int dataPos = rowData.absolutePosition();
 								if (cycleStep>minCycles && isCycleComplete(rowData, rowBase, activeLearningLocationBase)) {
 									
 									hasDataSet = true;
@@ -295,7 +294,7 @@ public class MapImageStage extends PronghornStage {
 						
 						//clear histogram totals
 						Arrays.fill(workspace, 0);
-						if ((activeRow<=0) || (activeRow!=totalRows) ) {
+						if ((activeRow>0) && (activeRow!=totalRows) ) {
 							
 							logger.error("Image was to have {} rows but only sent {}, producer of images must be fixed", activeRow, totalRows);
 							
@@ -305,7 +304,7 @@ public class MapImageStage extends PronghornStage {
 						Pipe.releaseReadLock(imgInput);
 						
 					} else {
-						if (NO_DATA != msgIdx) {
+						if (-1 != msgIdx) {
 							throw new UnsupportedOperationException("Unexpected message idx of:"+msgIdx);
 						}
 						
@@ -408,7 +407,7 @@ public class MapImageStage extends PronghornStage {
 		//logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		
 		int totalMatches = 0;
-		int countLimit = (totalWidth*3)/4; //(tW*3)/5 =~ 153
+		int countLimit = (totalWidth*3)/4;
 		//logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
 			int readByte = (0xFF&rowData.readByte()>>shiftColors);

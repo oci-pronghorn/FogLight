@@ -17,7 +17,7 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 	private int activeLocation = -1;
 	private int previousLocation = -1;
 	private int activeCount = 0; //lowest common value across the inputs
-	
+	private int shutdownCount;
 	
 	public static CalibrationCyclicBarierStage newInstance(GraphManager gm, 
 			Pipe<CalibrationStatusSchema> calibrationDone, 
@@ -32,7 +32,7 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 		
 		this.calibrationDone = calibrationDone;
 		this.calibrationDoneInputs = calibrationDoneInputs;
-		
+		this.shutdownCount = calibrationDoneInputs.length;
 	}
 
 	@Override
@@ -133,7 +133,9 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 		} else {
 			if (Pipe.peekMsg(pipe, -1) && Pipe.hasContentToRead(pipe)) {
 				Pipe.skipNextFragment(pipe);
-				requestShutdown();
+				if (--shutdownCount == 0) {
+					requestShutdown();
+				}
 			}
 		}
 		return 0;

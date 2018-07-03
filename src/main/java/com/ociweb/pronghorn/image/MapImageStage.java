@@ -261,7 +261,7 @@ public class MapImageStage extends PronghornStage {
 										logger.warn("the cycle step was too large {} and over {}", cycleStep, learningMaxSlices);
 										cycleStep = 0; 
 									}
-									//no histogram to send..
+									//no histogram to send.
 									finishedImageProcessing();
 								}
 								
@@ -444,7 +444,7 @@ public class MapImageStage extends PronghornStage {
 				
 		}
 				
-		logger.info("found only {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
+		//logger.info("found only {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
 		
 		return isLoopCompleted;
 	}

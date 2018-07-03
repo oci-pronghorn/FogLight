@@ -215,7 +215,7 @@ public class MapImageStage extends PronghornStage {
 								
 								//given this root have we already seen this position recorded
 								//if so we are done, sent back done status								
-								if (isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
+								if (hasDataSet || isCycleComplete(rowData, rowBase, activeLearningLocationBase, learningMaxSlices)) {
 									
 									hasDataSet = true;
 									//send done status to see if the other actors agree									

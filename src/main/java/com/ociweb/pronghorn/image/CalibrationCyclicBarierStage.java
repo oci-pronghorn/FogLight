@@ -62,14 +62,13 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 			activeLocation = -1;
 			activeCount = 0;
 			
-			//clear the pipes
-			clearOld();
 		}
+		//clear the pipes matching previous location
+		clearOld();
 		
 	}
 
 	private void clearOld() {
-		logger.info("Clearing old");
 		int i = calibrationDoneInputs.length;
 		while (--i>=0) {
 			while (

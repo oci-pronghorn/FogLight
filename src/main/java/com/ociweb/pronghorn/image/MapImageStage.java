@@ -54,7 +54,7 @@ public class MapImageStage extends PronghornStage {
 	private long time;
 	private int activeRow;
 	
-	private final int shiftColors = 0;
+	private final int shiftColors = 1;
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
 		@Override

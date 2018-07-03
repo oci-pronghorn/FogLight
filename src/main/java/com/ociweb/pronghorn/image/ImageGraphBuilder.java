@@ -3,6 +3,7 @@ package com.ociweb.pronghorn.image;
 import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
 import com.ociweb.pronghorn.image.schema.LocationModeSchema;
 import com.ociweb.pronghorn.image.schema.ImageSchema;
+import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.RawDataSchema;
@@ -68,13 +69,15 @@ public class ImageGraphBuilder {
 		Pipe<ImageSchema> imageB = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH);
 		Pipe<ImageSchema> imageM = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH);
 
+		int maxUnits = 10_000;
+		int maxHistogramLen = ChannelReader.PACKED_LONG_SIZE * maxUnits;
 		
-		Pipe<HistogramSchema> histR = HistogramSchema.instance.newPipe(4, 1<<12);
-		Pipe<HistogramSchema> histG = HistogramSchema.instance.newPipe(4, 1<<12);
-		Pipe<HistogramSchema> histB = HistogramSchema.instance.newPipe(4, 1<<12);
-		Pipe<HistogramSchema> histM = HistogramSchema.instance.newPipe(4, 1<<12);
+		Pipe<HistogramSchema> histR = HistogramSchema.instance.newPipe(4, maxHistogramLen);
+		Pipe<HistogramSchema> histG = HistogramSchema.instance.newPipe(4, maxHistogramLen);
+		Pipe<HistogramSchema> histB = HistogramSchema.instance.newPipe(4, maxHistogramLen);
+		Pipe<HistogramSchema> histM = HistogramSchema.instance.newPipe(4, maxHistogramLen);
 		
-		Pipe<HistogramSchema> histSum = HistogramSchema.instance.newPipe(4, 1<<12);		
+		Pipe<HistogramSchema> histSum = HistogramSchema.instance.newPipe(4, maxHistogramLen);		
 
 		
 		Pipe<CalibrationStatusSchema> calibrationDoneRoot = PipeConfig.pipe(calibrationDone.config().shrink2x());			

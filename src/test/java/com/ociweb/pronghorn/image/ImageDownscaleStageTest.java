@@ -111,8 +111,8 @@ public class ImageDownscaleStageTest {
     public Pipe<ImageSchema>[] downsampleOutputPipes = new Pipe[4];
     public DownsamplePipeReaderState[] downsamplePipeReaderStates = new DownsamplePipeReaderState[downsampleOutputPipes.length];
 
-    @Before
-    public void setup() {
+ 
+    private void setup() {
 
         // Setup graph manager,
         gm = new GraphManager();
@@ -141,68 +141,74 @@ public class ImageDownscaleStageTest {
     }
 
     @Test
-    public void shouldDownscaleImages() {
+    public void shouldDownscaleImagesTest() {
 
-        // Create test scheduler.
-        NonThreadScheduler scheduler = new NonThreadScheduler(gm);
-        scheduler.startup();
-
-        // Run until all pipes have written a frame.
-        boolean allWritten = false;
-        while (!allWritten) {
-
-            // Run scheduler pipe.
-            scheduler.run();
-
-            // Read from pipes.
-            allWritten = true;
-            for (int i = 0; i < downsampleOutputPipes.length; i++) {
-                switch (i) {
-                    case ImageDownscaleStage.R_OUTPUT_IDX:
-                        readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.R_OUTPUT_ENCODING);
-                        break;
-                    case ImageDownscaleStage.G_OUTPUT_IDX:
-                        readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.G_OUTPUT_ENCODING);
-                        break;
-                    case ImageDownscaleStage.B_OUTPUT_IDX:
-                        readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.B_OUTPUT_ENCODING);
-                        break;
-                    case ImageDownscaleStage.MONO_OUTPUT_IDX:
-                        readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.MONO_OUTPUT_ENCODING);
-                        break;
-                }
-
-                allWritten = allWritten && downsamplePipeReaderStates[i].framesProcessed > 0;
-            }
-        }
-
-        // Verify each frame is valid.
-        for (int i = 0; i < downsampleOutputPipes.length; i++) {
-
-            // Discover frame file.
-            Path filePath = null;
-            switch (i) {
-                case ImageDownscaleStage.R_OUTPUT_IDX:
-                    filePath = Paths.get("src", "test", "images", "cat1-320-240.r8");
-                    break;
-                case ImageDownscaleStage.G_OUTPUT_IDX:
-                    filePath = Paths.get("src", "test", "images", "cat1-320-240.g8");
-                    break;
-                case ImageDownscaleStage.B_OUTPUT_IDX:
-                    filePath = Paths.get("src", "test", "images", "cat1-320-240.b8");
-                    break;
-                case ImageDownscaleStage.MONO_OUTPUT_IDX:
-                    filePath = Paths.get("src", "test", "images", "cat1-320-240.mono");
-                    break;
-            }
-
-            // Read and compare.
-            try {
-                byte[] fileBytes = Files.readAllBytes(filePath);
-                Assert.assertTrue(Arrays.equals(fileBytes, downsamplePipeReaderStates[i].currentFrame));
-            } catch (IOException e) {
-                Assert.fail(e.getMessage());
-            }
-        }
+    	int iterations = 5;
+    	int j = iterations; 
+    	while (--j>=0) {
+	    	
+	    	setup();
+	        // Create test scheduler.
+	        NonThreadScheduler scheduler = new NonThreadScheduler(gm);
+	        scheduler.startup();
+	
+	        // Run until all pipes have written a frame.
+	        boolean allWritten = false;
+	        while (!allWritten) {
+	
+	            // Run scheduler pipe.
+	            scheduler.run();
+	
+	            // Read from pipes.
+	            allWritten = true;
+	            for (int i = 0; i < downsampleOutputPipes.length; i++) {
+	                switch (i) {
+	                    case ImageDownscaleStage.R_OUTPUT_IDX:
+	                        readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.R_OUTPUT_ENCODING);
+	                        break;
+	                    case ImageDownscaleStage.G_OUTPUT_IDX:
+	                        readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.G_OUTPUT_ENCODING);
+	                        break;
+	                    case ImageDownscaleStage.B_OUTPUT_IDX:
+	                        readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.B_OUTPUT_ENCODING);
+	                        break;
+	                    case ImageDownscaleStage.MONO_OUTPUT_IDX:
+	                        readFromDownsamplePipe(downsampleOutputPipes[i], downsamplePipeReaderStates[i], ImageDownscaleStage.MONO_OUTPUT_ENCODING);
+	                        break;
+	                }
+	
+	                allWritten = allWritten && downsamplePipeReaderStates[i].framesProcessed > 0;
+	            }
+	        }
+	
+	        // Verify each frame is valid.
+	        for (int i = 0; i < downsampleOutputPipes.length; i++) {
+	
+	            // Discover frame file.
+	            Path filePath = null;
+	            switch (i) {
+	                case ImageDownscaleStage.R_OUTPUT_IDX:
+	                    filePath = Paths.get("src", "test", "images", "cat1-320-240.r8");
+	                    break;
+	                case ImageDownscaleStage.G_OUTPUT_IDX:
+	                    filePath = Paths.get("src", "test", "images", "cat1-320-240.g8");
+	                    break;
+	                case ImageDownscaleStage.B_OUTPUT_IDX:
+	                    filePath = Paths.get("src", "test", "images", "cat1-320-240.b8");
+	                    break;
+	                case ImageDownscaleStage.MONO_OUTPUT_IDX:
+	                    filePath = Paths.get("src", "test", "images", "cat1-320-240.mono");
+	                    break;
+	            }
+	
+	            // Read and compare.
+	            try {
+	                byte[] fileBytes = Files.readAllBytes(filePath);
+	                Assert.assertTrue(Arrays.equals(fileBytes, downsamplePipeReaderStates[i].currentFrame));
+	            } catch (IOException e) {
+	                Assert.fail(e.getMessage());
+	            }
+	        }
+    	}
     }
 }

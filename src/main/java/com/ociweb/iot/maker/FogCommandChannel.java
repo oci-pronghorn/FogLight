@@ -44,7 +44,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     public static final int PIN_WRITER      = 1<<28;
     public static final int SERIAL_WRITER   = 1<<27;
     public static final int BT_WRITER       = 1<<26;
-    public static final int IMG_LOC_MODE   = 1<<25;
+    public static final int IMG_LOC_MODE    = 1<<25;
     
 
    	
@@ -156,6 +156,17 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
     public SerialService newSerialService(int commandCountCapacity, int maxMessageSize) {
     	return new SerialService(this,commandCountCapacity,maxMessageSize);
     }
+    
+    
+	protected int usedFeaturesNeedingCop() {
+		   //when looking at features that requires cops, eg go pipes we ignore
+		   //the following since they do not use cops but are features;
+		   int filteredFeatures = super.usedFeaturesNeedingCop();
+		   if (0!=(IMG_LOC_MODE&filteredFeatures)) {
+			   filteredFeatures ^= IMG_LOC_MODE;//cop not supported for turning on and off training mode. TODO: may want to add as feature.
+		   }
+		   return filteredFeatures;
+	}
     
     
     @Override

@@ -4,8 +4,12 @@ import com.ociweb.pronghorn.image.schema.CalibrationStatusSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CalibrationCyclicBarierStage extends PronghornStage {
+
+	private static final Logger logger = LoggerFactory.getLogger(CalibrationCyclicBarierStage.class);
 
 	private Pipe<CalibrationStatusSchema> calibrationDone; 
 	private Pipe<CalibrationStatusSchema>[] calibrationDoneInputs;
@@ -13,7 +17,7 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 	private int activeLocation = -1;
 	private int previousLocation = -1;
 	private int activeCount = 0; //lowest common value across the inputs
-	
+	private int shutdownCount;
 	
 	public static CalibrationCyclicBarierStage newInstance(GraphManager gm, 
 			Pipe<CalibrationStatusSchema> calibrationDone, 
@@ -28,7 +32,7 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 		
 		this.calibrationDone = calibrationDone;
 		this.calibrationDoneInputs = calibrationDoneInputs;
-		
+		this.shutdownCount = calibrationDoneInputs.length;
 	}
 
 	@Override
@@ -42,7 +46,10 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 		while (--i>=0) {
 			sum += process(calibrationDoneInputs[i]);
 		}
+
+		// we send out final calibration
 		if ((4 == sum) && Pipe.hasRoomForWrite(calibrationDone)) {
+			logger.info("sum={}, had room for calibrationDone write.", sum);
 			//send selection
 			int size = Pipe.addMsgIdx(calibrationDone, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1);			
 			Pipe.addIntValue(activeLocation, calibrationDone);
@@ -55,10 +62,9 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 			activeLocation = -1;
 			activeCount = 0;
 			
-			//clear the pipes
-			clearOld();
-			
 		}
+		//clear the pipes matching previous location
+		clearOld();
 		
 	}
 
@@ -80,12 +86,22 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 			int base = Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_STARTVALUE_12);
 			if (activeLocation<0) {
 				activeLocation = base;
+				//logger.info("activeLocation<0, setting activeLocation = {}", base);
 			}
+			// Make sure we are talking about the same calibration (this in startValue).
 			if (base == activeLocation) {
+				// This is the one we actually care about:
 				int units = Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_TOTALUNITS_13);
-				if (units>activeCount) {
+
+				//logger.info("received base={}, units={}", base, units);
+
+				// found our max unit
+				if (units > activeCount) {
 					activeCount = units;
-				} else if (units<activeCount) {
+					//logger.info("units > activeCount, setting activeCount = {}", activeCount);
+					// found one less than max unit
+				} else if (units < activeCount) {
+					// keep going until we find a unit that is equal to activeCount
 					do {
 						//consume message because some other pipe does not have anything this low.
 						Pipe.skipNextFragment(pipe);
@@ -94,10 +110,16 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 							 && (activeLocation == Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_STARTVALUE_12))
 							 && ((units = Pipe.peekInt(pipe, CalibrationStatusSchema.MSG_CYCLECALIBRATED_1_FIELD_TOTALUNITS_13)) < activeCount) );
 					if (units == activeCount) {
+					//	logger.info("adding 1, units == activeCount (inner)");
 						return 1;
-					}					
+					} else if( units > activeCount) {
+						activeCount = units;
+					//	logger.info("units > activeCount, setting activeCount = {}", activeCount);
+					}
+				// found one agreeing with max unit!
 				} else {
 					//they equal, we may have something...
+					//logger.info("adding 1, units == activeCount (last)");
 					return 1;					
 				}
 			} else {
@@ -108,9 +130,11 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 				}
 			}
 		} else {
-			if (Pipe.hasContentToRead(pipe)) {
+			if (Pipe.peekMsg(pipe, -1) && Pipe.hasContentToRead(pipe)) {
 				Pipe.skipNextFragment(pipe);
-				requestShutdown();
+				if (--shutdownCount == 0) {
+					requestShutdown();
+				}
 			}
 		}
 		return 0;

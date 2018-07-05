@@ -197,7 +197,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 			
 			int buckets = PipeReader.peekInt(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_TOTALBUCKETS_13);
 			assert(buckets>=1) : "Why was this called without any data?";
-			long totalSum = PipeReader.peekInt(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_TOTALSUM_12);
+			long totalSum = (long)PipeReader.peekInt(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_TOTALSUM_12);
 			ChannelReader orderedStream = PipeReader.peekInputStream(input, ProbabilitySchema.MSG_SELECTION_1_FIELD_ORDEREDSELECTIONS_14);
 	
 			//we are doing the lazy thing and just picking the first one... we need a smarter approach
@@ -224,14 +224,16 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 					
 					int x = buckets;
 					while (--x>=0) {
-						
-						long pct = ((100000L*orderedStream.readPackedLong())/totalSum);						
-						int loc = (int) orderedStream.readPackedLong();
-						
-						Appendables.appendValue(System.out, "location: ", loc);
-						System.out.append("pct: ");
-						Appendables.appendDecimalValue(System.out, pct, (byte)-3);
-						System.out.println();						
+
+						if(totalSum > 0) {
+							long pct = ((100000L * orderedStream.readPackedLong()) / totalSum);
+							int loc = (int) orderedStream.readPackedLong();
+
+							Appendables.appendValue(System.out, "location: ", loc);
+							System.out.append("pct: ");
+							Appendables.appendDecimalValue(System.out, pct, (byte) -3);
+							System.out.println();
+						}
 						
 					}
 					

@@ -199,9 +199,9 @@ public class MapImageStage extends PronghornStage {
 								//normal location scanning
 								///////////////////////
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
-									int readByte = (0xFF&rowData.readByte())>>shiftColors;
+									int color = (0xFF&rowData.readByte())>>shiftColors;
 									
-									int locationSetId = getLocationSetId(rowBase, activeColumn, readByte);
+									int locationSetId = getLocationSetId(rowBase, activeColumn, color);
 									if (NO_DATA != locationSetId) {
 										if (locationSetId<0) {										
 											//we have a single value so convert and match it
@@ -244,9 +244,9 @@ public class MapImageStage extends PronghornStage {
 								//learn this new location
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
 
-									int readByte = (0xFF&rowData.readByte())>>shiftColors;
+									int color = (0xFF&rowData.readByte())>>shiftColors;
 									
-									int locationSetId = getLocationSetId(rowBase, activeColumn, readByte);
+									int locationSetId = getLocationSetId(rowBase, activeColumn, color);
 									if (NO_DATA != locationSetId) {
 										if (locationSetId<0) {
 											//we now have 2 values stored here so extract first and collect both
@@ -255,14 +255,14 @@ public class MapImageStage extends PronghornStage {
 											locationSetId = locations.newSet();
 											locations.insert(locationSetId, firstValue);
 					
-											setLocationSetId(rowBase, activeColumn, locationSetId, readByte);
+											setLocationSetId(rowBase, activeColumn, locationSetId, color);
 										}
 										locations.insert(locationSetId, activeLocation);
 										
 									} else {
 										//store single value as negative until a second needs to be stored
 						
-										setLocationSetId(rowBase, activeColumn, SINGLE_BASE-activeLocation, readByte);
+										setLocationSetId(rowBase, activeColumn, SINGLE_BASE-activeLocation, color);
 									}
 									
 								}
@@ -421,8 +421,8 @@ public class MapImageStage extends PronghornStage {
 		int countLimit = (totalWidth*3)/4;
 		//logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
-			int readByte = (0xFF&rowData.readByte()>>shiftColors);
-			int locationSetId = getLocationSetId(rowBase, activeColumn, readByte);
+			int color = (0xFF&rowData.readByte()>>shiftColors);
+			int locationSetId = getLocationSetId(rowBase, activeColumn, color);
 			if (NO_DATA != locationSetId) {
 				
 				if (locationSetId<0) {
@@ -460,23 +460,23 @@ public class MapImageStage extends PronghornStage {
 		return isLoopCompleted;
 	}
 
-	private int getLocationSetId(int rowBase, int activeColumn, int readByte) {
+	private int getLocationSetId(int rowBase, int activeColumn, int color) {
 		assert(rowBase>=0);
 		assert(activeColumn>=0);
 		assert(localDepth>=0);
 		return imageLookup[
 		                               rowBase                            
 		                               +(activeColumn*localDepth)
-		                               +readByte];
+		                               +color];
 	}
 
-	private void setLocationSetId(int rowBase, int activeColumn, int newId, int readByte) {
+	private void setLocationSetId(int rowBase, int activeColumn, int newId, int color) {
 		assert(rowBase>=0);
 		assert(activeColumn>=0);
 		assert(localDepth>=0);
 		imageLookup[  rowBase                            
 		              +(activeColumn*localDepth)
-		              +readByte] = newId;
+		              +color] = newId;
 	}
 	
 

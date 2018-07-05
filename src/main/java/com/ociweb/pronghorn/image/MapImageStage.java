@@ -57,11 +57,8 @@ public class MapImageStage extends PronghornStage {
 	//this provides for 64 colors which both helps with
 	//   * simplification of what needs to be seen
 	//   * significant reduction in memory consumption
-	private int shiftColors = 1;
+	private int shiftColors = 2;
 	private int localDepth = 256 >> shiftColors;
-
-	private int matchNum = 3;
-	private int matchDenom = 4;
 	//private int minCycles = 12;
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
@@ -131,8 +128,6 @@ public class MapImageStage extends PronghornStage {
 		GraphManager.addNota(graphManager, GraphManager.STAGE_NAME, colorLabel, this);
 
 	}
-
-	private int frames = 0;
 
 	@Override
 	public void startup() {
@@ -204,9 +199,9 @@ public class MapImageStage extends PronghornStage {
 								//normal location scanning
 								///////////////////////
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
-									int readByte = (0xFF&rowData.readByte())>>shiftColors;
+									int color = (0xFF&rowData.readByte())>>shiftColors;
 									
-									int locationSetId = getLocationSetId(rowBase, activeColumn, readByte);
+									int locationSetId = getLocationSetId(rowBase, activeColumn, color);
 									if (NO_DATA != locationSetId) {
 										if (locationSetId<0) {										
 											//we have a single value so convert and match it
@@ -249,9 +244,9 @@ public class MapImageStage extends PronghornStage {
 								//learn this new location
 								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
 
-									int readByte = (0xFF&rowData.readByte())>>shiftColors;
+									int color = (0xFF&rowData.readByte())>>shiftColors;
 									
-									int locationSetId = getLocationSetId(rowBase, activeColumn, readByte);
+									int locationSetId = getLocationSetId(rowBase, activeColumn, color);
 									if (NO_DATA != locationSetId) {
 										if (locationSetId<0) {
 											//we now have 2 values stored here so extract first and collect both
@@ -260,14 +255,14 @@ public class MapImageStage extends PronghornStage {
 											locationSetId = locations.newSet();
 											locations.insert(locationSetId, firstValue);
 					
-											setLocationSetId(rowBase, activeColumn, locationSetId, readByte);
+											setLocationSetId(rowBase, activeColumn, locationSetId, color);
 										}
 										locations.insert(locationSetId, activeLocation);
 										
 									} else {
 										//store single value as negative until a second needs to be stored
 						
-										setLocationSetId(rowBase, activeColumn, SINGLE_BASE-activeLocation, readByte);
+										setLocationSetId(rowBase, activeColumn, SINGLE_BASE-activeLocation, color);
 									}
 									
 								}
@@ -277,8 +272,7 @@ public class MapImageStage extends PronghornStage {
 										logger.warn("the cycle step was too large {} and over {}", cycleStep, learningMaxSlices);
 										cycleStep = 0; 
 									}
-									logger.info("received num frames of {} in {}", frames, toString());
-									//no histogram to send.
+									//no histogram to send..
 									finishedImageProcessing();
 								}
 								
@@ -292,8 +286,6 @@ public class MapImageStage extends PronghornStage {
 							Pipe.skipNextFragment(imgInput, msgIdx);
 						}
 					} else if (ImageSchema.MSG_FRAMESTART_1 == msgIdx) {
-
-					    frames++;
 						
 						imageInProgress = true;
 						totalWidth = Pipe.takeInt(imgInput);
@@ -426,11 +418,11 @@ public class MapImageStage extends PronghornStage {
 		//logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		
 		int totalMatches = 0;
-		int countLimit = (totalWidth*matchNum)/matchDenom;
+		int countLimit = (totalWidth*3)/4;
 		//logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
-			int readByte = (0xFF&rowData.readByte()>>shiftColors);
-			int locationSetId = getLocationSetId(rowBase, activeColumn, readByte);
+			int color = (0xFF&rowData.readByte()>>shiftColors);
+			int locationSetId = getLocationSetId(rowBase, activeColumn, color);
 			if (NO_DATA != locationSetId) {
 				
 				if (locationSetId<0) {
@@ -463,29 +455,28 @@ public class MapImageStage extends PronghornStage {
 				
 		}
 				
-		//logger.info("found only {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
+		logger.info("found only {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
 		
 		return isLoopCompleted;
 	}
 
-	private int getLocationSetId(int rowBase, int activeColumn, int readByte) {
+	private int getLocationSetId(int rowBase, int activeColumn, int color) {
 		assert(rowBase>=0);
 		assert(activeColumn>=0);
 		assert(localDepth>=0);
-		int index =   rowBase
-                +(activeColumn*localDepth)
-                +readByte;
-		//logger.info("imageLookup length={}, index={}", imageLookup.length, index);
-		return imageLookup[ index ];
+		return imageLookup[
+		                               rowBase                            
+		                               +(activeColumn*localDepth)
+		                               +color];
 	}
 
-	private void setLocationSetId(int rowBase, int activeColumn, int newId, int readByte) {
+	private void setLocationSetId(int rowBase, int activeColumn, int newId, int color) {
 		assert(rowBase>=0);
 		assert(activeColumn>=0);
 		assert(localDepth>=0);
 		imageLookup[  rowBase                            
 		              +(activeColumn*localDepth)
-		              +readByte] = newId;
+		              +color] = newId;
 	}
 	
 

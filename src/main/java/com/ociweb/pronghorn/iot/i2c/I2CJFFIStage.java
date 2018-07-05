@@ -224,6 +224,9 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         long block = ((hardware.nanoTime()-blockStartTime)) - padding;
                         if (block > 0) {
                             try {
+                            	if (block>10_000_000) {
+                            		logger.error("Sleeping too long, this should only be for small ns values. but needs "+block+" ns");
+                            	}
                                 Thread.sleep(block/1_000_000,(int)(block%1_000_000));
                                 long dif;
                                 while ((dif = (blockStartTime-hardware.nanoTime()))>0) {
@@ -246,14 +249,15 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                     
                     if(inProgressIdx != -1) {
                         
-                        if (!PipeWriter.hasRoomForWrite(i2cResponsePipe)) {
-                            if (hardware.nanoTime()>prcRelease) {
-                                //we are going to miss the schedule due to backup in the pipes, this is common when the unit tests run or the user has put in a break point.
-                                processReleasedCommands(rate.longValue());//if this backup runs long term we never release the commands so we must do it now.
-                            }
-                            logger.warn("outgoing pipe is backed up, unable to read new data  {}"+i2cResponsePipe);
-                            return;//oops the pipe is full so we can not read, postpone this work until the pipe is cleared.
-                        }
+                    	//TESTING: this may no longer be required since the presume write will report any backups of outgoing data.
+//                        if (!PipeWriter.hasRoomForWrite(i2cResponsePipe)) {
+//                            if (hardware.nanoTime()>prcRelease) {
+//                                //we are going to miss the schedule due to backup in the pipes, this is common when the unit tests run or the user has put in a break point.
+//                                processReleasedCommands(rate.longValue());//if this backup runs long term we never release the commands so we must do it now.
+//                            }
+//                            logger.warn("outgoing pipe is backed up, unable to read new data  {}"+i2cResponsePipe);
+//                            return;//oops the pipe is full so we can not read, postpone this work until the pipe is cleared.
+//                        }
                         
                         I2CConnection connection = this.inputs[inProgressIdx];
                         timeOut = hardware.nanoTime() + (writeTime*35_000_000);///I2C allows for clients to abandon master after 35 ms

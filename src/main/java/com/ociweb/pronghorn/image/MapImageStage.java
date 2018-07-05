@@ -57,8 +57,11 @@ public class MapImageStage extends PronghornStage {
 	//this provides for 64 colors which both helps with
 	//   * simplification of what needs to be seen
 	//   * significant reduction in memory consumption
-	private int shiftColors = 2;
+	private int shiftColors = 1;
 	private int localDepth = 256 >> shiftColors;
+
+	private int matchNum = 3;
+	private int matchDenom = 4;
 	//private int minCycles = 12;
 	
 	private LoisVisitor sumVisitor = new LoisVisitor() {
@@ -128,6 +131,8 @@ public class MapImageStage extends PronghornStage {
 		GraphManager.addNota(graphManager, GraphManager.STAGE_NAME, colorLabel, this);
 
 	}
+
+	private int frames = 0;
 
 	@Override
 	public void startup() {
@@ -272,6 +277,7 @@ public class MapImageStage extends PronghornStage {
 										logger.warn("the cycle step was too large {} and over {}", cycleStep, learningMaxSlices);
 										cycleStep = 0; 
 									}
+									logger.info("received num frames of {} in {}", frames, toString());
 									//no histogram to send.
 									finishedImageProcessing();
 								}
@@ -286,6 +292,8 @@ public class MapImageStage extends PronghornStage {
 							Pipe.skipNextFragment(imgInput, msgIdx);
 						}
 					} else if (ImageSchema.MSG_FRAMESTART_1 == msgIdx) {
+
+					    frames++;
 						
 						imageInProgress = true;
 						totalWidth = Pipe.takeInt(imgInput);
@@ -418,7 +426,7 @@ public class MapImageStage extends PronghornStage {
 		//logger.info("checking for cycle complete looking between {} and {}", activeLearningLocationBase, endValue);
 		
 		int totalMatches = 0;
-		int countLimit = (totalWidth*3)/4;
+		int countLimit = (totalWidth*matchNum)/matchDenom;
 		//logger.info("looking for {} matches in this row of {}", countLimit, totalWidth );
 		for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {								
 			int readByte = (0xFF&rowData.readByte()>>shiftColors);
@@ -464,10 +472,11 @@ public class MapImageStage extends PronghornStage {
 		assert(rowBase>=0);
 		assert(activeColumn>=0);
 		assert(localDepth>=0);
-		return imageLookup[
-		                               rowBase                            
-		                               +(activeColumn*localDepth)
-		                               +readByte];
+		int index =   rowBase
+                +(activeColumn*localDepth)
+                +readByte;
+		//logger.info("imageLookup length={}, index={}", imageLookup.length, index);
+		return imageLookup[ index ];
 	}
 
 	private void setLocationSetId(int rowBase, int activeColumn, int newId, int readByte) {

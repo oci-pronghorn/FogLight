@@ -37,6 +37,8 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 
 	@Override
 	public void run() {
+		//clear the pipes matching previous location
+		clearOld();
 		
 		//iterate over all 4, if one is smaller pull it and hold value
 		//must find lowest number on which they all agree, keep low number
@@ -45,7 +47,7 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 		int sum = 0;
 		while (--i>=0) {
 			sum += process(calibrationDoneInputs[i]);
-		}
+		};
 
 		// we send out final calibration
 		if ((4 == sum) && Pipe.hasRoomForWrite(calibrationDone)) {
@@ -63,9 +65,6 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 			activeCount = 0;
 			
 		}
-		//clear the pipes matching previous location
-		clearOld();
-		
 	}
 
 	private void clearOld() {
@@ -120,7 +119,7 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 				} else {
 					//they equal, we may have something...
 					//logger.info("adding 1, units == activeCount (last)");
-					return 1;					
+					return 1;
 				}
 			} else {
 				if (base == previousLocation) {

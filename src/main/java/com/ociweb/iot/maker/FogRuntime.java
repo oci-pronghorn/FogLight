@@ -52,6 +52,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 	private static final int i2cDefaultLength = 300;
 	private static final int i2cDefaultMaxPayload = 16;
+	
+	public static final int i2cResponseDefaultLength = 128;
+	public static final int i2cResponseDefaultMaxPayload = 64;
+	
+	
 
 	private static final byte edI2C = 6;
 
@@ -327,7 +332,9 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 
 		if (this.builder.isListeningToI2C(listener) && this.builder.hasI2CInputs()) {
-			inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance, defaultCommandChannelLength, defaultCommandChannelMaxPayload).grow2x());
+            //this is grow2x in case we need to use it for replication.  TODO: we need a way to customize this setting for the response side of a Twig.
+			inputPipes[--pipesCount] = new Pipe<I2CResponseSchema>(new PipeConfig<I2CResponseSchema>(I2CResponseSchema.instance,
+					FogRuntime.i2cResponseDefaultLength, FogRuntime.i2cResponseDefaultMaxPayload).grow2x());
 		}
 		if (this.builder.isListeningToPins(listener) && this.builder.hasDigitalOrAnalogInputs()) {
 			inputPipes[--pipesCount] = new Pipe<GroveResponseSchema>(new PipeConfig<GroveResponseSchema>(GroveResponseSchema.instance, defaultCommandChannelLength).grow2x());

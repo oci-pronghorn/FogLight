@@ -791,10 +791,20 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		if (i2cResponsePipes.length>0) {
 			if (i2cResponsePipes.length==1) {
 				//skip ReplicatorStage for only single listener
-				masterI2CResponsePipe = i2cResponsePipes[0];				
+				masterI2CResponsePipe = i2cResponsePipes[0];
+				
+			//	PronghornStage stage = GraphManager.getRingConsumer(gm, masterI2CResponsePipe.id);
+				//set the rete faster...
+				
+				
 			} else {			
-				masterI2CResponsePipe =  I2CResponseSchema.instance.newPipe(DEFAULT_LENGTH, DEFAULT_PAYLOAD_SIZE);
+				//TODO: get the pipe definitions?
+				masterI2CResponsePipe =  I2CResponseSchema.instance.newPipe(FogRuntime.i2cResponseDefaultLength, FogRuntime.i2cResponseDefaultMaxPayload);
 				ReplicatorStage.newInstance(gm, masterI2CResponsePipe, i2cResponsePipes);
+				
+				//TODO: make this replicator go faster rate as well..
+				
+				
 			}
 		}
 

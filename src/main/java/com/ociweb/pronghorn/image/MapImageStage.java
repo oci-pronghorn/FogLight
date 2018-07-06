@@ -472,7 +472,7 @@ public class MapImageStage extends PronghornStage {
 				
 		}
 				
-		logger.info("found {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
+		//logger.info("found {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
 		
 		return isLoopCompleted;
 	}

@@ -23,7 +23,7 @@ import com.ociweb.pronghorn.stage.test.PipeNoOp;
 public class ImageGraphBuilder {
 
 	public static final int DOWNSCALE_WIDTH = 320;
-	public static final int DOWNSCALE_HEIGHT = 180;
+	public static final int DOWNSCALE_HEIGHT = 240;
 
 	public static void buildLocationDetectionGraph(GraphManager gm, 
 			String loadFilePath, String saveFilePath,
@@ -32,14 +32,11 @@ public class ImageGraphBuilder {
 			Pipe<ProbabilitySchema> probLocation, //output pipe sending probable locations
 			Pipe<CalibrationStatusSchema> calibrationDone //output pipe sending training is complete
 			) {
-			
-							
-		
-		if (null == calibrationDone) {					
+
+		if (null == calibrationDone) {
 			calibrationDone = CalibrationStatusSchema.instance.newPipe(8, 0);
 			PipeCleanerStage.newInstance(gm, calibrationDone);
 		}
-		
 		
 		if (null == probLocation) {					
 			probLocation = ProbabilitySchema.instance.newPipe(8, 50);
@@ -144,7 +141,4 @@ public class ImageGraphBuilder {
 		FileBlobWriteStage.newInstance(gm, saveDataRaw, saveFilePath);
 
 	}
-
-	
-	
 }

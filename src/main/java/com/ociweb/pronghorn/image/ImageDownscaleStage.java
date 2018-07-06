@@ -1,5 +1,6 @@
 package com.ociweb.pronghorn.image;
 
+import com.ociweb.iot.maker.LinuxImageCaptureStage;
 import com.ociweb.pronghorn.image.schema.ImageSchema;
 import com.ociweb.pronghorn.pipe.ChannelReader;
 import com.ociweb.pronghorn.pipe.Pipe;
@@ -7,6 +8,8 @@ import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -25,6 +28,8 @@ import java.util.Arrays;
  * @author Brandon Sanders [brandon@alicorn.io]
  */
 public class ImageDownscaleStage extends PronghornStage {
+
+	private static final Logger logger = LoggerFactory.getLogger(ImageDownscaleStage.class);
 
     // Encoding assertion check
     private final ByteBuffer encodingBytes = ByteBuffer.wrap(new byte[32]);
@@ -75,6 +80,8 @@ public class ImageDownscaleStage extends PronghornStage {
     public static final byte[] B_OUTPUT_ENCODING = "B8".getBytes(StandardCharsets.US_ASCII);
     public static final byte[] MONO_OUTPUT_ENCODING = "MONO8".getBytes(StandardCharsets.US_ASCII);
 
+    int rows = 0;
+
     // Lookup table for encodings.
     public static final byte[][] OUTPUT_ENCODING_LOOKUP = new byte[][]{R_OUTPUT_ENCODING, G_OUTPUT_ENCODING, B_OUTPUT_ENCODING, MONO_OUTPUT_ENCODING};
 
@@ -117,9 +124,12 @@ public class ImageDownscaleStage extends PronghornStage {
     }
 
 	private void processFrameStart() {
+
 		// Extract message start data.
 		imageFrameWidth = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101);
 		imageFrameHeight = PipeReader.readInt(input, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201);
+
+		//logger.info("Downscaled frame started with original size {}x{}", imageFrameWidth, imageFrameHeight);
 
 		// Ensure source resolution is evenly divisible by target resolution.
 		assert imageFrameWidth % outputWidth == 0 &&
@@ -146,7 +156,6 @@ public class ImageDownscaleStage extends PronghornStage {
 		while (--i>=0) {
 		    Pipe<ImageSchema> pipe = outputs[i];
 			if (PipeWriter.tryWriteFragment(pipe, ImageSchema.MSG_FRAMESTART_1)) {
-
 		        // Write basic data.
 		        PipeWriter.writeInt(pipe, ImageSchema.MSG_FRAMESTART_1_FIELD_WIDTH_101, outputWidth);
 		        PipeWriter.writeInt(pipe, ImageSchema.MSG_FRAMESTART_1_FIELD_HEIGHT_201, outputHeight);
@@ -158,6 +167,9 @@ public class ImageDownscaleStage extends PronghornStage {
 		        PipeWriter.writeBytes(pipe, ImageSchema.MSG_FRAMESTART_1_FIELD_ENCODING_601, OUTPUT_ENCODING_LOOKUP[i]);
 
 		        PipeWriter.publishWrites(pipe);
+
+				//logger.info("Published new downscaled frame start... previous rows: {}", rows);
+		        rows = 0;
 		    } else {
 		    	throw new UnsupportedOperationException("Should not happen since we checked already");
 		    }

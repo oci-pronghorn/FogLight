@@ -17,6 +17,7 @@ import com.ociweb.pronghorn.pipe.RawDataSchema;
 import com.ociweb.pronghorn.pipe.RawDataSchemaUtil;
 import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.math.HistogramSchema;
+import com.ociweb.pronghorn.stage.scheduling.DidWorkMonitor;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.util.primitive.Lois;
 import com.ociweb.pronghorn.util.primitive.LoisVisitor;
@@ -137,6 +138,7 @@ public class MapImageStage extends PronghornStage {
 	@Override
 	public void run() {
 
+		int workCounter = 0;
 		assert(savePosition!=-2 || loadPosition!=-2) : "Can only load or save but not do both at same time.";
 		
 		//NOTE: if we are still saving the data do this first
@@ -186,6 +188,7 @@ public class MapImageStage extends PronghornStage {
 						&& Pipe.hasRoomForWrite(statusOut)) {
 					
 					int msgIdx = Pipe.takeMsgIdx(imgInput);
+					workCounter++;
 					
 					if (ImageSchema.MSG_FRAMECHUNK_2 == msgIdx) {
 						if (activeRow < totalRows) {
@@ -198,16 +201,18 @@ public class MapImageStage extends PronghornStage {
 								///////////////////////
 								//normal location scanning
 								///////////////////////
-								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
-									int color = (0xFF&rowData.readByte())>>shiftColors;
-									
-									int locationSetId = getLocationSetId(rowBase, activeColumn, color);
-									if (NO_DATA != locationSetId) {
-										if (locationSetId<0) {										
-											//we have a single value so convert and match it
-											sumVisitor.visit(SINGLE_BASE - locationSetId);											
-										} else {
-											locations.visitSet(locationSetId, sumVisitor );
+								if (hasDataSet) {//only collect data if we have data
+									for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
+										int color = (0xFF&rowData.readByte())>>shiftColors;
+										
+										int locationSetId = getLocationSetId(rowBase, activeColumn, color);
+										if (NO_DATA != locationSetId) {
+											if (locationSetId<0) {										
+												//we have a single value so convert and match it
+												sumVisitor.visit(SINGLE_BASE - locationSetId);											
+											} else {
+												locations.visitSet(locationSetId, sumVisitor );
+											}
 										}
 									}
 								}
@@ -326,6 +331,8 @@ public class MapImageStage extends PronghornStage {
 					}
 				}
 			}		
+			
+		
 		} else {			
 			if (savePosition==-3 || save(savingMappingData)) {
 				if (Pipe.hasRoomForWrite(output)) {
@@ -334,6 +341,11 @@ public class MapImageStage extends PronghornStage {
 				}
 			}
 		}
+		
+		if (workCounter>0) {			
+			DidWorkMonitor.didWork(didWorkMonitor);
+		}
+		
 	}
 
 	private void readModeData(Pipe<LocationModeSchema> pipe) {

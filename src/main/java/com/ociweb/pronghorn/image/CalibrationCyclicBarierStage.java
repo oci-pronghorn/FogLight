@@ -37,8 +37,6 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 
 	@Override
 	public void run() {
-		//clear the pipes matching previous location
-		clearOld();
 		
 		//iterate over all 4, if one is smaller pull it and hold value
 		//must find lowest number on which they all agree, keep low number
@@ -65,6 +63,9 @@ public class CalibrationCyclicBarierStage extends PronghornStage {
 			activeCount = 0;
 			
 		}
+
+		//clear the pipes matching previous location
+		clearOld();
 	}
 
 	private void clearOld() {

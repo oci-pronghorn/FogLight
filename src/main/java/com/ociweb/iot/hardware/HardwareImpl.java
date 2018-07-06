@@ -963,8 +963,9 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 	
 
 	public Pipe<ImageSchema> newImageSchemaPipe() {
+		//room for 2 images so the first can be consumed while we write the second
 		return new Pipe<ImageSchema>(new PipeConfig<ImageSchema>(ImageSchema.instance,
-                                                                 LinuxImageCaptureStage.DEFAULT_FRAME_HEIGHT + 1,
+                                                                 2*(LinuxImageCaptureStage.DEFAULT_FRAME_HEIGHT + 1),
                                                                  LinuxImageCaptureStage.DEFAULT_ROW_SIZE * 3).grow2x());
 	}
 

@@ -63,11 +63,11 @@ public class ImageGraphBuilder {
 		Pipe<RawDataSchema> saveDataBlue  = RawDataSchema.instance.newPipe(4, 1<<10);
 		Pipe<RawDataSchema> saveDataMono  = RawDataSchema.instance.newPipe(4, 1<<10);
 
-		
-		Pipe<ImageSchema> imageR = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH); 
-		Pipe<ImageSchema> imageG = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH);
-		Pipe<ImageSchema> imageB = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH);
-		Pipe<ImageSchema> imageM = ImageSchema.instance.newPipe(DOWNSCALE_HEIGHT+1, DOWNSCALE_WIDTH);
+		//these are longer to hold the data while the thread is away.
+		Pipe<ImageSchema> imageR = ImageSchema.instance.newPipe(3*(DOWNSCALE_HEIGHT+1), DOWNSCALE_WIDTH); 
+		Pipe<ImageSchema> imageG = ImageSchema.instance.newPipe(3*(DOWNSCALE_HEIGHT+1), DOWNSCALE_WIDTH);
+		Pipe<ImageSchema> imageB = ImageSchema.instance.newPipe(3*(DOWNSCALE_HEIGHT+1), DOWNSCALE_WIDTH);
+		Pipe<ImageSchema> imageM = ImageSchema.instance.newPipe(3*(DOWNSCALE_HEIGHT+1), DOWNSCALE_WIDTH);
 
 		int maxUnits = 10_000;
 		int maxHistogramLen = ChannelReader.PACKED_LONG_SIZE * maxUnits;

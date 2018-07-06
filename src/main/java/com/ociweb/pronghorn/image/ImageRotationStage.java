@@ -56,26 +56,38 @@ public class ImageRotationStage extends PronghornStage {
     private final int outputFrameRowSize;
     private int outputFrameHead = NONE;
 
-    // TODO: Finish this method
-    private static final void skewFrameX(double shear,
-                                        byte[] source, int width, int height,
-                                        byte[] destination, int destinationWidth, int destinationHeight) {
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                // Pixel p = source(x, y)
-                // p.posX = (x + shear * y)
-                int sourcePixelIndex = source[(y * width * 3) + (x * 3)];
-            }
-        }
+    private static int cartesianToRgb24Index(int x, int y, int width) {
+        return y * width * 3 + x * 3;
     }
 
-    // TODO: Finish this method
-    private static final void skewFrameY(double shear,
+    private static void shearRotateFrame(double alpha, double beta,
                                          byte[] source, int width, int height,
                                          byte[] destination, int destinationWidth, int destinationHeight) {
+
+        // Iterate over all pixels in the frame.
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int sourcePixelIndex = source[(y * width * 3) + (x * 3)];
+
+                // Get the pixel's index in the source.
+                int sourcePixelIndex = source[cartesianToRgb24Index(x, y, width)];
+
+                // Perform the three shearing operations.
+                double destinationX = x + alpha * y;
+                double destinationY = y + beta * x;
+                destinationX = destinationX + alpha * destinationY;
+
+                // Insert source pixel into destination array if it falls within bounds.
+                if (destinationX >= 0 && destinationX < destinationWidth &&
+                    destinationY >= 0 && destinationY < destinationHeight) {
+
+                    // Get the pixel's index in the destination.
+                    int destinationPixelIndex = cartesianToRgb24Index((int) destinationX, (int) destinationY, destinationWidth);
+
+                    // Insert pixel values.
+                    destination[destinationPixelIndex] = source[sourcePixelIndex];
+                    destination[destinationPixelIndex + 1] = source[sourcePixelIndex + 1];
+                    destination[destinationPixelIndex + 2] = source[sourcePixelIndex + 2];
+                }
             }
         }
     }
@@ -196,9 +208,7 @@ public class ImageRotationStage extends PronghornStage {
                 Arrays.fill(outputFrame, (byte) 0x00);
 
                 // Skew the input frame into our output frame.
-                skewFrameX(rotationAlpha, inputFrame, inputFrameWidth, inputFrameHeight, outputFrame, cropWidth, cropHeight);
-                skewFrameY(rotationBeta, outputFrame, cropWidth, cropHeight, outputFrame, cropWidth, cropHeight);
-                skewFrameX(rotationAlpha, outputFrame, cropWidth, cropHeight, outputFrame, cropWidth, cropHeight);
+                shearRotateFrame(rotationAlpha, rotationBeta, inputFrame, inputFrameWidth, inputFrameHeight, outputFrame, cropWidth, cropHeight);
             }
 
             // Write output frame data.

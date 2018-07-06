@@ -201,16 +201,18 @@ public class MapImageStage extends PronghornStage {
 								///////////////////////
 								//normal location scanning
 								///////////////////////
-								for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
-									int color = (0xFF&rowData.readByte())>>shiftColors;
-									
-									int locationSetId = getLocationSetId(rowBase, activeColumn, color);
-									if (NO_DATA != locationSetId) {
-										if (locationSetId<0) {										
-											//we have a single value so convert and match it
-											sumVisitor.visit(SINGLE_BASE - locationSetId);											
-										} else {
-											locations.visitSet(locationSetId, sumVisitor );
+								if (hasDataSet) {//only collect data if we have data
+									for(int activeColumn = 0; activeColumn<totalWidth; activeColumn++) {
+										int color = (0xFF&rowData.readByte())>>shiftColors;
+										
+										int locationSetId = getLocationSetId(rowBase, activeColumn, color);
+										if (NO_DATA != locationSetId) {
+											if (locationSetId<0) {										
+												//we have a single value so convert and match it
+												sumVisitor.visit(SINGLE_BASE - locationSetId);											
+											} else {
+												locations.visitSet(locationSetId, sumVisitor );
+											}
 										}
 									}
 								}

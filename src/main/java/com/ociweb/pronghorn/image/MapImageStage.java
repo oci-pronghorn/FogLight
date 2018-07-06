@@ -287,7 +287,7 @@ public class MapImageStage extends PronghornStage {
 							
 						} else {
 							//error too many rows.
-							logger.error("too many rows only expected {}",totalRows);
+							logger.error("too many rows, expected new frame start");
 							Pipe.skipNextFragment(imgInput, msgIdx);
 						}
 					} else if (ImageSchema.MSG_FRAMESTART_1 == msgIdx) {
@@ -343,7 +343,7 @@ public class MapImageStage extends PronghornStage {
 		}
 		
 		if (workCounter>0) {			
-			DidWorkMonitor.didWork(didWorkMonitor);
+			didWorkMonitor.published();
 		}
 		
 	}

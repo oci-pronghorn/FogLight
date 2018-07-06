@@ -50,8 +50,8 @@ public class LinuxImageCaptureStage extends PronghornStage {
     private int frameBytesHead = FRAME_EMPTY;
 
     // Default frame size data.
-    public static final int DEFAULT_FRAME_WIDTH = 1280;
-    public static final int DEFAULT_FRAME_HEIGHT = 720;
+    public static final int DEFAULT_FRAME_WIDTH = 640;
+    public static final int DEFAULT_FRAME_HEIGHT = 360;
     public static final int DEFAULT_ROW_SIZE = DEFAULT_FRAME_WIDTH * 3;
 
     // Proxy data directory.

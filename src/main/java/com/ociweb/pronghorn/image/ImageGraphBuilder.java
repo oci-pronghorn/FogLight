@@ -22,8 +22,8 @@ import com.ociweb.pronghorn.stage.test.PipeNoOp;
 
 public class ImageGraphBuilder {
 
-	public static final int DOWNSCALE_WIDTH = 256;
-	public static final int DOWNSCALE_HEIGHT = 144;
+	public static final int DOWNSCALE_WIDTH = 320;
+	public static final int DOWNSCALE_HEIGHT = 180;
 
 	public static void buildLocationDetectionGraph(GraphManager gm, 
 			String loadFilePath, String saveFilePath,

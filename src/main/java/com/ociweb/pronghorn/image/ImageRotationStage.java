@@ -45,7 +45,6 @@ public class ImageRotationStage extends PronghornStage {
     private long inputFrameTimestamp = NONE;
     private int inputFrameWidth;
     private int inputFrameHeight;
-    private byte[] inputFrameRow;
     private byte[] inputFrame;
     private int inputFrameHead = NONE;
 
@@ -69,12 +68,16 @@ public class ImageRotationStage extends PronghornStage {
             for (int x = 0; x < width; x++) {
 
                 // Get the pixel's index in the source.
-                int sourcePixelIndex = source[cartesianToRgb24Index(x, y, width)];
+                int sourcePixelIndex = cartesianToRgb24Index(x, y, width);
 
                 // Perform the three shearing operations.
                 double destinationX = x + alpha * y;
                 double destinationY = y + beta * x;
                 destinationX = destinationX + alpha * destinationY;
+
+                // Round result.
+                destinationX = Math.round(destinationX);
+                destinationY = Math.round(destinationY);
 
                 // Insert source pixel into destination array if it falls within bounds.
                 if (destinationX >= 0 && destinationX < destinationWidth &&
@@ -133,6 +136,8 @@ public class ImageRotationStage extends PronghornStage {
             nextInputFrameSize = PipeReader.readInt(imagePipeIn, ImageSchema.MSG_FRAMESTART_1_FIELD_FRAMEBYTES_401);
             assert inputFrameHead == NONE || inputFrameHead == FRAME_BUFFERED;
             inputFrameHead = 0;
+
+            PipeReader.releaseReadLock(imagePipeIn);
         }
 
         // Read in a cropping request if we do not have one.
@@ -150,6 +155,8 @@ public class ImageRotationStage extends PronghornStage {
             // Calculate alpha, beta, and gamma for rotation data.
             rotationAlpha = -1 * Math.tan(theta / 2);
             rotationBeta = Math.sin(theta);
+
+            PipeReader.releaseReadLock(imageRotationPipeIn);
         }
 
         // Read in the next frame if the next frame's timestamp is older than the rotation request.
@@ -164,13 +171,8 @@ public class ImageRotationStage extends PronghornStage {
             while (PipeReader.tryReadFragment(imagePipeIn)) {
                 assert PipeReader.getMsgIdx(imagePipeIn) == ImageSchema.MSG_FRAMECHUNK_2;
 
-                // Calculate row length.
-                int rowLength = PipeReader.readBytesLength(imagePipeIn, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102);
-
-                // Ensure image frame row buffer is correctly sized.
-                if (inputFrameRow == null || inputFrameRow.length != rowLength) {
-                    inputFrameRow = new byte[rowLength];
-                }
+                // Read data.
+                inputFrameHead += PipeReader.readBytes(imagePipeIn, ImageSchema.MSG_FRAMECHUNK_2_FIELD_ROWBYTES_102, inputFrame, inputFrameHead);
 
                 // If frame is full, we're done!
                 if (inputFrameHead >= inputFrame.length) {
@@ -181,6 +183,8 @@ public class ImageRotationStage extends PronghornStage {
                     nextInputFrameTimestamp = NONE;
                     break;
                 }
+
+                PipeReader.releaseReadLock(imagePipeIn);
             }
         }
 

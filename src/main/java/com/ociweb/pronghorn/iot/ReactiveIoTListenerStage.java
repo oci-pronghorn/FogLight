@@ -282,8 +282,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
         this.builder = hardware;
                    
         //allow for shutdown upon shutdownRequest we have new content
-        GraphManager.addNota(graphManager, GraphManager.PRODUCER, GraphManager.PRODUCER, this);
-                
+        producer();
     }
 
 
@@ -381,7 +380,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
                     
         oversampledAnalogValues = new int[MAX_PORTS*OVERSAMPLE_STEP];
         
-        stageRate = (Number)GraphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
+        stageRate = (Number)GraphManager.getNota(graphManager, this.realStage.stageId,  GraphManager.SCHEDULE_RATE, null);
         
         timeProcessWindow = (null==stageRate? 0 : (int)(stageRate.longValue()/MS_to_NS));
                         
@@ -400,7 +399,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
                             break;
                         case -1:
                             
-                            requestShutdown();
+                        	this.realStage.requestShutdown();
                             PipeReader.releaseReadLock(p);
                             return;
                            
@@ -456,7 +455,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 		        	
 		        break;
 		        case -1:
-		            requestShutdown();
+		        	this.realStage.requestShutdown();
 		        break;
 		    }
 		    PipeReader.readNextWithoutReleasingReadLock(p);
@@ -586,7 +585,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
                 break;
                 case -1:
                 {    
-                    requestShutdown();
+                	this.realStage.requestShutdown();
                     PipeReader.releaseReadLock(p);
                     return;
                 }   

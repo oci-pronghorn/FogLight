@@ -450,35 +450,35 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 	public boolean isListeningToSerial(Object listener) {
 		return listener instanceof SerialListenerBase
-				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, SerialListenerTransducer.class);
+				|| !ChildClassScanner.visitUsedByClass(null, listener, deepListener, SerialListenerTransducer.class);
 	}
 	public boolean isListeningToCamera(Object listener) {
 		return listener instanceof ImageListenerBase
-				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, ImageListenerTransducer.class);
+				|| !ChildClassScanner.visitUsedByClass(null, listener, deepListener, ImageListenerTransducer.class);
 	}
 	
 	public boolean isListeningToLocationViaCamera(Object listener) {
 		return listener instanceof LocationListenerBase
-				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, LocationListenerTransducer.class);
+				|| !ChildClassScanner.visitUsedByClass(null, listener, deepListener, LocationListenerTransducer.class);
 	}
 	
 	public boolean isListeningToTrainingViaCamera(Object listener) {
 		return listener instanceof CalibrationListenerBase
-				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, CalibrationListenerTransducer.class);
+				|| !ChildClassScanner.visitUsedByClass(null, listener, deepListener, CalibrationListenerTransducer.class);
 	}
 		
 	public boolean isListeningToI2C(Object listener) {
 		return listener instanceof I2CListenerBase
-				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, I2CListenerTransducer.class);
+				|| !ChildClassScanner.visitUsedByClass(null, listener, deepListener, I2CListenerTransducer.class);
 	}
 
 	public boolean isListeningToPins(Object listener) {
 		return listener instanceof DigitalListenerBase || 
 				listener instanceof AnalogListenerBase ||
 				listener instanceof RotaryListenerBase
-				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, DigitalListenerTransducer.class)
-				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, AnalogListenerTransducer.class)
-				|| !ChildClassScanner.visitUsedByClass(listener, deepListener, RotaryListenerTransducer.class);
+				|| !ChildClassScanner.visitUsedByClass(null, listener, deepListener, DigitalListenerTransducer.class)
+				|| !ChildClassScanner.visitUsedByClass(null, listener, deepListener, AnalogListenerTransducer.class)
+				|| !ChildClassScanner.visitUsedByClass(null, listener, deepListener, RotaryListenerTransducer.class);
 	}
 
 	private Pipe<MessagePubSub> getTempPipeOfStartupSubscriptions() {

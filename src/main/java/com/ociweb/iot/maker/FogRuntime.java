@@ -296,7 +296,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		
 		outputPipes = new Pipe<?>[0];
-		ChildClassScanner.visitUsedByClass(listener, gatherPipesVisitor, MsgCommandChannel.class);//populates OutputPipes
+		ChildClassScanner.visitUsedByClass(id, listener, listenerAndNameVisitor, MsgCommandChannel.class);//populates OutputPipes
 
 		/////////
 		//pre-count how many pipes will be needed so the array can be built to the right size
@@ -369,27 +369,9 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
         //extract this into common method to be called in GL and FL
 		if (transducerAutowiring) {
-			inputPipes = autoWireTransducers(listener, inputPipes, consumers);
+			inputPipes = autoWireTransducers(id, listener, inputPipes, consumers);
 		}
 		
-
-		if (null!=id) {
-			
-			List<PrivateTopic> sourceTopics = builder.getPrivateTopicsFromSource(id);
-			int i = sourceTopics.size();
-			while (--i>=0) {				
-				PrivateTopic privateTopic = sourceTopics.get(i);
-				outputPipes = PronghornStage.join(outputPipes, privateTopic.getPipe(parallelInstanceUnderActiveConstruction));				
-			}
-						
-			List<PrivateTopic> targetTopics = builder.getPrivateTopicsFromTarget(id);
-			int j = targetTopics.size();
-			while (--j>=0) {
-				PrivateTopic privateTopic = targetTopics.get(i);
-				inputPipes = PronghornStage.join(inputPipes, privateTopic.getPipe(parallelInstanceUnderActiveConstruction));
-			}
-						
-		}
 
 		ReactiveIoTListenerStage reactiveListener = builder.createReactiveListener(
 				                                    gm, listener,
@@ -397,9 +379,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 													outputPipes, 
 													consumers,
 													parallelInstanceUnderActiveConstruction, id);
-		
-		configureStageRate(listener, reactiveListener);
-		
+
 		//TODO: this is a new test adding this pipe.
         if (httpClientPipeId != netResponsePipeIdx) {
         	//TODO: We need to add all the Sessions however we do not know this until later.
@@ -407,30 +387,11 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         	
         	reactiveListener.configureHTTPClientResponseSupport(httpClientPipeId);
         }
-		
-		assert(checkPipeOrders(inputPipes));
-
+	
 		return reactiveListener;
 
 	}
 
-
-	private boolean checkPipeOrders(Pipe<?>[] inputPipes) {
-		//////////
-		///only for assert
-		///////////
-		int testId = -1;
-		int i = inputPipes.length;
-		while (--i>=0) {
-			if (inputPipes[i]!=null
-				&& Pipe.isForSchema((Pipe<MessageSubscription>)inputPipes[i], MessageSubscription.class)) {
-				testId = inputPipes[i].id;
-			}
-		}
-		assert(-1==testId || GraphManager.allPipesOfType(gm, MessageSubscription.instance)[subscriptionPipeIdx-1].id==testId) : "GraphManager has returned the pipes out of the expected order";
-		//////////////////
-		return true;
-	}
 
 	private static Pipe<SerialInputSchema> newSerialInputPipe(PipeConfig<SerialInputSchema> config) {
 		return new Pipe<SerialInputSchema>(config) {

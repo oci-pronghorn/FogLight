@@ -37,7 +37,7 @@ public class DigitalListenerBehavior implements DigitalListener {
 			System.out.println("Buzzer was on for " + durationMillis + " milliseconds");
 			System.out.println("time: " + time);
 		}
-		pubService.shutdown();
+		pubService.requestShutdown();
 	}
 
 }

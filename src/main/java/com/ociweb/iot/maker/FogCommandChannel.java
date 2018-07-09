@@ -537,4 +537,17 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
 	public static void releaseI2CTraffic(FogCommandChannel cmd) {
 		   cmd.builder.releaseI2CTraffic(cmd.runningI2CCommandCount, cmd);
 	}
+	
+	/**
+	 * start shutdown of the runtime, this can be vetoed or postponed by any shutdown listeners
+	 */
+	public void requestShutdown() {
+		
+		assert(enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+		try {
+			builder.requestShutdown();
+		} finally {
+		    assert(exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+		}
+	}
 }

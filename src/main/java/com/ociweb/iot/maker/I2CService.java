@@ -147,11 +147,11 @@ public class I2CService {
 	/**
 	 * start shutdown of the runtime, this can be vetoed or postponed by any shutdown listeners
 	 */
-	public void triggerShutdownRuntime() {
+	public void requestShutdown() {
 		
 		assert(cmd.enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
 		try {
-			cmd.builder.triggerShutdownProcess();
+			cmd.builder.requestShutdown();
 		} finally {
 		    assert(cmd.exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}

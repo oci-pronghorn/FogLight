@@ -62,5 +62,17 @@ public class SerialService {
 		}    	
     }
 	
+	/**
+	 * start shutdown of the runtime, this can be vetoed or postponed by any shutdown listeners
+	 */
+	public void triggerShutdownRuntime() {
+		
+		assert(cmd.enterBlockOk()) : "Concurrent usage error, ensure this never called concurrently";
+		try {
+			cmd.builder.triggerShutdownProcess();
+		} finally {
+		    assert(cmd.exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
+		}
+	}
 	
 }

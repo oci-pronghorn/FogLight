@@ -28,7 +28,7 @@ public class CountBehavior implements PubSubListener {
 			return pubSubService.publishTopic(publishTopic);
 		}
 		else {
-			pubSubService.shutdown();
+			pubSubService.requestShutdown();
 		}
 		return true;
 	}

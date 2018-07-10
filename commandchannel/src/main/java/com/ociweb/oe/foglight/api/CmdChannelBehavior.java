@@ -14,15 +14,11 @@ public class CmdChannelBehavior implements DigitalListener {
 	
 private static final Port LED_PORT = D2;
 private static final Port BUTTON_PORT = D3;
-
 	
 	private final FogCommandChannel channel1;
-	private PubSubService pubService;
 
 	public CmdChannelBehavior(FogRuntime runtime) {
 		channel1 = runtime.newCommandChannel( FogCommandChannel.PIN_WRITER);
-		pubService = channel1.newPubSubService();
-		
 	}
 
 	@Override
@@ -37,7 +33,7 @@ private static final Port BUTTON_PORT = D3;
 		//channel1.blockUntil(1514764800000); //this will block until the specified epoch time, 
 		
 		//channel1.block(BUTTON_PORT, 500); //This block method only stop any commands for the specified port, but other uses of the command channel will still be active
-		pubService.requestShutdown();
+		channel1.requestShutdown();
 
 	}
 

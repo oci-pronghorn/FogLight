@@ -9,8 +9,7 @@ import com.ociweb.iot.maker.FogRuntime;
 import com.ociweb.iot.maker.Hardware;
 import com.ociweb.iot.maker.Port;
 
-public class CommandChannel implements FogApp
-{
+public class CommandChannel implements FogApp {
 
 	private static final Port BUTTON_PORT = D3;
 	private static final Port LED_PORT = D2;

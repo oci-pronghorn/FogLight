@@ -91,7 +91,7 @@ public class ReadDeviceInputStage extends PronghornStage {
 		rate = (Number)GraphManager.getNota(graphManager, this.stageId,  GraphManager.SCHEDULE_RATE, null);
 		
 		GraphManager.addNota(graphManager, GraphManager.DOT_BACKGROUND, "darksalmon", this);
-		
+		GraphManager.addNota(graphManager, GraphManager.ISOLATE, GraphManager.ISOLATE, this);
 	}
 
 

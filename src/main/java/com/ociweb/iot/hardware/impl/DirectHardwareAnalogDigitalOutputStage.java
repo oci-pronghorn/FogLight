@@ -41,6 +41,8 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	
 		super(graphManager, runtime, hardware, ccToAdOut, goPipe, ackPipe);
 		this.fromCommandChannels = ccToAdOut;
+		
+		GraphManager.addNota(graphManager, GraphManager.ISOLATE, GraphManager.ISOLATE, this);
 	}
 	
 	  protected void processMessagesForPipe(int activePipe) {
@@ -54,7 +56,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                && PipeReader.tryReadFragment(pipe) ){
 	  	                        
 	            int msgIdx = PipeReader.getMsgIdx(pipe);
-	           
+	            didWorkMonitor.published();
 	            switch(msgIdx){
 	                                
 	                case GroveRequestSchema.MSG_DIGITALSET_110:

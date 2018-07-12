@@ -114,6 +114,8 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
         processInputs = hardware.hasI2CInputs() && hasListeners();
         
 		GraphManager.addNota(graphManager, GraphManager.DOT_BACKGROUND, "darksalmon", this);
+		GraphManager.addNota(graphManager, GraphManager.ISOLATE, GraphManager.ISOLATE, this);
+		
 
     }
     

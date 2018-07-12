@@ -508,11 +508,13 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		app.declareConfiguration(hardware);
 		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());
-		logger.info("{} ms duration {} ms finished declare configuration", nowTime = System.currentTimeMillis(), nowTime-lastTime);
+		nowTime = System.currentTimeMillis();
+		logger.info("duration {} ms finished declare configuration",nowTime-lastTime);
 		lastTime = nowTime;
 
 		runtime.declareBehavior(app);
-		logger.info("{} ms duration {} ms finished declare behavior", nowTime = System.currentTimeMillis(), nowTime-lastTime);
+		nowTime = System.currentTimeMillis();
+		logger.info("duration {} ms finished declare behavior", nowTime-lastTime);
 		lastTime = nowTime;
 
 		//TODO: at this point realize the stages in declare behavior

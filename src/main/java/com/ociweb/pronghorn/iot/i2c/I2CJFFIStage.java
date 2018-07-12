@@ -268,7 +268,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         
                         //Write the request to read
                         
-                        while(!i2cBacking.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.nanoTime()<timeOut){}
+                        while(!i2cBacking.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.nanoTime()<timeOut){Thread.yield();}
                         
                         if (hardware.nanoTime()>timeOut) {
                             logger.warn("on write failed to get I2C bus master, waited 35ms");

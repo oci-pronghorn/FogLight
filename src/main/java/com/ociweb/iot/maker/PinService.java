@@ -65,7 +65,7 @@ public class PinService {
      * @return True if the port could be set, and false otherwise.
      */
     public boolean setValue(Port port, int value) {
-    	return setValue(port,value);
+    	return cmd.setValue(port,value);
     }
 
     /**
@@ -81,7 +81,7 @@ public class PinService {
      * @return True if the port could be set, and false otherwise.
      */
     public boolean setValueAndBlock(Port port, boolean value, long durationMilli) {
-    	return setValueAndBlock(port, value, durationMilli);
+    	return cmd.setValueAndBlock(port, value, durationMilli);
     }
     
     /**
@@ -97,7 +97,7 @@ public class PinService {
      * @return True if the port could be set, and false otherwise.
      */
     public boolean setValueAndBlock(Port port, int value, long durationMilli) {
-    	return setValueAndBlock(port,value,durationMilli);
+    	return cmd.setValueAndBlock(port,value,durationMilli);
     }
 
     /**
@@ -109,7 +109,7 @@ public class PinService {
      * @return True if the port could be pulsed, and false otherwise.
      */
     public boolean digitalPulse(Port port) {
-    	return digitalPulse(port);
+    	return cmd.digitalPulse(port);
     }
 
     /**
@@ -122,7 +122,7 @@ public class PinService {
      * @return True if the port could be pulsed, and false otherwise.
      */
     public boolean digitalPulse(Port port, long durationNanos) {
-    	return digitalPulse(port, durationNanos);
+    	return cmd.digitalPulse(port, durationNanos);
     }
 	
 	

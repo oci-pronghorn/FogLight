@@ -48,11 +48,11 @@ public enum Port {
     /**
      * Array of all standard analog ports.
      */
-    public static Port[] ANALOGS = {A0, A1, A2, A3};
+    public final static Port[] ANALOGS = {A0, A1, A2, A3};
 
     /**
      * Array of all standard digital ports.
      */
-    public static Port[] DIGITALS = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
+    public final static Port[] DIGITALS = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
 }
 

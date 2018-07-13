@@ -78,7 +78,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	                    
 	                case GroveRequestSchema.MSG_ANALOGSET_140:
 	                    
-	                    ((HardwareImpl)hardware).write(Port.ANALOGS[PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141)], 
+	                    ((HardwareImpl)hardware).write(Port.ANALOGS[0x03&PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_CONNECTOR_141)], 
 	                            PipeReader.readInt(pipe,GroveRequestSchema.MSG_ANALOGSET_140_FIELD_VALUE_142));
 	                    break;
 	                    

@@ -553,7 +553,7 @@ public class ReactiveIoTListenerStage extends ReactiveListenerStage<HardwareImpl
 
                 case GroveResponseSchema.MSG_ANALOGSAMPLE_30:
                     if (listener instanceof AnalogListenerBase) {                        
-                        commonAnalogEventProcessing(Port.ANALOGS[PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31)],
+                        commonAnalogEventProcessing(Port.ANALOGS[0x03&PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_CONNECTOR_31)],
                         				            PipeReader.readLong(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_TIME_11), 
                         				            PipeReader.readInt(p, GroveResponseSchema.MSG_ANALOGSAMPLE_30_FIELD_VALUE_32), 
                         				            (AnalogListenerBase)listener);

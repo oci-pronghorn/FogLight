@@ -97,6 +97,38 @@ public enum SimpleDigitalTwig implements ADIODevice {
 			return true;
 		}
 	},
+	MDDS30Power() {
+		@Override
+		public boolean isOutput() {
+			return true;
+		}
+
+		@Override
+		public boolean isPWM() {
+			return true;
+		}
+		
+		@Override
+		public int range() {
+			return 1024;
+		}
+	},
+	MDDS30Direction() {
+		@Override
+		public boolean isOutput() {
+			return true;
+		}
+
+		@Override
+		public boolean isPWM() {
+			return false;
+		}
+		
+		@Override
+		public int range() {
+			return 1;
+		}
+	},
 	Relay() {
 		@Override
 		public boolean isOutput() {

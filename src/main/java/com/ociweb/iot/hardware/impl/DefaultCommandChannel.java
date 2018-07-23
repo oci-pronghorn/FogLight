@@ -43,7 +43,9 @@ public class DefaultCommandChannel extends FogCommandChannel{
 
 	@Override
 	public boolean setValue(Port port, boolean value) {
+		assert(null!=port) : "port is required";
 		assert((0 != (initFeatures & PIN_WRITER))) : "CommandChannel must be created with PIN_WRITER flag";
+		assert(null!=builder.getConnectedDevice(port)) : "The port "+port+" was never assigned to any device in the configuration block";
 		return setValue(port, (!value) ? 0 : builder.getConnectedDevice(port).range()-1);
 	}
 	

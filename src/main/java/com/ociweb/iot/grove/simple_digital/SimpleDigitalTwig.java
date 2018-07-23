@@ -107,11 +107,7 @@ public enum SimpleDigitalTwig implements ADIODevice {
 		public boolean isPWM() {
 			return true;
 		}
-		
-		@Override
-		public int range() {
-			return 1024;
-		}
+
 	},
 	MDDS30Direction() {
 		@Override

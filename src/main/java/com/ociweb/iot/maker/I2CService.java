@@ -31,15 +31,7 @@ public class I2CService {
 			           Math.max(config.maxVarLenSize(), maxMessageSize), I2CCommandSchema.class);   
 		}
 	}
-	
-	public boolean block(Port port, long durationMilli) {
-		return cmd.block(port,durationMilli);
-	}
-	
-	public boolean blockUntil(Port port, long time) {
-		 return cmd.blockUntil(port,time);
-	}
-	
+		
     /**
      * Opens an I2C connection.
      *

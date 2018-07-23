@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgRuntime;
+import com.ociweb.gl.impl.schema.TrafficAckSchema;
+import com.ociweb.gl.impl.schema.TrafficReleaseSchema;
 import com.ociweb.gl.impl.stage.ReactiveListenerStage;
 import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.hardware.HardwareImpl;
@@ -18,11 +20,16 @@ import com.ociweb.iot.maker.Port;
 import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
 import com.ociweb.pronghorn.iot.rs232.RS232Clientable;
+import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
+import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
+import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.NonThreadScheduler;
 import com.ociweb.pronghorn.stage.scheduling.StageScheduler;
+import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
+import com.ociweb.pronghorn.stage.test.PipeNoOp;
 
 public class TestHardware extends HardwareImpl {
 
@@ -212,5 +219,38 @@ public class TestHardware extends HardwareImpl {
 	public void setSerialEcho(boolean on){
 		((TestSerial)testSerial).setEcho(on);//TODO: is this hard cast okay?
 	}
-    
+	
+	@Override
+	protected void createI2COutputInputStage(MsgRuntime<?,?> runtime,
+			Pipe<I2CCommandSchema>[] i2cPipes,
+			Pipe<TrafficReleaseSchema>[] masterI2CgoOut, 
+			Pipe<TrafficAckSchema>[] masterI2CackIn, 
+			Pipe<I2CResponseSchema> masterI2CResponsePipe) {
+		
+		if (null==masterI2CgoOut || masterI2CgoOut.length==0 || allNull(masterI2CgoOut)) {
+			if (null!=masterI2CResponsePipe) {
+				PipeNoOp.newInstance(MsgRuntime.getGraphManager(runtime), masterI2CResponsePipe);
+			}
+			GraphManager.addNota(MsgRuntime.getGraphManager(runtime), GraphManager.STAGE_NAME, "FauxI2C",
+					PipeCleanerStage.newInstance(MsgRuntime.getGraphManager(runtime), i2cPipes).stageId);
+			
+			
+			
+		} else {
+			//TODO: need to build an empty responder for this case
+			super.createI2COutputInputStage(runtime,i2cPipes,masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);
+		}
+		
+		
+	}
+
+	private boolean allNull(Pipe<?>[] a) {
+		int i = a.length;
+		while (--i>=0) {
+			if (a[i]!=null) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

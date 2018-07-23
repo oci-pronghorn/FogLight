@@ -28,14 +28,6 @@ public class SerialService {
 					           Math.max(config.maxVarLenSize(), maxMessageSize), SerialOutputSchema.class);   
 		}
 	}
-	
-	public boolean block(Port port, long durationMilli) {
-		return cmd.block(port,durationMilli);
-	}
-	
-	public boolean blockUntil(Port port, long time) {
-		 return cmd.blockUntil(port,time);
-	}
 
     public boolean publishSerial(Writable writable) {
     	assert(writable != null);

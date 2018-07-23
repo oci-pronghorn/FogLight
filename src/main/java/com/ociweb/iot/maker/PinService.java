@@ -1,8 +1,11 @@
 package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.MsgCommandChannel;
+import com.ociweb.gl.impl.schema.MessagePrivate;
 import com.ociweb.iot.hardware.impl.grovepi.PiCommandChannel;
 import com.ociweb.pronghorn.iot.schema.GroveRequestSchema;
+import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
+import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 
 public class PinService {
@@ -35,14 +38,7 @@ public class PinService {
 			           Math.max(config.maxVarLenSize(), maxMessageSize), GroveRequestSchema.class);   
 		}
 	}
-	
-	public boolean block(Port port, long durationMilli) {
-		return cmd.block(port,durationMilli);
-	}
-	
-	public boolean blockUntil(Port port, long time) {
-		 return cmd.blockUntil(port,time);
-	}
+
 
     /**
      * Sets the value of an analog/digital port on this command channel.
@@ -138,6 +134,7 @@ public class PinService {
 		    assert(cmd.exitBlockOk()) : "Concurrent usage error, ensure this never called concurrently";      
 		}
 	}
+
 	
 	
 }

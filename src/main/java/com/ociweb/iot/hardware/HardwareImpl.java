@@ -697,7 +697,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 //		logger.info("build stages ser {}",IDX_SER);
 			
 		
-		long timeout = 20_000; //20 seconds
+		long timeout = 12_000; //12 seconds
 
 		//TODO: can we share this while with the parent BuilderImpl, I think so..
 		int maxGoPipeId = 0;

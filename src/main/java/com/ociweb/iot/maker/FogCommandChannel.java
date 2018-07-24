@@ -193,9 +193,10 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
 		
 		   if (maxCommands<0) { //this block will set maxCommands
 			   
-			   logger.trace("created new FogCommandChannel {}",this.initFeatures);
-			   boolean setupPins = builder.hasDigitalOrAnalogOutputs();
+			   //logger.trace("created new FogCommandChannel {}",this.initFeatures);
+			   boolean setupPins = (PIN_WRITER & this.initFeatures) != 0;
 			   if (setupPins) {
+				   System.out.println("new Grove pipe for this command Channel "+this.hashCode());
 				   this.pinOutput = new Pipe<GroveRequestSchema>(pcm.getConfig(GroveRequestSchema.class));
 			   } else {
 				   this.pinOutput = null;

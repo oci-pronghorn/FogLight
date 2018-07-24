@@ -662,7 +662,10 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		Pipe<GroveRequestSchema>[] pinRequestPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm, GroveRequestSchema.instance);
 		Pipe<SerialInputSchema>[] serialInputPipes = GraphManager.allPipesOfTypeWithNoProducer(gm, SerialInputSchema.instance);
 
+		
 		Pipe<NetResponseSchema>[] httpClientResponsePipes = GraphManager.allPipesOfTypeWithNoProducer(gm, NetResponseSchema.instance);
+		
+		
 		Pipe<MessageSubscription>[] subscriptionPipes = GraphManager.allPipesOfTypeWithNoProducer(gm, MessageSubscription.instance);
 
 		Pipe<TrafficOrderSchema>[] orderPipes = GraphManager.allPipesOfTypeWithNoConsumer(gm, TrafficOrderSchema.instance);
@@ -728,6 +731,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 
 		while (--t>=0) {
 
+			//Only returns the features associated with this pipe, eg only those needing a cop.
 			int features = getFeatures(gm, orderPipes[t]);
 
 			Pipe<TrafficReleaseSchema>[] goOut = new Pipe[eventSchemas];

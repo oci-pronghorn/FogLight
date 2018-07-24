@@ -118,8 +118,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 					}
 				} catch (ClassNotFoundException ignored) { }
 	
-				logger.info("android duration {} ",System.currentTimeMillis()-startTime);
-	
+				long detectDuration = System.currentTimeMillis()-startTime;
+				if (detectDuration>500) {
+					logger.info("android detect duration {} ms ",detectDuration);
+				}
 				////////////////////////
 				//The best way to detect the pi or edison is to first check for the expected matching i2c implmentation
 				///////////////////////
@@ -501,10 +503,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		FogRuntime.isRunning = true;
 		FogRuntime runtime = new FogRuntime(args);
 
-		logger.info("{} ms startup", lastTime = System.currentTimeMillis());
+		lastTime = System.currentTimeMillis();
 		Hardware hardware = runtime.getHardware();
 		//this default for Fog is slower due to the expected minimum hardware of iot devices
-		hardware.setDefaultRate(4_000_000); // 4 ms
+		hardware.setDefaultRate(2_000_000); // 2 ms
 
 		app.declareConfiguration(hardware);
 		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());

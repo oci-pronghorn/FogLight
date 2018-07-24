@@ -2,6 +2,7 @@ package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.pronghorn.image.schema.LocationModeSchema;
+import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 
@@ -27,6 +28,13 @@ public class LocationModeService {
 	
 	}
 	
+    public boolean hasRoomFor(int messageCount) {
+		
+		return cmd.goHasRoomFor(messageCount) 
+		       && (null==cmd.locationModeOutput || Pipe.hasRoomForWrite(cmd.locationModeOutput, FieldReferenceOffsetManager.maxFragmentSize(Pipe.from(cmd.locationModeOutput))*messageCount));
+		
+    }
+    
 	public boolean learnCycle(int baseLocation, int maxSteps) {
 
 		if (Pipe.hasRoomForWrite(cmd.locationModeOutput)) {

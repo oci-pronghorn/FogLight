@@ -5,6 +5,7 @@ import com.ociweb.gl.api.Writable;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialDataSchema;
 import com.ociweb.iot.hardware.impl.SerialOutputSchema;
+import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -29,6 +30,13 @@ public class SerialService {
 		}
 	}
 
+    public boolean hasRoomFor(int messageCount) {
+		
+		return cmd.goHasRoomFor(messageCount) 
+		       && (null==cmd.serialOutput || Pipe.hasRoomForWrite(cmd.serialOutput, FieldReferenceOffsetManager.maxFragmentSize(Pipe.from(cmd.serialOutput))*messageCount));
+		
+    }
+    
     public boolean publishSerial(Writable writable) {
     	assert(writable != null);
 		assert((0 != (cmd.initFeatures & FogCommandChannel.SERIAL_WRITER))) : "CommandChannel must be created with SERIAL_WRITER flag";

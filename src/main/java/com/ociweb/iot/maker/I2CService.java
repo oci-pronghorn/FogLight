@@ -3,6 +3,7 @@ package com.ociweb.iot.maker;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.pipe.DataOutputBlobWriter;
+import com.ociweb.pronghorn.pipe.FieldReferenceOffsetManager;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -136,6 +137,12 @@ public class I2CService {
 		}  
     }
 	
+    public boolean hasRoomFor(int messageCount) {
+		
+		return cmd.goHasRoomFor(messageCount) 
+		       && (null==cmd.i2cOutput || Pipe.hasRoomForWrite(cmd.i2cOutput, FieldReferenceOffsetManager.maxFragmentSize(Pipe.from(cmd.i2cOutput))*messageCount));
+		
+	}
 	/**
 	 * start shutdown of the runtime, this can be vetoed or postponed by any shutdown listeners
 	 */

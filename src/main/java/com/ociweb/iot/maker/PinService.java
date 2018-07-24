@@ -38,7 +38,14 @@ public class PinService {
 			           Math.max(config.maxVarLenSize(), maxMessageSize), GroveRequestSchema.class);   
 		}
 	}
-
+		
+	public boolean hasRoomFor(int messageCount) {
+		
+		return cmd.goHasRoomFor(messageCount) 
+			   && (null==cmd.pinOutput || Pipe.hasRoomForWrite(cmd.pinOutput, FieldReferenceOffsetManager.maxFragmentSize(Pipe.from(cmd.pinOutput))*messageCount))
+		       && (null==cmd.i2cOutput || Pipe.hasRoomForWrite(cmd.i2cOutput, FieldReferenceOffsetManager.maxFragmentSize(Pipe.from(cmd.i2cOutput))*messageCount));
+		
+	}
 
     /**
      * Sets the value of an analog/digital port on this command channel.

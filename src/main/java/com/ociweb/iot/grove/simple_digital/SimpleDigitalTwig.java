@@ -117,7 +117,7 @@ public enum SimpleDigitalTwig implements ADIODevice {
 
 		@Override
 		public boolean isPWM() {
-			return false;
+			return true;
 		}
 
 	},

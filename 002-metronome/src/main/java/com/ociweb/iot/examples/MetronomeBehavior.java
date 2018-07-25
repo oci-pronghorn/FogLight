@@ -1,7 +1,7 @@
 package com.ociweb.iot.examples;
 
+import com.ociweb.gl.api.PubSubFixedTopicService;
 import com.ociweb.gl.api.PubSubListener;
-import com.ociweb.gl.api.PubSubService;
 import com.ociweb.gl.api.StartupListener;
 import com.ociweb.gl.api.TimeListener;
 import com.ociweb.iot.grove.lcd_rgb.Grove_LCD_RGB;
@@ -39,8 +39,6 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private final FogCommandChannel tickCommandChannel;
     private final FogCommandChannel screenCommandChannel;
     
-    private final String topic = "tick";
-          
     private static final int REQ_UNCHANGED_MS = 120;
     
     private static final int BBM_SLOWEST     = 40; 
@@ -57,21 +55,23 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
     private int activeBPM;
     
     private int showingBPM;
-	private PubSubService tickPubSub;
+	private PubSubFixedTopicService tickService;
+
     
-    public MetronomeBehavior(FogRuntime runtime) {
+    public MetronomeBehavior(FogRuntime runtime, String topic) {
         this.tickCommandChannel = runtime.newCommandChannel( 
         		FogRuntime.I2C_WRITER | FogRuntime.PIN_WRITER);
         this.screenCommandChannel = runtime.newCommandChannel(
         		FogRuntime.I2C_WRITER | FogRuntime.PIN_WRITER);
-        this.tickPubSub = this.tickCommandChannel.newPubSubService();
         
+        
+        this.tickService = this.tickCommandChannel.newPubSubService(topic);
+         
     }
 
     @Override
     public void startup() {
-    	tickPubSub.subscribe(topic,this); 
-    	tickPubSub.publishTopic(topic,w->{});
+    	tickService.publishTopic();
         
         Grove_LCD_RGB.commandForColor(tickCommandChannel, 255, 255, 255);
         
@@ -96,6 +96,7 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
                                     
             long delta = (++beatIdx*60_000)/activeBPM;
             long until = base + delta;
+         
             tickCommandChannel.digitalPulse(IoTApp.BUZZER_PORT,500_000);     
             tickCommandChannel.blockUntil(IoTApp.BUZZER_PORT, until);
             
@@ -106,9 +107,9 @@ public class MetronomeBehavior implements AnalogListener, PubSubListener, Startu
             }
             
         }
-        tickPubSub.publishTopic(topic,w->{});//request next tick
         
-        return true;
+        return tickService.publishTopic();//request next tick
+    
     }
 
 

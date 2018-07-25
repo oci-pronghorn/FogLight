@@ -15,6 +15,7 @@ public class IoTApp implements FogApp {
     
     public static final Port ROTARY_ANGLE_PORT = A1;
     public static final Port BUZZER_PORT = D2;    
+    final String topic = "tick";
     
     public static void main( String[] args ) {
         FogRuntime.run(new IoTApp());
@@ -26,12 +27,17 @@ public class IoTApp implements FogApp {
         c.connect(Buzzer, BUZZER_PORT); //could use relay or LED instead of buzzer if desired
         c.connect(AngleSensor, ROTARY_ANGLE_PORT, 100);
         c.setTimerPulseRate(200);
+        
+        c.enableTelemetry();
+        c.definePublicTopics(topic);
     }
 
 
     @Override
     public void declareBehavior(FogRuntime runtime) {
-        runtime.registerListener(new MetronomeBehavior(runtime));
+
+              
+        runtime.registerListener("Metronome", new MetronomeBehavior(runtime, topic)).addSubscription(topic);
     }        
   
 }

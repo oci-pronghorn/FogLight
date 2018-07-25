@@ -21,7 +21,11 @@ public class AppTest
     @Test
     public void testApp()
     {
+    	
+    	
         FogRuntime runtime = FogRuntime.test(new IoTApp());
+        
+       
 
         ScriptedNonThreadScheduler scheduler = (ScriptedNonThreadScheduler)runtime.getScheduler();
         TestHardware hardware = (TestHardware)runtime.getHardware();
@@ -40,9 +44,10 @@ public class AppTest
         hardware.clearCaputuredFirstTimes();
         hardware.clearCaputuredHighs();
         boolean isMetronomeRunning = false;
+    
         
-        long startTime = System.currentTimeMillis();
-        while (ticks>0 ) {
+        final long startTime = System.currentTimeMillis();
+        while (ticks>0 /*&& (System.currentTimeMillis()-startTime<40_000)*/ ) {
         	
             scheduler.run();
                         

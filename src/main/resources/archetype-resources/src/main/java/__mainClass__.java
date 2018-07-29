@@ -4,7 +4,7 @@ package ${package};
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 
-public class ${artifactId} implements FogApp
+public class ${mainClass} implements FogApp
 {
     ///////////////////////
     //Connection constants 

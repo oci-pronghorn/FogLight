@@ -260,6 +260,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         
                         while(!i2cBacking.write((byte)connection.address, connection.readCmd, connection.readCmd.length) ){
 	                        	try {
+	                        		Thread.yield();
 									Thread.sleep(2);//2ms since we can wait a full 35 which is 17 cycles
 								} catch (InterruptedException e) {
 									Thread.currentThread().interrupt();

@@ -250,17 +250,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                     inProgressIdx = schedule.script[scheduleIdx];
                     
                     if(inProgressIdx != -1) {
-                        
-                    	//TESTING: this may no longer be required since the presume write will report any backups of outgoing data.
-//                        if (!PipeWriter.hasRoomForWrite(i2cResponsePipe)) {
-//                            if (hardware.nanoTime()>prcRelease) {
-//                                //we are going to miss the schedule due to backup in the pipes, this is common when the unit tests run or the user has put in a break point.
-//                                processReleasedCommands(rate.longValue());//if this backup runs long term we never release the commands so we must do it now.
-//                            }
-//                            logger.warn("outgoing pipe is backed up, unable to read new data  {}"+i2cResponsePipe);
-//                            return;//oops the pipe is full so we can not read, postpone this work until the pipe is cleared.
-//                        }
-                        
+
                         I2CConnection connection = this.inputs[inProgressIdx];
                         timeOut = hardware.nanoTime() + (writeTime*35_000_000);///I2C allows for clients to abandon master after 35 ms
                         
@@ -268,13 +258,21 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                         
                         //Write the request to read
                         
-                        while(!i2cBacking.write((byte)connection.address, connection.readCmd, connection.readCmd.length) && hardware.nanoTime()<timeOut){Thread.yield();}
-                        
-                        if (hardware.nanoTime()>timeOut) {
-                            logger.warn("on write failed to get I2C bus master, waited 35ms");
-                            //timeout trying to get the i2c bus
-                            return;
+                        while(!i2cBacking.write((byte)connection.address, connection.readCmd, connection.readCmd.length) ){
+	                        	try {
+									Thread.sleep(2);//2ms since we can wait a full 35 which is 17 cycles
+								} catch (InterruptedException e) {
+									Thread.currentThread().interrupt();
+									requestShutdown();
+									return;//interrupted while waiting
+								}
+	                        	if (hardware.nanoTime()>timeOut) {
+	                        		logger.warn("on write failed to get I2C bus master, waited 35ms");
+	                        		//timeout trying to get the i2c bus
+	                        		return;
+	                        	}
                         }
+                        
                         
                         long delayAfterRequestNS = this.inputs[inProgressIdx].delayAfterRequestNS;
                         long delayUntil = hardware.nanoTime()+delayAfterRequestNS;

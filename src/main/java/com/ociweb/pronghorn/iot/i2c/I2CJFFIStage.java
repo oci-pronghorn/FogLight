@@ -13,7 +13,6 @@ import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.I2CConnection;
 import com.ociweb.pronghorn.iot.schema.I2CCommandSchema;
 import com.ociweb.pronghorn.iot.schema.I2CResponseSchema;
-import com.ociweb.pronghorn.network.mqtt.MQTTClientGraphBuilder;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeReader;
 import com.ociweb.pronghorn.pipe.PipeWriter;
@@ -119,35 +118,39 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
 
     }
     
+    private int startedInputs = 0;
+    private boolean isStarted = false;
+    
     @Override
     public void startup(){
         super.startup();
         
+        /////////////////
+        //Do not do any i2c work here since we need to return quickly
+        /////////////////
+        
         workingBuffer = new byte[2048]; //TODO: find a way to eliminate this temp storage.
         
-        logger.debug("Polling "+this.inputs.length+" i2cInput(s)");
+        logger.debug("Polling "+this.inputs.length+" i2cInput(s)"); 
         
-        for (int i = 0; i < inputs.length; i++) {
-            setupSingleInput(i);
-        }
         if (null!=schedule) {
             logger.debug("proposed schedule: {} ",schedule);
         }
         
-        blockStartTime = hardware.nanoTime();//critical Pronghorn contract ensure this start is called by the same thread as run
+        blockStartTime = hardware.nanoTime();
         
         if (!hasListeners()) {
             logger.debug("No listeners are attached to I2C");
         }
     }
     
-    private void setupSingleInput(int i) {
+    private boolean setupSingleInput(int i) {
         if (null != inputs[i].setup) {
             assert(hardware!=null);
             I2CBacking i2cBacking = ((HardwareImpl)hardware).getI2CBacking();
             I2CConnection connection = inputs[i];
             assert(i2cBacking!=null);
-            timeOut = hardware.nanoTime() + (writeTime*35_000_000);
+            timeOut = hardware.nanoTime() + (writeTime+35_000_000);
             while(!i2cBacking.write(connection.address,
                     connection.setup,
                     connection.setup.length) && hardware.nanoTime()<timeOut){
@@ -156,7 +159,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                     if (hardware.nanoTime()>timeOut) {
                         logger.warn("on setup failed to get I2C bus master, waited 35ms");
                         //timeout trying to get the i2c bus
-                        return;
+                        return false;
                     }
                     
                     if(connection.readBytesAtStartUp > 0){ // doing i2c read at start up
@@ -177,7 +180,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                             } catch (InterruptedException e) {
                                 Thread.currentThread().interrupt();
                                 requestShutdown();
-                                return;
+                                return false;
                             }
             				
                         }
@@ -199,143 +202,157 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
                     }
         }
         logger.debug("I2C setup {} complete",inputs[i].address);
+        return true;
     }
     
     
     @Override
     public void run() {
         
-        long prcRelease = hardware.nanoTime();
-        
-        
-        //never run poll if we have nothing to poll, in that case the array will have a single -1
-        if (processInputs) {
-            do {
-                long waitTime = blockStartTime - hardware.nanoTime();
-                
-                //logger.info("wait time before continue {},",waitTime);
-                
-                if(waitTime>0){
-                    if (null==rate || (waitTime > rate.longValue())) {
-                        if (hardware.nanoTime()>prcRelease) {
-                            processReleasedCommands(waitTime);
-                        }
-                        return; //Enough time has not elapsed to start next block on schedule
-                    } else {
-                    	int padding = 200; //ns
-                        long block = ((hardware.nanoTime()-blockStartTime)) - padding;
-                        if (block > 0) {
-                            try {
-                            	if (block>10_000_000) {
-                            		logger.error("Sleeping too long, this should only be for small ns values. but needs "+block+" ns");
-                            	}
-                                Thread.sleep(block/1_000_000,(int)(block%1_000_000));
-                                long dif;
-                                while ((dif = (blockStartTime-hardware.nanoTime()))>0) {
-                                	if (dif>100) {
-                                		Thread.yield();
-                                	}
-                                }
-                            } catch (InterruptedException e) {
-                                requestShutdown();
-                                return;
-                            }//some slow platforms will NOT sleep long enough above so we spin below.
-                        }
-                    }
-                }
-                
-                I2CBacking i2cBacking = ((HardwareImpl)hardware).getI2CBacking();
-                
-                do{
-                    inProgressIdx = schedule.script[scheduleIdx];
-                    
-                    if(inProgressIdx != -1) {
-
-                        I2CConnection connection = this.inputs[inProgressIdx];
-                        timeOut = hardware.nanoTime() + (writeTime*35_000_000);///I2C allows for clients to abandon master after 35 ms
-                        
-                        //          logger.info("i2c request read from address: {} register: {} ",connection.address, connection.readCmd[0]);//+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
-                        
-                        //Write the request to read
-                        
-                        while(!i2cBacking.write((byte)connection.address, connection.readCmd, connection.readCmd.length) ){
-	                        	try {
-	                        		Thread.yield();
-									Thread.sleep(2);//2ms since we can wait a full 35 which is 17 cycles
-								} catch (InterruptedException e) {
-									Thread.currentThread().interrupt();
-									requestShutdown();
-									return;//interrupted while waiting
-								}
-	                        	if (hardware.nanoTime()>timeOut) {
-	                        		logger.warn("on write failed to get I2C bus master, waited 35ms");
-	                        		//timeout trying to get the i2c bus
-	                        		return;
-	                        	}
-                        }
-                        
-                        
-                        long delayAfterRequestNS = this.inputs[inProgressIdx].delayAfterRequestNS;
-                        long delayUntil = hardware.nanoTime()+delayAfterRequestNS;
-                        
-                        if (delayAfterRequestNS>0) {
-                            try {
-                            	//some slow platforms will not sleep long enough so we spin yield below
-                                Thread.sleep(delayAfterRequestNS/1_000_000,(int) (delayAfterRequestNS%1_000_000));
-                                long dif;
-                                while ((dif = (delayUntil-hardware.nanoTime()))>0) {
-                                	if (dif>100) {
-                                		Thread.yield();
-                                	}
-                                }
-                            } catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
-                                requestShutdown();
-                                return;
-                            }
-                            
-                            
-                        }
-
-                        //logger.info("i2c reading result {} delay before read {} ",Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )),this.inputs[inProgressIdx].delayAfterRequestNS);
-                        
-                        PipeWriter.presumeWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
-                        PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
-                        PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
-                        PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
-                        
-                        workingBuffer[0] = -2;
-                        byte[] temp = i2cBacking.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);                       
-                        PipeWriter.writeBytes(i2cResponsePipe, 
-                        		   I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, 
-                        		   temp, 0, this.inputs[inProgressIdx].readBytes, Integer.MAX_VALUE);
-                        
-                        PipeWriter.publishWrites(i2cResponsePipe);
-                        
-                        
-                    } else {
-                        if (rate.longValue()>500_000) {
-                            if (hardware.nanoTime()>prcRelease) {
-                                processReleasedCommands(rate.longValue());
-                                prcRelease+=rate.longValue();
-                            }
-                        }
-                    }
-                    //since we exit early if the pipe is full we must not move this forward until now at the bottom of the loop.
-                    scheduleIdx = (scheduleIdx+1) % schedule.script.length;
-                }while(inProgressIdx != -1);
-                blockStartTime += schedule.commonClock;
-                
-            } while (true);
-        } else {
-            
-            //System.err.println("nothing to poll, should choose a simpler design");
-            if (hardware.nanoTime()>prcRelease) {
-                processReleasedCommands(rate.longValue());
-                prcRelease+=rate.longValue();
+    	if (isStarted) {
+    	
+	        long prcRelease = hardware.nanoTime();
+	        
+	        
+	        //never run poll if we have nothing to poll, in that case the array will have a single -1
+	        if (processInputs) {
+	            do {
+	                long waitTime = blockStartTime - hardware.nanoTime();
+	                
+	                //logger.info("wait time before continue {},",waitTime);
+	                
+	                if(waitTime>0){
+	                    if (null==rate || (waitTime > rate.longValue())) {
+	                        if (hardware.nanoTime()>prcRelease) {
+	                            processReleasedCommands(waitTime);
+	                        }
+	                        return; //Enough time has not elapsed to start next block on schedule
+	                    } else {
+	                    	int padding = 200; //ns
+	                        long block = ((hardware.nanoTime()-blockStartTime)) - padding;
+	                        if (block > 0) {
+	                            try {
+	                            	if (block>10_000_000) {
+	                            		logger.error("Sleeping too long, this should only be for small ns values. but needs "+block+" ns");
+	                            	}
+	                                Thread.sleep(block/1_000_000,(int)(block%1_000_000));
+	                                long dif;
+	                                while ((dif = (blockStartTime-hardware.nanoTime()))>0) {
+	                                	if (dif>100) {
+	                                		Thread.yield();
+	                                	}
+	                                }
+	                            } catch (InterruptedException e) {
+	                                requestShutdown();
+	                                return;
+	                            }//some slow platforms will NOT sleep long enough above so we spin below.
+	                        }
+	                    }
+	                }
+	                
+	                I2CBacking i2cBacking = ((HardwareImpl)hardware).getI2CBacking();
+	                
+	                do{
+	                    inProgressIdx = schedule.script[scheduleIdx];
+	                    
+	                    if(inProgressIdx != -1) {
+	
+	                        I2CConnection connection = this.inputs[inProgressIdx];
+	                        timeOut = hardware.nanoTime() + (writeTime+35_000_000);///I2C allows for clients to abandon master after 35 ms
+	                        
+	                        //          logger.info("i2c request read from address: {} register: {} ",connection.address, connection.readCmd[0]);//+Arrays.toString(Arrays.copyOfRange(connection.readCmd, 0, connection.readCmd.length)));
+	                        
+	                        //Write the request to read
+	                        
+	                        while(!i2cBacking.write((byte)connection.address, connection.readCmd, connection.readCmd.length) ){
+		                        	try {
+		                        		Thread.yield();
+										Thread.sleep(2);//2ms since we can wait a full 35 which is 17 cycles
+									} catch (InterruptedException e) {
+										Thread.currentThread().interrupt();
+										requestShutdown();
+										return;//interrupted while waiting
+									}
+		                        	if (hardware.nanoTime()>timeOut) {
+		                        		logger.warn("on write failed to get I2C bus master, waited 35ms");
+		                        		//timeout trying to get the i2c bus
+		                        		return;
+		                        	}
+	                        }
+	                        
+	                        
+	                        long delayAfterRequestNS = this.inputs[inProgressIdx].delayAfterRequestNS;
+	                        long delayUntil = hardware.nanoTime()+delayAfterRequestNS;
+	                        
+	                        if (delayAfterRequestNS>0) {
+	                            try {
+	                            	//some slow platforms will not sleep long enough so we spin yield below
+	                                Thread.sleep(delayAfterRequestNS/1_000_000,(int) (delayAfterRequestNS%1_000_000));
+	                                long dif;
+	                                while ((dif = (delayUntil-hardware.nanoTime()))>0) {
+	                                	if (dif>100) {
+	                                		Thread.yield();
+	                                	}
+	                                }
+	                            } catch (InterruptedException e) {
+	                                Thread.currentThread().interrupt();
+	                                requestShutdown();
+	                                return;
+	                            }
+	                            
+	                            
+	                        }
+	
+	                        //logger.info("i2c reading result {} delay before read {} ",Arrays.toString(Arrays.copyOfRange(temp, 0, this.inputs[inProgressIdx].readBytes )),this.inputs[inProgressIdx].delayAfterRequestNS);
+	                        
+	                        PipeWriter.presumeWriteFragment(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10);
+	                        PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_ADDRESS_11, this.inputs[inProgressIdx].address);
+	                        PipeWriter.writeLong(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_TIME_13, hardware.currentTimeMillis());
+	                        PipeWriter.writeInt(i2cResponsePipe, I2CResponseSchema.MSG_RESPONSE_10_FIELD_REGISTER_14, this.inputs[inProgressIdx].register);
+	                        
+	                        workingBuffer[0] = -2;
+	                        byte[] temp = i2cBacking.read(this.inputs[inProgressIdx].address, workingBuffer, this.inputs[inProgressIdx].readBytes);                       
+	                        PipeWriter.writeBytes(i2cResponsePipe, 
+	                        		   I2CResponseSchema.MSG_RESPONSE_10_FIELD_BYTEARRAY_12, 
+	                        		   temp, 0, this.inputs[inProgressIdx].readBytes, Integer.MAX_VALUE);
+	                        
+	                        PipeWriter.publishWrites(i2cResponsePipe);
+	                        
+	                        
+	                    } else {
+	                        if (rate.longValue()>500_000) {
+	                            if (hardware.nanoTime()>prcRelease) {
+	                                processReleasedCommands(rate.longValue());
+	                                prcRelease+=rate.longValue();
+	                            }
+	                        }
+	                    }
+	                    //since we exit early if the pipe is full we must not move this forward until now at the bottom of the loop.
+	                    scheduleIdx = (scheduleIdx+1) % schedule.script.length;
+	                }while(inProgressIdx != -1);
+	                blockStartTime += schedule.commonClock;
+	                
+	            } while (true);
+	        } else {
+	            
+	            //System.err.println("nothing to poll, should choose a simpler design");
+	            if (hardware.nanoTime()>prcRelease) {
+	                processReleasedCommands(rate.longValue());
+	                prcRelease+=rate.longValue();
+	            }
+	        }
+	        
+    	} else {
+                	      
+            for (; startedInputs < inputs.length; startedInputs++) {
+                if (!setupSingleInput(startedInputs)) {
+                	return;//try again later
+                };
             }
-        }
+            isStarted = true;
+    	}
     }
+
     
     private boolean hasListeners() {
         return i2cResponsePipe != null;

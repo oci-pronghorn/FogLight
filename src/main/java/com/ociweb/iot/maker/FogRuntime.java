@@ -1,30 +1,17 @@
 package com.ociweb.iot.maker;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.ociweb.gl.api.Behavior;
 import com.ociweb.gl.api.MsgCommandChannel;
 import com.ociweb.gl.api.MsgRuntime;
 import com.ociweb.gl.api.TelemetryConfig;
 import com.ociweb.gl.impl.ChildClassScanner;
-import com.ociweb.gl.impl.PrivateTopic;
 import com.ociweb.gl.impl.schema.MessagePubSub;
-import com.ociweb.gl.impl.schema.MessageSubscription;
 import com.ociweb.gl.impl.schema.TrafficOrderSchema;
 import com.ociweb.gl.impl.stage.ReactiveManagerPipeConsumer;
 import com.ociweb.iot.hardware.HardwareImpl;
 import com.ociweb.iot.hardware.impl.SerialInputSchema;
 import com.ociweb.iot.hardware.impl.edison.GroveV3EdisonImpl;
-import com.ociweb.iot.hardware.impl.grovepi.BeagleBoneModel;
-import com.ociweb.iot.hardware.impl.grovepi.GrovePiHardwareImpl;
-import com.ociweb.iot.hardware.impl.grovepi.LinuxDesktopModel;
-import com.ociweb.iot.hardware.impl.grovepi.MacModel;
-import com.ociweb.iot.hardware.impl.grovepi.PiModel;
-import com.ociweb.iot.hardware.impl.grovepi.WindowsDesktopModel;
+import com.ociweb.iot.hardware.impl.grovepi.*;
 import com.ociweb.iot.hardware.impl.test.TestHardware;
 import com.ociweb.pronghorn.iot.ReactiveIoTListenerStage;
 import com.ociweb.pronghorn.iot.i2c.I2CBacking;
@@ -36,9 +23,12 @@ import com.ociweb.pronghorn.pipe.DataInputBlobReader;
 import com.ociweb.pronghorn.pipe.Pipe;
 import com.ociweb.pronghorn.pipe.PipeConfig;
 import com.ociweb.pronghorn.pipe.PipeConfigManager;
-import com.ociweb.pronghorn.stage.PronghornStage;
 import com.ociweb.pronghorn.stage.scheduling.GraphManager;
 import com.ociweb.pronghorn.stage.scheduling.ScriptedNonThreadScheduler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
@@ -411,12 +401,16 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
         test(app, runtime);
 		return runtime;
     }
-	
+
 	public static boolean testConcurrentUntilShutdownRequested(FogApp app, long timeoutMS) {
-		
-		 long limit = System.nanoTime() + (timeoutMS*1_000_000L);
-		 
-		 MsgRuntime runtime = run(app);
+		return testConcurrentUntilShutdownRequested(app, new String[0], timeoutMS);
+	}
+
+	public static boolean testConcurrentUntilShutdownRequested(FogApp app, String[] args, long timeoutMS) {
+
+		long limit = System.nanoTime() + (timeoutMS*1_000_000L);
+
+		MsgRuntime runtime = run(app, args);
 
 	   	 while (!runtime.isShutdownComplete()) {
 	   		if (System.nanoTime() > limit) {

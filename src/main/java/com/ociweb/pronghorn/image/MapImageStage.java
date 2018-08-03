@@ -134,6 +134,8 @@ public class MapImageStage extends PronghornStage {
 	public void startup() {
 		locations = new Lois();
 	}
+
+	int rows = 0;
 	
 	@Override
 	public void run() {
@@ -191,8 +193,10 @@ public class MapImageStage extends PronghornStage {
 					workCounter++;
 					
 					if (ImageSchema.MSG_FRAMECHUNK_2 == msgIdx) {
+
+                        rows++;
+
 						if (activeRow < totalRows) {
-			
 							
 							DataInputBlobReader<ImageSchema> rowData = Pipe.openInputStream(imgInput);							
 							int rowBase = (imageWidth*localDepth)*activeRow++;
@@ -287,11 +291,12 @@ public class MapImageStage extends PronghornStage {
 							
 						} else {
 							//error too many rows.
-							logger.error("too many rows, expected new frame start");
+							logger.error("{}: too many rows, expected new frame start, received {}", toString(), rows);
 							Pipe.skipNextFragment(imgInput, msgIdx);
 						}
 					} else if (ImageSchema.MSG_FRAMESTART_1 == msgIdx) {
-						
+
+						rows = 0;
 						imageInProgress = true;
 						totalWidth = Pipe.takeInt(imgInput);
 						totalRows = Pipe.takeInt(imgInput);
@@ -467,7 +472,7 @@ public class MapImageStage extends PronghornStage {
 				
 		}
 				
-		logger.info("found only {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
+		//logger.info("found {} total matches of {} but must have {} for {} ", totalMatches, totalWidth, countLimit, toString());
 		
 		return isLoopCompleted;
 	}

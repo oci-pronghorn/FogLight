@@ -32,6 +32,8 @@ import java.util.ArrayList;
 
 public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
+	private static final int DEFAULT_RATE = 10_000_000; //10ms THIS IS LARGE FOR VERY SLOW HARDWARE
+	
 	private static boolean isRunning = false;
 	public static final int I2C_WRITER      = FogCommandChannel.I2C_WRITER;
 	public static final int PIN_WRITER      = FogCommandChannel.PIN_WRITER;
@@ -500,7 +502,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 		lastTime = System.currentTimeMillis();
 		Hardware hardware = runtime.getHardware();
 		//this default for Fog is slower due to the expected minimum hardware of iot devices
-		hardware.setDefaultRate(2_000_000); // 2 ms
+		hardware.setDefaultRate(DEFAULT_RATE);
 
 		app.declareConfiguration(hardware);
 		GraphManager.addDefaultNota(runtime.gm, GraphManager.SCHEDULE_RATE, runtime.builder.getDefaultSleepRateNS());

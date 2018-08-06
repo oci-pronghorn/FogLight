@@ -157,6 +157,7 @@ public class TestHardware extends HardwareImpl {
 
     @Override
     public void write(Port port, int value) {
+    	//System.out.print("write value: "+value);
         pinHighValues[port.port] = Math.max(pinHighValues[port.port], value);
         pinData[port.port]=value;
         lastTime[port.port] = lastProvidedTime;
@@ -233,9 +234,6 @@ public class TestHardware extends HardwareImpl {
 			}
 			GraphManager.addNota(MsgRuntime.getGraphManager(runtime), GraphManager.STAGE_NAME, "FauxI2C",
 					PipeCleanerStage.newInstance(MsgRuntime.getGraphManager(runtime), i2cPipes).stageId);
-			
-			
-			
 		} else {
 			//TODO: need to build an empty responder for this case
 			super.createI2COutputInputStage(runtime,i2cPipes,masterI2CgoOut, masterI2CackIn, masterI2CResponsePipe);

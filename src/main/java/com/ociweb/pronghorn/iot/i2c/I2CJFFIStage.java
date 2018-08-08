@@ -149,7 +149,10 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
             assert(hardware!=null);
             I2CBacking i2cBacking = ((HardwareImpl)hardware).getI2CBacking();
             I2CConnection connection = inputs[i];
-            assert(i2cBacking!=null);
+            assert(i2cBacking!=null) : "please double check that i2c is turned on for the device.";
+            if (null == i2cBacking) {
+            	throw new UnsupportedOperationException("please double check that i2c is turned on for the device.");
+            }
             timeOut = hardware.nanoTime() + (writeTime+35_000_000);
             while(!i2cBacking.write(connection.address,
                     connection.setup,

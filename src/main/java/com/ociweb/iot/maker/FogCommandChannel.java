@@ -319,7 +319,7 @@ public abstract class FogCommandChannel extends MsgCommandChannel<HardwareImpl> 
      *
      * @return True if blocking was successful, and false otherwise.
      */
-    @Deprecated
+
     public abstract boolean blockUntil(Port port, long time);
 
     /**

@@ -319,9 +319,6 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 			pipesCount++;
 		}
 
-
-		pipesCount = addGreenPipesCount(listener, pipesCount);
-
 		Pipe<?>[] inputPipes = new Pipe<?>[pipesCount];
 
 
@@ -350,9 +347,7 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 
 		
 		final int httpClientPipeId = netResponsePipeIdx; //must be grabbed before populateGreenPipes
-		
-		populateGreenPipes(listener, pipesCount, inputPipes);
-		
+
 		/////////////////////
 		//StartupListener is not driven by any response data and is called when the stage is started up. no pipe needed.
 		/////////////////////

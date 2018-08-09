@@ -15,7 +15,9 @@ public class AppTest {
 	 @Test
 	    public void testApp()
 	    {
-	    	FogRuntime runtime = FogRuntime.test(new IoTApp());
+	    	FogRuntime runtime1 = new FogRuntime();
+			FogRuntime.test(new IoTApp(), runtime1);
+			FogRuntime runtime = runtime1;
 	    	ScriptedNonThreadScheduler scheduler = (ScriptedNonThreadScheduler)runtime.getScheduler();
 	    	TestHardware hardware = (TestHardware)runtime.getHardware();
 	    

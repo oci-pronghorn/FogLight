@@ -20,7 +20,7 @@
  
 Now, ```cd``` into a directory that you would like your own IoT project to be created in, and enter:
 ```
-mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=FogLighter -DarchetypeVersion=0.1.1-SNAPSHOT
+mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=foglighter -DarchetypeVersion=1.0.0-SNAPSHOT
 ```
 The terminal now asks for:
 

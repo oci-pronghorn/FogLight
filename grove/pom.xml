@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.ociweb</groupId>
+  <artifactId>grove</artifactId>
+  <version>1</version>
+  <packaging>pom</packaging>
+ 
+  <modules>
+    <module>Button</module>
+    <module>Buzzer</module>
+    <module>MotionSensor</module>
+    <module>LED</module>
+    <module>VariableColorLED</module>
+    <module>LineFinder</module>
+    <module>Relay</module>
+    <module>WaterSensor</module>
+    <module>ThumbJoystick</module>
+    <module>VibrationSensor</module>
+    <module>AngleSensor</module>
+    <module>LightSensor</module>
+    <module>UltrasonicRangefinder</module>
+    <module>UVSensor</module>
+    <module>Temprature</module>
+    <module>FourDigitDisplay</module>
+    <module>MoistureSensor</module>
+    <module>ThreeAxisAccelerometer</module>
+    <module>RealTimeClock</module>
+    <module>IICMotorDriver</module>
+    <module>IICMiniMotorDriver</module>
+    <module>LCDRGB</module>
+    <module>OLED96x96</module>
+    <module>OLED128x64</module>
+    <module>TouchSensor</module>
+    <module>AnalogToIIC</module>
+    <module>SenseHat</module>
+    <module>GPS</module>
+    <module>SerialBluetooth</module>
+    <module>SixAxisAccelerometer</module>
+    <module>MP3Player</module>
+  </modules>
+</project>

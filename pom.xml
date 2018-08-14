@@ -8,6 +8,7 @@
  
   <modules>  
     <module>foglight</module>
+    <module>foglighter</module>
   </modules>
   
   <reporting>

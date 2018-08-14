@@ -19,26 +19,9 @@ public class AppTest {
 		    IoTApp.RED_MS = 1000; //  1 SEC
 		    IoTApp.GREEN_MS = 800; // .8 SEC
 		    IoTApp.YELLOW_MS = 200; // .2 SEC 
-				 
-		 
-	        FogRuntime runtime = FogRuntime.test(new IoTApp());
+				 		 
+		    FogRuntime.testConcurrentUntilShutdownRequested(new IoTApp(), 5_000);
 
-			ScriptedNonThreadScheduler scheduler = (ScriptedNonThreadScheduler)runtime.getScheduler();
-	    
-
-	    	TestHardware hardware = (TestHardware)runtime.getHardware();
-	    
-	    	scheduler.startup();
-	    	
-	    	
-	    	long next = System.currentTimeMillis()+5_000;
-	    	
-	    	while (System.currentTimeMillis() < next) {
-	    		scheduler.run();
-	    		Thread.yield();
-	    	}
-	    	
-	    	scheduler.shutdown();
 	    	
 	    }
 }

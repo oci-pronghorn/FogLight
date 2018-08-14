@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.ociweb.iot.examples</groupId>
+  <artifactId>examples</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <description>Examples for IoT projects. Each of the folders are simple Maven projects which can be built by mvn install
+  </description>
+  <url>https://github.com/oci-pronghorn/FogLight-Examples</url>
+  <licenses>
+    <license>
+      <name>BSD-3 License</name>
+      <url>https://opensource.org/licenses/BSD-3-Clause</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Nathan Tippy</name>
+      <email>info@objectcomputing.com</email>
+      <organization>ObjectComputing</organization>
+      <organizationUrl>http://www.ObjectComputing.com</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/oci-pronghorn/FogLight-Examples.git</connection>
+    <url>https://github.com/oci-pronghorn/FogLight-Examples</url>
+    <developerConnection>scm:git:ssh://git@github.com/oci-pronghorn/FogLight-Examples.git</developerConnection>
+  </scm>
+
+  <dependencyManagement> <!-- versions numbers for all child poms can be specified within this dependency management section -->
+    <dependencies>
+      <dependency>
+        <groupId>com.ociweb</groupId>
+        <artifactId>foglight</artifactId>
+        <version>[1.0.0-SNAPSHOT,1.1.0)</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>1.7.12</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.paho</groupId>
+        <artifactId>mqtt-client</artifactId>
+        <version>0.4.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka_2.10</artifactId>
+        <version>0.8.2.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.ociweb</groupId>
+        <artifactId>greenlightning</artifactId>
+        <version>[1.0.0-SNAPSHOT,1.1.0)</version>
+      </dependency>
+      <dependency>
+        <groupId>com.hazelcast</groupId>
+        <artifactId>hazelcast</artifactId>
+        <version>3.7.2</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+ 
+  <modules>
+    <module>000-blinkychannel</module>
+    <module>000-blinkyclass</module>
+    <module>000-blinkylambdas</module>
+    <module>000-blinkytimer</module>
+    <module>001-lightusingbutton</module>
+    <module>002-metronome</module>
+    <module>003-stopwatch</module>
+    <module>004-trafficlight</module>
+    <module>005-pong</module>
+    
+    <module>01a-nightlight</module>
+    <module>01b-clock</module>
+    <module>010-tanklevelmonitor</module>
+    <module>110-gaspumpsimulator</module>
+    <!-- <module>120-valvemanifold</module> -->
+    <!-- <module>420-iotgateway</module> -->
+    <module>500-matrixtest</module>
+    <module>400-iotgateway</module>
+    <module>600-hzdemo</module>
+    <module>006-snake</module>
+  </modules>
+</project>

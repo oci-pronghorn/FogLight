@@ -9,7 +9,9 @@
   <modules>  
     <module>foglight</module>
     <module>foglighter</module>
-    <module>apidemo</module>    
+    <module>apidemo</module> 
+    <module>examples</module>
+       
   </modules>
   
   <reporting>

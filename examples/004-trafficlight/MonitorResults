@@ -1,0 +1,60 @@
+digraph {
+rankdir = LR
+"Stage1"[label="ServerSocketReader
+#1 CPU 0.04%"]
+"Stage2"[label="ReactiveListenerIOT
+#2 CPU 0.02%"]
+"Stage3"[label="HTTP1xRouter
+#3 CPU 0.03%"]
+"Stage4"[label="ServerSocketWriter
+#4 CPU 0.02%"]
+"Stage5"[label="ServerNewConnection
+#5 CPU 0.12%"]
+"Stage6"[label="PipeCleaner
+#6 CPU 0.01%"]
+"Stage7"[label="OrderSupervisor
+#7 CPU 0.02%"]
+"Stage8"[label="TrafficCop
+#8 CPU 0.01%"]
+"Stage9"[label="MessagePubSub
+#9 CPU 0.03%"]
+"Stage10"[label="I2CJFFI
+#10 CPU 0.05%"]
+"Stage11"[label="DirectHardwareAnalogDigitalOutput
+#11 CPU 0.04%"]
+{ rank=same "Stage1" }
+{ rank=same "Stage3" }
+{ rank=same "Stage2" }
+{ rank=same "Stage4" }
+"Stage11" -> "Stage8"[label="TrafficAck Full:0%  [16]",weight=4.0]
+"Stage8" -> "Stage11"[label="TrafficRelease Full:0%  [21]",weight=4.0]
+"Stage10" -> "Stage8"[label="TrafficAck Full:0%  [16]",weight=4.0]
+"Stage8" -> "Stage10"[label="TrafficRelease Full:0%  [21]",weight=4.0]
+"Stage9" -> "Stage8"[label="TrafficAck Full:0%  [16]",weight=4.0]
+"Stage8" -> "Stage9"[label="TrafficRelease Full:0%  [21]",weight=4.0]
+"Stage5" -> "Stage6"[label="ServerConnection Full:0%  [170]",weight=2.0]
+"Stage7" -> "Stage4"[label="NetPayload Full:0%  [51-170]",weight=16.0]
+"Stage7" -> "Stage4"[label="NetPayload Full:0%  [51-170]",weight=16.0]
+"Stage7" -> "Stage4"[label="NetPayload Full:0%  [51-170]",weight=16.0]
+"Stage7" -> "Stage4"[label="NetPayload Full:0%  [51-170]",weight=16.0]
+"Stage7" -> "Stage4"[label="NetPayload Full:0%  [51-170]",weight=16.0]
+"Stage7" -> "Stage4"[label="NetPayload Full:0%  [51-170]",weight=16.0]
+"Stage7" -> "Stage4"[label="NetPayload Full:0%  [51-170]",weight=16.0]
+"Stage7" -> "Stage4"[label="NetPayload Full:0%  [51-170]",weight=16.0]
+"Stage3" -> "Stage7"[label="ServerResponse Full:0%  [4-8]",weight=2.0]
+"Stage3" -> "Stage2"[label="HTTPRequest Full:0%  [1638]",weight=2.0]
+"Stage2" -> "Stage10"[label="I2CCommand Full:0%  [341-512]",weight=2.0]
+"Stage2" -> "Stage11"[label="GroveRequest Full:0%  [25-32]",weight=2.0]
+"Stage2" -> "Stage8"[label="TrafficOrder Full:0%  [16]",weight=2.0]
+"Stage2" -> "Stage7"[label="ServerResponse Full:0%  [16-32]",weight=2.0]
+"Stage2" -> "Stage9"[label="MessagePubSub Full:0%  [21-42]",weight=2.0]
+"Stage3" -> "Stage1"[label="Release Full:0%  [1170-1365]",weight=18.0]
+"Stage1" -> "Stage3"[label="NetPayload Full:0%  [51-170]",weight=18.0]
+"Stage1" -> "Stage3"[label="NetPayload Full:0%  [51-170]",weight=18.0]
+"Stage1" -> "Stage3"[label="NetPayload Full:0%  [51-170]",weight=18.0]
+"Stage1" -> "Stage3"[label="NetPayload Full:0%  [51-170]",weight=18.0]
+"Stage1" -> "Stage3"[label="NetPayload Full:0%  [51-170]",weight=18.0]
+"Stage1" -> "Stage3"[label="NetPayload Full:0%  [51-170]",weight=18.0]
+"Stage1" -> "Stage3"[label="NetPayload Full:0%  [51-170]",weight=18.0]
+"Stage1" -> "Stage3"[label="NetPayload Full:0%  [51-170]",weight=18.0]
+}

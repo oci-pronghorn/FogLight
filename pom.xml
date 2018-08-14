@@ -11,6 +11,7 @@
     <module>foglighter</module>
     <module>apidemo</module> 
     <module>examples</module>
+    <module>grove</module>
        
   </modules>
   

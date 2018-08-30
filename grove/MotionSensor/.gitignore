@@ -2,3 +2,5 @@
 /.classpath
 /.project
 /MotionSensor.md
+/target/
+/dependency-reduced-pom.xml

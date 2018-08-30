@@ -2,3 +2,5 @@
 /.classpath
 /.project
 /Button.md
+/target/
+/dependency-reduced-pom.xml

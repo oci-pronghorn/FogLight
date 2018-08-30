@@ -2,3 +2,5 @@
 /.classpath
 /.project
 /LightSensor.md
+/target/
+/dependency-reduced-pom.xml

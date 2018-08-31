@@ -288,6 +288,10 @@ public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
 	
 	private ListenerFilterIoT registerListenerImpl(String id, Behavior listener) {
 
+    	if (null == id) {
+    		//by default unless a name is given use the behavior
+    		id = builder.generateBehaviorName(listener);
+    	}
 		
 		outputPipes = new Pipe<?>[0];
 		ChildClassScanner.visitUsedByClass(id, listener, listenerAndNameVisitor, MsgCommandChannel.class);//populates OutputPipes

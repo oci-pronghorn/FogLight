@@ -785,7 +785,8 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 					runtime,
 					subscriptionPipeLookup2, ingressMessagePipes,
 					messagePubSub,
-					masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], subscriptionPipes);
+					masterGoOut[IDX_MSG], masterAckIn[IDX_MSG], 
+					subscriptionPipes);
 		}
 
 		//////////////////

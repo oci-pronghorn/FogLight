@@ -28,7 +28,8 @@ public class IoTApp implements FogApp {
         c.connect(AngleSensor, ROTARY_ANGLE_PORT, 100);
         c.setTimerPulseRate(200);
         
-        c.enableTelemetry();
+       //do not check  in with this on, in may cause startup issues. 
+       // c.enableTelemetry();
         c.definePublicTopics(topic);
     }
 

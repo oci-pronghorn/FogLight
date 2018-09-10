@@ -34,7 +34,7 @@ public class DirectHardwareAnalogDigitalOutputStage extends AbstractTrafficOrder
 	 * @param hardware
 	 */
 	public DirectHardwareAnalogDigitalOutputStage(GraphManager graphManager, 
-									MsgRuntime<?,?> runtime,
+									MsgRuntime<?,?,?> runtime,
 	                                Pipe<GroveRequestSchema>[] ccToAdOut,
 	                                Pipe<TrafficReleaseSchema>[] goPipe,
 	                                Pipe<TrafficAckSchema>[] ackPipe, HardwareImpl hardware) {

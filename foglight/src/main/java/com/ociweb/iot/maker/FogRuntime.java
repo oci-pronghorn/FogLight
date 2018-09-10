@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
-public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT>  {
+public class FogRuntime extends MsgRuntime<HardwareImpl, ListenerFilterIoT, FogRuntime>  {
 
 	private static final int DEFAULT_RATE = 10_000_000; //10ms THIS IS LARGE FOR VERY SLOW HARDWARE
 	

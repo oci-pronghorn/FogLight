@@ -27,7 +27,7 @@ public class SerialDataWriterStage extends AbstractTrafficOrderedStage {
 	private int pipeIdx = -1;
 
 	public SerialDataWriterStage(GraphManager graphManager,
-			MsgRuntime<?,?> runtime,
+			MsgRuntime<?,?,?> runtime,
 			Pipe<SerialOutputSchema>[] ccToAdOut, //many stages requesting writes
 			Pipe<TrafficReleaseSchema>[] goPipe, //traffic releases for each
 			Pipe<TrafficAckSchema>[] ackPipe, 

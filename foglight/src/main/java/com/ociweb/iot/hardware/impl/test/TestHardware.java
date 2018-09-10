@@ -222,7 +222,7 @@ public class TestHardware extends HardwareImpl {
 	}
 	
 	@Override
-	protected void createI2COutputInputStage(MsgRuntime<?,?> runtime,
+	protected void createI2COutputInputStage(MsgRuntime<?,?,?> runtime,
 			Pipe<I2CCommandSchema>[] i2cPipes,
 			Pipe<TrafficReleaseSchema>[] masterI2CgoOut, 
 			Pipe<TrafficAckSchema>[] masterI2CackIn, 

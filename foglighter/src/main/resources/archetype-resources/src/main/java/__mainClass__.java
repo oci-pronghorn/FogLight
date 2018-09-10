@@ -1,6 +1,11 @@
 package ${package};
 
-
+/**
+ * ************************************************************************
+ * For foglight support, training or feature reqeusts please contact:
+ *   info@objectcomputing.com   (314) 579-0066
+ * ************************************************************************
+ */
 import com.ociweb.iot.maker.*;
 import static com.ociweb.iot.maker.Port.*;
 

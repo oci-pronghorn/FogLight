@@ -53,7 +53,7 @@ public class I2CJFFIStage extends AbstractTrafficOrderedStage {
     public static final AtomicBoolean instanceCreated = new AtomicBoolean(false);
     
     public I2CJFFIStage(GraphManager graphManager, 
-    		MsgRuntime<?,?> runtime,
+    		MsgRuntime<?,?,?> runtime,
     		Pipe<TrafficReleaseSchema>[] goPipe,
             Pipe<I2CCommandSchema>[] i2cPayloadPipes,
             Pipe<TrafficAckSchema>[] ackPipe,

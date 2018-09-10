@@ -76,7 +76,7 @@ import com.ociweb.pronghorn.stage.test.PipeCleanerStage;
 import com.ociweb.pronghorn.util.math.PMath;
 import com.ociweb.pronghorn.util.math.ScriptedSchedule;
 
-public abstract class HardwareImpl extends BuilderImpl implements Hardware {
+public abstract class HardwareImpl extends BuilderImpl<FogRuntime> implements Hardware {
 
 
 	private static final int MAX_MOVING_AVERAGE_SUPPORTED = 101; //TOOD: is this still needed, remove???
@@ -431,7 +431,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		ReadDeviceInputStage adInputStage = new ReadDeviceInputStage(this.gm, masterResponsePipe, this);
 	}
 
-	protected void createI2COutputInputStage(MsgRuntime<?,?> runtime, Pipe<I2CCommandSchema>[] i2cPipes,
+	protected void createI2COutputInputStage(MsgRuntime<?,?,?> runtime, Pipe<I2CCommandSchema>[] i2cPipes,
 			Pipe<TrafficReleaseSchema>[] masterI2CgoOut, Pipe<TrafficAckSchema>[] masterI2CackIn, Pipe<I2CResponseSchema> masterI2CResponsePipe) {
 
 		if (hasI2CInputs()) {
@@ -442,7 +442,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		}
 	}
 
-	protected void createADOutputStage(MsgRuntime<?,?> runtime, Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
+	protected void createADOutputStage(MsgRuntime<?,?,?> runtime, Pipe<GroveRequestSchema>[] requestPipes, Pipe<TrafficReleaseSchema>[] masterPINgoOut, Pipe<TrafficAckSchema>[] masterPINackIn) {
 		DirectHardwareAnalogDigitalOutputStage adOutputStage = new DirectHardwareAnalogDigitalOutputStage(gm, runtime, requestPipes, masterPINgoOut, masterPINackIn, this);
 	}
 
@@ -960,7 +960,7 @@ public abstract class HardwareImpl extends BuilderImpl implements Hardware {
 		return null;
 	}
 
-	protected void createSerialOutputStage(MsgRuntime<?,?> runtime, Pipe<SerialOutputSchema>[] serialOutputPipes,
+	protected void createSerialOutputStage(MsgRuntime<?,?,?> runtime, Pipe<SerialOutputSchema>[] serialOutputPipes,
 			Pipe<TrafficReleaseSchema>[] masterGoOut, Pipe<TrafficAckSchema>[] masterAckIn) {
 		new SerialDataWriterStage(gm, runtime, serialOutputPipes, masterGoOut, masterAckIn,
 				this, this.buildSerialClient());

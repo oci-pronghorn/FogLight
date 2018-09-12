@@ -1,4 +1,4 @@
-package com.ocweb.grove;
+package com.ociweb.grove;
 
 import org.junit.Test;
 

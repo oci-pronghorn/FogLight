@@ -7,8 +7,8 @@
     <artifactId>grove</artifactId>
     <version>1</version>
   </parent>
-  <groupId>com.ocweb.grove</groupId>
-  <artifactId>ThreeAxisAccelerometer</artifactId>
+  <groupId>com.ociweb.grove</groupId>
+  <artifactId>three-axis-accelerometer</artifactId>
   <version>1.0-SNAPSHOT</version>
   <properties>
     <java.secure.socket.extension.classes>${java.home}/lib/jsse.jar</java.secure.socket.extension.classes>

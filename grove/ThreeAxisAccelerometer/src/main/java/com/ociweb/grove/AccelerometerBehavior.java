@@ -3,7 +3,7 @@
 * To change this template file, choose Tools | Templates
 * and open the template in the editor.
 */
-package com.ocweb.grove;
+package com.ociweb.grove;
 
 import com.ociweb.gl.api.StartupListener;
 import static com.ociweb.iot.grove.three_axis_accelerometer_16g.ThreeAxisAccelerometer_16gTwig.*;

@@ -2,6 +2,7 @@ package com.ociweb.iot.maker;
 
 import com.ociweb.gl.api.MsgApp;
 import com.ociweb.gl.api.MsgCommandChannel;
+import com.ociweb.gl.api.MsgRuntime;
 
 /**
  * Base interface for a maker's IoT application.
@@ -38,4 +39,5 @@ public interface FogApp extends MsgApp<Hardware, FogRuntime> {
 	default void declareConfiguration(Hardware hardware) {
 		declareConnections(hardware);
 	}
+
 }

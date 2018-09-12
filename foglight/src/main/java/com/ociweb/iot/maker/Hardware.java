@@ -17,7 +17,7 @@ import java.nio.file.Path;
  *
  * @author Nathan Tippy
  */
-public interface Hardware extends Builder {
+public interface Hardware extends Builder<FogRuntime> {
 
     /**
      * Sets the frequency at which images are taken on this hardware.

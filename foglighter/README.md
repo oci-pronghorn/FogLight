@@ -20,17 +20,19 @@
  
 Now, ```cd``` into a directory that you would like your own IoT project to be created in, and enter:
 ```
-mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=foglighter -DarchetypeVersion=1.0.0-SNAPSHOT
+mvn archetype:generate -DarchetypeGroupId=com.ociweb -DarchetypeArtifactId=foglighter -DarchetypeVersion=1.0.0
 ```
 The terminal now asks for:
 
 ```groupID```: type in  *com.ociweb* then press Enter
 
-```ArtifactID```: type in name of your project (with no spaces) then press Enter
+```ArtifactID```: type in name of your project (with no spaces, lower case and use - as needed) then press Enter
 
 ```version: 1.0-SNAPSHOT ```: Ignore, Press Enter
 
 ```package: com.ociweb ```: Ignore, Press Enter
+
+```mainClass:``` Type in proper case class name
 
 ```Y:```  :  Type *Y*, press Enter
 

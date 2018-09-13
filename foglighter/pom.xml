@@ -2,7 +2,8 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ociweb</groupId>
   <artifactId>foglighter</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <name>foglighter</name>
+  <version>1.0.0</version>
   <url>http://maven.apache.org</url>
   
   <properties>

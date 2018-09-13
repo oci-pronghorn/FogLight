@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ociweb</groupId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <artifactId>foglight</artifactId>
     <name>foglight</name>
 
@@ -39,7 +39,7 @@
                 <additionalparam>-Xdoclint:none</additionalparam>
             </properties>
         </profile>
-        <profile>
+        <!-- profile>
             <id>cloudbees</id>
             <distributionManagement>
                 <repository>
@@ -47,7 +47,7 @@
                     <url>dav:https://repository-pronghorn.forge.cloudbees.com/release</url>
                 </repository>
             </distributionManagement>
-        </profile>
+        </profile -->
         <profile>
             <id>mvn-central</id> <!-- profile for deploying to maven central -->
             <distributionManagement>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>com.ociweb</groupId>
             <artifactId>greenlightning</artifactId>
-            <version>[1.0.0-SNAPSHOT,1.1.0)</version>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>
@@ -136,7 +136,7 @@
         <tag>HEAD</tag>
     </scm>
 
-    <repositories>
+    <!-- repositories>
 
         <repository>
             <releases>
@@ -168,7 +168,7 @@
             <layout>default</layout>
         </repository>
 
-    </repositories>
+    </repositories -->
 
     <build>
 

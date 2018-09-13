@@ -3,9 +3,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.ociweb.iot.examples</groupId>
+    <groupId>com.ociweb.oe.foglight.examples</groupId>
     <artifactId>examples</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
   </parent>
   <artifactId>01a-nightlight</artifactId>
 
@@ -20,6 +20,7 @@
     <dependency>
             <groupId>com.ociweb</groupId>
             <artifactId>foglight</artifactId>
+            <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -37,7 +38,7 @@
       <optional>false</optional>
     </dependency>
   </dependencies>
-   <repositories>
+   <!--  repositories>
     
     <repository>
       <releases>
@@ -69,7 +70,7 @@
       <layout>default</layout>
     </repository>
         
-  </repositories>
+  </repositories -->
   <build>
     <plugins>
       <plugin>

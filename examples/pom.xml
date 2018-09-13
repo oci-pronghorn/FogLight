@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.ociweb.iot.examples</groupId>
+  <groupId>com.ociweb.oe.foglight.examples</groupId>
   <artifactId>examples</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>pom</packaging>
   <description>Examples for IoT projects. Each of the folders are simple Maven projects which can be built by mvn install
   </description>
@@ -33,7 +33,7 @@
       <dependency>
         <groupId>com.ociweb</groupId>
         <artifactId>foglight</artifactId>
-        <version>[1.0.0-SNAPSHOT,1.1.0)</version>
+        <version>1.0.0</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -63,7 +63,7 @@
       <dependency>
         <groupId>com.ociweb</groupId>
         <artifactId>greenlightning</artifactId>
-        <version>[1.0.0-SNAPSHOT,1.1.0)</version>
+        <version>1.0.0</version>
       </dependency>
       <dependency>
         <groupId>com.hazelcast</groupId>
@@ -87,11 +87,8 @@
     <module>01a-nightlight</module>
     <module>01b-clock</module>
     <module>010-tanklevelmonitor</module>
-    <module>110-gaspumpsimulator</module>
-    <!-- <module>120-valvemanifold</module> -->
-    <!-- <module>420-iotgateway</module> -->
+
     <module>500-matrixtest</module>
-    <module>400-iotgateway</module>
     <module>600-hzdemo</module>
     <module>006-snake</module>
   </modules>

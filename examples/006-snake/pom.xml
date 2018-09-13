@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>examples</artifactId>
-    <groupId>com.ociweb.iot.examples</groupId>
-    <version>1.0.0-SNAPSHOT</version>
+    <groupId>com.ociweb.oe.foglight.examples</groupId>
+    <version>1.0.0</version>
   </parent>
   <artifactId>006-snake</artifactId>
 
@@ -15,7 +15,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   
-  <repositories>
+  <!--  repositories>
     
     <repository>
       <releases>
@@ -45,13 +45,14 @@
       <layout>default</layout>
     </repository>
         
-  </repositories>
+  </repositories -->
   
   
   <dependencies>
   		<dependency>
 	  		<groupId>com.ociweb</groupId>
             <artifactId>foglight</artifactId>
+            <version>1.0.0</version>
     	</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
